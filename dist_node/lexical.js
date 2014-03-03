@@ -71,36 +71,23 @@ var ast_node = require("khepri-ast")["node"],
         }));
     }),
     examineState = (function(f) {
-        return bind(extract, (function(s) {
-            return f(s);
-        }));
-    }),
-    examineScope = (function(f) {
-        return bind(extract, (function(s) {
-            return f(s.scope);
-        }));
-    }),
-    modifyScope = (function(f) {
-        return (function(s, ok, err) {
-            var scope = f(s.scope),
-                newState = State.setScope(s, scope);
-            return ok(scope, newState);
-        });
-    }),
-    setScope = (function(s) {
-        return modifyScope((function() {
-            return s;
-        }));
+        return bind(extract, f);
     }),
     unique = (function(s, ok, err) {
         return ok(s.unique, s.setUnique((s.unique + 1)));
     }),
-    push = examineScope((function(s) {
-        return setScope(scope.push(s));
-    })),
-    pop = examineScope((function(s) {
-        return setScope(scope.pop(s));
-    })),
+    examineScope = (function(f) {
+        return examineState((function(s) {
+            return f(s.scope);
+        }));
+    }),
+    modifyScope = (function(f) {
+        return modifyState((function(s) {
+            return State.setScope(s, f(s.scope));
+        }));
+    }),
+    push = modifyScope(scope.push),
+    pop = modifyScope(scope.pop),
     move = (function(op) {
         return modifyState((function(s) {
             return State.setCtx(s, op(s.ctx));
@@ -112,7 +99,7 @@ var ast_node = require("khepri-ast")["node"],
     right = move(zipper.right),
     child = (function(edge) {
         var args = arguments;
-        return seq(move(tree.child.bind(null, edge)), seq.apply(undefined, [].slice.call(args, 1)), up);
+        return seq(move(tree.child.bind(null, edge)), seqa([].slice.call(args, 1)), up);
     }),
     checkCtx = (function(ctx) {
         return _check((ctx && tree.node(ctx)));

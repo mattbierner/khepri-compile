@@ -1,7 +1,7 @@
 {
     "name": "khepri-compile",
     "version": "0.0.1",
-    "description": "Khepri compiler",
+    "description": "Compiler for the Khepri programming language",
     "author": "Matt Bierner",
     "license": "MIT",
     "homepage": "http://khepri-lang.com",

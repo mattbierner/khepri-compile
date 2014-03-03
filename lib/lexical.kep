@@ -60,31 +60,27 @@ var setState = \s -> \_ ok _ -> ok(s, s);
 
 var modifyState = \f -> bind(extract, \s -> setState(f(s)));
 
-var examineState = \f -> bind(extract, \s -> f(s));
-
-var examineScope = \f -> bind(extract, \s -> f(s.scope));
-
-var modifyScope = \f ->
-    \s, ok, err -> let
-        scope = f(s.scope),
-        newState = State.setScope(s, scope)
-    in ok(scope, newState);
-
-var setScope = \s -> modifyScope(\() -> s);
+var examineState = \f -> bind(extract, f);
 
 var unique = \s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1));
 
-var push = examineScope <|\ s ->
-    setScope(scope.push s);
-    
-var pop = examineScope <|\ s ->
-    setScope(scope.pop s);
+/* Scope
+ ******************************************************************************/
+var examineScope = \f ->
+    examineState(\s -> f(s.scope));
+
+var modifyScope = \f ->
+    modifyState \s ->
+        State.setScope(s, f(s.scope));
+
+var push = modifyScope scope.push;
+var pop = modifyScope scope.pop;
 
 /* Movement
  ******************************************************************************/
 var move = \op ->
-    modifyState(\s ->
-        State.setCtx(s, op(s.ctx)));
+    modifyState \s ->
+        State.setCtx(s, op(s.ctx));
 
 var up = move zipper.up;
 var down = move zipper.down;
@@ -94,7 +90,7 @@ var right = move zipper.right;
 var child = \args(edge ...) ->
     seq(
         move tree.child@edge,
-        seq.apply(undefined, [].slice.call(args, 1)),
+        seqa([].slice.call(args, 1)),
         up);
 
 var checkCtx = \ctx ->
