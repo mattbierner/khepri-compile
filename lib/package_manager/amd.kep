@@ -60,8 +60,6 @@ definePackage = \loc exports imports targets body -> let
                         ast_value.Identifier.create(null, 'require')),
                     ast_pattern.IdentifierPattern.create(null,
                         ast_value.Identifier.create(null, 'exports')),
-                    ast_pattern.IdentifierPattern.create(null,
-                        ast_value.Identifier.create(null, 'module')),
                     map(imports, \x -> targets.(x.from.value)))),
             ast_statement.BlockStatement.create(body.loc,
                 concat(
