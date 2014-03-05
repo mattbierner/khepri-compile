@@ -13,6 +13,7 @@ var tree = require("neith")["tree"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
+    ast_package = require("khepri-ast")["package"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
     normalize, peepholes = ({}),
@@ -26,6 +27,12 @@ var tree = require("neith")["tree"],
             (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
         }));
     });
+addPeephole(["PackageExport"], true, (function(node) {
+    return (!node.alias);
+}), (function(node) {
+    return ast_package.PackageExport.create(node.loc, node.id, ast_value.Literal.create(null, "string", node.id
+        .name));
+}));
 addPeephole(["LetExpression"], true, (function(node) {
     return (node.bindings.length > 1);
 }), (function(__o) {

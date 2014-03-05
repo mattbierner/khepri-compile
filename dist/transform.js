@@ -324,9 +324,6 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
             var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
                 return (x.type === "ImportPattern");
             }), body.bindings) : []),
-                exportedNames = fun.map((function(x) {
-                    return x.id.name;
-                }), exports.exports),
                 targets = fun.reduce(imports, (function(p, c) {
                     (p[c.from.value] = c.pattern);
                     return p;
@@ -335,7 +332,7 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
                     (function(x) {
                         return (x.type !== "ImportPattern");
                     }), body.bindings), body.body) : body);
-            return packageManager.definePackage(loc, exportedNames, imports, targets, fBody);
+            return packageManager.definePackage(loc, exports, imports, targets, fBody);
         }),
         transformers = ({}),
         addTransform = (function(type, pre, post) {

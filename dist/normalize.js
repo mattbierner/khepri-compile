@@ -3,9 +3,10 @@
  * DO NOT EDIT
 */
 define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/declaration",
-    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "./fun"
+    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package", "khepri-ast/value",
+    "./fun"
 ], (function(require, exports, tree, __o, zipper, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_value, fun) {
+    ast_package, ast_value, fun) {
     "use strict";
     var walk = __o["walk"],
         khepriZipper = __o0["khepriZipper"],
@@ -20,6 +21,12 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepr
                 (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
             }));
         });
+    addPeephole(["PackageExport"], true, (function(node) {
+        return (!node.alias);
+    }), (function(node) {
+        return ast_package.PackageExport.create(node.loc, node.id, ast_value.Literal.create(null,
+            "string", node.id.name));
+    }));
     addPeephole(["LetExpression"], true, (function(node) {
         return (node.bindings.length > 1);
     }), (function(__o) {

@@ -10,7 +10,9 @@ with
     import 'khepri-ast::node' {setData},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::statement' ast_statement,
-    import 'khepri-ast::value' ast_value
+    import 'khepri-ast::value' ast_value,
+    
+    import '../fun' fun
 in {
 
 var concat = Function.prototype.call.bind(Array.prototype.concat);
@@ -29,19 +31,27 @@ in
         [ast_value.Literal.create(null, 'string', packagePath)]);
 
 definePackage = \loc exports imports targets body -> let
+    exportedNames = ?exports.type === 'PackageExports'
+        :fun.map(\x -> x.id.name, exports.exports)
+        :[exports.id.name],
+
     exportHeader = ast_declaration.VariableDeclaration.create(null,
-        map(exports, \x ->
+        map(exportedNames, \x ->
             ast_declaration.VariableDeclarator.create(null,
                 ast_value.Identifier.create(null, x)))),
     
-    exportBody = map(exports, \x ->
-        ast_statement.ExpressionStatement.create(null,
-            ast_expression.AssignmentExpression.create(null, '=',
-                ast_expression.MemberExpression.create(null,
-                    ast_value.Identifier.create(null, 'exports'),
-                    ast_value.Identifier.create(null, x)),
-                ast_value.Identifier.create(null, x)))),
-    
+    exportBody = ?exports.type === 'PackageExports'
+        :map(exports.exports, \x ->
+            ast_statement.ExpressionStatement.create(null,
+                ast_expression.AssignmentExpression.create(null, '=',
+                    ast_expression.MemberExpression.create(null,
+                        ast_value.Identifier.create(null, 'exports'),
+                        x.alias,
+                        true),
+                    x.id)))
+        :ast_statement.ReturnStatement.create(null,
+            exports.id),
+        
     packageBody = setData(
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null,
@@ -50,6 +60,8 @@ definePackage = \loc exports imports targets body -> let
                         ast_value.Identifier.create(null, 'require')),
                     ast_pattern.IdentifierPattern.create(null,
                         ast_value.Identifier.create(null, 'exports')),
+                    ast_pattern.IdentifierPattern.create(null,
+                        ast_value.Identifier.create(null, 'module')),
                     map(imports, \x -> targets.(x.from.value)))),
             ast_statement.BlockStatement.create(body.loc,
                 concat(

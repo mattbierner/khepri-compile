@@ -7,6 +7,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_statement = require("khepri-ast")["statement"],
     ast_value = require("khepri-ast")["value"],
+    fun = require("../fun"),
     definePackage, importPackage, concat = Array.prototype.concat.bind([]),
     map = Function.prototype.call.bind(Array.prototype.map);
 (importPackage = (function(path) {
@@ -20,15 +21,20 @@ var ast_declaration = require("khepri-ast")["declaration"],
         ]));
 }));
 (definePackage = (function(loc, exports, imports, targets, body) {
-    var exportHeader = ast_declaration.VariableDeclaration.create(null, map(exports, (function(x) {
-        return ast_declaration.VariableDeclarator.create(null, ast_value.Identifier.create(null, x));
-    }))),
-        exportBody = map(exports, (function(x) {
-            return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression.create(
-                null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier.create(
-                    null, "exports"), ast_value.Identifier.create(null, x)), ast_value.Identifier.create(
-                    null, x)));
-        }));
+    var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {
+        return x.id.name;
+    }), exports.exports) : [exports.id.name]),
+        exportHeader = ast_declaration.VariableDeclaration.create(null, map(exportedNames, (function(x) {
+            return ast_declaration.VariableDeclarator.create(null, ast_value.Identifier.create(null,
+                x));
+        }))),
+        exportBody = ((exports.type === "PackageExports") ? map(exports.exports, (function(x) {
+            return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
+                .create(null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier
+                    .create(null, "exports"), x.alias, true), x.id));
+        })) : ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression.create(
+            null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier.create(null,
+                "module"), ast_value.Identifier.create(null, "exports")), exports.id)));
     return ast_statement.BlockStatement.create(body.loc, [ast_statement.ExpressionStatement.create(null,
         ast_value.Literal.create(null, "string", "use strict")), ast_statement.WithStatement.create(
         null, map(imports, (function(x) {

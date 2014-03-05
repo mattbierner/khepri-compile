@@ -28,3 +28,9 @@
 [submodule "dependencies/neith"]
 	path = dependencies/neith
 	url = https://github.com/mattbierner/neith.git
+[submodule "dependencies/ecma-unparse"]
+	path = dependencies/ecma-unparse
+	url = https://github.com/mattbierner/ecma-unparse.git
+[submodule "dependencies/khepri-parse"]
+	path = dependencies/khepri-parse
+	url = https://github.com/mattbierner/khepri-parse.git

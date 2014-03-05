@@ -8,7 +8,9 @@ with
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::statement' ast_statement,
-    import 'khepri-ast::value' ast_value
+    import 'khepri-ast::value' ast_value,
+    
+    import '../fun' fun
 in {
 
 var concat = Array.prototype.concat.bind([]);
@@ -30,18 +32,30 @@ in
             ast_value.Literal.create(null, 'string', segs.(0))]));
 
 definePackage = \loc exports imports targets body -> let
+    exportedNames = ?exports.type === 'PackageExports'
+        :fun.map(\x -> x.id.name, exports.exports)
+        :[exports.id.name],
+
     exportHeader = ast_declaration.VariableDeclaration.create(null,
-        map(exports, \x ->
+        map(exportedNames, \x ->
             ast_declaration.VariableDeclarator.create(null,
                 ast_value.Identifier.create(null, x)))),
     
-    exportBody = map(exports, \x ->
-        ast_statement.ExpressionStatement.create(null,
-            ast_expression.AssignmentExpression.create(null, '=',
-                ast_expression.MemberExpression.create(null,
-                    ast_value.Identifier.create(null, 'exports'),
-                    ast_value.Identifier.create(null, x)),
-                ast_value.Identifier.create(null, x))))
+    exportBody = ?exports.type === 'PackageExports'
+        :map(exports.exports, \x ->
+            ast_statement.ExpressionStatement.create(null,
+                ast_expression.AssignmentExpression.create(null, '=',
+                    ast_expression.MemberExpression.create(null,
+                        ast_value.Identifier.create(null, 'exports'),
+                        x.alias,
+                        true),
+                    x.id)))
+        :ast_statement.ExpressionStatement.create(null,
+                ast_expression.AssignmentExpression.create(null, '=',
+                    ast_expression.MemberExpression.create(null,
+                        ast_value.Identifier.create(null, 'module'),
+                        ast_value.Identifier.create(null, 'exports')),
+                    exports.id))
 in
     ast_statement.BlockStatement.create(body.loc, [
         ast_statement.ExpressionStatement.create(null,

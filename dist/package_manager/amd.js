@@ -3,8 +3,8 @@
  * DO NOT EDIT
 */
 define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
-    "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value"
-], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_statement, ast_value) {
+    "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value", "../fun"
+], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_statement, ast_value, fun) {
     "use strict";
     var setData = __o["setData"],
         definePackage, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
@@ -20,23 +20,29 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
         ]);
     }));
     (definePackage = (function(loc, exports, imports, targets, body) {
-        var exportHeader = ast_declaration.VariableDeclaration.create(null, map(exports, (function(x) {
-            return ast_declaration.VariableDeclarator.create(null, ast_value.Identifier.create(
-                null, x));
-        }))),
-            exportBody = map(exports, (function(x) {
+        var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {
+            return x.id.name;
+        }), exports.exports) : [exports.id.name]),
+            exportHeader = ast_declaration.VariableDeclaration.create(null, map(exportedNames, (
+                function(x) {
+                    return ast_declaration.VariableDeclarator.create(null, ast_value.Identifier
+                        .create(null, x));
+                }))),
+            exportBody = ((exports.type === "PackageExports") ? map(exports.exports, (function(x) {
                 return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
-                    .create(null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier
-                            .create(null, "exports"), ast_value.Identifier.create(null, x)),
-                        ast_value.Identifier.create(null, x)));
-            })),
+                    .create(null, "=", ast_expression.MemberExpression.create(null,
+                            ast_value.Identifier.create(null, "exports"), x.alias, true), x
+                        .id));
+            })) : ast_statement.ReturnStatement.create(null, exports.id)),
             packageBody = setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
                 .create(null, null, concat(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier
-                    .create(null, "require")), ast_pattern.IdentifierPattern.create(null,
-                    ast_value.Identifier.create(null, "exports")), map(imports, (function(x) {
-                    return targets[x.from.value];
-                })))), ast_statement.BlockStatement.create(body.loc, concat(exportHeader, body,
-                    exportBody))), "prefix", ast_statement.ExpressionStatement.create(null,
+                        .create(null, "require")), ast_pattern.IdentifierPattern.create(null,
+                        ast_value.Identifier.create(null, "exports")), ast_pattern.IdentifierPattern
+                    .create(null, ast_value.Identifier.create(null, "module")), map(imports, (
+                        function(x) {
+                            return targets[x.from.value];
+                        })))), ast_statement.BlockStatement.create(body.loc, concat(exportHeader,
+                    body, exportBody))), "prefix", ast_statement.ExpressionStatement.create(null,
                 ast_value.Literal.create(null, "string", "use strict")));
         return ast_statement.ExpressionStatement.create(loc, ast_expression.CallExpression.create(loc,
             ast_value.Identifier.create(null, "define"), [ast_expression.ArrayExpression.create(

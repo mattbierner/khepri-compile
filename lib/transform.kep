@@ -462,8 +462,6 @@ var packageBlock = \packageManager, loc, exports, body -> let
         :fun.filter(\x -> x.type === 'ImportPattern', body.bindings)
         :[],
     
-    exportedNames = fun.map(\x -> x.id.name, exports.exports),
-    
     targets = fun.reduce(imports, \p c -> {
         p.(c.from.value) = c.pattern;
         return p;
@@ -475,7 +473,7 @@ var packageBlock = \packageManager, loc, exports, body -> let
             body.body)
         :body
 in
-    packageManager.definePackage(loc, exportedNames, imports, targets, fBody);
+    packageManager.definePackage(loc, exports, imports, targets, fBody);
 
 /* Transform
  ******************************************************************************/
