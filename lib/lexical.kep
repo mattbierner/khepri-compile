@@ -83,6 +83,11 @@ var pop = modifyScope scope.pop;
 
 /* Movement
  ******************************************************************************/
+var inspect = \f ->
+    examineState\s -> f(tree.node s.ctx);
+
+var extractNode = inspect ok;
+
 var move = \op ->
     modifyState \s ->
         State.setCtx(s, op(s.ctx));
@@ -98,24 +103,15 @@ var child = \args(edge ...) ->
         seqa([].slice.call(args, 1)),
         up);
 
-var checkCtx = \ctx ->
-    _check <| (ctx && tree.node(ctx));
+var modifyNode = \f -> move tree.modifyNode@f;
 
-var checkTop = \s ok err ->
-    checkCtx(s.ctx)(s, ok, err);
+var setNode = \x -> move tree.setNode@x;
+
+var checkTop = inspect \ x -> _check x; // forward
 
 var checkChild = \edge ->
     child(edge,
         checkTop);
-
-var inspect = \f ->
-    examineState\s -> f(tree.node s.ctx);
-
-var extractNode = inspect ok;
-
-var modifyNode = \f -> move tree.modifyNode@f;
-
-var setNode = \x -> move tree.setNode@x;
 
 /* Operations
  ******************************************************************************/
@@ -171,7 +167,7 @@ var checkCanAssign = \id, loc ->
 /**
  * Define a new identifier and create a uid entry for it.
  */
-var addUid  = \id ->
+var addUid = \id ->
     bind(unique, \uid ->
         modifyScope(\s -> Scope.addUid(s, id, uid)));
 
@@ -181,7 +177,8 @@ var addUid  = \id ->
  */
 var addMutableBinding = \id, loc -> 
     seq(
-         modifyScope(\s -> Scope.addMutableBinding(s, id, loc)),
+         modifyScope \ s ->
+             Scope.addMutableBinding(s, id, loc),
          addUid(id));
 
 /**
@@ -190,7 +187,8 @@ var addMutableBinding = \id, loc ->
  */
 var addImmutableBinding = \id, loc -> 
     seq(
-         modifyScope(\s -> Scope.addImmutableBinding(s, id, loc)),
+         modifyScope \ s ->
+             Scope.addImmutableBinding(s, id, loc),
          addUid(id));
 
 /**
@@ -554,7 +552,7 @@ in
                 extractNode),
             new State(
                 khepriZipper(ast),
-                initialScope(globals),
+                initialScope(globals || []),
                 1),
             suc,
             fail);

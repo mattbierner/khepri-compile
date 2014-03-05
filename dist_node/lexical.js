@@ -90,6 +90,12 @@ var ast_node = require("khepri-ast")["node"],
     }),
     push = modifyScope(scope.push),
     pop = modifyScope(scope.pop),
+    inspect = (function(f) {
+        return examineState((function(s) {
+            return f(tree.node(s.ctx));
+        }));
+    }),
+    extractNode = inspect(ok),
     move = (function(op) {
         return modifyState((function(s) {
             return State.setCtx(s, op(s.ctx));
@@ -103,26 +109,17 @@ var ast_node = require("khepri-ast")["node"],
         var args = arguments;
         return seq(move(tree.child.bind(null, edge)), seqa([].slice.call(args, 1)), up);
     }),
-    checkCtx = (function(ctx) {
-        return _check((ctx && tree.node(ctx)));
-    }),
-    checkTop = (function(s, ok, err) {
-        return checkCtx(s.ctx)(s, ok, err);
-    }),
-    checkChild = (function(edge) {
-        return child(edge, checkTop);
-    }),
-    inspect = (function(f) {
-        return examineState((function(s) {
-            return f(tree.node(s.ctx));
-        }));
-    }),
-    extractNode = inspect(ok),
     modifyNode = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
     setNode = (function(x) {
         return move(tree.setNode.bind(null, x));
+    }),
+    checkTop = inspect((function(x) {
+        return _check(x);
+    })),
+    checkChild = (function(edge) {
+        return child(edge, checkTop);
     }),
     pass = ok(),
     block = (function() {
@@ -300,7 +297,7 @@ var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
         throw x;
     });
 (check = (function(ast, globals) {
-    return run(seq(checkTop, move(zipper.root), extractNode), new(State)(khepriZipper(ast), initialScope(
-        globals), 1), suc, fail);
+    return run(seq(checkTop, move(zipper.root), extractNode), new(State)(khepriZipper(ast), initialScope((
+        globals || [])), 1), suc, fail);
 }));
 (exports["check"] = check);
