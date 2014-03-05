@@ -4,6 +4,8 @@
 package (
     optimize)
 with
+    import 'bes::record' record,
+
     import 'neith::tree' tree,
     import 'neith::walk' {walk},
     import 'neith::zipper' zipper,
@@ -19,6 +21,12 @@ with
     
     import './fun' fun
 in {
+
+/* State
+ ******************************************************************************/
+var State = record.declare(null, [
+    'ctx',
+    'unique']);
 
 /*
  ******************************************************************************/

@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value",
     "neith/zipper", "neith/tree", "khepri-ast-zipper", "bes/record", "./scope", "./tail", "./fun"
 ], (function(require, exports, ast_node, ast_expression, ast_pattern, ast_value, zipper, tree, __o, record, scope,
     __o0, fun) {
@@ -14,6 +13,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         Tail = __o0["Tail"],
         trampoline = __o0["trampoline"],
         check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
+        run = (function(c, s, ok, err) {
+            return trampoline(c(s, ok, err));
+        }),
         ok = (function(x) {
             return (function(s, ok, _) {
                 return ok(x, s);
@@ -108,6 +110,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
                 return f(tree.node(s.ctx));
             }));
         }),
+        extractNode = inspect(ok),
         modifyNode = (function(f) {
             return move(tree.modifyNode.bind(null, f));
         }),
@@ -287,17 +290,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var checkAst = (function(ast, globals) {
-        var scope = fun.reduce((globals || []), Scope.addImmutableBinding, Scope.empty),
-            state = new(State)(khepriZipper(ast), scope, 1);
-        return trampoline(checkTop(state, (function(x, s) {
-            return tree.node(zipper.root(s.ctx));
-        }), (function(err, s) {
-            throw err;
-        })));
-    });
+    var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+        suc = (function(x) {
+            return x;
+        }),
+        fail = (function(x) {
+            throw x;
+        });
     (check = (function(ast, globals) {
-        return checkAst(ast, globals);
+        return run(seq(checkTop, move(zipper.root), extractNode), new(State)(khepriZipper(ast),
+            initialScope(globals), 1), suc, fail);
     }));
-    (exports.check = check);
+    (exports["check"] = check);
 }));

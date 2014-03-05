@@ -1,9 +1,9 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
-var tree = require("neith")["tree"],
+*/"use strict";
+var record = require("bes")["record"],
+    tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],
     zipper = require("neith")["zipper"],
@@ -20,7 +20,8 @@ var tree = require("neith")["tree"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
-    optimize, peepholes = ({}),
+    optimize, State = record.declare(null, ["ctx", "unique"]),
+    peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
             "condition": condition,
@@ -155,4 +156,4 @@ var upTransforms = (function(node) {
 (optimize = (function(ast) {
     return tree.node(zipper.root(opt(khepriZipper(ast))));
 }));
-(exports.optimize = optimize);
+(exports["optimize"] = optimize);

@@ -1,12 +1,11 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
-    "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "./fun"
-], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_value, fun) {
+*/define(["require", "exports", "bes/record", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper",
+    "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
+    "khepri-ast/pattern", "khepri-ast/value", "./fun"
+], (function(require, exports, record, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement,
+    ast_expression, ast_pattern, ast_value, fun) {
     "use strict";
     var walk = __o["walk"],
         khepriZipper = __o0["khepriZipper"],
@@ -14,7 +13,8 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepr
         Node = __o1["Node"],
         setUserData = __o1["setUserData"],
         setData = __o1["setData"],
-        optimize, peepholes = ({}),
+        optimize, State = record.declare(null, ["ctx", "unique"]),
+        peepholes = ({}),
         addPeephole = (function(types, up, condition, f) {
             var entry = ({
                 "condition": condition,
@@ -154,5 +154,5 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepr
     (optimize = (function(ast) {
         return tree.node(zipper.root(opt(khepriZipper(ast))));
     }));
-    (exports.optimize = optimize);
+    (exports["optimize"] = optimize);
 }));

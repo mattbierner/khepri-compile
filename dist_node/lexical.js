@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -21,6 +20,9 @@ var ast_node = require("khepri-ast")["node"],
     trampoline = __o0["trampoline"],
     fun = require("./fun"),
     check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
+    run = (function(c, s, ok, err) {
+        return trampoline(c(s, ok, err));
+    }),
     ok = (function(x) {
         return (function(s, ok, _) {
             return ok(x, s);
@@ -115,6 +117,7 @@ var ast_node = require("khepri-ast")["node"],
             return f(tree.node(s.ctx));
         }));
     }),
+    extractNode = inspect(ok),
     modifyNode = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
@@ -289,16 +292,15 @@ addCheck("Identifier", inspect((function(node) {
     if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
     return pass;
 }));
-var checkAst = (function(ast, globals) {
-    var scope = fun.reduce((globals || []), Scope.addImmutableBinding, Scope.empty),
-        state = new(State)(khepriZipper(ast), scope, 1);
-    return trampoline(checkTop(state, (function(x, s) {
-        return tree.node(zipper.root(s.ctx));
-    }), (function(err, s) {
-        throw err;
-    })));
-});
+var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+    suc = (function(x) {
+        return x;
+    }),
+    fail = (function(x) {
+        throw x;
+    });
 (check = (function(ast, globals) {
-    return checkAst(ast, globals);
+    return run(seq(checkTop, move(zipper.root), extractNode), new(State)(khepriZipper(ast), initialScope(
+        globals), 1), suc, fail);
 }));
-(exports.check = check);
+(exports["check"] = check);

@@ -35,6 +35,9 @@ var State = record.declare(null, [
 
 /* Monad
  ******************************************************************************/
+var run = \c s ok err ->
+    trampoline <| c(s, ok, err);
+
 var ok = \x -> \s, ok, _ -> ok(x, s);
 
 var error = \x -> \s, _, err -> err(x, s);
@@ -108,6 +111,8 @@ var checkChild = \edge ->
 var inspect = \f ->
     examineState\s -> f(tree.node s.ctx);
 
+var extractNode = inspect ok;
+
 var modifyNode = \f -> move tree.modifyNode@f;
 
 var setNode = \x -> move tree.setNode@x;
@@ -132,7 +137,7 @@ var block = \body(...) ->
  * Check to ensure the current scope contains a binding for `id`.
  */
 var checkHasBinding = \id, loc ->
-    examineScope <|\ s ->
+    examineScope \ s ->
         ?s.hasBinding(id)
             :pass
             :error("Undeclared identifier:'" + id + "' at:" + loc);
@@ -141,7 +146,7 @@ var checkHasBinding = \id, loc ->
  * Check to ensure the current scope does not have has a binding for `id`.
  */
 var checkCanAddOwnBinding = \id loc -> 
-    examineScope <|\ s ->
+    examineScope \ s ->
         ?s.hasOwnBinding(id)
             :let
                 start = loc && loc.start,
@@ -155,7 +160,7 @@ var checkCanAddOwnBinding = \id loc ->
  * Check if `id` is a mutable binding.
  */
 var checkCanAssign = \id, loc -> 
-    examineScope <|\ s ->
+    examineScope \ s ->
         ?s.hasBinding(id)
             :let b = s.getBinding(id) in
                 ?b.mutable
@@ -212,7 +217,7 @@ var checks = {};
 
 var addCheck = \type, check -> {
     if (Array.isArray(type))
-        type.forEach <|\x -> addCheck(x, check);
+        type.forEach \x -> addCheck(x, check);
     else
         checks.(type) = check;
 };
@@ -225,7 +230,7 @@ addCheck@'PackageExports' <|
     checkChild 'exports';
 
 addCheck@'PackageExport' <|
-    inspect <|\ node ->
+    inspect \ node ->
         addMutableBindingChecked(
             node.id.name,
             node.loc);
@@ -236,7 +241,7 @@ addCheck@'Package' <|
         addImmutableBindingChecked('exports', null),
         addImmutableBindingChecked('module', null),
         checkChild 'exports',
-        inspect <|\ node ->
+        inspect \ node ->
             ?node.body.type === 'WithStatement'
                 :child('body',
                     checkChild 'bindings',
@@ -253,7 +258,7 @@ addCheck@'SwitchCase' <|
 
 addCheck@'CatchClause' <|
     block(
-        inspect <|\ node ->
+        inspect \ node ->
             addImmutableBindingChecked(node.param.name, node.param.loc),
         checkChild 'param',
         child('body',
@@ -264,11 +269,11 @@ addCheck@['StaticDeclaration', 'VariableDeclaration'] <|
     checkChild 'declarations';
 
 addCheck@'StaticDeclarator' <|
-    inspect <|\ node ->
+    inspect \ node ->
         addImmutableBindingChecked(node.id.name, node.loc);
     
 addCheck@'VariableDeclarator' <|
-    inspect <|\ node -> let
+    inspect \ node -> let
         bind =  ?node.immutable
             :addImmutableBindingChecked(node.id.name, node.loc)
             :addMutableBindingChecked(node.id.name, node.loc)
@@ -284,7 +289,7 @@ addCheck@'VariableDeclarator' <|
                 checkChild 'id');
 
 addCheck@'Binding' <|
-    inspect <|\ node ->
+    inspect \ node ->
         ?node.recursive
             :seq(
                 checkChild 'pattern',
@@ -354,12 +359,12 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-         inspect <|\ node ->
+         inspect \ node ->
              ?node.id
                  :addImmutableBinding(node.id.name, node.loc)
                  :pass,
          checkChild 'params',
-         inspect <|\ node ->
+         inspect \ node ->
              ?node.body.type === "BlockStatement"
                  :child('body',
                      checkChild 'body')
@@ -372,7 +377,7 @@ addCheck@'AssignmentExpression' <|
     seq(
         child('left',
             checkTop,
-            inspect <|\ left ->
+            inspect \ left ->
                 ?left.type === 'Identifier'
                     :checkCanAssign(left.name, left.loc)
                     :pass),
@@ -397,7 +402,7 @@ addCheck@['CallExpression', 'NewExpression'] <|
 addCheck@'MemberExpression' <|
     seq(
         checkChild 'object',
-        inspect <|\ node ->
+        inspect \ node ->
             ?node.computed
                 :checkChild 'property'
                 :pass);
@@ -421,7 +426,7 @@ addCheck@'CurryExpression' <|
 // @TODO: Hack, create an internal identifier that is used in translation
 addCheck@'UnaryOperatorExpression' <|
     bind(unique, \uid ->
-        modifyNode <|\ node ->
+        modifyNode \ node ->
            setData(node,
                'x_uid',
                uid));
@@ -429,7 +434,7 @@ addCheck@'UnaryOperatorExpression' <|
 // @TODO: Hack, create an internal identifier that is used in translation
 addCheck@'BinaryOperatorExpression' <|
     binary(unique, unique, \xuid yuid ->
-        modifyNode <|\ node ->
+        modifyNode \ node ->
            setUserData(node, {
                'x_uid': xuid,
                'y_uid': yuid
@@ -446,7 +451,7 @@ addCheck@'SinkPattern'<|
 
 addCheck@'IdentifierPattern' <|
     seq(
-        inspect <|\ node ->
+        inspect \ node ->
             ?node.reserved
                 :addImmutableBinding(node.id.name, node.loc)
                 :addImmutableBindingChecked(node.id.name, node.loc),
@@ -458,7 +463,7 @@ addCheck@'ImportPattern' <|
 addCheck@'AsPattern' <|
     seq(
         checkChild 'id',
-        inspect <|\ node ->
+        inspect \ node ->
             child('target',
                 modifyNode \target ->
                     // Hack: For generating argument lists, we want to used the 
@@ -467,7 +472,7 @@ addCheck@'AsPattern' <|
                 checkTop));
 
 addCheck@'ObjectPattern' <|
-    inspect <|\ node -> {
+    inspect \ node -> {
         if (!node.ud || !node.ud.id) {
             return seq(
                 bind(unique, \uid -> {
@@ -504,9 +509,9 @@ addCheck@'ObjectValue' <|
     checkChild 'value';
 
 addCheck@'Identifier' <|
-    inspect <|\ node ->
+    inspect \ node ->
         seq(
-            examineScope <|\ s ->
+            examineScope \ s ->
                  setNode <| setData(node, 'uid', s.getUid(node.name)),
             checkHasBinding(node.name, node.loc));
 
@@ -532,21 +537,25 @@ _check = \node -> {
     return pass;
 };
 
+var initialScope = fun.foldl@(Scope.addImmutableBinding, Scope.empty);
 
 /**
  * 
  */
-var checkAst = \ast globals -> {
-    var scope = fun.reduce(globals || [], Scope.addImmutableBinding, Scope.empty);
-    var state = new State(khepriZipper(ast), scope, 1);
-    return trampoline(checkTop(state, \x s -> (s.ctx |> zipper.root |> tree.node), \err, s -> { throw err; }));
-};
-
-/**
- * 
- */
-check = \ast globals ->
-    checkAst(ast, globals);
-
-
+check = let
+    suc = \x -> x,
+    fail = \x -> { throw x; }
+in
+    \ast globals ->
+        run(
+            seq(
+                checkTop,
+                move zipper.root,
+                extractNode),
+            new State(
+                khepriZipper(ast),
+                initialScope(globals),
+                1),
+            suc,
+            fail);
 }
