@@ -82,52 +82,6 @@ exports.switchBodyIntroducesNewScopeButNotCases = function(test) {
     test.done();
 };
 
-exports.packageDuplicateExports = function(test) {
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (x, x) {}")));
-    });
-    
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (x, y, z, x) {}")));
-    });
-    test.done();
-};
-
-exports.packageBindingNameConflict = function(test) {
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (x) with x = 3 {}")));
-    });
-    
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (y, z, x) with [[[x]]] = 3 {}")));
-    });
-    
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (y, z, x) with import 'x' x {}")));
-    });
-    test.done();
-};
-
-exports.packageBodyNameConflict = function(test) {
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package (x) { var x; }")));
-    });
-    
-    test.ok(
-        lexical.check(testParser(lexer.lex("package (x) { {var x; } }"))));
-    test.done();
-};
-
-exports.packageBlockBodyConflict = function(test) {
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex("package () with x = 3 in { var x; }")));
-    });
-    
-    test.ok(
-        lexical.check(testParser(lexer.lex("package () with x = 3 in { {var x; } }"))));
-    test.done();
-};
-
 exports.multipleParameterSameName = function(test) {
     test.throws(function() {
         lexical.check(testParser(lexer.lex("(\\x, x -> x*x)(2)")));

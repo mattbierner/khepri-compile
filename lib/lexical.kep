@@ -463,7 +463,7 @@ addCheck@'AsPattern' <|
         checkChild 'id',
         inspect \ node ->
             child('target',
-                modifyNode \target ->
+                modifyNode \ target ->
                     // Hack: For generating argument lists, we want to used the 
                     // as pattern name if possible.
                     setData(target, 'id', node.id),
@@ -541,7 +541,7 @@ var initialScope = fun.foldl@(Scope.addImmutableBinding, Scope.empty);
  * 
  */
 check = let
-    suc = \x -> x,
+    suc = \x -> ({'tree': x }),
     fail = \x -> { throw x; }
 in
     \ast globals ->

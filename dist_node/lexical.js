@@ -291,7 +291,9 @@ addCheck("Identifier", inspect((function(node) {
 }));
 var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
     suc = (function(x) {
-        return x;
+        return ({
+            "tree": x
+        });
     }),
     fail = (function(x) {
         throw x;
