@@ -1,17 +1,15 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/stage/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var transformer = require("../transform"),
+    __o = require("bes")["object"],
+    setProperty = __o["setProperty"],
     transform;
-(transform = (function(__o) {
-    var options = __o["options"],
-        ast = __o["ast"],
-        packageManager = (options.package_manager || "amd");
-    return ({
-        "options": options,
-        "ast": transformer.transform(ast, packageManager)
-    });
+(transform = (function(input) {
+    var options = input["options"],
+        ast = input["ast"],
+        data = input["data"];
+    return setProperty(input, "ast", transformer.transform(ast, (options.package_manager || "amd"), data));
 }));
-(exports.transform = transform);
+(exports["transform"] = transform);

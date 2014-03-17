@@ -42,6 +42,13 @@ exports.binding_name_conflict = function(test) {
     test.done();
 };
 
+exports.alias_name_conflict = function(test) {
+    test.throws(function() {
+        testParser("package ('y' x) with x = 3 {}");
+    });
+    test.done();
+};
+
 exports.body_name_conflict = function(test) {
     test.throws(function() {
         testParser("package (x) { var x; }");

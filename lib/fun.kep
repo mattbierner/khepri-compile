@@ -2,6 +2,10 @@
  * @fileOverview
  */
 package (
+    constant
+    
+    flip
+    
     reduce
     reduceRight
     
@@ -14,6 +18,11 @@ package (
     
     flatten)
 {
+
+constant = \x -> \() -> x;
+
+flip = \f -> \x y -> f(y, x);
+
 
 reduce = Function.prototype.call.bind(Array.prototype.reduce);
 reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);

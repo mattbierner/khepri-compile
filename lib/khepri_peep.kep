@@ -6,13 +6,12 @@ package (
 with
     import 'bes::record' record,
 
-    import 'neith::tree' tree,
-    import 'neith::walk' {walk},
+    import 'neith::tree' tree#{modifyNode},
     import 'neith::zipper' zipper,
 
     import 'khepri-ast-zipper' {khepriZipper},
     
-    import 'khepri-ast::node' {modify Node setUserData setData},
+    import 'khepri-ast::node' {Node setUserData setData},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -27,6 +26,49 @@ in {
 var State = record.declare(null, [
     'ctx',
     'unique']);
+
+var run = \c s ok ->
+    c(s, ok);
+
+var ok = \x -> \s, ok, _ -> ok(x, s);
+
+var bind = \p f ->
+    \s ok err ->
+        p(s, \x s -> f(x)(s, ok));
+
+var binary = \a b f ->
+    bind(a, \x ->
+        bind(b, \y ->
+            f(x, y)));
+
+var next = \p c ->
+    bind(p, fun.constant c);
+
+var seqa = \arr -> fun.reduce(arr, next);
+var seq = \args(...) -> seqa(args);
+
+var extract = \s ok -> ok(s, s);
+var setState = \s -> \_ ok -> ok(s, s);
+
+var examineState = bind@extract;
+var modifyState = \f -> bind(extract, \s -> setState(f(s)));
+
+var get = \op ->
+    examineState\s ->
+        ok(op(s.ctx));
+
+var node = get tree.node;
+
+var move = \op ->
+    modifyState \s ->
+        State.setCtx(s, op(s.ctx));
+
+var modify = \f ->
+    move tree.modifyNode@f;
+
+var ctx = examineState \s -> ok(s.ctx);
+
+var unique = \s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1));
 
 /*
  ******************************************************************************/
@@ -54,7 +96,7 @@ var addPeephole = \types, up, condition, f -> {
 addPeephole(['ReturnStatement'], false,
     \node ->
         (node.argument && node.argument.type === 'LetExpression'),
-    \node ->
+    modify\node ->
         ast_statement.WithStatement.create(null,
             node.argument.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -66,7 +108,7 @@ addPeephole(['ReturnStatement'], false,
 addPeephole(['FunctionExpression'], false,
     \node ->
         (node.body.type === 'LetExpression'),
-    \node ->
+    modify\node ->
         ast_expression.FunctionExpression.create(null,
             node.id,
             node.params,
@@ -82,7 +124,7 @@ addPeephole(['FunctionExpression'], false,
 addPeephole(['ExpressionStatement'], true,
     \node ->
         (node.expression && node.expression.type === 'LetExpression'),
-    \node ->
+    modify\node ->
         ast_statement.WithStatement.create(null,
             node.expression.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -96,7 +138,7 @@ addPeephole(['ExpressionStatement'], true,
         (  node.expression
         && node.expression.type === 'AssignmentExpression'
         && node.expression.right.type === 'LetExpression'),
-    \node ->
+    modify\node ->
         ast_statement.WithStatement.create(null,
             node.expression.right.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -126,21 +168,22 @@ addPeephole(['LetExpression'], true,
 addPeephole(['CurryExpression'], true,
     \node ->
         node.base.type === 'UnaryOperatorExpression',
-    \node -> let
-        arg = setData(
-            ast_value.Identifier.create(null, 'x'),
-            'uid',
-            node.base.ud.x_uid)
-    in
-        ast_expression.LetExpression.create(null,
-            [ast_declaration.Binding.create(null,
-                ast_pattern.IdentifierPattern.create(null, arg),
-                node.args.(0))],
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, []),
-                ast_expression.UnaryExpression.create(null,
-                    node.base.op,
-                    arg))));
+    bind(unique, \xUid ->
+        modify\node -> let
+            arg = setData(
+                ast_value.Identifier.create(null, 'x'),
+                'uid',
+                xUid)
+        in
+            ast_expression.LetExpression.create(null,
+                [ast_declaration.Binding.create(null,
+                    ast_pattern.IdentifierPattern.create(null, arg),
+                    node.args.(0))],
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null, []),
+                    ast_expression.UnaryExpression.create(null,
+                        node.base.op,
+                        arg)))));
 
 /**
  * Convert curry on function expression to function.
@@ -152,7 +195,7 @@ addPeephole(['CurryExpression'], true,
         node.base.type === 'FunctionExpression'
         && !node.base.params.id, // make sure no one is using arguments object
     
-    \node -> let
+    modify\node -> let
         first = node.base.params.elements.(0),
         rest = node.base.params.elements.slice(1),
         
@@ -180,8 +223,8 @@ addPeephole(['CurryExpression'], true,
         node.base.type === 'LetExpression'
         && node.base.body.type === 'FunctionExpression'
         && !node.base.body.params.id, // make sure no one is using arguments object
-   
-    \node -> let
+    
+    modify\node -> let
         first = node.base.body.params.elements.(0),
         rest = node.base.body.params.elements.slice(1),
         
@@ -210,28 +253,30 @@ addPeephole(['CurryExpression'], true,
     \node ->
         node.base.type === 'BinaryOperatorExpression'
         && node.args.length === 1,
-    \node -> let
-        bound = setData(
-            ast_value.Identifier.create(null, 'x'),
-            'uid',
-            node.base.ud.x_uid),
-        
-        arg = setData(
-            ast_value.Identifier.create(null, 'y'),
-            'uid',
-            node.base.ud.y_uid)
-    in
-        ast_expression.LetExpression.create(null,
-            [ast_declaration.Binding.create(null,
-                ast_pattern.IdentifierPattern.create(null, bound),
-                node.args.(0))],
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, arg)]),
-                ast_expression.BinaryExpression.create(null,
-                    node.base.op,
-                    bound,
-                    arg))));
+    
+    binary(unique, unique, \xUid yUid ->
+        modify\node -> let
+            bound = setData(
+                ast_value.Identifier.create(null, 'x'),
+                'uid',
+                xUid),
+            
+            arg = setData(
+                ast_value.Identifier.create(null, 'y'),
+                'uid',
+                yUid)
+        in
+            ast_expression.LetExpression.create(null,
+                [ast_declaration.Binding.create(null,
+                    ast_pattern.IdentifierPattern.create(null, bound),
+                    node.args.(0))],
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null, [
+                        ast_pattern.IdentifierPattern.create(null, arg)]),
+                    ast_expression.BinaryExpression.create(null,
+                        node.base.op,
+                        bound,
+                        arg)))));
 
 /**
  * Flatten curry of curry.
@@ -239,7 +284,7 @@ addPeephole(['CurryExpression'], true,
 addPeephole(['CurryExpression'], true,
     \node ->
         node.base.type === 'CurryExpression',
-    \node ->
+    modify\node ->
         ast_expression.CurryExpression.create(null,
             node.base.base,
             fun.concat(
@@ -252,7 +297,7 @@ addPeephole(['CurryExpression'], true,
 addPeephole(['BinaryExpression'], true,
     \node ->
         (node.operator === '|>' && node.right.type === 'CurryExpression'),
-    \node ->
+    modify\node ->
         ast_expression.CallExpression.create(null,
             ?node.right.type === 'CurryExpression'
                 :node.right.base
@@ -268,7 +313,7 @@ addPeephole(['BinaryExpression'], true,
     \{operator left} ->
         (operator === '<|' && left.type === 'CurryExpression'),
     
-    \node ->
+    modify\node ->
         ast_expression.CallExpression.create(null,
             ?node.left.type === 'CurryExpression'
                 :node.left.base
@@ -287,20 +332,53 @@ var downTransforms = \node ->
     ((node && peepholes.(node.type)) || [])
         .filter(\x -> !x.up && x.condition(node));
 
-var transform = \ctx transforms ->
+var transform = \node transforms ->
     ?transforms.length
-        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
-        :ctx;
+        :seqa(transforms.map(\x -> x.map))
+        :ok();
 
-var opt = walk@(
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, downTransforms node),
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, upTransforms node));
+var walk = \pre post ->
+    next(
+        pre,
+        bind(ctx, \t -> {
+        if (zipper.isLeaf t) {
+            var loop = next(
+                post,
+                bind(ctx, \t -> {
+                    if (zipper.isLast t) {
+                        if (zipper.isRoot t)
+                            return ok();
+                        return next(
+                            move zipper.up,
+                           loop);
+                    } else {
+                        return next(move zipper.right, walk(pre, post));
+                    }
+                }));
+            return loop;
+        }
+        return next(move zipper.down, walk(pre, post));
+    }));
 
-optimize = \ast->
-    opt(khepriZipper(ast))
+var _transform = bind(node, \node ->
+    transform(node, downTransforms node));
+
+var _transformPost = bind(node, \node ->
+    transform(node, upTransforms node));
+
+var opt = walk@(_transform, _transformPost);
+
+/**
+ * 
+ */
+optimize = \ast data -> {
+    var s = State.create(khepriZipper(ast), data.unique);
+    return next(
+        walk(_transform, _transformPost),
+        node)(s, \x -> x);
+   /* opt(khepriZipper(ast))
         |> zipper.root
-        |> tree.node;
+        |> tree.node;*/
+};
 
 }

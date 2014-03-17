@@ -19,7 +19,13 @@ with
     
     import './scope' scope#{Scope},
     import './tail' {Tail trampoline},
-    import './fun' fun
+    import './fun' fun,
+    
+    import './control/base' {
+        next
+        seq
+        seqa
+        binary}
 in {
 
 /* Forward declarations
@@ -35,39 +41,42 @@ var State = record.declare(null, [
 
 /* Monad
  ******************************************************************************/
+var M = function \run =self-> {
+    self.run = run;
+};
+
+var un = \p s ok err ->
+    new Tail(p.run, s, ok, err);
+
 var run = \c s ok err ->
-    trampoline <| c(s, ok, err);
+    trampoline <| c.run(s, ok, err);
 
-var ok = \x -> \s, ok, _ -> ok(x, s);
+var ok = \x -> new M(\s ok _ -> ok(x, s));
 
-var error = \x -> \s, _, err -> err(x, s);
+var error = \x -> new M(\s _ err -> err(x, s));
 
 var bind = \p f ->
-    \s ok err ->
-        new Tail(p, s, \x s -> f(x)(s, ok, err), err);
+    new M(\s ok err ->
+        un(p, s, \x s -> un(f(x), s, ok, err), err));
 
-var next = \p n -> bind(p, \_ -> n);
+M.of = ok;
+M.prototype.of = ok;
 
-var binary = \a b f ->
-    bind(a, \x ->
-        bind(b, \y ->
-            f(x, y)));
-
-var seqa = \arr -> fun.reduce(arr, next);
-
-var seq = \args(...) -> seqa(args);
+M.chain = bind;
+M.prototype.chain = \f =self->
+    bind(self, f);
 
 /* State
  ******************************************************************************/
-var extract = \s ok, _ -> ok(s, s);
+var extract = new M(\s ok, _ -> ok(s, s));
 
-var setState = \s -> \_ ok _ -> ok(s, s);
+var setState = \s -> new M(\_ ok _ -> ok(s, s));
+
+var examineState = bind@extract;
 
 var modifyState = \f -> bind(extract, \s -> setState(f(s)));
 
-var examineState = \f -> bind(extract, f);
-
-var unique = \s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1));
+var unique = new M(\s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1)));
 
 /* Scope
  ******************************************************************************/
@@ -272,7 +281,7 @@ addCheck@'StaticDeclarator' <|
     
 addCheck@'VariableDeclarator' <|
     inspect \ node -> let
-        bind =  ?node.immutable
+        bind = ?node.immutable
             :addImmutableBindingChecked(node.id.name, node.loc)
             :addMutableBindingChecked(node.id.name, node.loc)
     in
@@ -421,23 +430,6 @@ addCheck@'CurryExpression' <|
         checkChild 'base',
         checkChild 'args');
 
-// @TODO: Hack, create an internal identifier that is used in translation
-addCheck@'UnaryOperatorExpression' <|
-    bind(unique, \uid ->
-        modifyNode \ node ->
-           setData(node,
-               'x_uid',
-               uid));
-
-// @TODO: Hack, create an internal identifier that is used in translation
-addCheck@'BinaryOperatorExpression' <|
-    binary(unique, unique, \xuid yuid ->
-        modifyNode \ node ->
-           setUserData(node, {
-               'x_uid': xuid,
-               'y_uid': yuid
-           }));
-
 // Patterns
 addCheck@'SinkPattern'<|
     bind(unique, \uid ->
@@ -541,7 +533,7 @@ var initialScope = fun.foldl@(Scope.addImmutableBinding, Scope.empty);
  * 
  */
 check = let
-    suc = \x -> ({'tree': x }),
+    suc = \x,s -> ({'tree': x , 'data': {'unique': s.unique}}),
     fail = \x -> { throw x; }
 in
     \ast globals ->

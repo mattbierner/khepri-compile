@@ -1,0 +1,40 @@
+package (
+    next
+    seqa
+    seq
+    
+    binary)
+with
+    import '../fun' {
+        constant
+        reduce}
+in {
+
+
+/**
+ * Perform `p` then `q`. Return result from `q`.
+ */
+next = \p q -> p.chain(constant q);
+
+/**
+ * Perform a sequence of computations left to right.
+ * 
+ * @param arr Array of computations.
+ */
+seqa = \arr -> reduce(arr, next);
+
+/**
+ * Perform a sequence of computations from arguments left to right.
+ */
+seq = \args(...) -> seqa(args);
+
+
+/**
+ * 
+ */
+binary = \a b f ->
+    a.chain(\x ->
+        b.chain(\y ->
+            f(x, y)));
+
+}

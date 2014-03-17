@@ -2,9 +2,9 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value",
-    "neith/zipper", "neith/tree", "khepri-ast-zipper", "bes/record", "./scope", "./tail", "./fun"
+    "neith/zipper", "neith/tree", "khepri-ast-zipper", "bes/record", "./scope", "./tail", "./fun", "./control/base"
 ], (function(require, exports, ast_node, ast_expression, ast_pattern, ast_value, zipper, tree, __o, record, scope,
-    __o0, fun) {
+    __o0, fun, __o1) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -12,65 +12,62 @@
         Scope = scope["Scope"],
         Tail = __o0["Tail"],
         trampoline = __o0["trampoline"],
+        next = __o1["next"],
+        seq = __o1["seq"],
+        seqa = __o1["seqa"],
+        binary = __o1["binary"],
         check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
+        M = (function(run) {
+            var self = this;
+            (self.run = run);
+        }),
+        un = (function(p, s, ok, err) {
+            return new(Tail)(p.run, s, ok, err);
+        }),
         run = (function(c, s, ok, err) {
-            return trampoline(c(s, ok, err));
+            return trampoline(c.run(s, ok, err));
         }),
         ok = (function(x) {
-            return (function(s, ok, _) {
+            return new(M)((function(s, ok, _) {
                 return ok(x, s);
-            });
+            }));
         }),
         error = (function(x) {
-            return (function(s, _, err) {
+            return new(M)((function(s, _, err) {
                 return err(x, s);
-            });
+            }));
         }),
         bind = (function(p, f) {
-            return (function(s, ok, err) {
-                return new(Tail)(p, s, (function(x, s) {
-                    return f(x)(s, ok, err);
+            return new(M)((function(s, ok, err) {
+                return un(p, s, (function(x, s) {
+                    return un(f(x), s, ok, err);
                 }), err);
-            });
-        }),
-        next = (function(p, n) {
-            return bind(p, (function(_) {
-                return n;
             }));
-        }),
-        binary = (function(a, b, f) {
-            return bind(a, (function(x) {
-                return bind(b, (function(y) {
-                    return f(x, y);
-                }));
-            }));
-        }),
-        seqa = (function(arr) {
-            return fun.reduce(arr, next);
-        }),
-        seq = (function() {
-            var args = arguments;
-            return seqa(args);
-        }),
-        extract = (function(s, ok, _) {
-            return ok(s, s);
-        }),
+        });
+    (M.of = ok);
+    (M.prototype.of = ok);
+    (M.chain = bind);
+    (M.prototype.chain = (function(f) {
+        var self = this;
+        return bind(self, f);
+    }));
+    var extract = new(M)((function(s, ok, _) {
+        return ok(s, s);
+    })),
         setState = (function(s) {
-            return (function(_, ok, _0) {
+            return new(M)((function(_, ok, _0) {
                 return ok(s, s);
-            });
+            }));
         }),
+        examineState = bind.bind(null, extract),
         modifyState = (function(f) {
             return bind(extract, (function(s) {
                 return setState(f(s));
             }));
         }),
-        examineState = (function(f) {
-            return bind(extract, f);
-        }),
-        unique = (function(s, ok, err) {
+        unique = new(M)((function(s, ok, err) {
             return ok(s.unique, s.setUnique((s.unique + 1)));
-        }),
+        })),
         examineScope = (function(f) {
             return examineState((function(s) {
                 return f(s.scope);
@@ -232,19 +229,6 @@
     addCheck("ObjectExpression", checkChild("properties"));
     addCheck("LetExpression", block(checkChild("bindings"), checkChild("body")));
     addCheck("CurryExpression", seq(checkChild("base"), checkChild("args")));
-    addCheck("UnaryOperatorExpression", bind(unique, (function(uid) {
-        return modifyNode((function(node) {
-            return setData(node, "x_uid", uid);
-        }));
-    })));
-    addCheck("BinaryOperatorExpression", binary(unique, unique, (function(xuid, yuid) {
-        return modifyNode((function(node) {
-            return setUserData(node, ({
-                "x_uid": xuid,
-                "y_uid": yuid
-            }));
-        }));
-    })));
     addCheck("SinkPattern", bind(unique, (function(uid) {
         return setNode(setData(ast_value.Identifier.create(null, "_"), "uid", uid));
     })));
@@ -288,9 +272,12 @@
         return pass;
     }));
     var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
-        suc = (function(x) {
+        suc = (function(x, s) {
             return ({
-                "tree": x
+                "tree": x,
+                "data": ({
+                    "unique": s.unique
+                })
             });
         }),
         fail = (function(x) {

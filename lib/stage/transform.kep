@@ -4,16 +4,18 @@
 package (
     transform)
 with 
-    import '../transform' transformer
+    import '../transform' transformer,
+    import 'bes::object' {setProperty}
 in {
 
 
-transform = \{options ast} -> {
-    var packageManager = options.package_manager || 'amd';
-    return ({
-        'options': options,
-        'ast': transformer.transform(ast, packageManager)
-    });
-};
+transform = \input#{options ast data} ->
+    setProperty(
+        input,
+        'ast',
+        transformer.transform(
+            ast,
+            (options.package_manager || 'amd'),
+            data));
 
 }

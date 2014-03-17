@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
+*/define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
     "ecma-ast/expression", "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value",
     "khepri-ast/clause", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
@@ -15,19 +14,15 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
         khepriZipper = __o["khepriZipper"],
         Tail = __o0["Tail"],
         trampoline = __o0["trampoline"],
-        transform, objectElementUnpack, flip = (function(f) {
-            return (function(x, y) {
-                return f(y, x);
-            });
-        }),
-        _transform = (function() {
+        flip = fun["flip"],
+        transform, objectElementUnpack, _transform = (function() {
             var args = arguments;
             return _transform.apply(null, args);
         }),
-        State = record.declare(null, ["ctx", "scope", "packageManager", "bindings"]);
+        State = record.declare(null, ["ctx", "scope", "packageManager", "bindings", "unique"]);
     (State.empty = State.create(null, scope.Scope.empty, null, [
         [], null
-    ]));
+    ], 0));
     var ok = (function(x) {
         return (function(s, ok) {
             return ok(x, s);
@@ -562,7 +557,7 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
                 if (zipper.isLeaf(t)) {
                     var loop = next(post, bind(ctx, (function(t) {
                         if (zipper.isLast(t)) {
-                            if (zipper.isRoot(t)) return ok();
+                            if (zipper.isRoot(t)) return pass;
                             return next(move(zipper.up), loop);
                         } else {
                             return next(move(zipper.right), walk(pre, post));
@@ -573,17 +568,18 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
                 return next(move(zipper.down), walk(pre, post));
             })));
         });
-    (transform = (function(ast, manager) {
+    (transform = (function(ast, manager, data) {
         var amd_manager = require("./package_manager/amd"),
             node_manager = require("./package_manager/node"),
             packageManager = amd_manager;
         if ((manager === "node"))(packageManager = node_manager);
         var s = State.empty.setCtx(khepriZipper(ast))
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager);
+            .setPackageManager(packageManager)
+            .setUnique(data.unique);
         return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
             return x;
         })));
     }));
-    (exports.transform = transform);
+    (exports["transform"] = transform);
 }));

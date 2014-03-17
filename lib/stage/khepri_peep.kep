@@ -1,19 +1,20 @@
 /**
- * @fileOverview
+ * @fileOverview Khepri source optimization compiler stage.
  */
 package (
     optimize)
 with
-    import '../khepri_peep' khepri_peep
+    import '../khepri_peep' khepri_peep,
+    import 'bes::object' {setProperty}
 in {
-
 
 /**
  * 
  */
-optimize = \{options ast} ->({
-    'options': options,
-    'ast': khepri_peep.optimize(ast)
-});
+optimize = \input#{ast data} ->
+    setProperty(
+        input,
+        'ast',
+        khepri_peep.optimize(ast, data));
 
 }

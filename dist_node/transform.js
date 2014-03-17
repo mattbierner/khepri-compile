@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     array = require("bes")["array"],
     ecma_clause = require("ecma-ast")["clause"],
@@ -30,19 +29,15 @@ var record = require("bes")["record"],
     Tail = __o0["Tail"],
     trampoline = __o0["trampoline"],
     fun = require("./fun"),
-    transform, objectElementUnpack, flip = (function(f) {
-        return (function(x, y) {
-            return f(y, x);
-        });
-    }),
-    _transform = (function() {
+    flip = fun["flip"],
+    transform, objectElementUnpack, _transform = (function() {
         var args = arguments;
         return _transform.apply(null, args);
     }),
-    State = record.declare(null, ["ctx", "scope", "packageManager", "bindings"]);
+    State = record.declare(null, ["ctx", "scope", "packageManager", "bindings", "unique"]);
 (State.empty = State.create(null, scope.Scope.empty, null, [
     [], null
-]));
+], 0));
 var ok = (function(x) {
     return (function(s, ok) {
         return ok(x, s);
@@ -566,7 +561,7 @@ var _transformPost = bind(node, _transp),
             if (zipper.isLeaf(t)) {
                 var loop = next(post, bind(ctx, (function(t) {
                     if (zipper.isLast(t)) {
-                        if (zipper.isRoot(t)) return ok();
+                        if (zipper.isRoot(t)) return pass;
                         return next(move(zipper.up), loop);
                     } else {
                         return next(move(zipper.right), walk(pre, post));
@@ -577,16 +572,17 @@ var _transformPost = bind(node, _transp),
             return next(move(zipper.down), walk(pre, post));
         })));
     });
-(transform = (function(ast, manager) {
+(transform = (function(ast, manager, data) {
     var amd_manager = require("./package_manager/amd"),
         node_manager = require("./package_manager/node"),
         packageManager = amd_manager;
     if ((manager === "node"))(packageManager = node_manager);
     var s = State.empty.setCtx(khepriZipper(ast))
         .setScope(scope.Scope.empty)
-        .setPackageManager(packageManager);
+        .setPackageManager(packageManager)
+        .setUnique(data.unique);
     return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
         return x;
     })));
 }));
-(exports.transform = transform);
+(exports["transform"] = transform);

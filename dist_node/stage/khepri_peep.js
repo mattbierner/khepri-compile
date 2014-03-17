@@ -1,16 +1,14 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/stage/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var khepri_peep = require("../khepri_peep"),
+    __o = require("bes")["object"],
+    setProperty = __o["setProperty"],
     optimize;
-(optimize = (function(__o) {
-    var options = __o["options"],
-        ast = __o["ast"];
-    return ({
-        "options": options,
-        "ast": khepri_peep.optimize(ast)
-    });
+(optimize = (function(input) {
+    var ast = input["ast"],
+        data = input["data"];
+    return setProperty(input, "ast", khepri_peep.optimize(ast, data));
 }));
-(exports.optimize = optimize);
+(exports["optimize"] = optimize);

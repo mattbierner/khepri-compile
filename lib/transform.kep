@@ -31,13 +31,12 @@ with
 
     import './scope' scope,
     import './tail' {Tail trampoline},
-    import './fun' fun,
+    import './fun' fun#{flip},
 
     import './package_manager::amd' _,
     import './package_manager::node' _
 in {
 
-var flip = \f -> \x y -> f(y, x);
 
 /* Forward
  ******************************************************************************/
@@ -49,9 +48,10 @@ var State = record.declare(null, [
     'ctx',
     'scope',
     'packageManager',
-    'bindings']);
+    'bindings',
+    'unique']);
 
-State.empty = State.create(null, scope.Scope.empty, null, [[], null]);
+State.empty = State.create(null, scope.Scope.empty, null, [[], null], 0);
 
 /*
  ******************************************************************************/
@@ -890,7 +890,7 @@ var walk = \pre post ->
                 bind(ctx, \t -> {
                     if (zipper.isLast t) {
                         if (zipper.isRoot t)
-                            return ok();
+                            return pass;
                         return next(
                             move zipper.up,
                            loop);
@@ -908,7 +908,7 @@ var walk = \pre post ->
 /**
  * 
  */
-transform = \ast manager -> {
+transform = \ast manager data -> {
     with 
         import './package_manager/amd' amd_manager,
         import './package_manager/node' node_manager
@@ -920,7 +920,8 @@ transform = \ast manager -> {
         var s = State.empty
             .setCtx(khepriZipper ast)
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager);
+            .setPackageManager(packageManager)
+            .setUnique(data.unique);
         
         return trampoline <| next(
             walk(_transform, _transformPost),
