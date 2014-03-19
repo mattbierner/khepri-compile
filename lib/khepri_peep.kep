@@ -153,7 +153,7 @@ addPeephole(['ExpressionStatement'], true,
 addPeephole(['LetExpression'], true,
     \node ->
         node.body.type === 'LetExpression',
-    \node ->
+    modify\node ->
         ast_expression.LetExpression.create(null,
             fun.concat(
                 node.bindings,

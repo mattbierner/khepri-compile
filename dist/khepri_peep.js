@@ -123,10 +123,10 @@
     })));
     addPeephole(["LetExpression"], true, (function(node) {
         return (node.body.type === "LetExpression");
-    }), (function(node) {
+    }), modify((function(node) {
         return ast_expression.LetExpression.create(null, fun.concat(node.bindings, node.body.bindings),
             node.body.body);
-    }));
+    })));
     addPeephole(["CurryExpression"], true, (function(node) {
         return (node.base.type === "UnaryOperatorExpression");
     }), bind(unique, (function(xUid) {

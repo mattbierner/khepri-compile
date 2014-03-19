@@ -48,8 +48,7 @@ var M = function \run =self-> {
 var un = \p s ok err ->
     new Tail(p.run, s, ok, err);
 
-var run = \c s ok err ->
-    trampoline <| c.run(s, ok, err);
+var run = un \>> trampoline;
 
 var ok = \x -> new M(\s ok _ -> ok(x, s));
 

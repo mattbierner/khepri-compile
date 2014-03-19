@@ -32,9 +32,11 @@ var ast_node = require("khepri-ast")["node"],
     un = (function(p, s, ok, err) {
         return new(Tail)(p.run, s, ok, err);
     }),
-    run = (function(c, s, ok, err) {
-        return trampoline(c.run(s, ok, err));
-    }),
+    run = (function(f, g) {
+        return (function() {
+            return f(g.apply(null, arguments));
+        });
+    })(trampoline, un),
     ok = (function(x) {
         return new(M)((function(s, ok, _) {
             return ok(x, s);
