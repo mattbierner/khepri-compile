@@ -18,6 +18,9 @@ var record = require("bes")["record"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
+    __o1 = require("./tail"),
+    Tail = __o1["Tail"],
+    trampoline = __o1["trampoline"],
     optimize, State = record.declare(null, ["ctx", "unique"]),
     run = (function(c, s, ok) {
         return c(s, ok);
@@ -29,7 +32,7 @@ var record = require("bes")["record"],
     }),
     bind = (function(p, f) {
         return (function(s, ok, err) {
-            return p(s, (function(x, s) {
+            return new(Tail)(p, s, (function(x, s) {
                 return f(x)(s, ok);
             }));
         });
@@ -241,8 +244,8 @@ var upTransforms = (function(node) {
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
     var s = State.create(khepriZipper(ast), data.unique);
-    return next(walk(_transform, _transformPost), node)(s, (function(x) {
+    return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
         return x;
-    }));
+    })));
 }));
 (exports["optimize"] = optimize);

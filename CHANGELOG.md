@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.2.1 - March 19, 2014
+* Fixed not using tail calls for khepri_peep.
+
 ## 0.2.0 - March 19, 2014
 * Added support for dot to function.
 

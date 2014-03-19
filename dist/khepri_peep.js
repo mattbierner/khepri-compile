@@ -3,15 +3,17 @@
  * DO NOT EDIT
 */define(["require", "exports", "bes/record", "neith/tree", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "./fun"
+    "khepri-ast/value", "./fun", "./tail"
 ], (function(require, exports, record, tree, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_value, fun) {
+    ast_pattern, ast_value, fun, __o1) {
     "use strict";
     var modifyNode = tree["modifyNode"],
         khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
         setUserData = __o0["setUserData"],
         setData = __o0["setData"],
+        Tail = __o1["Tail"],
+        trampoline = __o1["trampoline"],
         optimize, State = record.declare(null, ["ctx", "unique"]),
         run = (function(c, s, ok) {
             return c(s, ok);
@@ -23,7 +25,7 @@
         }),
         bind = (function(p, f) {
             return (function(s, ok, err) {
-                return p(s, (function(x, s) {
+                return new(Tail)(p, s, (function(x, s) {
                     return f(x)(s, ok);
                 }));
             });
@@ -241,9 +243,9 @@
         opt = walk.bind(null, _transform, _transformPost);
     (optimize = (function(ast, data) {
         var s = State.create(khepriZipper(ast), data.unique);
-        return next(walk(_transform, _transformPost), node)(s, (function(x) {
+        return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
             return x;
-        }));
+        })));
     }));
     (exports["optimize"] = optimize);
 }));

@@ -18,7 +18,8 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
-    import './fun' fun
+    import './fun' fun,
+    import './tail' {Tail trampoline}
 in {
 
 /* State
@@ -34,7 +35,7 @@ var ok = \x -> \s, ok, _ -> ok(x, s);
 
 var bind = \p f ->
     \s ok err ->
-        p(s, \x s -> f(x)(s, ok));
+        new Tail(p, s, \x s -> f(x)(s, ok));
 
 var binary = \a b f ->
     bind(a, \x ->
@@ -369,12 +370,9 @@ var opt = walk@(_transform, _transformPost);
  */
 optimize = \ast data -> {
     var s = State.create(khepriZipper(ast), data.unique);
-    return next(
+    return trampoline <| next(
         walk(_transform, _transformPost),
         node)(s, \x -> x);
-   /* opt(khepriZipper(ast))
-        |> zipper.root
-        |> tree.node;*/
 };
 
 }
