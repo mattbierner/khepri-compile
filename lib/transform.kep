@@ -342,37 +342,6 @@ var letExpression = \loc, bindings, body ->
 /**
  * 
  */
-var unaryOperatorExpression = \loc op -> 
-    khepri_expression.FunctionExpression.create(loc, null,
-        khepri_pattern.ArgumentsPattern.create(null, null, [
-            khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'x'))]),
-        khepri_expression.UnaryExpression.create(null,
-            op,
-            identifier(null, 'x')));
-
-/**
- * 
- */
-var binaryOperatorExpression = \loc op -> let
-    kind = ? op === '||' || op === '&&'
-        :khepri_expression.LogicalExpression
-        :khepri_expression.BinaryExpression
-in
-    khepri_expression.FunctionExpression.create(loc, null,
-        khepri_pattern.ArgumentsPattern.create(null, null, [
-            khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'x')),
-            khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'y'))]),
-        kind.create(null,
-            op,
-            identifier(null, 'x'),
-            identifier(null, 'y')));
-
-/**
- * 
- */
 var ternaryOperatorExpression = \loc ->
     khepri_expression.FunctionExpression.create(loc, null,
         khepri_pattern.ArgumentsPattern.create(null, null, [
@@ -726,18 +695,6 @@ addTransform('CurryExpression',
         curryExpression(node.loc,
             node.base,
             node.args));
-
-addTransform('UnaryOperatorExpression',
-    next(
-        modify \node ->
-            unaryOperatorExpression(node.loc, node.op),
-        _transform));
-
-addTransform('BinaryOperatorExpression',
-    next(
-        modify \node ->
-            binaryOperatorExpression(node.loc, node.op),
-        _transform));
 
 addTransform('TernaryOperatorExpression',
     next(

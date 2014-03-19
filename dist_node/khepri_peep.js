@@ -130,15 +130,30 @@ addPeephole(["LetExpression"], true, (function(node) {
     return ast_expression.LetExpression.create(null, fun.concat(node.bindings, node.body.bindings), node.body
         .body);
 })));
-addPeephole(["CurryExpression"], true, (function(node) {
-    return (node.base.type === "UnaryOperatorExpression");
+addPeephole(["UnaryOperatorExpression"], true, (function(_) {
+    return true;
 }), bind(unique, (function(xUid) {
     return modify((function(node) {
         var arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid);
-        return ast_expression.LetExpression.create(null, [ast_declaration.Binding.create(null,
-                ast_pattern.IdentifierPattern.create(null, arg), node.args[0])], ast_expression.FunctionExpression
-            .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []), ast_expression
-                .UnaryExpression.create(null, node.base.op, arg)));
+        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                null, null, [ast_pattern.IdentifierPattern.create(null, arg)]), ast_expression.UnaryExpression
+            .create(null, node.op, arg));
+    }));
+})));
+addPeephole(["BinaryOperatorExpression"], true, (function(_) {
+    return true;
+}), binary(unique, unique, (function(xUid, yUid) {
+    return modify((function(node) {
+        var xArg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid),
+            yArg = setData(ast_value.Identifier.create(null, "y"), "uid", yUid),
+            kind = (((node.op === "||") || (node.op === "&&")) ? ast_expression.LogicalExpression.create :
+                ((node.op === ".") ? (function(loc, _, x, y) {
+                    return ast_expression.MemberExpression.create(loc, x, y, true);
+                }) : ast_expression.BinaryExpression.create));
+        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+            null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern
+                .create(null, yArg)
+            ]), kind(null, node.op, xArg, yArg));
     }));
 })));
 addPeephole(["CurryExpression"], true, (function(node) {
@@ -164,19 +179,6 @@ addPeephole(["CurryExpression"], true, (function(node) {
             "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(node.base.bindings,
             ast_declaration.Binding.create(null, first, node.args[0])), body) : ast_expression.LetExpression
         .create(null, node.base.bindings, body));
-})));
-addPeephole(["CurryExpression"], true, (function(node) {
-    return ((node.base.type === "BinaryOperatorExpression") && (node.args.length === 1));
-}), binary(unique, unique, (function(xUid, yUid) {
-    return modify((function(node) {
-        var bound = setData(ast_value.Identifier.create(null, "x"), "uid", xUid),
-            arg = setData(ast_value.Identifier.create(null, "y"), "uid", yUid);
-        return ast_expression.LetExpression.create(null, [ast_declaration.Binding.create(null,
-                ast_pattern.IdentifierPattern.create(null, bound), node.args[0])], ast_expression.FunctionExpression
-            .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                .create(null, arg)
-            ]), ast_expression.BinaryExpression.create(null, node.base.op, bound, arg)));
-    }));
 })));
 addPeephole(["CurryExpression"], true, (function(node) {
     return (node.base.type === "CurryExpression");

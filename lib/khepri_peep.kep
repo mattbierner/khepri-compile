@@ -161,13 +161,10 @@ addPeephole(['LetExpression'], true,
             node.body.body));
 
 /**
- * Convert unary curry to direct function.
- * 
- * This discards all curried arguments except the first.
+ * Convert Unary Op Expression to function.
  */
-addPeephole(['CurryExpression'], true,
-    \node ->
-        node.base.type === 'UnaryOperatorExpression',
+addPeephole(['UnaryOperatorExpression'], true,
+    \_ -> true,
     bind(unique, \xUid ->
         modify\node -> let
             arg = setData(
@@ -175,15 +172,46 @@ addPeephole(['CurryExpression'], true,
                 'uid',
                 xUid)
         in
-            ast_expression.LetExpression.create(null,
-                [ast_declaration.Binding.create(null,
-                    ast_pattern.IdentifierPattern.create(null, arg),
-                    node.args.(0))],
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, []),
-                    ast_expression.UnaryExpression.create(null,
-                        node.base.op,
-                        arg)))));
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null, arg)]),
+                ast_expression.UnaryExpression.create(null,
+                    node.op,
+                    arg))));
+
+/**
+ * Convert binary op expression to function.
+ */
+addPeephole(['BinaryOperatorExpression'], true,
+    \_ -> true,
+    
+    binary(unique, unique, \xUid yUid ->
+        modify\node -> let
+            xArg = setData(
+                ast_value.Identifier.create(null, 'x'),
+                'uid',
+                xUid),
+            
+            yArg = setData(
+                ast_value.Identifier.create(null, 'y'),
+                'uid',
+                yUid),
+            
+            kind =
+                ?node.op === '||' || node.op === '&&'
+                    :ast_expression.LogicalExpression.create
+                :?node.op === '.'
+                    :\loc _ x y -> ast_expression.MemberExpression.create(loc, x, y, true)
+                :ast_expression.BinaryExpression.create
+        in
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null, xArg),
+                    ast_pattern.IdentifierPattern.create(null, yArg)]),
+                kind(null,
+                    node.op,
+                    xArg,
+                    yArg))));
 
 /**
  * Convert curry on function expression to function.
@@ -245,38 +273,6 @@ addPeephole(['CurryExpression'], true,
             :ast_expression.LetExpression.create(null,
                 node.base.bindings,
                 body));
-
-/**
- * Convert binary curry to function.
- */
-addPeephole(['CurryExpression'], true,
-    \node ->
-        node.base.type === 'BinaryOperatorExpression'
-        && node.args.length === 1,
-    
-    binary(unique, unique, \xUid yUid ->
-        modify\node -> let
-            bound = setData(
-                ast_value.Identifier.create(null, 'x'),
-                'uid',
-                xUid),
-            
-            arg = setData(
-                ast_value.Identifier.create(null, 'y'),
-                'uid',
-                yUid)
-        in
-            ast_expression.LetExpression.create(null,
-                [ast_declaration.Binding.create(null,
-                    ast_pattern.IdentifierPattern.create(null, bound),
-                    node.args.(0))],
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, [
-                        ast_pattern.IdentifierPattern.create(null, arg)]),
-                    ast_expression.BinaryExpression.create(null,
-                        node.base.op,
-                        bound,
-                        arg)))));
 
 /**
  * Flatten curry of curry.

@@ -263,19 +263,6 @@
                 return unpackAssign(x.pattern, x.value);
             }), bindings), body)));
         }),
-        unaryOperatorExpression = (function(loc, op) {
-            return khepri_expression.FunctionExpression.create(loc, null, khepri_pattern.ArgumentsPattern.create(
-                    null, null, [khepri_pattern.IdentifierPattern.create(null, identifier(null, "x"))]),
-                khepri_expression.UnaryExpression.create(null, op, identifier(null, "x")));
-        }),
-        binaryOperatorExpression = (function(loc, op) {
-            var kind = (((op === "||") || (op === "&&")) ? khepri_expression.LogicalExpression :
-                khepri_expression.BinaryExpression);
-            return khepri_expression.FunctionExpression.create(loc, null, khepri_pattern.ArgumentsPattern.create(
-                null, null, [khepri_pattern.IdentifierPattern.create(null, identifier(null, "x")),
-                    khepri_pattern.IdentifierPattern.create(null, identifier(null, "y"))
-                ]), kind.create(null, op, identifier(null, "x"), identifier(null, "y")));
-        }),
         ternaryOperatorExpression = (function(loc) {
             return khepri_expression.FunctionExpression.create(loc, null, khepri_pattern.ArgumentsPattern.create(
                 null, null, [khepri_pattern.IdentifierPattern.create(null, identifier(null, "x")),
@@ -467,12 +454,6 @@
     addTransform("CurryExpression", modify((function(node) {
         return curryExpression(node.loc, node.base, node.args);
     })));
-    addTransform("UnaryOperatorExpression", next(modify((function(node) {
-        return unaryOperatorExpression(node.loc, node.op);
-    })), _transform));
-    addTransform("BinaryOperatorExpression", next(modify((function(node) {
-        return binaryOperatorExpression(node.loc, node.op);
-    })), _transform));
     addTransform("TernaryOperatorExpression", next(modify((function(node) {
         return ternaryOperatorExpression(node.loc);
     })), _transform));
