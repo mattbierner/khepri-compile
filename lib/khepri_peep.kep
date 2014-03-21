@@ -55,10 +55,10 @@ var modify = \f ->
     move tree.modifyNode@f;
 
 var unique = StateM.get
-    .chain\x ->
+    .chain\s ->
         next(
-            StateM.get.chain \ s -> StateM.put <| s.setUnique(s.unique + 1)
-            StateM.of(x));
+            StateM.put <| s.setUnique(s.unique + 1),
+            StateM.of(s.unique));
 /*
  ******************************************************************************/
 var peepholes = {};

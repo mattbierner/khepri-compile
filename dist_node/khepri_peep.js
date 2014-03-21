@@ -48,10 +48,8 @@ var record = require("bes")["record"],
     modify = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
-    unique = StateM.get.chain((function(x) {
-        return next(StateM.get.chain((function(s) {
-            return StateM.put(s.setUnique((s.unique + 1))(StateM.of(x)));
-        })));
+    unique = StateM.get.chain((function(s) {
+        return next(StateM.put(s.setUnique((s.unique + 1))), StateM.of(s.unique));
     })),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
