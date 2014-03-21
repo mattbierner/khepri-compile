@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -16,69 +15,45 @@ var ast_node = require("khepri-ast")["node"],
     record = require("bes")["record"],
     scope = require("./scope"),
     Scope = scope["Scope"],
-    __o0 = require("./tail"),
-    Tail = __o0["Tail"],
-    trampoline = __o0["trampoline"],
     fun = require("./fun"),
-    __o1 = require("./control/base"),
-    next = __o1["next"],
-    seq = __o1["seq"],
-    seqa = __o1["seqa"],
-    binary = __o1["binary"],
+    __o0 = require("./control/base"),
+    next = __o0["next"],
+    seq = __o0["seq"],
+    seqa = __o0["seqa"],
+    binary = __o0["binary"],
+    StateM = require("akh")["state"],
+    ErrorT = require("akh")["trans"]["error"],
     check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
-    M = (function(run) {
-        var self = this;
-        (self.run = run);
+    M = ErrorT(StateM),
+    run = (function(p, s, ok, err) {
+        return (function(x) {
+            return StateM.evalState(x, s);
+        })(ErrorT.runErrorT(p, (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(StateM.of, ok), (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(StateM.of, err)));
     }),
-    un = (function(p, s, ok, err) {
-        return new(Tail)(p.run, s, ok, err);
-    }),
-    run = (function(f, g) {
-        return (function() {
-            return f(g.apply(null, arguments));
+    error = M.fail,
+    extract = M.lift(StateM.get),
+    setState = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
         });
-    })(trampoline, un),
-    ok = (function(x) {
-        return new(M)((function(s, ok, _) {
-            return ok(x, s);
-        }));
-    }),
-    error = (function(x) {
-        return new(M)((function(s, _, err) {
-            return err(x, s);
-        }));
-    }),
-    bind = (function(p, f) {
-        return new(M)((function(s, ok, err) {
-            return un(p, s, (function(x, s) {
-                return un(f(x), s, ok, err);
-            }), err);
-        }));
-    });
-(M.of = ok);
-(M.prototype.of = ok);
-(M.chain = bind);
-(M.prototype.chain = (function(f) {
-    var self = this;
-    return bind(self, f);
-}));
-var extract = new(M)((function(s, ok, _) {
-    return ok(s, s);
-})),
-    setState = (function(s) {
-        return new(M)((function(_, ok, _0) {
-            return ok(s, s);
-        }));
-    }),
-    examineState = bind.bind(null, extract),
+    })(M.lift, StateM.put),
+    examineState = M.chain.bind(null, extract),
     modifyState = (function(f) {
-        return bind(extract, (function(s) {
+        return extract.chain((function(s) {
             return setState(f(s));
         }));
     }),
-    unique = new(M)((function(s, ok, err) {
-        return ok(s.unique, s.setUnique((s.unique + 1)));
-    })),
+    unique = M.lift(StateM.get.chain((function(s) {
+        return next(StateM.put(s.setUnique((s.unique + 1))), StateM.of(s.unique));
+    }))),
     examineScope = (function(f) {
         return examineState((function(s) {
             return f(s.scope);
@@ -96,7 +71,7 @@ var extract = new(M)((function(s, ok, _) {
             return f(tree.node(s.ctx));
         }));
     }),
-    extractNode = inspect(ok),
+    extractNode = inspect(M.of),
     move = (function(op) {
         return modifyState((function(s) {
             return State.setCtx(s, op(s.ctx));
@@ -122,7 +97,7 @@ var extract = new(M)((function(s, ok, _) {
     checkChild = (function(edge) {
         return child(edge, checkTop);
     }),
-    pass = ok(),
+    pass = M.of(),
     block = (function() {
         var body = arguments;
         return seq(push, seqa(body), pop);
@@ -148,7 +123,7 @@ var extract = new(M)((function(s, ok, _) {
         }));
     }),
     addUid = (function(id) {
-        return bind(unique, (function(uid) {
+        return unique.chain((function(uid) {
             return modifyScope((function(s) {
                 return Scope.addUid(s, id, uid);
             }));
@@ -235,7 +210,7 @@ addCheck("ArrayExpression", checkChild("elements"));
 addCheck("ObjectExpression", checkChild("properties"));
 addCheck("LetExpression", block(checkChild("bindings"), checkChild("body")));
 addCheck("CurryExpression", seq(checkChild("base"), checkChild("args")));
-addCheck("SinkPattern", bind(unique, (function(uid) {
+addCheck("SinkPattern", unique.chain((function(uid) {
     return setNode(setData(ast_value.Identifier.create(null, "_"), "uid", uid));
 })));
 addCheck("IdentifierPattern", seq(inspect((function(node) {
@@ -250,7 +225,7 @@ addCheck("AsPattern", seq(checkChild("id"), inspect((function(node) {
 }))));
 addCheck("ObjectPattern", inspect((function(node) {
     if (((!node.ud) || (!node.ud.id))) {
-        return seq(bind(unique, (function(uid) {
+        return seq(unique.chain((function(uid) {
             var id = ast_pattern.IdentifierPattern.create(node.loc, setData(ast_value.Identifier
                 .create(null, "__o"), "uid", uid));
             (id.reserved = true);
@@ -279,18 +254,21 @@ addCheck("Identifier", inspect((function(node) {
 }));
 var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
     suc = (function(x, s) {
-        return ({
-            "tree": x,
-            "data": ({
-                "unique": s.unique
-            })
-        });
+        return x;
     }),
     fail = (function(x) {
         throw x;
     });
 (check = (function(ast, globals) {
-    return run(seq(checkTop, move(zipper.root), extractNode), new(State)(khepriZipper(ast), initialScope((
-        globals || [])), 1), suc, fail);
+    return run(seq(checkTop, move(zipper.root), extractNode.chain((function(x) {
+        return extract.map((function(s) {
+            return ({
+                "tree": x,
+                "data": ({
+                    "unique": s.unique
+                })
+            });
+        }));
+    }))), new(State)(khepriZipper(ast), initialScope((globals || [])), 1), suc, fail);
 }));
 (exports["check"] = check);

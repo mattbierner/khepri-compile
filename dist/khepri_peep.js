@@ -21,11 +21,7 @@
         optimize, State = record.declare(null, ["ctx", "unique"]),
         run = StateM.evalState,
         pass = StateM.of(null),
-        modifyState = (function(f) {
-            return StateM.get.chain((function(s) {
-                return StateM.put(f(s));
-            }));
-        }),
+        modifyState = StateM.modify,
         ctx = StateM.get.map((function(s) {
             return s.ctx;
         })),

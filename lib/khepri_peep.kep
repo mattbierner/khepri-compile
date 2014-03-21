@@ -37,9 +37,7 @@ var run = StateM.evalState;
 
 var pass = StateM.of null;
 
-var modifyState = \f ->
-    StateM.get.chain \ s ->
-        StateM.put <| f s;
+var modifyState = StateM.modify;
 
 var ctx = StateM.get.map(\s -> s.ctx);
 

@@ -18,14 +18,17 @@ with
     import 'bes::record' record,
     
     import './scope' scope#{Scope},
-    import './tail' {Tail trampoline},
     import './fun' fun,
     
     import './control/base' {
         next
         seq
         seqa
-        binary}
+        binary},
+    
+    import 'akh::state' StateM,
+    import 'akh::trans::error' ErrorT
+
 in {
 
 /* Forward declarations
@@ -41,46 +44,38 @@ var State = record.declare(null, [
 
 /* Monad
  ******************************************************************************/
-var M = function \run =self-> {
-    self.run = run;
-};
+var M = ErrorT(StateM);
 
-var un = \p s ok err ->
-    new Tail(p.run, s, ok, err);
+var run = \p s ok err->
+    ErrorT.runErrorT(
+        p,
+        ok \> StateM.of,
+        err \> StateM.of)
+        |> \x -> StateM.evalState(x, s);
 
-var run = un \>> trampoline;
+var error = M.fail;
 
-var ok = \x -> new M(\s ok _ -> ok(x, s));
+// State Operations
+////////////////////////////////////////
+var extract = M.lift (StateM.get);
 
-var error = \x -> new M(\s _ err -> err(x, s));
+var setState = M.lift <\ StateM.put;
 
-var bind = \p f ->
-    new M(\s ok err ->
-        un(p, s, \x s -> un(f(x), s, ok, err), err));
+var examineState = M.chain @ extract;
 
-M.of = ok;
-M.prototype.of = ok;
+var modifyState = \f ->
+    extract.chain\s -> setState (f s);
 
-M.chain = bind;
-M.prototype.chain = \f =self->
-    bind(self, f);
+var unique = M.lift <| StateM.get
+    .chain\s ->
+        next(
+            StateM.put <| s.setUnique(s.unique + 1),
+            StateM.of(s.unique));
 
-/* State
- ******************************************************************************/
-var extract = new M(\s ok, _ -> ok(s, s));
-
-var setState = \s -> new M(\_ ok _ -> ok(s, s));
-
-var examineState = bind@extract;
-
-var modifyState = \f -> bind(extract, \s -> setState(f(s)));
-
-var unique = new M(\s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1)));
-
-/* Scope
- ******************************************************************************/
+// Scope Operations
+////////////////////////////////////////
 var examineScope = \f ->
-    examineState(\s -> f(s.scope));
+    examineState\s -> f(s.scope);
 
 var modifyScope = \f ->
     modifyState\s ->
@@ -89,12 +84,12 @@ var modifyScope = \f ->
 var push = modifyScope scope.push;
 var pop = modifyScope scope.pop;
 
-/* Movement
- ******************************************************************************/
+// Movement Operations
+////////////////////////////////////////
 var inspect = \f ->
     examineState\s -> f(tree.node s.ctx);
 
-var extractNode = inspect ok;
+var extractNode = inspect M.of;
 
 var move = \op ->
     modifyState \s ->
@@ -126,7 +121,7 @@ var checkChild = \edge ->
 /**
  * Noop
  */
-var pass = ok();
+var pass = M.of();
 
 /**
  * Create a new lexical block for body.
@@ -176,8 +171,8 @@ var checkCanAssign = \id, loc ->
  * Define a new identifier and create a uid entry for it.
  */
 var addUid = \id ->
-    bind(unique, \uid ->
-        modifyScope(\s -> Scope.addUid(s, id, uid)));
+    unique.chain\uid ->
+        modifyScope(\s -> Scope.addUid(s, id, uid));
 
 /**
  * Add a new mutable binding in the current scope.
@@ -433,12 +428,12 @@ addCheck@'CurryExpression' <|
 
 // Patterns
 addCheck@'SinkPattern'<|
-    bind(unique, \uid ->
+    unique.chain \ uid ->
         setNode <|
             setData(
                 ast_value.Identifier.create(null, '_'),
                 'uid',
-                uid));
+                uid);
 
 addCheck@'IdentifierPattern' <|
     seq(
@@ -466,7 +461,7 @@ addCheck@'ObjectPattern' <|
     inspect \ node -> {
         if (!node.ud || !node.ud.id) {
             return seq(
-                bind(unique, \uid -> {
+                unique.chain \ uid -> {
                     var id = ast_pattern.IdentifierPattern.create(node.loc,
                         setData(
                             ast_value.Identifier.create(null, '__o'),
@@ -478,7 +473,7 @@ addCheck@'ObjectPattern' <|
                     id.reserved = true;
                     
                     return setNode(ast_pattern.AsPattern.create(null, id, node));
-                }),
+                },
                 checkTop);
         }
         return checkChild 'elements';
@@ -534,7 +529,7 @@ var initialScope = fun.foldl@(Scope.addImmutableBinding, Scope.empty);
  * 
  */
 check = let
-    suc = \x,s -> ({'tree': x , 'data': {'unique': s.unique}}),
+    suc = \x,s -> x,
     fail = \x -> { throw x; }
 in
     \ast globals ->
@@ -542,7 +537,9 @@ in
             seq(
                 checkTop,
                 move zipper.root,
-                extractNode),
+                extractNode.chain\x ->
+                    extract.map\s ->
+                        ({'tree': x , 'data': {'unique': s.unique}})),
             new State(
                 khepriZipper(ast),
                 initialScope(globals || []),
