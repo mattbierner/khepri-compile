@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/tail.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/tail.kep'
  * DO NOT EDIT
 */
 "use strict";
@@ -16,5 +16,5 @@ var Tail, trampoline;
     while ((value instanceof Tail))(value = value.f(value.s, value.ok, value.err));
     return value;
 }));
-(exports.Tail = Tail);
-(exports.trampoline = trampoline);
+(exports["Tail"] = Tail);
+(exports["trampoline"] = trampoline);

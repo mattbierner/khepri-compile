@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/package_manager/amd.kep'
  * DO NOT EDIT
 */
 define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
@@ -49,6 +49,6 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                         return ast_value.Literal.create(null, "string", path(x.from.value));
                     })))), packageBody]));
     }));
-    (exports.definePackage = definePackage);
-    (exports.importPackage = importPackage);
+    (exports["definePackage"] = definePackage);
+    (exports["importPackage"] = importPackage);
 }));

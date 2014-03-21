@@ -11,7 +11,7 @@ var options = {
 };
 
 var testParser = function(input) {
-    return eval(unparse_print.print(unparse.unparse(compile.compile(parser.parseStream(lexer.lex(input)), options))));
+    return unparse_print.print(unparse.unparse(compile.compile(parser.parseStream(lexer.lex(input)), options)));
 };
 
 
@@ -42,14 +42,14 @@ exports.binding_name_conflict = function(test) {
     test.done();
 };
 
-exports.alias_name_conflict = function(test) {
+exports.export_alias_conflict_in_with = function(test) {
     test.throws(function() {
         testParser("package ('y' x) with x = 3 {}");
     });
     test.done();
 };
 
-exports.body_name_conflict = function(test) {
+exports.export_conflict_in_body = function(test) {
     test.throws(function() {
         testParser("package (x) { var x; }");
     });
@@ -66,18 +66,9 @@ exports.packageBlockBodyConflict = function(test) {
     test.done();
 };
 
-exports.multipleParameterSameName = function(test) {
+exports.top_level__conflict_with_body= function(test) {
     test.throws(function() {
-        testParser("(\\x, x -> x*x)(2)");
+        testParser("package x { var x; }");
     });
-    
-    test.throws(function() {
-        testParser("(\\x, a, b, x -> x*x)(2)");
-    });
-    
-     test.ok(
-        testParser("\\x -> \\x -> x;"));
-     test.done();
+    test.done();
 };
-
-

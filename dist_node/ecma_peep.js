@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
  * DO NOT EDIT
 */
 "use strict";
@@ -187,4 +187,4 @@ var upTransforms = (function(node) {
 (optimize = (function(ast) {
     return tree.node(zipper.root(opt(ecmaZipper(ast))));
 }));
-(exports.optimize = optimize);
+(exports["optimize"] = optimize);

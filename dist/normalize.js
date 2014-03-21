@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize.kep'
  * DO NOT EDIT
 */
 define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/declaration",
@@ -100,5 +100,5 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepr
     (normalize = (function(ast) {
         return tree.node(zipper.root(opt(khepriZipper(ast))));
     }));
-    (exports.normalize = normalize);
+    (exports["normalize"] = normalize);
 }));

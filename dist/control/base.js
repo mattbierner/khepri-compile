@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/base.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/base.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "../fun"], (function(require, exports, __o) {
+*/
+define(["require", "exports", "../fun"], (function(require, exports, __o) {
     "use strict";
     var constant = __o["constant"],
         reduce = __o["reduce"],

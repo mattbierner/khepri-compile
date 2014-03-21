@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize.kep'
  * DO NOT EDIT
 */
 "use strict";
@@ -107,4 +107,4 @@ var upTransforms = (function(node) {
 (normalize = (function(ast) {
     return tree.node(zipper.root(opt(khepriZipper(ast))));
 }));
-(exports.normalize = normalize);
+(exports["normalize"] = normalize);

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/package_manager/node.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/package_manager/node.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
+*/
+define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
     "khepri-ast/value", "../fun"
 ], (function(require, exports, ast_declaration, ast_expression, ast_statement, ast_value, fun) {
     "use strict";

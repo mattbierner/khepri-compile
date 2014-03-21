@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/base.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/base.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("../fun"),
     constant = __o["constant"],
     reduce = __o["reduce"],

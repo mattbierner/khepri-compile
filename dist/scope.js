@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
  * DO NOT EDIT
 */
 define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
@@ -78,7 +78,7 @@ define(["require", "exports", "bes/record", "hashtrie"], (function(require, expo
     (pop = (function(s) {
         return s.outer;
     }));
-    (exports.Scope = Scope);
-    (exports.push = push);
-    (exports.pop = pop);
+    (exports["Scope"] = Scope);
+    (exports["push"] = push);
+    (exports["pop"] = pop);
 }));

@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
  * DO NOT EDIT
 */
 "use strict";
@@ -78,6 +78,6 @@ var record = require("bes")["record"],
 (pop = (function(s) {
     return s.outer;
 }));
-(exports.Scope = Scope);
-(exports.push = push);
-(exports.pop = pop);
+(exports["Scope"] = Scope);
+(exports["push"] = push);
+(exports["pop"] = pop);
