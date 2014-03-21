@@ -34,3 +34,6 @@
 [submodule "dependencies/khepri-parse"]
 	path = dependencies/khepri-parse
 	url = https://github.com/mattbierner/khepri-parse.git
+[submodule "dependencies/akh"]
+	path = dependencies/akh
+	url = https://github.com/mattbierner/akh.git

@@ -43,6 +43,8 @@
         
         "hashtrie": "0.2.x",
         
+        "akh": "0.4.0",
+        
         "require-directory": "1.2.x"
     },
     "devDependencies": {

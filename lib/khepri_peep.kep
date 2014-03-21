@@ -18,6 +18,8 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
+    import 'akh::state' StateM,
+    
     import './fun' fun,
     import './tail' {Tail trampoline}
 in {
@@ -28,49 +30,46 @@ var State = record.declare(null, [
     'ctx',
     'unique']);
 
-var run = \c s ok ->
-    c(s, ok);
+var run = StateM.evalState;
 
-var ok = \x -> \s, ok, _ -> ok(x, s);
+var bind = StateM.chain;
 
-var bind = \p f ->
-    \s ok err ->
-        new Tail(p, s, \x s -> f(x)(s, ok));
+var pass = StateM.of null;
 
 var binary = \a b f ->
-    bind(a, \x ->
-        bind(b, \y ->
-            f(x, y)));
+    a.chain \x ->
+    b.chain \y ->
+    f(x, y);
 
 var next = \p c ->
-    bind(p, fun.constant c);
+    p.chain(fun.constant c);
 
 var seqa = \arr -> fun.reduce(arr, next);
 var seq = \args(...) -> seqa(args);
 
-var extract = \s ok -> ok(s, s);
-var setState = \s -> \_ ok -> ok(s, s);
+var modifyState = \f -> StateM.get.chain(\s -> StateM.put(f(s)));
 
-var examineState = bind@extract;
-var modifyState = \f -> bind(extract, \s -> setState(f(s)));
+static console;
 
 var get = \op ->
-    examineState\s ->
-        ok(op(s.ctx));
+    StateM.get.map(\s -> op <| s.ctx);
 
 var node = get tree.node;
 
 var move = \op ->
-    modifyState \s ->
+    modifyState \ s ->
         State.setCtx(s, op(s.ctx));
 
 var modify = \f ->
     move tree.modifyNode@f;
 
-var ctx = examineState \s -> ok(s.ctx);
+var ctx = StateM.get.map(\s -> s.ctx);
 
-var unique = \s, ok, err -> ok(s.unique, s.setUnique(s.unique + 1));
-
+var unique = StateM.get
+    .chain\x ->
+        next(
+            StateM.get.chain \ s -> StateM.put <| s.setUnique(s.unique + 1)
+            StateM.of(x));
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -332,7 +331,7 @@ var downTransforms = \node ->
 var transform = \node transforms ->
     ?transforms.length
         :seqa(transforms.map(\x -> x.map))
-        :ok();
+        :pass;
 
 var walk = \pre post ->
     next(
@@ -344,7 +343,7 @@ var walk = \pre post ->
                 bind(ctx, \t -> {
                     if (zipper.isLast t) {
                         if (zipper.isRoot t)
-                            return ok();
+                            return pass;
                         return next(
                             move zipper.up,
                            loop);
@@ -370,9 +369,13 @@ var opt = walk@(_transform, _transformPost);
  */
 optimize = \ast data -> {
     var s = State.create(khepriZipper(ast), data.unique);
-    return trampoline <| next(
-        walk(_transform, _transformPost),
-        node)(s, \x -> x);
+    var r = run(
+        next(
+            walk(_transform, _transformPost),
+            node),
+        s);
+    console.log(r);
+    return r;
 };
 
 }

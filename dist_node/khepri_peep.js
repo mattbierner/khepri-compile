@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     tree = require("neith")["tree"],
     modifyNode = tree["modifyNode"],
@@ -18,35 +17,24 @@ var record = require("bes")["record"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
+    StateM = require("akh")["state"],
     fun = require("./fun"),
     __o1 = require("./tail"),
     Tail = __o1["Tail"],
     trampoline = __o1["trampoline"],
     optimize, State = record.declare(null, ["ctx", "unique"]),
-    run = (function(c, s, ok) {
-        return c(s, ok);
-    }),
-    ok = (function(x) {
-        return (function(s, ok, _) {
-            return ok(x, s);
-        });
-    }),
-    bind = (function(p, f) {
-        return (function(s, ok, err) {
-            return new(Tail)(p, s, (function(x, s) {
-                return f(x)(s, ok);
-            }));
-        });
-    }),
+    run = StateM.evalState,
+    bind = StateM.chain,
+    pass = StateM.of(null),
     binary = (function(a, b, f) {
-        return bind(a, (function(x) {
-            return bind(b, (function(y) {
+        return a.chain((function(x) {
+            return b.chain((function(y) {
                 return f(x, y);
             }));
         }));
     }),
     next = (function(p, c) {
-        return bind(p, fun.constant(c));
+        return p.chain(fun.constant(c));
     }),
     seqa = (function(arr) {
         return fun.reduce(arr, next);
@@ -55,23 +43,14 @@ var record = require("bes")["record"],
         var args = arguments;
         return seqa(args);
     }),
-    extract = (function(s, ok) {
-        return ok(s, s);
-    }),
-    setState = (function(s) {
-        return (function(_, ok) {
-            return ok(s, s);
-        });
-    }),
-    examineState = bind.bind(null, extract),
     modifyState = (function(f) {
-        return bind(extract, (function(s) {
-            return setState(f(s));
+        return StateM.get.chain((function(s) {
+            return StateM.put(f(s));
         }));
     }),
     get = (function(op) {
-        return examineState((function(s) {
-            return ok(op(s.ctx));
+        return StateM.get.map((function(s) {
+            return op(s.ctx);
         }));
     }),
     node = get(tree.node),
@@ -83,12 +62,14 @@ var record = require("bes")["record"],
     modify = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
-    ctx = examineState((function(s) {
-        return ok(s.ctx);
+    ctx = StateM.get.map((function(s) {
+        return s.ctx;
     })),
-    unique = (function(s, ok, err) {
-        return ok(s.unique, s.setUnique((s.unique + 1)));
-    }),
+    unique = StateM.get.chain((function(x) {
+        return next(StateM.get.chain((function(s) {
+            return StateM.put(s.setUnique((s.unique + 1))(StateM.of(x)));
+        })));
+    })),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
@@ -218,14 +199,14 @@ var upTransforms = (function(node) {
     transform = (function(node, transforms) {
         return (transforms.length ? seqa(transforms.map((function(x) {
             return x.map;
-        }))) : ok());
+        }))) : pass);
     }),
     walk = (function(pre, post) {
         return next(pre, bind(ctx, (function(t) {
             if (zipper.isLeaf(t)) {
                 var loop = next(post, bind(ctx, (function(t) {
                     if (zipper.isLast(t)) {
-                        if (zipper.isRoot(t)) return ok();
+                        if (zipper.isRoot(t)) return pass;
                         return next(move(zipper.up), loop);
                     } else {
                         return next(move(zipper.right), walk(pre, post));
@@ -244,9 +225,9 @@ var upTransforms = (function(node) {
     })),
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
-    var s = State.create(khepriZipper(ast), data.unique);
-    return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
-        return x;
-    })));
+    var s = State.create(khepriZipper(ast), data.unique),
+        r = run(next(walk(_transform, _transformPost), node), s);
+    console.log(r);
+    return r;
 }));
 (exports["optimize"] = optimize);
