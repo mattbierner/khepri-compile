@@ -21,7 +21,8 @@ with
     import 'akh::state' StateM,
     
     import './fun' fun,
-    import './tail' {Tail trampoline}
+    import './tail' {Tail trampoline},
+    import './control/base' {next binary seq, seqa}
 in {
 
 /* State
@@ -30,40 +31,28 @@ var State = record.declare(null, [
     'ctx',
     'unique']);
 
+/* Operations
+ ******************************************************************************/
 var run = StateM.evalState;
-
-var bind = StateM.chain;
 
 var pass = StateM.of null;
 
-var binary = \a b f ->
-    a.chain \x ->
-    b.chain \y ->
-    f(x, y);
+var modifyState = \f ->
+    StateM.get.chain \ s ->
+        StateM.put <| f s;
 
-var next = \p c ->
-    p.chain(fun.constant c);
+var ctx = StateM.get.map(\s -> s.ctx);
 
-var seqa = \arr -> fun.reduce(arr, next);
-var seq = \args(...) -> seqa(args);
-
-var modifyState = \f -> StateM.get.chain(\s -> StateM.put(f(s)));
-
-static console;
-
-var get = \op ->
-    StateM.get.map(\s -> op <| s.ctx);
+var get = ctx.map.bind(ctx);
 
 var node = get tree.node;
 
 var move = \op ->
     modifyState \ s ->
-        State.setCtx(s, op(s.ctx));
+        s.setCtx(op s.ctx);
 
 var modify = \f ->
     move tree.modifyNode@f;
-
-var ctx = StateM.get.map(\s -> s.ctx);
 
 var unique = StateM.get
     .chain\x ->
@@ -165,7 +154,7 @@ addPeephole(['LetExpression'], true,
  */
 addPeephole(['UnaryOperatorExpression'], true,
     \_ -> true,
-    bind(unique, \xUid ->
+    unique.chain \ xUid ->
         modify\node -> let
             arg = setData(
                 ast_value.Identifier.create(null, 'x'),
@@ -177,7 +166,7 @@ addPeephole(['UnaryOperatorExpression'], true,
                     ast_pattern.IdentifierPattern.create(null, arg)]),
                 ast_expression.UnaryExpression.create(null,
                     node.op,
-                    arg))));
+                    arg)));
 
 /**
  * Convert binary op expression to function.
@@ -336,46 +325,43 @@ var transform = \node transforms ->
 var walk = \pre post ->
     next(
         pre,
-        bind(ctx, \t -> {
-        if (zipper.isLeaf t) {
-            var loop = next(
-                post,
-                bind(ctx, \t -> {
-                    if (zipper.isLast t) {
-                        if (zipper.isRoot t)
-                            return pass;
-                        return next(
-                            move zipper.up,
-                           loop);
-                    } else {
-                        return next(move zipper.right, walk(pre, post));
-                    }
-                }));
-            return loop;
-        }
-        return next(move zipper.down, walk(pre, post));
-    }));
+        ctx.chain \ t -> {
+            if (zipper.isLeaf t) {
+                var loop = next(
+                    post,
+                    ctx.chain \ t -> {
+                        if (zipper.isLast t) {
+                            if (zipper.isRoot t)
+                                return pass;
+                            return next(
+                                move zipper.up,
+                               loop);
+                        } else {
+                            return next(move zipper.right, walk(pre, post));
+                        }
+                    });
+                return loop;
+            }
+            return next(move zipper.down, walk(pre, post));
+        });
 
-var _transform = bind(node, \node ->
-    transform(node, downTransforms node));
+var _transform = node.chain \ node ->
+    transform(node, downTransforms node);
 
-var _transformPost = bind(node, \node ->
-    transform(node, upTransforms node));
+var _transformPost = node.chain \node ->
+    transform(node, upTransforms node);
 
 var opt = walk@(_transform, _transformPost);
 
 /**
  * 
  */
-optimize = \ast data -> {
-    var s = State.create(khepriZipper(ast), data.unique);
-    var r = run(
+optimize = \ast data ->
+    run(
         next(
             walk(_transform, _transformPost),
             node),
-        s);
-    console.log(r);
-    return r;
-};
+        State.create(khepriZipper(ast), data.unique));
+
 
 }

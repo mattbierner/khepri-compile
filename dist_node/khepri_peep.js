@@ -22,49 +22,32 @@ var record = require("bes")["record"],
     __o1 = require("./tail"),
     Tail = __o1["Tail"],
     trampoline = __o1["trampoline"],
+    __o2 = require("./control/base"),
+    next = __o2["next"],
+    binary = __o2["binary"],
+    seq = __o2["seq"],
+    seqa = __o2["seqa"],
     optimize, State = record.declare(null, ["ctx", "unique"]),
     run = StateM.evalState,
-    bind = StateM.chain,
     pass = StateM.of(null),
-    binary = (function(a, b, f) {
-        return a.chain((function(x) {
-            return b.chain((function(y) {
-                return f(x, y);
-            }));
-        }));
-    }),
-    next = (function(p, c) {
-        return p.chain(fun.constant(c));
-    }),
-    seqa = (function(arr) {
-        return fun.reduce(arr, next);
-    }),
-    seq = (function() {
-        var args = arguments;
-        return seqa(args);
-    }),
     modifyState = (function(f) {
         return StateM.get.chain((function(s) {
             return StateM.put(f(s));
         }));
     }),
-    get = (function(op) {
-        return StateM.get.map((function(s) {
-            return op(s.ctx);
-        }));
-    }),
+    ctx = StateM.get.map((function(s) {
+        return s.ctx;
+    })),
+    get = ctx.map.bind(ctx),
     node = get(tree.node),
     move = (function(op) {
         return modifyState((function(s) {
-            return State.setCtx(s, op(s.ctx));
+            return s.setCtx(op(s.ctx));
         }));
     }),
     modify = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
-    ctx = StateM.get.map((function(s) {
-        return s.ctx;
-    })),
     unique = StateM.get.chain((function(x) {
         return next(StateM.get.chain((function(s) {
             return StateM.put(s.setUnique((s.unique + 1))(StateM.of(x)));
@@ -117,7 +100,7 @@ addPeephole(["LetExpression"], true, (function(node) {
 })));
 addPeephole(["UnaryOperatorExpression"], true, (function(_) {
     return true;
-}), bind(unique, (function(xUid) {
+}), unique.chain((function(xUid) {
     return modify((function(node) {
         var arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid);
         return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
@@ -202,9 +185,9 @@ var upTransforms = (function(node) {
         }))) : pass);
     }),
     walk = (function(pre, post) {
-        return next(pre, bind(ctx, (function(t) {
+        return next(pre, ctx.chain((function(t) {
             if (zipper.isLeaf(t)) {
-                var loop = next(post, bind(ctx, (function(t) {
+                var loop = next(post, ctx.chain((function(t) {
                     if (zipper.isLast(t)) {
                         if (zipper.isRoot(t)) return pass;
                         return next(move(zipper.up), loop);
@@ -217,17 +200,14 @@ var upTransforms = (function(node) {
             return next(move(zipper.down), walk(pre, post));
         })));
     }),
-    _transform = bind(node, (function(node) {
+    _transform = node.chain((function(node) {
         return transform(node, downTransforms(node));
     })),
-    _transformPost = bind(node, (function(node) {
+    _transformPost = node.chain((function(node) {
         return transform(node, upTransforms(node));
     })),
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
-    var s = State.create(khepriZipper(ast), data.unique),
-        r = run(next(walk(_transform, _transformPost), node), s);
-    console.log(r);
-    return r;
+    return run(next(walk(_transform, _transformPost), node), State.create(khepriZipper(ast), data.unique));
 }));
 (exports["optimize"] = optimize);
