@@ -1,98 +1,95 @@
 var parser = require('khepri-parse').parse.parser;
 var lexer = require('khepri-parse').lex.lexer;
 
-var lexical = require('../index').lexical;
+var unparse = require('ecma-unparse').unparse;
+var unparse_print = require('ecma-unparse').print;
 
+var compile = require('../index').compile;
 
-var testParser = function(stream) {
-    return parser.parseStream(stream);
+var run = function(input) {
+    return eval(unparse_print.print(unparse.unparse(compile.compile(parser.parseStream(lexer.lex(input))))));
 };
   
 
-exports.basicLexicalScope = function(test) {
-    var result = lexical.check(testParser(lexer.lex("var a; a; { a; };")));
-    test.ok(true);
+exports.basic_block_scope = function(test) {
+    test.equal(
+        run("var a = 10; { var a = 3; }; a;"),
+        10);
     
     test.done();
 };
 
-exports.undefinedVar = function(test) {
+exports.block_scoping_undefined_var = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("b;")));
+        run("b;");
+    });
+    
+    test.throws(function(){
+        run("{ var b = 3; }; b;")
     });
     
     test.done();
 };
 
-exports.declarationOrder = function(test) {
+exports.declaration_order = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("b; var b;")));
+        run("b; var b;");
     });
     test.done();
 };
 
-exports.usedOutsideofBlock = function(test) {
+exports.if_body_always_introduces_scope = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("{ var b; }; b;")));
+        run(" if (true) var b; b;");
     });
     test.done();
 };
 
-exports.ifBodyIntroducesScope = function(test) {
-    test.throws(function() {
-        lexical.check(testParser(lexer.lex(" if (true) var b; b;")));
+exports.switch_cases_do_not_introduce_scope = function(test) {
+    test.throws(function(){
+        run("switch (1) { case 0: var a = 1; break; case 1: case 2: var a = 10; };");
     });
     test.done();
 };
+
 
 exports.duplicateDeclarationsInOneScope = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("var a; var c; var a;")));
+        run("var a; var c; var a;");
     });
     
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("{ var a; var c; var a; }")));
+        run("{ var a; var c; var a; }");
     });
     
-    var result = lexical.check(testParser(lexer.lex("var a; { var a; }")));
+    var result = run("var a; { var a; }");
     test.ok(true);
     test.done();
 };
 
-//@TODO: renaming now takes place in translate not lexical
-/*
-exports.renaming = function(test) {
-    var result = lexical.check(testParser(lexer.lex("var a; { var a; }")));
-    test.ok(result.body[0].declarations[0].id.name !== result.body[1].body[0].declarations[0].id.name);
-    
-    var result = lexical.check(testParser(lexer.lex("{ var a; } var a; ")));
-    test.ok(result.body[0].body[0].declarations[0].id.name !== result.body[1].declarations[0].id.name);
-    test.done();
-};
-*/
 exports.switchBodyIntroducesNewScopeButNotCases = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("var a; switch(a) {case 0: var a; default: var a; }")));
+        run("var a; switch(a) {case 0: var a; default: var a; }");
     });
     test.ok(
-        lexical.check(testParser(lexer.lex("var a; switch(a) { default: var a; }"))));
+        run("var a; switch(a) { default: var a; }"));
     
-    var result = lexical.check(testParser(lexer.lex("var a; switch(a) { default: var a; }")));
+    var result = run("var a; switch(a) { default: var a; }");
     //test.ok(result.body[0].declarations[0].id.name != result.body[1].cases[0].consequent[0].declarations[0].id.name);
     test.done();
 };
 
 exports.multipleParameterSameName = function(test) {
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("(\\x, x -> x*x)(2)")));
+        run("(\\x, x -> x*x)(2)");
     });
     
     test.throws(function() {
-        lexical.check(testParser(lexer.lex("(\\x, a, b, x -> x*x)(2)")));
+        run("(\\x, a, b, x -> x*x)(2)");
     });
     
      test.ok(
-        lexical.check(testParser(lexer.lex("\\x -> \\x -> x;"))));
+        run("\\x -> \\x -> x;"));
      test.done();
 };
 

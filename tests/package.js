@@ -15,7 +15,6 @@ var testParser = function(input) {
 };
 
 
-
 exports.duplicate_exports = function(test) {
     test.throws(function() {
         testParser("package (x, x) {}");
@@ -56,7 +55,7 @@ exports.export_conflict_in_body = function(test) {
     test.done();
 };
 
-exports.packageBlockBodyConflict = function(test) {
+exports.package_with_conflict_in_body = function(test) {
     test.throws(function() {
         testParser("package () with x = 3 in { var x; }");
     });
@@ -66,7 +65,7 @@ exports.packageBlockBodyConflict = function(test) {
     test.done();
 };
 
-exports.top_level__conflict_with_body= function(test) {
+exports.top_level_conflict_with_body= function(test) {
     test.throws(function() {
         testParser("package x { var x; }");
     });
