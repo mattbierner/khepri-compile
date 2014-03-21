@@ -230,7 +230,8 @@ var addCheck = \type, check -> {
 
 // Program and Packages
 addCheck@'Program' <|
-    checkChild 'body';
+    block(
+        checkChild 'body');
 
 addCheck@'PackageExports' <|
     checkChild 'exports';
@@ -242,19 +243,20 @@ addCheck@'PackageExport' <|
             node.loc);
 
 addCheck@'Package' <|
-    seq(
+    block(
         addImmutableBindingChecked('require', null),
         addImmutableBindingChecked('exports', null),
         addImmutableBindingChecked('module', null),
         checkChild 'exports',
-        inspect \ node ->
-            ?node.body.type === 'WithStatement'
-                :child('body',
-                    checkChild 'bindings',
-                    child('body',
-                        checkChild 'body'))
-                :child('body',
-                    checkChild 'body'));
+        // Evaluate body in same scope
+        child('body',
+            inspect \ node ->
+                ?node.type === 'WithStatement'
+                    :seq(
+                        checkChild 'bindings',
+                        child('body',
+                            checkChild 'body'))
+                    :checkChild 'body'));
 
 // Clause
 addCheck@'SwitchCase' <|

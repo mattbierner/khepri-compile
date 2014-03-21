@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 0.2.2 - March 21, 2014
+* Fixed programs and packages not introducing a new scope, leading to potential
+  name conflicts with globals.
+* Fixed node packages silently discarding non import bindings.
+
 ## 0.2.1 - March 19, 2014
 * Fixed not using tail calls for khepri_peep.
 

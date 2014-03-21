@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/package_manager/node.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
     "khepri-ast/value", "../fun"
 ], (function(require, exports, ast_declaration, ast_expression, ast_statement, ast_value, fun) {
     "use strict";
@@ -35,15 +34,15 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 .create(null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier
                         .create(null, "module"), ast_value.Identifier.create(null, "exports")),
                     exports.id)));
-        return ast_statement.BlockStatement.create(body.loc, [ast_statement.ExpressionStatement.create(
-                null, ast_value.Literal.create(null, "string", "use strict")), ast_statement.WithStatement
+        return ast_statement.BlockStatement.create(loc, [ast_statement.ExpressionStatement.create(null,
+                ast_value.Literal.create(null, "string", "use strict")), ast_statement.WithStatement
             .create(null, map(imports, (function(x) {
                 return ast_declaration.Binding.create(null, x.pattern, importPackage(x.from
                     .value));
-            })), ast_statement.BlockStatement.create(null, concat(exportHeader, body.body,
+            })), ast_statement.BlockStatement.create(null, concat(exportHeader, body,
                 exportBody)))
         ]);
     }));
-    (exports.definePackage = definePackage);
-    (exports.importPackage = importPackage);
+    (exports["definePackage"] = definePackage);
+    (exports["importPackage"] = importPackage);
 }));

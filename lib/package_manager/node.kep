@@ -18,6 +18,11 @@ var map = Function.prototype.call.bind(Array.prototype.map);
 
 /* Package Manager
  ******************************************************************************/
+/**
+ * Node import code generator.
+ * 
+ * @param path {string} Path to package to import.
+ */
 importPackage = \path -> let
     segs = path.split('::')
 in
@@ -31,6 +36,9 @@ in
             ast_value.Identifier.create(null, 'require'), [
             ast_value.Literal.create(null, 'string', segs.(0))]));
 
+/**
+ * Node package definition code generator.
+ */
 definePackage = \loc exports imports targets body -> let
     exportedNames = ?exports.type === 'PackageExports'
         :fun.map(\x -> x.id.name, exports.exports)
@@ -57,7 +65,7 @@ definePackage = \loc exports imports targets body -> let
                         ast_value.Identifier.create(null, 'exports')),
                     exports.id))
 in
-    ast_statement.BlockStatement.create(body.loc, [
+    ast_statement.BlockStatement.create(loc, [
         ast_statement.ExpressionStatement.create(null,
             ast_value.Literal.create(null, 'string', "use strict")),
         ast_statement.WithStatement.create(null,
@@ -68,7 +76,7 @@ in
             ast_statement.BlockStatement.create(null,
                 concat(
                     exportHeader,
-                    body.body,
+                    body,
                     exportBody)))]);
 
 }

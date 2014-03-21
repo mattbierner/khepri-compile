@@ -176,16 +176,16 @@ var extract = new(M)((function(s, ok, _) {
         }));
         else(checks[type] = check);
     });
-addCheck("Program", checkChild("body"));
+addCheck("Program", block(checkChild("body")));
 addCheck("PackageExports", checkChild("exports"));
 addCheck("PackageExport", inspect((function(node) {
     return addMutableBindingChecked(node.id.name, node.loc);
 })));
-addCheck("Package", seq(addImmutableBindingChecked("require", null), addImmutableBindingChecked("exports", null),
-    addImmutableBindingChecked("module", null), checkChild("exports"), inspect((function(node) {
-        return ((node.body.type === "WithStatement") ? child("body", checkChild("bindings"), child("body",
-            checkChild("body"))) : child("body", checkChild("body")));
-    }))));
+addCheck("Package", block(addImmutableBindingChecked("require", null), addImmutableBindingChecked("exports", null),
+    addImmutableBindingChecked("module", null), checkChild("exports"), child("body", inspect((function(node) {
+        return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body", checkChild(
+            "body"))) : checkChild("body"));
+    })))));
 addCheck("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
 addCheck("CatchClause", block(inspect((function(node) {
     return addImmutableBindingChecked(node.param.name, node.param.loc);

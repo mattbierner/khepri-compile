@@ -1,6 +1,6 @@
 {
     "name": "khepri-compile",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Compiler for the Khepri programming language",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -53,6 +53,10 @@
     },
     
     "scripts": {
-        "test": "node test.js"
+        "test": "node test.js",
+        
+        "build": "npm run build-amd && npm run build-node",
+        "build-amd": "khepri lib -o dist",
+        "build-node": "khepri lib -o dist_node --package_manager=node"
     }
 }

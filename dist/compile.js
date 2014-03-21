@@ -5,7 +5,23 @@
     "./stage/ecma_peep"
 ], (function(require, exports, lexical, normalize, transform, khepri_peep, ecma_peep) {
     "use strict";
-    var compile;
+    var compile, compiler = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(ecma_peep.optimize, transform.transform), khepri_peep.optimize), lexical.check), normalize.normalize);
     (compile = (function(f, g) {
         return (function() {
             return f(g.apply(null, arguments));
@@ -14,27 +30,10 @@
         return (function(x) {
             return f(g(x));
         });
-    })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(__o) {
-            var ast = __o["ast"];
-            return ast;
-        }), ecma_peep.optimize), transform.transform), khepri_peep.optimize), lexical.check), normalize
-        .normalize), (function(root, options) {
+    })((function(__o) {
+        var ast = __o["ast"];
+        return ast;
+    }), compiler), (function(root, options) {
         return ({
             "ast": root,
             "options": (options || ({}))
