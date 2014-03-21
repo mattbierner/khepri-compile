@@ -9,13 +9,14 @@ with
 in {
 
 compile =
-    (\root options ->
-        ({'ast': root, 'options': options || {}}))
+    (\root options -> ({
+        'ast': root,
+        'options': options || {}}))
     \>> normalize.normalize
-    \>> lexical.check
-    \>> khepri_peep.optimize
-    \>> transform.transform
-    \>> ecma_peep.optimize
-    \>> \{ast} -> ast;
+    \> lexical.check
+    \> khepri_peep.optimize
+    \> transform.transform
+    \> ecma_peep.optimize
+    \> \{ast} -> ast;
 
 }

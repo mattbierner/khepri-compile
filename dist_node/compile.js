@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var lexical = require("./stage/lexical"),
     normalize = require("./stage/normalize"),
     transform = require("./stage/transform"),
@@ -13,33 +12,34 @@ var lexical = require("./stage/lexical"),
     return (function() {
         return f(g.apply(null, arguments));
     });
+})((function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})((function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})((function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})((function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})((function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
 })((function(__o) {
     var ast = __o["ast"];
     return ast;
-}), (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(ecma_peep.optimize, (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(transform.transform, (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(khepri_peep.optimize, (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(lexical.check, (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(normalize.normalize, (function(root, options) {
-    return ({
-        "ast": root,
-        "options": (options || ({}))
-    });
-}))))))));
-(exports.compile = compile);
+}), ecma_peep.optimize), transform.transform), khepri_peep.optimize), lexical.check), normalize.normalize), (
+    function(root, options) {
+        return ({
+            "ast": root,
+            "options": (options || ({}))
+        });
+    })));
+(exports["compile"] = compile);
