@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.2.3 - March 21, 2014
+* Recompile from bad compile with old version of Khepri.
+
 ## 0.2.2 - March 21, 2014
 * Fixed programs and packages not introducing a new scope, leading to potential
   name conflicts with globals.

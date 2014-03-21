@@ -12,34 +12,34 @@ var lexical = require("./stage/lexical"),
         return (function(x) {
             return f(g(x));
         });
-    })(ecma_peep.optimize, (function(f, g) {
+    })((function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(transform.transform, (function(f, g) {
+    })((function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(khepri_peep.optimize, (function(f, g) {
+    })((function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(lexical.check, normalize.normalize))));
+    })(ecma_peep.optimize, transform.transform), khepri_peep.optimize), lexical.check), normalize.normalize);
 (compile = (function(f, g) {
+    return (function() {
+        return f(g.apply(null, arguments));
+    });
+})((function(f, g) {
     return (function(x) {
         return f(g(x));
     });
 })((function(__o) {
     var ast = __o["ast"];
     return ast;
-}), (function(f, g) {
-    return (function() {
-        return f(g.apply(null, arguments));
-    });
-})(compiler, (function(root, options) {
+}), compiler), (function(root, options) {
     return ({
         "ast": root,
         "options": (options || ({}))
     });
-}))));
+})));
 (exports["compile"] = compile);
