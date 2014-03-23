@@ -79,23 +79,35 @@ var ast_node = require("khepri-ast")["node"],
             return f(g(x));
         });
     })(lift, StateM.lift), Zipper.move),
-    up = move(zipper.up),
-    down = move(zipper.down),
-    left = move(zipper.left),
-    right = move(zipper.right),
+    up = lift(StateM.lift(Zipper.up)),
+    down = lift(StateM.lift(Zipper.down)),
+    left = lift(StateM.lift(Zipper.left)),
+    right = lift(StateM.lift(Zipper.right)),
+    modifyNode = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(lift, StateM.lift), Zipper.modifyNode),
+    setNode = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(lift, StateM.lift), Zipper.setNode),
+    checkTop = inspect((function(x) {
+        return _check(x);
+    })),
     child = (function(edge) {
         var args = arguments;
         return seq(move(tree.child.bind(null, edge)), seqa([].slice.call(args, 1)), up);
     }),
-    modifyNode = (function(f) {
-        return move(tree.modifyNode.bind(null, f));
-    }),
-    setNode = (function(x) {
-        return move(tree.setNode.bind(null, x));
-    }),
-    checkTop = inspect((function(x) {
-        return _check(x);
-    })),
     checkChild = (function(edge) {
         return child(edge, checkTop);
     }),

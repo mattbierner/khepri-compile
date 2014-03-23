@@ -99,22 +99,22 @@ var extractNode = lift(StateM.lift(Zipper.node));
 
 var move = lift <\ StateM.lift <\ Zipper.move;
 
-var up = move zipper.up;
-var down = move zipper.down;
-var left = move zipper.left;
-var right = move zipper.right;
+var up = lift (StateM.lift Zipper.up);
+var down = lift (StateM.lift Zipper.down);
+var left = lift (StateM.lift Zipper.left);
+var right = lift (StateM.lift Zipper.right);
+
+var modifyNode = lift <\ StateM.lift <\ Zipper.modifyNode;
+
+var setNode = lift <\ StateM.lift <\ Zipper.setNode;
+
+var checkTop = inspect \ x -> _check x; // forward
 
 var child = \args(edge ...) ->
     seq(
         move tree.child@edge,
         seqa([].slice.call(args, 1)),
         up);
-
-var modifyNode = \f -> move tree.modifyNode@f;
-
-var setNode = \x -> move tree.setNode@x;
-
-var checkTop = inspect \ x -> _check x; // forward
 
 var checkChild = \edge ->
     child(edge,
