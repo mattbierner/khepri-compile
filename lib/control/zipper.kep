@@ -31,7 +31,6 @@ Zipper.get = lift (State.get);
  */
 Zipper.put = lift <\ State.put;
 
-
 /**
  * Get the current focus of the zipper.
  */
@@ -75,5 +74,11 @@ Zipper.modifyNode = \f -> Zipper.move tree.modifyNode @ f;
  * Set the current tree node to `x`.
  */
 Zipper.setNode = \x -> Zipper.move tree.setNode @ x;
+
+/**
+ * Set the current tree node to `x`.
+ */
+Zipper.child = \edge -> Zipper.move tree.child @ edge;
+
 
 }

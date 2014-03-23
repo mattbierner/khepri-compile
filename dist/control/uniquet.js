@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/uniquet.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/uniquet.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/trans/state"], (function(require, exports, StateT) {
+*/
+define(["require", "exports", "akh/trans/state"], (function(require, exports, StateT) {
     "use strict";
     var UniqueT;
     (UniqueT = (function(m) {

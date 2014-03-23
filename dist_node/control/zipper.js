@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/control/zipper.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/control/zipper.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var StateT = require("akh")["trans"]["state"],
     State = require("akh")["state"],
     IdentityT = require("akh")["trans"]["identity"],
@@ -38,5 +37,8 @@ var lift = Zipper.lift;
 }));
 (Zipper.setNode = (function(x) {
     return Zipper.move(tree.setNode.bind(null, x));
+}));
+(Zipper.child = (function(edge) {
+    return Zipper.move(tree.child.bind(null, edge));
 }));
 (module.exports = Zipper);

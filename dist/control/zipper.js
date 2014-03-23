@@ -35,5 +35,8 @@
         (Zipper.setNode = (function(x) {
             return Zipper.move(tree.setNode.bind(null, x));
         }));
+        (Zipper.child = (function(edge) {
+            return Zipper.move(tree.child.bind(null, edge));
+        }));
         return Zipper;
     }));

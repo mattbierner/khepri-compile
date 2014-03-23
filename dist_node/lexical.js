@@ -5,11 +5,9 @@
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
-    ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     zipper = require("neith")["zipper"],
-    tree = require("neith")["tree"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     record = require("bes")["record"],
@@ -83,6 +81,15 @@ var ast_node = require("khepri-ast")["node"],
     down = lift(StateM.lift(Zipper.down)),
     left = lift(StateM.lift(Zipper.left)),
     right = lift(StateM.lift(Zipper.right)),
+    moveChild = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(lift, StateM.lift), Zipper.child),
     modifyNode = (function(f, g) {
         return (function(x) {
             return f(g(x));
@@ -106,7 +113,7 @@ var ast_node = require("khepri-ast")["node"],
     })),
     child = (function(edge) {
         var args = arguments;
-        return seq(move(tree.child.bind(null, edge)), seqa([].slice.call(args, 1)), up);
+        return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
     }),
     checkChild = (function(edge) {
         return child(edge, checkTop);
