@@ -41,7 +41,6 @@ var _check;
 /* State
  ******************************************************************************/
 var State = record.declare(null, [
-    'ctx',
     'scope',
     'unique']);
 
@@ -69,21 +68,21 @@ var lift = M.lift;
 ////////////////////////////////////////
 var extract = lift (StateM.get);
 
-var examineState = M.chain @ extract;
+var inspectStateWith = M.chain @ extract;
 
 var modifyState = lift <\ StateM.modify;
 
-var unique = lift (
-    StateM.get
-        .chain\s ->
-            next(
-                StateM.put <| s.setUnique(s.unique + 1),
-                StateM.of(s.unique)));
+var putState = lift <\ StateM.put;
+
+var unique = inspectStateWith \ s ->
+    next(
+        putState <| s.setUnique(s.unique + 1),
+        M.of(s.unique));
 
 // Scope Operations
 ////////////////////////////////////////
 var examineScope = \f ->
-    examineState\s -> f(s.scope);
+    inspectStateWith\s -> f(s.scope);
 
 var modifyScope = \f ->
     modifyState\s ->
@@ -94,14 +93,11 @@ var pop = modifyScope scope.pop;
 
 // Movement Operations
 ////////////////////////////////////////
-var inspect = \f ->
-    examineState\s -> f(tree.node s.ctx);
+var inspect = M.chain @ lift(StateM.lift(Zipper.node));
 
-var extractNode = inspect M.of;
+var extractNode = lift(StateM.lift(Zipper.node));
 
-var move = \op ->
-    modifyState \s ->
-        State.setCtx(s, op(s.ctx));
+var move = lift <\ StateM.lift <\ Zipper.move;
 
 var up = move zipper.up;
 var down = move zipper.down;
@@ -569,7 +565,6 @@ in
                     extract.map\s ->
                         ({'tree': x , 'data': {'unique': s.unique}})),
             new State(
-                khepriZipper(ast),
                 initialScope(globals || []),
                 1),
             khepriZipper(ast),

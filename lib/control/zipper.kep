@@ -12,9 +12,14 @@ in {
  ******************************************************************************/
 Zipper = IdentityT(State);
 
+Zipper.run = \m ctx ->
+    State.evalState(
+        IdentityT.runIdentityT(m),
+        ctx);
+
 var lift = Zipper.lift;
 
-/* Operations
+/* Queries
  ******************************************************************************/
 /**
  * Get the current zipper.
@@ -26,14 +31,9 @@ Zipper.get = lift (State.get);
  */
 Zipper.put = lift <\ State.put;
 
-/**
- * Modify the current zipper.
- */
-Zipper.move = lift <\ State.modify;
-
 
 /**
- * Get the current focus of the zupper.
+ * Get the current focus of the zipper.
  */
 Zipper.extract = Zipper.get.chain(zipper.extract);
 
@@ -45,29 +45,35 @@ Zipper.inspect = Zipper.get.map.bind(Zipper.get);
 /**
  * Call `f` with the current zipper and continue with result of `f`.
  */
-Zipper.inspectWith = Zipper.extract.map.bind(Zipper.extract);
+Zipper.inspectWith = Zipper.extract.chain.bind(Zipper.extract);
 
-
+/* Movement
+ ******************************************************************************/
 /**
  * Modify the current zipper.
  */
 Zipper.move = lift <\ State.modify;
-
 
 Zipper.up = Zipper.move zipper.up;
 Zipper.down = Zipper.move zipper.down;
 Zipper.left = Zipper.move zipper.left;
 Zipper.right = Zipper.move zipper.right;
 
+/* Tree Operations
+ ******************************************************************************/
+/**
+ * Get the current tree node.
+ */
 Zipper.node = Zipper.inspect(tree.node);
 
+/**
+ * Modify the current tree node with `f`.
+ */
 Zipper.modifyNode = \f -> Zipper.move tree.modifyNode @ f;
 
+/**
+ * Set the current tree node to `x`.
+ */
 Zipper.setNode = \x -> Zipper.move tree.setNode @ x;
-
-Zipper.run = \m ctx ->
-    State.evalState(
-        IdentityT.runIdentityT(m),
-        ctx);
 
 }

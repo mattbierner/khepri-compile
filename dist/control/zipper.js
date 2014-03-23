@@ -6,6 +6,9 @@
         "use strict";
         var Zipper;
         (Zipper = IdentityT(State));
+        (Zipper.run = (function(m, ctx) {
+            return State.evalState(IdentityT.runIdentityT(m), ctx);
+        }));
         var lift = Zipper.lift;
         (Zipper.get = lift(State.get));
         (Zipper.put = (function(f, g) {
@@ -13,14 +16,9 @@
                 return f(g(x));
             });
         })(lift, State.put));
-        (Zipper.move = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, State.modify));
         (Zipper.extract = Zipper.get.chain(zipper.extract));
         (Zipper.inspect = Zipper.get.map.bind(Zipper.get));
-        (Zipper.inspectWith = Zipper.extract.map.bind(Zipper.extract));
+        (Zipper.inspectWith = Zipper.extract.chain.bind(Zipper.extract));
         (Zipper.move = (function(f, g) {
             return (function(x) {
                 return f(g(x));
@@ -36,9 +34,6 @@
         }));
         (Zipper.setNode = (function(x) {
             return Zipper.move(tree.setNode.bind(null, x));
-        }));
-        (Zipper.run = (function(m, ctx) {
-            return State.evalState(IdentityT.runIdentityT(m), ctx);
         }));
         return Zipper;
     }));
