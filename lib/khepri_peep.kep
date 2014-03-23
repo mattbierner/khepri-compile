@@ -23,9 +23,7 @@ with
     import './fun' fun,
     import './tail' {Tail trampoline},
     import './control/base' {next binary seq, seqa},
-    import './control/zipper' Zipper#{
-        extract
-    }
+    import './control/zipper' Zipper
 
 in {
 
@@ -47,16 +45,15 @@ var pass = M.of null;
 
 var modifyState = M.modify;
 
-var ctx = M.lift extract;
+var extract = M.lift(Zipper.extract);
 
-var get = ctx.map.bind(ctx);
+var get = extract.map.bind(extract);
 
 var node = get tree.node;
 
 var move = M.lift <\ Zipper.move;
 
-var modify = \f ->
-    move tree.modifyNode@f;
+var modify = M.lift <\ Zipper.modifyNode;
 
 var unique = M.get
     .chain\s ->
@@ -329,11 +326,11 @@ var transform = \node transforms ->
 var walk = \pre post ->
     next(
         pre,
-        ctx.chain \ t -> {
+        extract.chain \ t -> {
             if (zipper.isLeaf t) {
                 var loop = next(
                     post,
-                    ctx.chain \ t -> {
+                    extract.chain \ t -> {
                         if (zipper.isLast t) {
                             if (zipper.isRoot t)
                                 return pass;

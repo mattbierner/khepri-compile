@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value",
     "neith/zipper", "neith/tree", "khepri-ast-zipper", "bes/record", "./scope", "./fun", "./control/base",
-    "akh/state", "akh/trans/error"
+    "./control/zipper", "akh/trans/state", "akh/identity", "akh/trans/error"
 ], (function(require, exports, ast_node, ast_expression, ast_pattern, ast_value, zipper, tree, __o, record, scope,
-    fun, __o0, StateM, ErrorT) {
+    fun, __o0, Zipper, StateT, Identity, ErrorT) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -17,11 +16,10 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         seqa = __o0["seqa"],
         binary = __o0["binary"],
         check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
+        StateM = StateT(Zipper),
         M = ErrorT(StateM),
-        run = (function(p, s, ok, err) {
-            return (function(x) {
-                return StateM.evalState(x, s);
-            })(ErrorT.runErrorT(p, (function(f, g) {
+        run = (function(p, s, ctx, ok, err) {
+            return Zipper.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
                 return (function(x) {
                     return f(g(x));
                 });
@@ -29,22 +27,18 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
                 return (function(x) {
                     return f(g(x));
                 });
-            })(StateM.of, err)));
+            })(StateM.of, err)), s), ctx);
         }),
         error = M.fail,
-        extract = M.lift(StateM.get),
-        setState = (function(f, g) {
+        lift = M.lift,
+        extract = lift(StateM.get),
+        examineState = M.chain.bind(null, extract),
+        modifyState = (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
-        })(M.lift, StateM.put),
-        examineState = M.chain.bind(null, extract),
-        modifyState = (function(f) {
-            return extract.chain((function(s) {
-                return setState(f(s));
-            }));
-        }),
-        unique = M.lift(StateM.get.chain((function(s) {
+        })(lift, StateM.modify),
+        unique = lift(StateM.get.chain((function(s) {
             return next(StateM.put(s.setUnique((s.unique + 1))), StateM.of(s.unique));
         }))),
         examineScope = (function(f) {
@@ -128,6 +122,11 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
                 return Scope.addMutableBinding(s, id, loc);
             })), addUid(id));
         }),
+        addStaticBinding = (function(id, loc) {
+            return modifyScope((function(s) {
+                return Scope.addImmutableBinding(s, id, loc);
+            }));
+        }),
         addImmutableBinding = (function(id, loc) {
             return seq(modifyScope((function(s) {
                 return Scope.addImmutableBinding(s, id, loc);
@@ -138,6 +137,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         }),
         addImmutableBindingChecked = (function(id, loc) {
             return seq(checkCanAddOwnBinding(id, loc), addImmutableBinding(id, loc));
+        }),
+        addStaticBindingChecked = (function(id, loc) {
+            return seq(checkCanAddOwnBinding(id, loc), addStaticBinding(id, loc));
         }),
         checks = ({}),
         addCheck = (function(type, check) {
@@ -163,7 +165,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     })), checkChild("param"), child("body", checkChild("body"))));
     addCheck(["StaticDeclaration", "VariableDeclaration"], checkChild("declarations"));
     addCheck("StaticDeclarator", inspect((function(node) {
-        return addImmutableBindingChecked(node.id.name, node.loc);
+        return addStaticBindingChecked(node.id.name, node.loc);
     })));
     addCheck("VariableDeclarator", inspect((function(node) {
         var bind = (node.immutable ? addImmutableBindingChecked(node.id.name, node.loc) :
@@ -259,15 +261,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         });
     (check = (function(ast, globals) {
         return run(seq(checkTop, move(zipper.root), extractNode.chain((function(x) {
-            return extract.map((function(s) {
-                return ({
-                    "tree": x,
-                    "data": ({
-                        "unique": s.unique
-                    })
-                });
-            }));
-        }))), new(State)(khepriZipper(ast), initialScope((globals || [])), 1), suc, fail);
+                return extract.map((function(s) {
+                    return ({
+                        "tree": x,
+                        "data": ({
+                            "unique": s.unique
+                        })
+                    });
+                }));
+            }))), new(State)(khepriZipper(ast), initialScope((globals || [])), 1), khepriZipper(ast),
+            suc, fail);
     }));
     (exports["check"] = check);
 }));

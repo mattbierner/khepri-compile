@@ -7,24 +7,30 @@ with
     import 'neith::zipper' zipper,
     import 'neith::tree' tree
 in {
-    
 
-var ZipperT = \m -> {
-    var Instance = StateT(m);
-    
-    Instance.move = Instance.modifyState;
-    
-    Instance.move = Instance.modifyState;
-    
-    return Instance;
-};
-
-
+/* Monad
+ ******************************************************************************/
 Zipper = IdentityT(State);
 
-Zipper.extract = Zipper.lift State.get;
+var lift = Zipper.lift;
 
-Zipper.move = \op -> Zipper.lift (State.modify op);
+/* Operations
+ ******************************************************************************/
+/**
+ * Get the current zipper.
+ */
+Zipper.extract = lift (State.get);
+ 
+/**
+ * Call `f` with the current zipper and continue with result of `f`.
+ */
+Zipper.inspect = Zipper.extract.chain.bind(Zipper.extract);
+
+/**
+ * Modify the current zipper.
+ */
+Zipper.move = lift <\ State.modify;
+
 
 Zipper.up = Zipper.move zipper.up;
 Zipper.down = Zipper.move zipper.down;

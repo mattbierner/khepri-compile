@@ -18,7 +18,6 @@
         binary = __o2["binary"],
         seq = __o2["seq"],
         seqa = __o2["seqa"],
-        extract = Zipper["extract"],
         optimize, State = record.declare(null, ["unique"]),
         M = StateT(Zipper),
         run = (function(c, ctx, s) {
@@ -26,17 +25,19 @@
         }),
         pass = M.of(null),
         modifyState = M.modify,
-        ctx = M.lift(extract),
-        get = ctx.map.bind(ctx),
+        extract = M.lift(Zipper.extract),
+        get = extract.map.bind(extract),
         node = get(tree.node),
         move = (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
         })(M.lift, Zipper.move),
-        modify = (function(f) {
-            return move(tree.modifyNode.bind(null, f));
-        }),
+        modify = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(M.lift, Zipper.modifyNode),
         unique = M.get.chain((function(s) {
             return next(M.put(s.setUnique((s.unique + 1))), M.of(s.unique));
         })),
@@ -178,9 +179,9 @@
             }))) : pass);
         }),
         walk = (function(pre, post) {
-            return next(pre, ctx.chain((function(t) {
+            return next(pre, extract.chain((function(t) {
                 if (zipper.isLeaf(t)) {
-                    var loop = next(post, ctx.chain((function(t) {
+                    var loop = next(post, extract.chain((function(t) {
                         if (zipper.isLast(t)) {
                             if (zipper.isRoot(t)) return pass;
                             return next(move(zipper.up), loop);

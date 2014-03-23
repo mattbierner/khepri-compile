@@ -21,14 +21,15 @@ var ast_node = require("khepri-ast")["node"],
     seq = __o0["seq"],
     seqa = __o0["seqa"],
     binary = __o0["binary"],
-    StateM = require("akh")["state"],
+    Zipper = require("./control/zipper"),
+    StateT = require("akh")["trans"]["state"],
+    Identity = require("akh")["identity"],
     ErrorT = require("akh")["trans"]["error"],
     check, _check, State = record.declare(null, ["ctx", "scope", "unique"]),
+    StateM = StateT(Zipper),
     M = ErrorT(StateM),
-    run = (function(p, s, ok, err) {
-        return (function(x) {
-            return StateM.evalState(x, s);
-        })(ErrorT.runErrorT(p, (function(f, g) {
+    run = (function(p, s, ctx, ok, err) {
+        return Zipper.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
@@ -36,22 +37,18 @@ var ast_node = require("khepri-ast")["node"],
             return (function(x) {
                 return f(g(x));
             });
-        })(StateM.of, err)));
+        })(StateM.of, err)), s), ctx);
     }),
     error = M.fail,
-    extract = M.lift(StateM.get),
-    setState = (function(f, g) {
+    lift = M.lift,
+    extract = lift(StateM.get),
+    examineState = M.chain.bind(null, extract),
+    modifyState = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(M.lift, StateM.put),
-    examineState = M.chain.bind(null, extract),
-    modifyState = (function(f) {
-        return extract.chain((function(s) {
-            return setState(f(s));
-        }));
-    }),
-    unique = M.lift(StateM.get.chain((function(s) {
+    })(lift, StateM.modify),
+    unique = lift(StateM.get.chain((function(s) {
         return next(StateM.put(s.setUnique((s.unique + 1))), StateM.of(s.unique));
     }))),
     examineScope = (function(f) {
@@ -134,6 +131,11 @@ var ast_node = require("khepri-ast")["node"],
             return Scope.addMutableBinding(s, id, loc);
         })), addUid(id));
     }),
+    addStaticBinding = (function(id, loc) {
+        return modifyScope((function(s) {
+            return Scope.addImmutableBinding(s, id, loc);
+        }));
+    }),
     addImmutableBinding = (function(id, loc) {
         return seq(modifyScope((function(s) {
             return Scope.addImmutableBinding(s, id, loc);
@@ -144,6 +146,9 @@ var ast_node = require("khepri-ast")["node"],
     }),
     addImmutableBindingChecked = (function(id, loc) {
         return seq(checkCanAddOwnBinding(id, loc), addImmutableBinding(id, loc));
+    }),
+    addStaticBindingChecked = (function(id, loc) {
+        return seq(checkCanAddOwnBinding(id, loc), addStaticBinding(id, loc));
     }),
     checks = ({}),
     addCheck = (function(type, check) {
@@ -168,7 +173,7 @@ addCheck("CatchClause", block(inspect((function(node) {
 })), checkChild("param"), child("body", checkChild("body"))));
 addCheck(["StaticDeclaration", "VariableDeclaration"], checkChild("declarations"));
 addCheck("StaticDeclarator", inspect((function(node) {
-    return addImmutableBindingChecked(node.id.name, node.loc);
+    return addStaticBindingChecked(node.id.name, node.loc);
 })));
 addCheck("VariableDeclarator", inspect((function(node) {
     var bind = (node.immutable ? addImmutableBindingChecked(node.id.name, node.loc) :
@@ -269,6 +274,6 @@ var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
                 })
             });
         }));
-    }))), new(State)(khepriZipper(ast), initialScope((globals || [])), 1), suc, fail);
+    }))), new(State)(khepriZipper(ast), initialScope((globals || [])), 1), khepriZipper(ast), suc, fail);
 }));
 (exports["check"] = check);

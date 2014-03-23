@@ -26,7 +26,10 @@ with
         seqa
         binary},
     
-    import 'akh::state' StateM,
+    import './control/zipper' Zipper,
+
+    import 'akh::trans::state' StateT,
+    import 'akh::identity' Identity,
     import 'akh::trans::error' ErrorT
 
 in {
@@ -44,33 +47,38 @@ var State = record.declare(null, [
 
 /* Monad
  ******************************************************************************/
+var StateM = StateT Zipper;
+
 var M = ErrorT(StateM);
 
-var run = \p s ok err->
-    ErrorT.runErrorT(
-        p,
-        ok \> StateM.of,
-        err \> StateM.of)
-        |> \x -> StateM.evalState(x, s);
+var run = \p s ctx ok err->
+    Zipper.run(
+        StateT.evalStateT(
+            ErrorT.runErrorT(
+                p,
+                ok \> StateM.of,
+                err \> StateM.of),
+            s),
+        ctx);
 
 var error = M.fail;
 
+var lift = M.lift;
+
 // State Operations
 ////////////////////////////////////////
-var extract = M.lift (StateM.get);
-
-var setState = M.lift <\ StateM.put;
+var extract = lift (StateM.get);
 
 var examineState = M.chain @ extract;
 
-var modifyState = \f ->
-    extract.chain\s -> setState (f s);
+var modifyState = lift <\ StateM.modify;
 
-var unique = M.lift <| StateM.get
-    .chain\s ->
-        next(
-            StateM.put <| s.setUnique(s.unique + 1),
-            StateM.of(s.unique));
+var unique = lift (
+    StateM.get
+        .chain\s ->
+            next(
+                StateM.put <| s.setUnique(s.unique + 1),
+                StateM.of(s.unique)));
 
 // Scope Operations
 ////////////////////////////////////////
@@ -171,7 +179,7 @@ var checkCanAssign = \id, loc ->
  * Define a new identifier and create a uid entry for it.
  */
 var addUid = \id ->
-    unique.chain\uid ->
+    unique.chain \ uid ->
         modifyScope(\s -> Scope.addUid(s, id, uid));
 
 /**
@@ -183,6 +191,17 @@ var addMutableBinding = \id, loc ->
          modifyScope \ s ->
              Scope.addMutableBinding(s, id, loc),
          addUid(id));
+
+/**
+ * Adds a new static binding in the current scope.
+ * 
+ * Static binds are immutable and are not effected by renaming.
+ * 
+ * Does not perform any checks.
+ */
+var addStaticBinding = \id, loc -> 
+     modifyScope \ s ->
+         Scope.addImmutableBinding(s, id, loc);
 
 /**
  * Adds a new immutable binding in the current scope.
@@ -211,6 +230,15 @@ var addImmutableBindingChecked = \id, loc ->
     seq(
         checkCanAddOwnBinding(id, loc),
         addImmutableBinding(id, loc));
+
+/**
+ * Add a new immutable binding in the current scope.
+ * Checks to make sure the new binding is valid.
+ */
+var addStaticBindingChecked = \id, loc ->
+    seq(
+        checkCanAddOwnBinding(id, loc),
+        addStaticBinding(id, loc));
 
 /* Checks
  ******************************************************************************/
@@ -273,8 +301,8 @@ addCheck@['StaticDeclaration', 'VariableDeclaration'] <|
 
 addCheck@'StaticDeclarator' <|
     inspect \ node ->
-        addImmutableBindingChecked(node.id.name, node.loc);
-    
+        addStaticBindingChecked(node.id.name, node.loc);
+
 addCheck@'VariableDeclarator' <|
     inspect \ node -> let
         bind = ?node.immutable
@@ -544,6 +572,7 @@ in
                 khepriZipper(ast),
                 initialScope(globals || []),
                 1),
+            khepriZipper(ast),
             suc,
             fail);
 }
