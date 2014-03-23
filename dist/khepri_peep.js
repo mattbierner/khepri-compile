@@ -2,21 +2,19 @@
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
 */define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
-    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "./fun", "./tail",
+    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "./fun",
     "./control/base", "./control/zipper", "./control/uniquet"
 ], (function(require, exports, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_value, fun, __o1, __o2, Zipper, UniqueT) {
+    ast_value, fun, __o1, Zipper, UniqueT) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
         setUserData = __o0["setUserData"],
         setData = __o0["setData"],
-        Tail = __o1["Tail"],
-        trampoline = __o1["trampoline"],
-        next = __o2["next"],
-        binary = __o2["binary"],
-        seq = __o2["seq"],
-        seqa = __o2["seqa"],
+        next = __o1["next"],
+        binary = __o1["binary"],
+        seq = __o1["seq"],
+        seqa = __o1["seqa"],
         optimize, M = UniqueT(Zipper),
         run = (function(c, ctx, seed) {
             return Zipper.run(UniqueT.runUniqueT(c, seed), ctx);
@@ -24,16 +22,14 @@
         pass = M.of(null),
         extract = M.lift(Zipper.get),
         node = M.lift(Zipper.node),
-        get = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, Zipper.inspect),
         move = (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
         })(M.lift, Zipper.move),
+        up = M.lift(Zipper.up),
+        right = M.lift(Zipper.right),
+        down = M.lift(Zipper.down),
         modify = (function(f, g) {
             return (function(x) {
                 return f(g(x));
@@ -190,14 +186,14 @@
                     var loop = next(post, extract.chain((function(t) {
                         if (zipper.isLast(t)) {
                             if (zipper.isRoot(t)) return pass;
-                            return next(move(zipper.up), loop);
+                            return next(up, loop);
                         } else {
-                            return next(move(zipper.right), walk(pre, post));
+                            return next(right, walk(pre, post));
                         }
                     })));
                     return loop;
                 }
-                return next(move(zipper.down), walk(pre, post));
+                return next(down, walk(pre, post));
             })));
         }),
         _transform = node.chain((function(node) {

@@ -15,14 +15,11 @@ var zipper = require("neith")["zipper"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
-    __o1 = require("./tail"),
-    Tail = __o1["Tail"],
-    trampoline = __o1["trampoline"],
-    __o2 = require("./control/base"),
-    next = __o2["next"],
-    binary = __o2["binary"],
-    seq = __o2["seq"],
-    seqa = __o2["seqa"],
+    __o1 = require("./control/base"),
+    next = __o1["next"],
+    binary = __o1["binary"],
+    seq = __o1["seq"],
+    seqa = __o1["seqa"],
     Zipper = require("./control/zipper"),
     UniqueT = require("./control/uniquet"),
     optimize, M = UniqueT(Zipper),
@@ -32,16 +29,14 @@ var zipper = require("neith")["zipper"],
     pass = M.of(null),
     extract = M.lift(Zipper.get),
     node = M.lift(Zipper.node),
-    get = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(M.lift, Zipper.inspect),
     move = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
     })(M.lift, Zipper.move),
+    up = M.lift(Zipper.up),
+    right = M.lift(Zipper.right),
+    down = M.lift(Zipper.down),
     modify = (function(f, g) {
         return (function(x) {
             return f(g(x));
@@ -192,14 +187,14 @@ var upTransforms = (function(node) {
                 var loop = next(post, extract.chain((function(t) {
                     if (zipper.isLast(t)) {
                         if (zipper.isRoot(t)) return pass;
-                        return next(move(zipper.up), loop);
+                        return next(up, loop);
                     } else {
-                        return next(move(zipper.right), walk(pre, post));
+                        return next(right, walk(pre, post));
                     }
                 })));
                 return loop;
             }
-            return next(move(zipper.down), walk(pre, post));
+            return next(down, walk(pre, post));
         })));
     }),
     _transform = node.chain((function(node) {

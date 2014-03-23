@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/uniquet.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/uniquet.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var StateT = require("akh")["trans"]["state"],
     UniqueT;
 (UniqueT = (function(m) {

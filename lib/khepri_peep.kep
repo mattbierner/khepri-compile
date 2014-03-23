@@ -1,5 +1,5 @@
 /**
- * 
+ * @fileOverview Khepri peephole optimization.
  */
 package (
     optimize)
@@ -16,15 +16,14 @@ with
     import 'khepri-ast::value' ast_value,
     
     import './fun' fun,
-    import './tail' {Tail trampoline},
-    import './control/base' {next binary seq, seqa},
+    import './control/base' {next binary seq seqa},
     import './control/zipper' Zipper,
     import './control/uniquet' UniqueT
 in {
 
 /* Operations
  ******************************************************************************/
-var M = UniqueT(Zipper);
+var M = UniqueT(Zipper); // TODO: probably should be reversed.
 
 var run = \c ctx seed ->
     Zipper.run(
@@ -37,9 +36,11 @@ var extract = M.lift (Zipper.get);
 
 var node =  M.lift (Zipper.node);
 
-var get = M.lift <\ Zipper.inspect;
-
 var move = M.lift <\ Zipper.move;
+
+var up = M.lift (Zipper.up);
+var right = M.lift (Zipper.right);
+var down = M.lift (Zipper.down);
 
 var modify = M.lift <\ Zipper.modifyNode;
 
@@ -330,15 +331,15 @@ var walk = \pre post ->
                             if (zipper.isRoot t)
                                 return pass;
                             return next(
-                                move zipper.up,
+                                up,
                                loop);
                         } else {
-                            return next(move zipper.right, walk(pre, post));
+                            return next(right, walk(pre, post));
                         }
                     });
                 return loop;
             }
-            return next(move zipper.down, walk(pre, post));
+            return next(down, walk(pre, post));
         });
 
 var _transform = node.chain \ node ->
@@ -359,6 +360,5 @@ optimize = \ast data ->
             node),
         khepriZipper(ast),
         data.unique);
-
 
 }
