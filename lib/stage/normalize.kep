@@ -1,12 +1,10 @@
 /**
  * @fileOverview
  */
-package (
-    normalize)
+package normalize
 with
     import '../normalize' norm
 in {
-
 
 /**
  * 

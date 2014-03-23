@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stage/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stage/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var khepri_peep = require("../khepri_peep"),
     __o = require("bes")["object"],
     setProperty = __o["setProperty"],
@@ -12,4 +11,4 @@ var khepri_peep = require("../khepri_peep"),
         data = input["data"];
     return setProperty(input, "ast", khepri_peep.optimize(ast, data));
 }));
-(exports["optimize"] = optimize);
+(module.exports = optimize);

@@ -3,7 +3,6 @@
  * DO NOT EDIT
 */"use strict";
 var record = require("bes")["record"],
-    array = require("bes")["array"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
     ecma_expression = require("ecma-ast")["expression"],
@@ -24,14 +23,14 @@ var record = require("bes")["record"],
     khepriZipper = __o["khepriZipper"],
     tree = require("neith")["tree"],
     zipper = require("neith")["zipper"],
-    scope = require("./scope"),
-    fun = require("./fun"),
-    flip = fun["flip"],
     StateM = require("akh")["state"],
     __o0 = require("akh")["base"],
     next = __o0["next"],
     seq = __o0["sequence"],
     seqa = __o0["sequencea"],
+    scope = require("./scope"),
+    fun = require("./fun"),
+    flip = fun["flip"],
     transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager", "bindings",
         "unique"
     ]);

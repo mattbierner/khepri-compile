@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stage/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stage/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var transformer = require("../transform"),
     __o = require("bes")["object"],
     setProperty = __o["setProperty"],
@@ -13,4 +12,4 @@ var transformer = require("../transform"),
         data = input["data"];
     return setProperty(input, "ast", transformer.transform(ast, (options.package_manager || "amd"), data));
 }));
-(exports["transform"] = transform);
+(module.exports = transform);

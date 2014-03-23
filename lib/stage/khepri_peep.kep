@@ -1,8 +1,7 @@
 /**
  * @fileOverview Khepri source optimization compiler stage.
  */
-package (
-    optimize)
+package optimize
 with
     import '../khepri_peep' khepri_peep,
     import 'bes::object' {setProperty}

@@ -9,11 +9,11 @@ with
 in {
 
 var compiler :=
-       normalize.normalize
-    \> lexical.check
-    \> khepri_peep.optimize
-    \> transform.transform
-    \> ecma_peep.optimize;
+       normalize
+    \> lexical
+    \> khepri_peep
+    \> transform
+    \> ecma_peep;
 
 compile =
     (\root options -> ({

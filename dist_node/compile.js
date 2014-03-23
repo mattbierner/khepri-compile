@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var lexical = require("./stage/lexical"),
     normalize = require("./stage/normalize"),
     transform = require("./stage/transform"),
@@ -24,7 +23,7 @@ var lexical = require("./stage/lexical"),
         return (function(x) {
             return f(g(x));
         });
-    })(ecma_peep.optimize, transform.transform), khepri_peep.optimize), lexical.check), normalize.normalize);
+    })(ecma_peep, transform), khepri_peep), lexical), normalize);
 (compile = (function(f, g) {
     return (function() {
         return f(g.apply(null, arguments));

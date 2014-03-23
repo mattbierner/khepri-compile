@@ -1,8 +1,7 @@
 /**
  * @fileOverview
  */
-package (
-    check)
+package check
 with
     import '../lexical' lexical
 in {

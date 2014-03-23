@@ -1,8 +1,7 @@
 /**
  * @fileOverview
  */
-package (
-    transform)
+package transform
 with 
     import '../transform' transformer,
     import 'bes::object' {setProperty}

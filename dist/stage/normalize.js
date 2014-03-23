@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stage/normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stage/normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "../normalize"], (function(require, exports, norm) {
+*/define(["require", "exports", "../normalize"], (function(require, exports, norm) {
     "use strict";
     var normalize;
     (normalize = (function(__o) {
@@ -13,5 +12,5 @@ define(["require", "exports", "../normalize"], (function(require, exports, norm)
             "ast": norm.normalize(ast)
         });
     }));
-    (exports["normalize"] = normalize);
+    return normalize;
 }));

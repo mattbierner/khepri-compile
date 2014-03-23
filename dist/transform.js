@@ -1,22 +1,22 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
-    "ecma-ast/expression", "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value",
-    "khepri-ast/clause", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+    "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
+    "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
-    "neith/zipper", "./scope", "./fun", "./package_manager/amd", "./package_manager/node", "akh/state", "akh/base"
-], (function(require, exports, record, array, ecma_clause, ecma_declaration, ecma_expression, ecma_node,
-    ecma_program, ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
-    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, scope, fun, _, _0,
-    StateM, __o0) {
+    "neith/zipper", "akh/state", "akh/base", "./scope", "./fun", "./package_manager/amd", "./package_manager/node"
+], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
+    ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
+    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, StateM, __o0, scope, fun,
+    _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
-        flip = fun["flip"],
         next = __o0["next"],
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
+        flip = fun["flip"],
         transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager",
             "bindings", "unique"
         ]);

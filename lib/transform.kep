@@ -5,7 +5,6 @@ package (
     transform)
 with 
     import 'bes::record' record,
-    import 'bes::array' array,
 
     import 'ecma-ast::clause' ecma_clause,
     import 'ecma-ast::declaration' ecma_declaration,
@@ -28,15 +27,15 @@ with
 
     import 'neith::tree' tree,
     import 'neith::zipper' zipper,
-
+    
+    import 'akh::state' StateM,
+    import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
+    
     import './scope' scope,
     import './fun' fun#{flip},
 
     import './package_manager::amd' _,
-    import './package_manager::node' _,
-    
-    import 'akh::state' StateM,
-    import 'akh::base' {next 'sequence': seq 'sequencea': seqa}
+    import './package_manager::node' _
 in {
 
 /* State
@@ -67,7 +66,7 @@ var cons = \a b ->
         ok <| [x].concat(y);
 
 var enumeration = fun.foldr@(
-    flip(cons),
+    flip cons,
     ok []);
 
 // State Operations
@@ -128,21 +127,23 @@ var get = \op ->
 
 var node = get tree.node;
 
-var enterBlock = examineScope \s ->
+// Scoping Operations
+////////////////////////////////////////
+var enterBlock = examineScope \ s ->
     setScope(scope.Scope.empty.setOuter(s));
 
-var exitBlock = examineScope \s ->
+var exitBlock = examineScope \ s ->
     setScope(s.outer);
 
 var addVar = \id uid ->
-    examineScope(\s ->
+    examineScope \ s ->
         ?s.hasMapping(uid)
             :pass
             :let name = s.getUnusedId(id) in
                 setScope(scope.Scope.addMapping(
                     scope.Scope.addMutableBinding(s, name),
                     uid,
-                    name)));
+                    name));
 
 var getMapping = \uid f ->
     examineScope \ s ->
