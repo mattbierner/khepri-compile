@@ -47,8 +47,8 @@ var ok = StateM.of,
         }));
     }),
     cons = (function(a, b) {
-        return bind(a, (function(x) {
-            return bind(b, (function(y) {
+        return a.chain((function(x) {
+            return b.chain((function(y) {
                 return ok([x].concat(y));
             }));
         }));
@@ -61,11 +61,6 @@ var ok = StateM.of,
     examineScope = (function(f) {
         return bind(extract, (function(s) {
             return f(s.scope);
-        }));
-    }),
-    examineRealScope = (function(f) {
-        return bind(extract, (function(s) {
-            return f(s.realScope);
         }));
     }),
     packageManager = examineState((function(s) {

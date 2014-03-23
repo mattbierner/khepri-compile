@@ -62,9 +62,9 @@ var binds = \p f ->
         f.apply(undefined, x));
 
 var cons = \a b ->
-    bind(a, \x ->
-        bind(b, \y ->
-            ok([x].concat(y))));
+    a.chain \ x ->
+    b.chain \ y ->
+        ok <| [x].concat(y);
 
 var enumeration = fun.foldr@(
     flip(cons),
@@ -84,8 +84,6 @@ var examineState = StateM.chain @ StateM.get;
 ////////////////////////////////////////
 var examineScope = \f -> bind(extract, \s -> f(s.scope));
 
-var examineRealScope = \f -> bind(extract, \s -> f(s.realScope));
-
 var packageManager = examineState(\s -> ok(s.packageManager));
 
 var modifyScope = \f ->
@@ -97,11 +95,14 @@ var setScope = \s -> modifyScope(\() -> s);
 // Binding Operations
 ////////////////////////////////////////
 var setBindings = \bindings ->
-    modifyState(\s -> s.setBindings(bindings));
+    modifyState \ s ->
+        s.setBindings(bindings);
 
-var pushBindings = modifyState(\s -> s.setBindings([[], s.bindings]));
+var pushBindings = modifyState \ s ->
+    s.setBindings([[], s.bindings]);
 
-var popBindings = modifyState(\s -> s.setBindings(s.bindings.(1)));
+var popBindings = modifyState \ s ->
+    s.setBindings(s.bindings.(1));
 
 var addBindings = \bindings ->
     modifyState(\s -> s.setBindings([s.bindings.(0).concat(bindings), s.bindings.(1)]));
