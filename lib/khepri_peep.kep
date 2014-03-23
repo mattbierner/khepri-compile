@@ -32,7 +32,6 @@ in {
 /* State
  ******************************************************************************/
 var State = record.declare(null, [
-    'ctx',
     'unique']);
 
 /* Operations
@@ -367,7 +366,7 @@ optimize = \ast data ->
             walk(_transform, _transformPost),
             node),
         khepriZipper(ast),
-        State.create(khepriZipper(ast), data.unique));
+        State.create(data.unique));
 
 
 }

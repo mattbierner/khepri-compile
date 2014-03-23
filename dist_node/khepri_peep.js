@@ -29,7 +29,7 @@ var record = require("bes")["record"],
     seqa = __o2["seqa"],
     Zipper = require("./control/zipper"),
     extract = Zipper["extract"],
-    optimize, State = record.declare(null, ["ctx", "unique"]),
+    optimize, State = record.declare(null, ["unique"]),
     M = StateT(Zipper),
     run = (function(c, ctx, s) {
         return Zipper.run(StateT.evalStateT(c, s), ctx);
@@ -205,7 +205,6 @@ var upTransforms = (function(node) {
     })),
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
-    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), State.create(khepriZipper(ast),
-        data.unique));
+    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), State.create(data.unique));
 }));
 (exports["optimize"] = optimize);

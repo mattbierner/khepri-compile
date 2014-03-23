@@ -556,9 +556,8 @@ var _transformPost = bind(node, _transp),
     });
 (transform = (function(ast, manager, data) {
     var amd_manager = require("./package_manager/amd"),
-        node_manager = require("./package_manager/node");
-    console.log("3");
-    var packageManager = amd_manager;
+        node_manager = require("./package_manager/node"),
+        packageManager = amd_manager;
     if ((manager === "node"))(packageManager = node_manager);
     var s = State.empty.setCtx(khepriZipper(ast))
         .setScope(scope.Scope.empty)
