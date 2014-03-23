@@ -1,54 +1,31 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
+*/define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
     "ecma-ast/expression", "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value",
     "khepri-ast/clause", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
-    "neith/zipper", "./scope", "./tail", "./fun", "./package_manager/amd", "./package_manager/node"
+    "neith/zipper", "./scope", "./fun", "./package_manager/amd", "./package_manager/node", "akh/state", "akh/base"
 ], (function(require, exports, record, array, ecma_clause, ecma_declaration, ecma_expression, ecma_node,
     ecma_program, ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
-    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, scope, __o0, fun, _, _0) {
+    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, scope, fun, _, _0,
+    StateM, __o0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
-        Tail = __o0["Tail"],
-        trampoline = __o0["trampoline"],
         flip = fun["flip"],
-        transform, objectElementUnpack, _transform = (function() {
-            var args = arguments;
-            return _transform.apply(null, args);
-        }),
-        State = record.declare(null, ["ctx", "scope", "packageManager", "bindings", "unique"]);
+        next = __o0["next"],
+        seq = __o0["sequence"],
+        seqa = __o0["sequencea"],
+        transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager",
+            "bindings", "unique"
+        ]);
     (State.empty = State.create(null, scope.Scope.empty, null, [
         [], null
     ], 0));
-    var ok = (function(x) {
-        return (function(s, ok) {
-            return ok(x, s);
-        });
-    }),
-        bind = (function(p, f) {
-            return (function(s, ok) {
-                return new(Tail)(p, s, (function(x, s) {
-                    return f(x)(s, ok);
-                }));
-            });
-        }),
+    var ok = StateM.of,
+        bind = StateM.chain,
         pass = ok(),
-        next = (function(p, n) {
-            return bind(p, (function(_) {
-                return n;
-            }));
-        }),
-        seqa = (function(arr) {
-            return fun.reduce(arr, next);
-        }),
-        seq = (function() {
-            var args = arguments;
-            return seqa(args);
-        }),
         binds = (function(p, f) {
             return bind(p, (function(x) {
                 return f.apply(undefined, x);
@@ -62,24 +39,10 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
             }));
         }),
         enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-        extract = (function(s, ok) {
-            return ok(s, s);
-        }),
-        setState = (function(s) {
-            return (function(_, ok) {
-                return ok(s, s);
-            });
-        }),
-        modifyState = (function(f) {
-            return bind(extract, (function(s) {
-                return setState(f(s));
-            }));
-        }),
-        examineState = (function(f) {
-            return bind(extract, (function(s) {
-                return f(s);
-            }));
-        }),
+        extract = StateM.get,
+        setState = StateM.put,
+        modifyState = StateM.modify,
+        examineState = StateM.chain.bind(null, StateM.get),
         examineScope = (function(f) {
             return bind(extract, (function(s) {
                 return f(s.scope);
@@ -94,11 +57,9 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
             return ok(s.packageManager);
         })),
         modifyScope = (function(f) {
-            return (function(s, ok, err) {
-                var scope = f(s.scope),
-                    newState = State.setScope(s, scope);
-                return ok(scope, newState);
-            });
+            return modifyState((function(s) {
+                return s.setScope(f(s.scope));
+            }));
         }),
         setScope = (function(s) {
             return modifyScope((function() {
@@ -173,6 +134,9 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
                 }), s.bindings[0]));
             })), f);
         }),
+        _trans, _transform = bind(node, (function(x) {
+            return _trans(x);
+        })),
         identifier = (function(loc, name) {
             return ecma_value.Identifier.create(loc, name);
         }),
@@ -518,22 +482,21 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
                 return set(identifier(node.loc, name));
             }))) : set(identifier(node.loc, node.name)));
     })));
-    var _trans = (function(node) {
+    (_trans = (function(node) {
         if ((node && (node instanceof khepri_node.Node))) {
             var t = transformers[node.type];
             if ((t && t[0].pre)) return t[0].pre;
         }
         return pass;
+    }));
+    var _transp = (function(node) {
+        if ((node && (node instanceof khepri_node.Node))) {
+            var t = transformers[node.type];
+            if ((t && t[0].post)) return t[0].post;
+        }
+        return pass;
     }),
-        _transp = (function(node) {
-            if ((node && (node instanceof khepri_node.Node))) {
-                var t = transformers[node.type];
-                if ((t && t[0].post)) return t[0].post;
-            }
-            return pass;
-        });
-    (_transform = bind(node, _trans));
-    var _transformPost = bind(node, _transp),
+        _transformPost = bind(node, _transp),
         walk = (function(pre, post) {
             return next(pre, bind(ctx, (function(t) {
                 if (zipper.isLeaf(t)) {
@@ -559,9 +522,7 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
             .setScope(scope.Scope.empty)
             .setPackageManager(packageManager)
             .setUnique(data.unique);
-        return trampoline(next(walk(_transform, _transformPost), node)(s, (function(x) {
-            return x;
-        })));
+        return StateM.evalState(next(walk(_transform, _transformPost), node), s);
     }));
     (exports["transform"] = transform);
 }));

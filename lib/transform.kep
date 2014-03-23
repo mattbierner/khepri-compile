@@ -30,17 +30,14 @@ with
     import 'neith::zipper' zipper,
 
     import './scope' scope,
-    import './tail' {Tail trampoline},
     import './fun' fun#{flip},
 
     import './package_manager::amd' _,
-    import './package_manager::node' _
+    import './package_manager::node' _,
+    
+    import 'akh::state' StateM,
+    import 'akh::base' {next 'sequence': seq 'sequencea': seqa}
 in {
-
-
-/* Forward
- ******************************************************************************/
-var _transform = \args(...) -> _transform.apply(null, args);
 
 /* State
  ******************************************************************************/
@@ -55,19 +52,10 @@ State.empty = State.create(null, scope.Scope.empty, null, [[], null], 0);
 
 /*
  ******************************************************************************/
-var ok = \x -> \s, ok -> ok(x, s);
-
-var bind = \p f ->
-    \s ok ->
-        new Tail(p, s, \x, s -> f(x)(s, ok));
+var ok = StateM.of;
+var bind = StateM.chain;
 
 var pass = ok();
-
-var next = \p n -> bind(p, \_ -> n);
-
-var seqa = \arr -> fun.reduce(arr, next);
-
-var seq = \args(...) -> seqa(args);
 
 var binds = \p f ->
     bind(p, \x ->
@@ -82,14 +70,18 @@ var enumeration = fun.foldr@(
     flip(cons),
     ok []);
 
-var extract = \s ok -> ok(s, s);
+// State Operations
+////////////////////////////////////////
+var extract = StateM.get;
 
-var setState = \s -> \_ ok -> ok(s, s);
+var setState = StateM.put;
 
-var modifyState = \f -> bind(extract, \s -> setState(f(s)));
+var modifyState = StateM.modify;
 
-var examineState = \f -> bind(extract, \s -> f(s));
+var examineState = StateM.chain @ StateM.get;
 
+// Scope Operations
+////////////////////////////////////////
 var examineScope = \f -> bind(extract, \s -> f(s.scope));
 
 var examineRealScope = \f -> bind(extract, \s -> f(s.realScope));
@@ -97,13 +89,13 @@ var examineRealScope = \f -> bind(extract, \s -> f(s.realScope));
 var packageManager = examineState(\s -> ok(s.packageManager));
 
 var modifyScope = \f ->
-    \s, ok, err -> let
-        scope = f(s.scope),
-        newState = State.setScope(s, scope)
-    in ok(scope, newState);
+    modifyState \ s ->
+        s.setScope(f s.scope);
 
 var setScope = \s -> modifyScope(\() -> s);
 
+// Binding Operations
+////////////////////////////////////////
 var setBindings = \bindings ->
     modifyState(\s -> s.setBindings(bindings));
 
@@ -114,9 +106,11 @@ var popBindings = modifyState(\s -> s.setBindings(s.bindings.(1)));
 var addBindings = \bindings ->
     modifyState(\s -> s.setBindings([s.bindings.(0).concat(bindings), s.bindings.(1)]));
 
+// Zipper Operations
+////////////////////////////////////////
 var move = \op ->
-    modifyState(\s ->
-        s.setCtx(op(s.ctx)));
+    modifyState \ s ->
+        s.setCtx(op(s.ctx));
 
 var modify = \f ->
     move tree.modifyNode@f;
@@ -161,6 +155,12 @@ var getBindings = \f ->
         examineState <|\ s -> 
             enumeration(fun.map(\[name uid] -> getName(name, uid), s.bindings.(0))),
         f);
+
+/* Forward
+ ******************************************************************************/
+var _trans;
+
+var _transform =  bind(node, \x -> _trans(x));// Late
 
 /* Values
  ******************************************************************************/
@@ -815,7 +815,7 @@ addTransform('Identifier',
 
 /*
  *****************************************************************************/
-var _trans = \node -> {
+_trans = \node -> {
     if (node && node instanceof khepri_node.Node) {
         var t = transformers.(node.type);
         if (t && t.(0).pre)
@@ -832,8 +832,6 @@ var _transp = \node -> {
     }
     return pass;
 };
-
-_transform = bind(node, _trans);
 
 var _transformPost = bind(node, _transp);
 
@@ -880,9 +878,11 @@ transform = \ast manager data -> {
             .setPackageManager(packageManager)
             .setUnique(data.unique);
         
-        return trampoline <| next(
-            walk(_transform, _transformPost),
-            node)(s, \x -> x);
+        return StateM.evalState(
+            next(
+                walk(_transform, _transformPost),
+                node),
+            s);
     }
 };
 
