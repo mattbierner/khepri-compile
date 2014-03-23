@@ -18,11 +18,15 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
-    import 'akh::state' StateM,
+    import 'akh::trans::state' StateT,
     
     import './fun' fun,
     import './tail' {Tail trampoline},
-    import './control/base' {next binary seq, seqa}
+    import './control/base' {next binary seq, seqa},
+    import './control/zipper' Zipper#{
+        extract
+    }
+
 in {
 
 /* State
@@ -33,30 +37,33 @@ var State = record.declare(null, [
 
 /* Operations
  ******************************************************************************/
-var run = StateM.evalState;
+var M = StateT(Zipper);
 
-var pass = StateM.of null;
+var run = \c ctx s ->
+    Zipper.run(
+        StateT.evalStateT(c, s),
+        ctx);
 
-var modifyState = StateM.modify;
+var pass = M.of null;
 
-var ctx = StateM.get.map(\s -> s.ctx);
+var modifyState = M.modify;
+
+var ctx = M.lift extract;
 
 var get = ctx.map.bind(ctx);
 
 var node = get tree.node;
 
-var move = \op ->
-    modifyState \ s ->
-        s.setCtx(op s.ctx);
+var move = M.lift <\ Zipper.move;
 
 var modify = \f ->
     move tree.modifyNode@f;
 
-var unique = StateM.get
+var unique = M.get
     .chain\s ->
         next(
-            StateM.put <| s.setUnique(s.unique + 1),
-            StateM.of(s.unique));
+            M.put <| s.setUnique(s.unique + 1),
+            M.of(s.unique));
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -359,6 +366,7 @@ optimize = \ast data ->
         next(
             walk(_transform, _transformPost),
             node),
+        khepriZipper(ast),
         State.create(khepriZipper(ast), data.unique));
 
 

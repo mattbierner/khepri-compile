@@ -17,7 +17,7 @@ var record = require("bes")["record"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    StateM = require("akh")["state"],
+    StateT = require("akh")["trans"]["state"],
     fun = require("./fun"),
     __o1 = require("./tail"),
     Tail = __o1["Tail"],
@@ -27,25 +27,28 @@ var record = require("bes")["record"],
     binary = __o2["binary"],
     seq = __o2["seq"],
     seqa = __o2["seqa"],
+    Zipper = require("./control/zipper"),
+    extract = Zipper["extract"],
     optimize, State = record.declare(null, ["ctx", "unique"]),
-    run = StateM.evalState,
-    pass = StateM.of(null),
-    modifyState = StateM.modify,
-    ctx = StateM.get.map((function(s) {
-        return s.ctx;
-    })),
+    M = StateT(Zipper),
+    run = (function(c, ctx, s) {
+        return Zipper.run(StateT.evalStateT(c, s), ctx);
+    }),
+    pass = M.of(null),
+    modifyState = M.modify,
+    ctx = M.lift(extract),
     get = ctx.map.bind(ctx),
     node = get(tree.node),
-    move = (function(op) {
-        return modifyState((function(s) {
-            return s.setCtx(op(s.ctx));
-        }));
-    }),
+    move = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(M.lift, Zipper.move),
     modify = (function(f) {
         return move(tree.modifyNode.bind(null, f));
     }),
-    unique = StateM.get.chain((function(s) {
-        return next(StateM.put(s.setUnique((s.unique + 1))), StateM.of(s.unique));
+    unique = M.get.chain((function(s) {
+        return next(M.put(s.setUnique((s.unique + 1))), M.of(s.unique));
     })),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
@@ -202,6 +205,7 @@ var upTransforms = (function(node) {
     })),
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
-    return run(next(walk(_transform, _transformPost), node), State.create(khepriZipper(ast), data.unique));
+    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), State.create(khepriZipper(ast),
+        data.unique));
 }));
 (exports["optimize"] = optimize);

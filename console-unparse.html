@@ -126,6 +126,7 @@
                         $('#text_out').text(s);
                     } catch (e) {
                         $('.ParseError').text(e);
+                        throw e;
                     }
                 });
             });

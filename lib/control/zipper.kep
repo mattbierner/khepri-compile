@@ -1,0 +1,43 @@
+package Zipper
+with
+    import 'akh::trans::state' StateT,
+    import 'akh::state' State,
+    import 'akh::trans::identity' IdentityT,
+    
+    import 'neith::zipper' zipper,
+    import 'neith::tree' tree
+in {
+    
+
+var ZipperT = \m -> {
+    var Instance = StateT(m);
+    
+    Instance.move = Instance.modifyState;
+    
+    Instance.move = Instance.modifyState;
+    
+    return Instance;
+};
+
+
+Zipper = IdentityT(State);
+
+Zipper.extract = Zipper.lift State.get;
+
+Zipper.move = \op -> Zipper.lift (State.modify op);
+
+Zipper.up = Zipper.move zipper.up;
+Zipper.down = Zipper.move zipper.down;
+Zipper.left = Zipper.move zipper.left;
+Zipper.right = Zipper.move zipper.right;
+
+Zipper.modifyNode = \f -> Zipper.move tree.modifyNode @ f;
+
+Zipper.setNode = \x -> Zipper.move tree.setNode @ x;
+
+Zipper.run = \m ctx ->
+    State.evalState(
+        IdentityT.runIdentityT(m),
+        ctx);
+
+}

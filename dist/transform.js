@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
+*/define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecma-ast/declaration",
     "ecma-ast/expression", "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value",
     "khepri-ast/clause", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
@@ -552,8 +551,9 @@ define(["require", "exports", "bes/record", "bes/array", "ecma-ast/clause", "ecm
         });
     (transform = (function(ast, manager, data) {
         var amd_manager = require("./package_manager/amd"),
-            node_manager = require("./package_manager/node"),
-            packageManager = amd_manager;
+            node_manager = require("./package_manager/node");
+        console.log("3");
+        var packageManager = amd_manager;
         if ((manager === "node"))(packageManager = node_manager);
         var s = State.empty.setCtx(khepriZipper(ast))
             .setScope(scope.Scope.empty)

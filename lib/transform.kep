@@ -870,6 +870,7 @@ transform = \ast manager data -> {
         import './package_manager/amd' amd_manager,
         import './package_manager/node' node_manager
     in {
+        static console;  console.log('3');
         var packageManager = amd_manager;
         if (manager === 'node')
             packageManager = node_manager;
