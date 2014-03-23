@@ -1,21 +1,19 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
-    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "./fun",
-    "./control/base", "./control/zipper", "./control/uniquet"
+*/define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
+    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base", "./fun",
+    "./control/zipper", "./control/uniquet"
 ], (function(require, exports, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_value, fun, __o1, Zipper, UniqueT) {
+    ast_value, __o1, fun, Zipper, UniqueT) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
         setUserData = __o0["setUserData"],
         setData = __o0["setData"],
         next = __o1["next"],
-        binary = __o1["binary"],
-        seq = __o1["seq"],
-        seqa = __o1["seqa"],
+        seq = __o1["sequence"],
+        seqa = __o1["sequencea"],
         optimize, M = UniqueT(Zipper),
         run = (function(c, ctx, seed) {
             return Zipper.run(UniqueT.runUniqueT(c, seed), ctx);
@@ -97,19 +95,25 @@ define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/n
     })));
     addPeephole(["BinaryOperatorExpression"], true, (function(_) {
         return true;
-    }), binary(unique, unique, (function(xUid, yUid) {
-        return modify((function(node) {
-            var xArg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid),
-                yArg = setData(ast_value.Identifier.create(null, "y"), "uid", yUid),
-                kind = (((node.op === "||") || (node.op === "&&")) ? ast_expression.LogicalExpression
-                    .create : ((node.op === ".") ? (function(loc, _, x, y) {
-                        return ast_expression.MemberExpression.create(loc, x, y,
-                            true);
-                    }) : ast_expression.BinaryExpression.create));
-            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg),
-                    ast_pattern.IdentifierPattern.create(null, yArg)
-                ]), kind(null, node.op, xArg, yArg));
+    }), unique.chain((function(xUid) {
+        return unique.chain((function(yUid) {
+            return modify((function(node) {
+                var xArg = setData(ast_value.Identifier.create(null, "x"), "uid",
+                    xUid),
+                    yArg = setData(ast_value.Identifier.create(null, "y"), "uid",
+                        yUid),
+                    kind = (((node.op === "||") || (node.op === "&&")) ?
+                        ast_expression.LogicalExpression.create : ((node.op === ".") ?
+                            (function(loc, _, x, y) {
+                                return ast_expression.MemberExpression.create(
+                                    loc, x, y, true);
+                            }) : ast_expression.BinaryExpression.create));
+                return ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
+                        .create(null, xArg), ast_pattern.IdentifierPattern.create(
+                            null, yArg)
+                    ]), kind(null, node.op, xArg, yArg));
+            }));
         }));
     })));
     addPeephole(["CurryExpression"], true, (function(node) {

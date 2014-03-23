@@ -15,20 +15,16 @@ with
     
     import 'bes::record' record,
     
-    import './scope' scope#{Scope},
-    import './fun' fun,
-    
-    import './control/base' {
-        next
-        seq
-        seqa
-        binary},
-    
-    import './control/zipper' Zipper,
+    import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
 
     import 'akh::trans::state' StateT,
     import 'akh::identity' Identity,
-    import 'akh::trans::error' ErrorT
+    import 'akh::trans::error' ErrorT,
+    
+    import './scope' scope#{Scope},
+    import './fun' fun,
+    
+    import './control/zipper' Zipper
 in {
 
 /* Forward declarations

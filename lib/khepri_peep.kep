@@ -15,8 +15,9 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
+    import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
+    
     import './fun' fun,
-    import './control/base' {next binary seq seqa},
     import './control/zipper' Zipper,
     import './control/uniquet' UniqueT
 in {
@@ -161,7 +162,8 @@ addPeephole(['UnaryOperatorExpression'], true,
 addPeephole(['BinaryOperatorExpression'], true,
     \_ -> true,
     
-    binary(unique, unique, \xUid yUid ->
+    unique.chain \ xUid ->
+    unique.chain \ yUid ->
         modify\node -> let
             xArg = setData(
                 ast_value.Identifier.create(null, 'x'),
@@ -187,7 +189,7 @@ addPeephole(['BinaryOperatorExpression'], true,
                 kind(null,
                     node.op,
                     xArg,
-                    yArg))));
+                    yArg)));
 
 /**
  * Convert curry on function expression to function.

@@ -2,19 +2,18 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
-    "khepri-ast-zipper", "bes/record", "./scope", "./fun", "./control/base", "./control/zipper", "akh/trans/state",
-    "akh/identity", "akh/trans/error"
-], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, record, scope, fun, __o0, Zipper,
-    StateT, Identity, ErrorT) {
+    "khepri-ast-zipper", "bes/record", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "./scope",
+    "./fun", "./control/zipper"
+], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, record, __o0, StateT, Identity,
+    ErrorT, scope, fun, Zipper) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
         khepriZipper = __o["khepriZipper"],
-        Scope = scope["Scope"],
         next = __o0["next"],
-        seq = __o0["seq"],
-        seqa = __o0["seqa"],
-        binary = __o0["binary"],
+        seq = __o0["sequence"],
+        seqa = __o0["sequencea"],
+        Scope = scope["Scope"],
         check, _check, State = record.declare(null, ["scope", "unique"]),
         StateM = StateT(Zipper),
         M = ErrorT(StateM),

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -12,18 +11,17 @@ var ast_node = require("khepri-ast")["node"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     record = require("bes")["record"],
-    scope = require("./scope"),
-    Scope = scope["Scope"],
-    fun = require("./fun"),
-    __o0 = require("./control/base"),
+    __o0 = require("akh")["base"],
     next = __o0["next"],
-    seq = __o0["seq"],
-    seqa = __o0["seqa"],
-    binary = __o0["binary"],
-    Zipper = require("./control/zipper"),
+    seq = __o0["sequence"],
+    seqa = __o0["sequencea"],
     StateT = require("akh")["trans"]["state"],
     Identity = require("akh")["identity"],
     ErrorT = require("akh")["trans"]["error"],
+    scope = require("./scope"),
+    Scope = scope["Scope"],
+    fun = require("./fun"),
+    Zipper = require("./control/zipper"),
     check, _check, State = record.declare(null, ["scope", "unique"]),
     StateM = StateT(Zipper),
     M = ErrorT(StateM),
