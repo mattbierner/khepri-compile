@@ -19,12 +19,34 @@ var lift = Zipper.lift;
 /**
  * Get the current zipper.
  */
-Zipper.extract = lift (State.get);
- 
+Zipper.get = lift (State.get);
+
+/**
+ * Set the current zipper.
+ */
+Zipper.put = lift <\ State.put;
+
+/**
+ * Modify the current zipper.
+ */
+Zipper.move = lift <\ State.modify;
+
+
+/**
+ * Get the current focus of the zupper.
+ */
+Zipper.extract = Zipper.get.chain(zipper.extract);
+
+/**
+ * Call `f` with the current zipper and return result
+ */
+Zipper.inspect = Zipper.get.map.bind(Zipper.get);
+
 /**
  * Call `f` with the current zipper and continue with result of `f`.
  */
-Zipper.inspect = Zipper.extract.chain.bind(Zipper.extract);
+Zipper.inspectWith = Zipper.extract.map.bind(Zipper.extract);
+
 
 /**
  * Modify the current zipper.
@@ -36,6 +58,8 @@ Zipper.up = Zipper.move zipper.up;
 Zipper.down = Zipper.move zipper.down;
 Zipper.left = Zipper.move zipper.left;
 Zipper.right = Zipper.move zipper.right;
+
+Zipper.node = Zipper.inspect(tree.node);
 
 Zipper.modifyNode = \f -> Zipper.move tree.modifyNode @ f;
 

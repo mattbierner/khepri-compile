@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 0.2.4 - March 23, 2014
+* Fixed static declarations potentially being renamed.
+* Optimized call of curry `f @ 1 @ 2 3` to generate `f(1, 2, 3)`. This pattern is
+  useful if you want to omit parentheses when calling a multi argument function.
+
 ## 0.2.3 - March 21, 2014
 * Recompile from bad compile with old version of Khepri.
 

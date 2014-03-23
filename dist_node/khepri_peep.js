@@ -2,10 +2,7 @@
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
 */"use strict";
-var record = require("bes")["record"],
-    tree = require("neith")["tree"],
-    modifyNode = tree["modifyNode"],
-    zipper = require("neith")["zipper"],
+var zipper = require("neith")["zipper"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
@@ -17,7 +14,6 @@ var record = require("bes")["record"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    StateT = require("akh")["trans"]["state"],
     fun = require("./fun"),
     __o1 = require("./tail"),
     Tail = __o1["Tail"],
@@ -28,16 +24,19 @@ var record = require("bes")["record"],
     seq = __o2["seq"],
     seqa = __o2["seqa"],
     Zipper = require("./control/zipper"),
-    optimize, State = record.declare(null, ["unique"]),
-    M = StateT(Zipper),
-    run = (function(c, ctx, s) {
-        return Zipper.run(StateT.evalStateT(c, s), ctx);
+    UniqueT = require("./control/uniquet"),
+    optimize, M = UniqueT(Zipper),
+    run = (function(c, ctx, seed) {
+        return Zipper.run(UniqueT.runUniqueT(c, seed), ctx);
     }),
     pass = M.of(null),
-    modifyState = M.modify,
-    extract = M.lift(Zipper.extract),
-    get = extract.map.bind(extract),
-    node = get(tree.node),
+    extract = M.lift(Zipper.get),
+    node = M.lift(Zipper.node),
+    get = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(M.lift, Zipper.inspect),
     move = (function(f, g) {
         return (function(x) {
             return f(g(x));
@@ -48,9 +47,7 @@ var record = require("bes")["record"],
             return f(g(x));
         });
     })(M.lift, Zipper.modifyNode),
-    unique = M.get.chain((function(s) {
-        return next(M.put(s.setUnique((s.unique + 1))), M.of(s.unique));
-    })),
+    unique = M.unique,
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
@@ -154,16 +151,23 @@ addPeephole(["CurryExpression"], true, (function(node) {
 addPeephole(["BinaryExpression"], true, (function(node) {
     return ((node.operator === "|>") && (node.right.type === "CurryExpression"));
 }), modify((function(node) {
-    return ast_expression.CallExpression.create(null, ((node.right.type === "CurryExpression") ? node.right
-        .base : node.right), fun.concat((node.right.args || []), node.left));
+    return ast_expression.CallExpression.create(null, node.right.base, fun.concat((node.right.args || []),
+        node.left));
 })));
 addPeephole(["BinaryExpression"], true, (function(__o) {
     var operator = __o["operator"],
         left = __o["left"];
     return ((operator === "<|") && (left.type === "CurryExpression"));
 }), modify((function(node) {
-    return ast_expression.CallExpression.create(null, ((node.left.type === "CurryExpression") ? node.left.base :
-        node.left), fun.concat((node.left.args || []), node.right));
+    return ast_expression.CallExpression.create(null, node.left.base, fun.concat((node.left.args || []),
+        node.right));
+})));
+addPeephole(["CallExpression"], true, (function(__o) {
+    var callee = __o["callee"];
+    return (callee.type === "CurryExpression");
+}), modify((function(node) {
+    return ast_expression.CallExpression.create(null, node.callee.base, fun.concat((node.callee.args || []),
+        node.args));
 })));
 var upTransforms = (function(node) {
     return ((node && peepholes[node.type]) || [])
@@ -206,6 +210,6 @@ var upTransforms = (function(node) {
     })),
     opt = walk.bind(null, _transform, _transformPost);
 (optimize = (function(ast, data) {
-    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), State.create(data.unique));
+    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), data.unique);
 }));
 (exports["optimize"] = optimize);

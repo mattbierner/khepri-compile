@@ -10,8 +10,20 @@ var StateT = require("akh")["trans"]["state"],
     Zipper;
 (Zipper = IdentityT(State));
 var lift = Zipper.lift;
-(Zipper.extract = lift(State.get));
-(Zipper.inspect = Zipper.extract.chain.bind(Zipper.extract));
+(Zipper.get = lift(State.get));
+(Zipper.put = (function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})(lift, State.put));
+(Zipper.move = (function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})(lift, State.modify));
+(Zipper.extract = Zipper.get.chain(zipper.extract));
+(Zipper.inspect = Zipper.get.map.bind(Zipper.get));
+(Zipper.inspectWith = Zipper.extract.map.bind(Zipper.extract));
 (Zipper.move = (function(f, g) {
     return (function(x) {
         return f(g(x));
@@ -21,6 +33,7 @@ var lift = Zipper.lift;
 (Zipper.down = Zipper.move(zipper.down));
 (Zipper.left = Zipper.move(zipper.left));
 (Zipper.right = Zipper.move(zipper.right));
+(Zipper.node = Zipper.inspect(tree.node));
 (Zipper.modifyNode = (function(f) {
     return Zipper.move(tree.modifyNode.bind(null, f));
 }));

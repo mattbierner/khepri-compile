@@ -4,9 +4,6 @@
 package (
     optimize)
 with
-    import 'bes::record' record,
-
-    import 'neith::tree' tree#{modifyNode},
     import 'neith::zipper' zipper,
 
     import 'khepri-ast-zipper' {khepriZipper},
@@ -18,48 +15,36 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
-    import 'akh::trans::state' StateT,
-    
     import './fun' fun,
     import './tail' {Tail trampoline},
     import './control/base' {next binary seq, seqa},
-    import './control/zipper' Zipper
-
+    import './control/zipper' Zipper,
+    import './control/uniquet' UniqueT
 in {
-
-/* State
- ******************************************************************************/
-var State = record.declare(null, [
-    'unique']);
 
 /* Operations
  ******************************************************************************/
-var M = StateT(Zipper);
+var M = UniqueT(Zipper);
 
-var run = \c ctx s ->
+var run = \c ctx seed ->
     Zipper.run(
-        StateT.evalStateT(c, s),
+        UniqueT.runUniqueT(c, seed),
         ctx);
 
 var pass = M.of null;
 
-var modifyState = M.modify;
+var extract = M.lift (Zipper.get);
 
-var extract = M.lift(Zipper.extract);
+var node =  M.lift (Zipper.node);
 
-var get = extract.map.bind(extract);
-
-var node = get tree.node;
+var get = M.lift <\ Zipper.inspect;
 
 var move = M.lift <\ Zipper.move;
 
 var modify = M.lift <\ Zipper.modifyNode;
 
-var unique = M.get
-    .chain\s ->
-        next(
-            M.put <| s.setUnique(s.unique + 1),
-            M.of(s.unique));
+var unique = M.unique;
+
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -285,9 +270,7 @@ addPeephole(['BinaryExpression'], true,
         (node.operator === '|>' && node.right.type === 'CurryExpression'),
     modify\node ->
         ast_expression.CallExpression.create(null,
-            ?node.right.type === 'CurryExpression'
-                :node.right.base
-                :node.right,
+            node.right.base,
             fun.concat(
                 node.right.args || [],
                 node.left)));
@@ -301,12 +284,24 @@ addPeephole(['BinaryExpression'], true,
     
     modify\node ->
         ast_expression.CallExpression.create(null,
-            ?node.left.type === 'CurryExpression'
-                :node.left.base
-                :node.left,
+            node.left.base,
             fun.concat(
                 node.left.args || [],
                 node.right)));
+
+/**
+ * Rewrite call of curried expression to a call direct call on curry base.
+ */
+addPeephole(['CallExpression'], true,
+    \{callee} ->
+        callee.type ==='CurryExpression',
+    
+    modify\node ->
+        ast_expression.CallExpression.create(null,
+            node.callee.base,
+            fun.concat(
+                node.callee.args || [],
+                node.args)));
 
 /* Interface
  ******************************************************************************/
@@ -363,7 +358,7 @@ optimize = \ast data ->
             walk(_transform, _transformPost),
             node),
         khepriZipper(ast),
-        State.create(data.unique));
+        data.unique);
 
 
 }
