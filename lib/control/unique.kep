@@ -1,0 +1,24 @@
+/**
+ * @fileOverview
+ */
+package Unique
+with
+    import 'akh::identity' Identity,
+    
+    import './uniquet' UniqueT
+in {
+
+/* Structure
+ ******************************************************************************/
+Unique = UniqueT(Identity);
+
+/* Running
+ ******************************************************************************/
+/**
+ * Run an unique computation.
+ */
+Unique.runUnique = \m initial ->
+     Identity.runIdentity(
+         UniqueT.runUniqueT(m, initial || 1));
+
+}

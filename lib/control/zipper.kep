@@ -1,84 +1,17 @@
 package Zipper
 with
-    import 'akh::trans::state' StateT,
-    import 'akh::state' State,
-    import 'akh::trans::identity' IdentityT,
-    
-    import 'neith::zipper' zipper,
-    import 'neith::tree' tree
+    import 'akh::identity' Identity,
+
+    import './zippert' ZipperT
 in {
 
 /* Monad
  ******************************************************************************/
-Zipper = IdentityT(State);
+Zipper = ZipperT(Identity);
 
 Zipper.run = \m ctx ->
-    State.evalState(
-        IdentityT.runIdentityT(m),
-        ctx);
-
-var lift = Zipper.lift;
-
-/* Queries
- ******************************************************************************/
-/**
- * Get the current zipper.
- */
-Zipper.get = lift (State.get);
-
-/**
- * Set the current zipper.
- */
-Zipper.put = lift <\ State.put;
-
-/**
- * Get the current focus of the zipper.
- */
-Zipper.extract = Zipper.get.chain(zipper.extract);
-
-/**
- * Call `f` with the current zipper and return result
- */
-Zipper.inspect = Zipper.get.map.bind(Zipper.get);
-
-/**
- * Call `f` with the current zipper and continue with result of `f`.
- */
-Zipper.inspectWith = Zipper.extract.chain.bind(Zipper.extract);
-
-/* Movement
- ******************************************************************************/
-/**
- * Modify the current zipper.
- */
-Zipper.move = lift <\ State.modify;
-
-Zipper.up = Zipper.move zipper.up;
-Zipper.down = Zipper.move zipper.down;
-Zipper.left = Zipper.move zipper.left;
-Zipper.right = Zipper.move zipper.right;
-
-/* Tree Operations
- ******************************************************************************/
-/**
- * Get the current tree node.
- */
-Zipper.node = Zipper.inspect(tree.node);
-
-/**
- * Modify the current tree node with `f`.
- */
-Zipper.modifyNode = \f -> Zipper.move tree.modifyNode @ f;
-
-/**
- * Set the current tree node to `x`.
- */
-Zipper.setNode = \x -> Zipper.move tree.setNode @ x;
-
-/**
- * Set the current tree node to `x`.
- */
-Zipper.child = \edge -> Zipper.move tree.child @ edge;
+    Identity.runIdentity(
+        ZipperT.run(m , ctx));
 
 
 }

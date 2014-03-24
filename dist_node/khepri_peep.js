@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var zipper = require("neith")["zipper"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
@@ -20,29 +19,21 @@ var zipper = require("neith")["zipper"],
     seq = __o1["sequence"],
     seqa = __o1["sequencea"],
     fun = require("./fun"),
-    Zipper = require("./control/zipper"),
-    UniqueT = require("./control/uniquet"),
-    optimize, M = UniqueT(Zipper),
+    ZipperT = require("./control/zippert"),
+    Unique = require("./control/unique"),
+    optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
-        return Zipper.run(UniqueT.runUniqueT(c, seed), ctx);
+        return Unique.runUnique(ZipperT.run(c, ctx), seed);
     }),
     pass = M.of(null),
-    extract = M.lift(Zipper.get),
-    node = M.lift(Zipper.node),
-    move = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(M.lift, Zipper.move),
-    up = M.lift(Zipper.up),
-    right = M.lift(Zipper.right),
-    down = M.lift(Zipper.down),
-    modify = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(M.lift, Zipper.modifyNode),
-    unique = M.unique,
+    extract = M.get,
+    node = M.node,
+    move = M.move,
+    up = M.up,
+    right = M.right,
+    down = M.down,
+    modify = M.modifyNode,
+    unique = M.lift(Unique.unique),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({

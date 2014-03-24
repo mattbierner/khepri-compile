@@ -1,0 +1,82 @@
+package ZipperT
+with
+    import 'akh::trans::state' StateT,
+    
+    import 'neith::zipper' zipper,
+    import 'neith::tree' tree
+in {
+
+/* Transformer
+ ******************************************************************************/
+ZipperT = \m -> {
+    var Instance = StateT(m);
+    
+    /* Queries
+     ******************************************************************************/
+    /**
+     * Get the current zipper.
+     */
+    Instance.get = Instance.get;
+    
+    /**
+     * Set the current zipper.
+     */
+    Instance.put = Instance.put;
+    
+    /**
+     * Get the current focus of the zipper.
+     */
+    Instance.extract = Instance.get.chain(zipper.extract);
+    
+    /**
+     * Call `f` with the current zipper and return result
+     */
+    Instance.inspect = Instance.get.map.bind(Instance.get);
+    
+    /**
+     * Call `f` with the current zipper and continue with result of `f`.
+     */
+    Instance.inspectWith = Instance.extract.chain.bind(Instance.extract);
+    
+    /* Movement
+     ******************************************************************************/
+    /**
+     * Modify the current zipper.
+     */
+    Instance.move = Instance.modify;
+    
+    Instance.up = Instance.move zipper.up;
+    Instance.down = Instance.move zipper.down;
+    Instance.left = Instance.move zipper.left;
+    Instance.right = Instance.move zipper.right;
+    
+    /* Tree Operations
+     ******************************************************************************/
+    /**
+     * Get the current tree node.
+     */
+    Instance.node = Instance.inspect(tree.node);
+    
+    /**
+     * Modify the current tree node with `f`.
+     */
+    Instance.modifyNode = \f -> Instance.move tree.modifyNode @ f;
+    
+    /**
+     * Set the current tree node to `x`.
+     */
+    Instance.setNode = \x -> Instance.move tree.setNode @ x;
+    
+    /**
+     * Set the current tree node to `x`.
+     */
+    Instance.child = \edge -> Instance.move tree.child @ edge;
+
+    return Instance;
+};
+
+ZipperT.run = \m ctx ->
+    StateT.evalStateT(m, ctx);
+
+
+}

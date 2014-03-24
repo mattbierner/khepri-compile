@@ -1,43 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/control/zipper.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/control/zipper.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/trans/state", "akh/state", "akh/trans/identity", "neith/zipper", "neith/tree"], (
-    function(require, exports, StateT, State, IdentityT, zipper, tree) {
-        "use strict";
-        var Zipper;
-        (Zipper = IdentityT(State));
-        (Zipper.run = (function(m, ctx) {
-            return State.evalState(IdentityT.runIdentityT(m), ctx);
-        }));
-        var lift = Zipper.lift;
-        (Zipper.get = lift(State.get));
-        (Zipper.put = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, State.put));
-        (Zipper.extract = Zipper.get.chain(zipper.extract));
-        (Zipper.inspect = Zipper.get.map.bind(Zipper.get));
-        (Zipper.inspectWith = Zipper.extract.chain.bind(Zipper.extract));
-        (Zipper.move = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, State.modify));
-        (Zipper.up = Zipper.move(zipper.up));
-        (Zipper.down = Zipper.move(zipper.down));
-        (Zipper.left = Zipper.move(zipper.left));
-        (Zipper.right = Zipper.move(zipper.right));
-        (Zipper.node = Zipper.inspect(tree.node));
-        (Zipper.modifyNode = (function(f) {
-            return Zipper.move(tree.modifyNode.bind(null, f));
-        }));
-        (Zipper.setNode = (function(x) {
-            return Zipper.move(tree.setNode.bind(null, x));
-        }));
-        (Zipper.child = (function(edge) {
-            return Zipper.move(tree.child.bind(null, edge));
-        }));
-        return Zipper;
+*/define(["require", "exports", "akh/identity", "./zippert"], (function(require, exports, Identity, ZipperT) {
+    "use strict";
+    var Zipper;
+    (Zipper = ZipperT(Identity));
+    (Zipper.run = (function(m, ctx) {
+        return Identity.runIdentity(ZipperT.run(m, ctx));
     }));
+    return Zipper;
+}));

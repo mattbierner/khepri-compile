@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
+*/define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
     "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base", "./fun",
-    "./control/zipper", "./control/uniquet"
+    "./control/zippert", "./control/unique"
 ], (function(require, exports, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_value, __o1, fun, Zipper, UniqueT) {
+    ast_value, __o1, fun, ZipperT, Unique) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
@@ -15,27 +14,19 @@ define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/n
         next = __o1["next"],
         seq = __o1["sequence"],
         seqa = __o1["sequencea"],
-        optimize, M = UniqueT(Zipper),
+        optimize, M = ZipperT(Unique),
         run = (function(c, ctx, seed) {
-            return Zipper.run(UniqueT.runUniqueT(c, seed), ctx);
+            return Unique.runUnique(ZipperT.run(c, ctx), seed);
         }),
         pass = M.of(null),
-        extract = M.lift(Zipper.get),
-        node = M.lift(Zipper.node),
-        move = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, Zipper.move),
-        up = M.lift(Zipper.up),
-        right = M.lift(Zipper.right),
-        down = M.lift(Zipper.down),
-        modify = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, Zipper.modifyNode),
-        unique = M.unique,
+        extract = M.get,
+        node = M.node,
+        move = M.move,
+        up = M.up,
+        right = M.right,
+        down = M.down,
+        modify = M.modifyNode,
+        unique = M.lift(Unique.unique),
         peepholes = ({}),
         addPeephole = (function(types, up, condition, f) {
             var entry = ({

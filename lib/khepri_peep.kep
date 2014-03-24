@@ -18,34 +18,34 @@ with
     import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
     
     import './fun' fun,
-    import './control/zipper' Zipper,
-    import './control/uniquet' UniqueT
+    import './control/zippert' ZipperT,
+    import './control/unique' Unique
 in {
 
 /* Operations
  ******************************************************************************/
-var M = UniqueT(Zipper); // TODO: probably should be reversed.
+var M = ZipperT(Unique); 
 
 var run = \c ctx seed ->
-    Zipper.run(
-        UniqueT.runUniqueT(c, seed),
-        ctx);
+    Unique.runUnique(
+        ZipperT.run(c, ctx),
+        seed);
 
 var pass = M.of null;
 
-var extract = M.lift (Zipper.get);
+var extract = M.get;
 
-var node =  M.lift (Zipper.node);
+var node =  M.node;
 
-var move = M.lift <\ Zipper.move;
+var move = M.move;
 
-var up = M.lift (Zipper.up);
-var right = M.lift (Zipper.right);
-var down = M.lift (Zipper.down);
+var up = M.up;
+var right = M.right;
+var down = M.down;
 
-var modify = M.lift <\ Zipper.modifyNode;
+var modify = M.modifyNode;
 
-var unique = M.unique;
+var unique = M.lift (Unique.unique);
 
 /*
  ******************************************************************************/
