@@ -13,73 +13,54 @@ with
     
     import 'khepri-ast-zipper' {khepriZipper},
     
-    import 'bes::record' record,
-    
     import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
 
     import 'akh::trans::state' StateT,
     import 'akh::identity' Identity,
     import 'akh::trans::error' ErrorT,
-    
+    import 'akh::unique' Unique,
+
     import './scope' scope#{Scope},
     import './fun' fun,
     
-    import './control/zipper' Zipper
+    import './control/zippert' ZipperT
 in {
 
 /* Forward declarations
  ******************************************************************************/
 var _check;
 
-/* State
- ******************************************************************************/
-var State = record.declare(null, [
-    'scope',
-    'unique']);
-
 /* Monad
  ******************************************************************************/
+var Zipper = (ZipperT Unique);
 var StateM = StateT Zipper;
 
 var M = ErrorT(StateM);
 
 var run = \p s ctx ok err->
-    Zipper.run(
-        StateT.evalStateT(
-            ErrorT.runErrorT(
-                p,
-                ok \> StateM.of,
-                err \> StateM.of),
-            s),
-        ctx);
+    Unique.runUnique(
+        ZipperT.run(
+            StateT.evalStateT(
+                ErrorT.runErrorT(
+                    p,
+                    ok \> StateM.of,
+                    err \> StateM.of),
+                s),
+            ctx));
 
 var error = M.fail;
 
 var lift = M.lift;
 
-// State Operations
-////////////////////////////////////////
-var extract = lift (StateM.get);
-
-var inspectStateWith = M.chain @ extract;
-
-var modifyState = lift <\ StateM.modify;
-
-var putState = lift <\ StateM.put;
-
-var unique = inspectStateWith \ s ->
-    next(
-        putState <| s.setUnique(s.unique + 1),
-        M.of(s.unique));
+var unique = lift <| StateM.lift <| Zipper.lift <| Unique.unique;
 
 // Scope Operations
 ////////////////////////////////////////
-var examineScope = \f ->
-    inspectStateWith\s -> f(s.scope);
+var extract = lift (StateM.get);
 
-var modifyScope = \f ->
-    modifyState\s ->
-        State.setScope(s, f(s.scope));
+var examineScope = M.chain @ extract;
+
+var modifyScope = lift <\ StateM.modify;;
 
 var push = modifyScope scope.push;
 var pop = modifyScope scope.pop;
@@ -88,7 +69,7 @@ var pop = modifyScope scope.pop;
 ////////////////////////////////////////
 var inspect = M.chain @ lift(StateM.lift(Zipper.node));
 
-var extractNode = lift(StateM.lift(Zipper.node));
+var extractNode = lift <| StateM.lift <| Zipper.node;
 
 var move = lift <\ StateM.lift <\ Zipper.move;
 
@@ -555,12 +536,11 @@ in
             seq(
                 checkTop,
                 move zipper.root,
-                extractNode.chain\x ->
-                    extract.map\s ->
-                        ({'tree': x , 'data': {'unique': s.unique}})),
-            new State(
-                initialScope(globals || []),
-                1),
+                extractNode.chain \ x ->
+                unique.chain \ unique ->
+                extract.map \ s ->
+                    ({'tree': x , 'data': {'unique': unique}})),
+            initialScope(globals || []),
             khepriZipper(ast),
             suc,
             fail);

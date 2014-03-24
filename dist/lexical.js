@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
-    "khepri-ast-zipper", "bes/record", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "./scope",
-    "./fun", "./control/zipper"
-], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, record, __o0, StateT, Identity,
-    ErrorT, scope, fun, Zipper) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
+    "khepri-ast-zipper", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope",
+    "./fun", "./control/zippert"
+], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, __o0, StateT, Identity, ErrorT,
+    Unique, scope, fun, ZipperT) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -15,11 +14,11 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         Scope = scope["Scope"],
-        check, _check, State = record.declare(null, ["scope", "unique"]),
+        check, _check, Zipper = ZipperT(Unique),
         StateM = StateT(Zipper),
         M = ErrorT(StateM),
         run = (function(p, s, ctx, ok, err) {
-            return Zipper.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
+            return Unique.runUnique(ZipperT.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
                 return (function(x) {
                     return f(g(x));
                 });
@@ -27,35 +26,18 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 return (function(x) {
                     return f(g(x));
                 });
-            })(StateM.of, err)), s), ctx);
+            })(StateM.of, err)), s), ctx));
         }),
         error = M.fail,
         lift = M.lift,
+        unique = lift(StateM.lift(Zipper.lift(Unique.unique))),
         extract = lift(StateM.get),
-        inspectStateWith = M.chain.bind(null, extract),
-        modifyState = (function(f, g) {
+        examineScope = M.chain.bind(null, extract),
+        modifyScope = (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
         })(lift, StateM.modify),
-        putState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.put),
-        unique = inspectStateWith((function(s) {
-            return next(putState(s.setUnique((s.unique + 1))), M.of(s.unique));
-        })),
-        examineScope = (function(f) {
-            return inspectStateWith((function(s) {
-                return f(s.scope);
-            }));
-        }),
-        modifyScope = (function(f) {
-            return modifyState((function(s) {
-                return State.setScope(s, f(s.scope));
-            }));
-        }),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
         inspect = M.chain.bind(null, lift(StateM.lift(Zipper.node))),
@@ -287,15 +269,17 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         });
     (check = (function(ast, globals) {
         return run(seq(checkTop, move(zipper.root), extractNode.chain((function(x) {
-            return extract.map((function(s) {
-                return ({
-                    "tree": x,
-                    "data": ({
-                        "unique": s.unique
-                    })
-                });
+            return unique.chain((function(unique) {
+                return extract.map((function(s) {
+                    return ({
+                        "tree": x,
+                        "data": ({
+                            "unique": unique
+                        })
+                    });
+                }));
             }));
-        }))), new(State)(initialScope((globals || [])), 1), khepriZipper(ast), suc, fail);
+        }))), initialScope((globals || [])), khepriZipper(ast), suc, fail);
     }));
     (exports["check"] = check);
 }));
