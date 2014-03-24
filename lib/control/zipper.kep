@@ -11,7 +11,7 @@ Zipper = ZipperT(Identity);
 
 Zipper.run = \m ctx ->
     Identity.runIdentity(
-        ZipperT.run(m , ctx));
+        ZipperT.run(m, ctx));
 
 
 }

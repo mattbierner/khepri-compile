@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/unique.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/unique.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Identity = require("akh")["identity"],
     UniqueT = require("./uniquet"),
     Unique;

@@ -24,7 +24,7 @@ in {
 
 /* Operations
  ******************************************************************************/
-var M = ZipperT(Unique); 
+var M = ZipperT(Unique);
 
 var run = \c ctx seed ->
     Unique.runUnique(
@@ -180,16 +180,19 @@ addPeephole(['BinaryOperatorExpression'], true,
                     :ast_expression.LogicalExpression.create
                 :?node.op === '.'
                     :\loc _ x y -> ast_expression.MemberExpression.create(loc, x, y, true)
+                :?node.op === '@'
+                    :\loc _ x y -> ast_expression.CurryExpression.create(loc, x, y)
+                :?node.op === 'new'
+                    :\loc _ x y -> ast_expression.NewExpression.create(loc, x, [y])
                 :ast_expression.BinaryExpression.create
         in
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null, xArg),
                     ast_pattern.IdentifierPattern.create(null, yArg)]),
-                kind(null,
-                    node.op,
-                    xArg,
-                    yArg)));
+                ?node.flipped
+                    :kind(null, node.op, yArg, xArg)
+                    :kind(null, node.op, xArg, yArg)));
 
 /**
  * Convert curry on function expression to function.

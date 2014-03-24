@@ -188,7 +188,7 @@
             paths: {
                 'khepri': 'dist',
                 
-                'akh': dependencies/akh/dist',
+                'akh': 'dependencies/akh/dist',
                 'bennu': 'dependencies/bennu/dist',
                 'nu-stream': 'dependencies/nu/dist',
                 'seshet': 'dependencies/seshet/dist/seshet',
@@ -286,7 +286,7 @@
                         console.profile();
                        
                         var ast = parser.parseStream(nodes);
-                        lexical.check(ast);
+                        lexical(ast);
                         console.profileEnd();
                         var end = new Date().getTime();
                         var diff = end - start;

@@ -100,11 +100,18 @@ addPeephole(["BinaryOperatorExpression"], true, (function(_) {
                     .create : ((node.op === ".") ? (function(loc, _, x, y) {
                         return ast_expression.MemberExpression.create(loc, x, y,
                             true);
-                    }) : ast_expression.BinaryExpression.create));
+                    }) : ((node.op === "@") ? (function(loc, _, x, y) {
+                        return ast_expression.CurryExpression.create(loc, x, y);
+                    }) : ((node.op === "new") ? (function(loc, _, x, y) {
+                        return ast_expression.NewExpression.create(loc, x, [
+                            y
+                        ]);
+                    }) : ast_expression.BinaryExpression.create))));
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
                 .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg),
                     ast_pattern.IdentifierPattern.create(null, yArg)
-                ]), kind(null, node.op, xArg, yArg));
+                ]), (node.flipped ? kind(null, node.op, yArg, xArg) : kind(null, node.op,
+                    xArg, yArg)));
         }));
     }));
 })));
