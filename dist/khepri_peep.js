@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
+*/
+define(["require", "exports", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
     "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
     "akh/unique", "./fun", "./control/zippert"
 ], (function(require, exports, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,

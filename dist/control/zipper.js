@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/zipper.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/zipper.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/trampoline", "./zippert"], (function(require, exports, Trampoline, ZipperT) {
+*/
+define(["require", "exports", "akh/trampoline", "./zippert"], (function(require, exports, Trampoline, ZipperT) {
     "use strict";
     var Zipper;
     (Zipper = ZipperT(Trampoline));

@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.3.1 - March 24, 2014
+* Fixed stack issue from `akh`.
+
 ## 0.3.0 - March 24, 2014
 * Added code support for flipped binary ops `(_/)`
 * Added support for operator to function for `new` and `@`.
