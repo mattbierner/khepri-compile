@@ -18,9 +18,9 @@ var zipper = require("neith")["zipper"],
     next = __o1["next"],
     seq = __o1["sequence"],
     seqa = __o1["sequencea"],
+    Unique = require("akh")["unique"],
     fun = require("./fun"),
     ZipperT = require("./control/zippert"),
-    Unique = require("./control/unique"),
     optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
         return Unique.runUnique(ZipperT.run(c, ctx), seed);

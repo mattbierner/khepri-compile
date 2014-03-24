@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/control/zipper.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/control/zipper.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/identity", "./zippert"], (function(require, exports, Identity, ZipperT) {
+*/define(["require", "exports", "akh/trampoline", "./zippert"], (function(require, exports, Trampoline, ZipperT) {
     "use strict";
     var Zipper;
-    (Zipper = ZipperT(Identity));
+    (Zipper = ZipperT(Trampoline));
     (Zipper.run = (function(m, ctx) {
-        return Identity.runIdentity(ZipperT.run(m, ctx));
+        return Trampoline.run(ZipperT.run(m, ctx));
     }));
     return Zipper;
 }));

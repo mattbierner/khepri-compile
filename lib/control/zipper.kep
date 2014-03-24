@@ -1,17 +1,16 @@
 package Zipper
 with
-    import 'akh::identity' Identity,
+    import 'akh::trampoline' Trampoline,
 
     import './zippert' ZipperT
 in {
 
 /* Monad
  ******************************************************************************/
-Zipper = ZipperT(Identity);
+Zipper = ZipperT(Trampoline);
 
 Zipper.run = \m ctx ->
-    Identity.runIdentity(
+    Trampoline.run(
         ZipperT.run(m, ctx));
-
 
 }
