@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/zippert.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/zippert.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/trans/state", "neith/zipper", "neith/tree"], (function(require, exports, StateT,
+*/
+define(["require", "exports", "akh/trans/state", "neith/zipper", "neith/tree"], (function(require, exports, StateT,
     zipper, tree) {
     "use strict";
     var ZipperT;

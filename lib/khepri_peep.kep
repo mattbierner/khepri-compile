@@ -139,6 +139,8 @@ addPeephole(['LetExpression'], true,
 
 /**
  * Convert Unary Op Expression to function.
+ * 
+ * TODO: Should not be in this stage
  */
 addPeephole(['UnaryOperatorExpression'], true,
     \_ -> true,
@@ -158,13 +160,15 @@ addPeephole(['UnaryOperatorExpression'], true,
 
 /**
  * Convert binary op expression to function.
+ * 
+ * TODO: Should not be in this stage
  */
 addPeephole(['BinaryOperatorExpression'], true,
     \_ -> true,
     
     unique.chain \ xUid ->
     unique.chain \ yUid ->
-        modify\node -> let
+        modify \ node -> let
             xArg = setData(
                 ast_value.Identifier.create(null, 'x'),
                 'uid',

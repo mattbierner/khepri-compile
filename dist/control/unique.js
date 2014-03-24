@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/unique.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/unique.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/identity", "./uniquet"], (function(require, exports, Identity, UniqueT) {
+*/
+define(["require", "exports", "akh/identity", "./uniquet"], (function(require, exports, Identity, UniqueT) {
     "use strict";
     var Unique;
     (Unique = UniqueT(Identity));

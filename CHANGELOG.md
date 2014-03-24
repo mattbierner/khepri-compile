@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.0 - March 24, 2014
+* Added code support for flipped binary ops `(_/)`
+* Added support for operator to function for `new` and `@`.
+
 ## 0.2.4 - March 23, 2014
 * Fixed static declarations potentially being renamed.
 * Optimized call of curry `f @ 1 @ 2 3` to generate `f(1, 2, 3)`. This pattern is
