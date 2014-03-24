@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
     "khepri-ast-zipper", "bes/record", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "./scope",
     "./fun", "./control/zipper"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, record, __o0, StateT, Identity,

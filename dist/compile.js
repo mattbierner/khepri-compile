@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "./stage/lexical", "./stage/normalize", "./stage/transform", "./stage/khepri_peep",
+*/
+define(["require", "exports", "./stage/lexical", "./stage/normalize", "./stage/transform", "./stage/khepri_peep",
     "./stage/ecma_peep"
 ], (function(require, exports, lexical, normalize, transform, khepri_peep, ecma_peep) {
     "use strict";

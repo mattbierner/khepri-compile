@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var lexical = require("./stage/lexical"),
     normalize = require("./stage/normalize"),
     transform = require("./stage/transform"),

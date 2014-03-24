@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
