@@ -13,15 +13,17 @@ with
     
     import 'khepri-ast-zipper' {khepriZipper},
     
-    import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
-
+    import 'akh::base' {
+        next
+        'sequence':seq
+        'sequencea': seqa},
     import 'akh::trans::state' StateT,
     import 'akh::identity' Identity,
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
 
     import './scope' scope#{Scope},
-    import './fun' fun,
+    import './fun' {foldl},
     
     import './control/zippert' ZipperT
 in {
@@ -32,8 +34,8 @@ var _check;
 
 /* Monad
  ******************************************************************************/
-var Zipper = (ZipperT Unique);
-var StateM = StateT Zipper;
+var Zipper = ZipperT(Unique); 
+var StateM = StateT(Zipper); // TODO: should probably be reversed.
 
 var M = ErrorT(StateM);
 
@@ -522,7 +524,7 @@ _check = \node -> {
     return pass;
 };
 
-var initialScope = fun.foldl@(Scope.addImmutableBinding, Scope.empty);
+var initialScope = foldl@(Scope.addImmutableBinding, Scope.empty);
 
 /**
  * 

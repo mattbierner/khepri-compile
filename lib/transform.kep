@@ -29,6 +29,8 @@ with
     import 'neith::zipper' zipper,
     
     import 'akh::state' StateM,
+    import 'akh::unique' Unique,
+    import 'akh::trans::state' StateT,
     import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
     
     import './scope' scope,
@@ -44,15 +46,21 @@ var State = record.declare(null, [
     'ctx',
     'scope',
     'packageManager',
-    'bindings',
-    'unique']);
+    'bindings']);
 
-State.empty = State.create(null, scope.Scope.empty, null, [[], null], 0);
+State.empty = State.create(null, scope.Scope.empty, null, [[], null]);
 
 /*
  ******************************************************************************/
-var ok = StateM.of;
-var bind = StateM.chain;
+var M = StateT (Unique);
+
+var run = \m s seed ->
+    Unique.runUnique(
+        StateT.evalStateT(m, s),
+        seed);
+
+var ok = M.of;
+var bind = M.chain;
 
 var pass = ok();
 
@@ -71,13 +79,13 @@ var enumeration = fun.foldr@(
 
 // State Operations
 ////////////////////////////////////////
-var extract = StateM.get;
+var extract = M.get;
 
-var setState = StateM.put;
+var setState = M.put;
 
-var modifyState = StateM.modify;
+var modifyState = M.modify;
 
-var examineState = StateM.chain @ StateM.get;
+var examineState = M.chain @ extract;
 
 // Scope Operations
 ////////////////////////////////////////
@@ -877,10 +885,9 @@ transform = \ast manager data -> {
         var s = State.empty
             .setCtx(khepriZipper ast)
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager)
-            .setUnique(data.unique);
+            .setPackageManager(packageManager);
         
-        return StateM.evalState(
+        return run(
             next(
                 walk(_transform, _transformPost),
                 node),

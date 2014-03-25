@@ -20,7 +20,8 @@ var ast_node = require("khepri-ast")["node"],
     Unique = require("akh")["unique"],
     scope = require("./scope"),
     Scope = scope["Scope"],
-    fun = require("./fun"),
+    __o1 = require("./fun"),
+    foldl = __o1["foldl"],
     ZipperT = require("./control/zippert"),
     check, _check, Zipper = ZipperT(Unique),
     StateM = StateT(Zipper),
@@ -263,7 +264,7 @@ addCheck("Identifier", inspect((function(node) {
     if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
     return pass;
 }));
-var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
     suc = (function(x, s) {
         return x;
     }),

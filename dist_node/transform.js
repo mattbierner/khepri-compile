@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -25,6 +24,8 @@ var record = require("bes")["record"],
     tree = require("neith")["tree"],
     zipper = require("neith")["zipper"],
     StateM = require("akh")["state"],
+    Unique = require("akh")["unique"],
+    StateT = require("akh")["trans"]["state"],
     __o0 = require("akh")["base"],
     next = __o0["next"],
     seq = __o0["sequence"],
@@ -32,14 +33,16 @@ var record = require("bes")["record"],
     scope = require("./scope"),
     fun = require("./fun"),
     flip = fun["flip"],
-    transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager", "bindings",
-        "unique"
-    ]);
+    transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager", "bindings"]);
 (State.empty = State.create(null, scope.Scope.empty, null, [
     [], null
-], 0));
-var ok = StateM.of,
-    bind = StateM.chain,
+]));
+var M = StateT(Unique),
+    run = (function(m, s, seed) {
+        return Unique.runUnique(StateT.evalStateT(m, s), seed);
+    }),
+    ok = M.of,
+    bind = M.chain,
     pass = ok(),
     binds = (function(p, f) {
         return bind(p, (function(x) {
@@ -54,10 +57,10 @@ var ok = StateM.of,
         }));
     }),
     enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-    extract = StateM.get,
-    setState = StateM.put,
-    modifyState = StateM.modify,
-    examineState = StateM.chain.bind(null, StateM.get),
+    extract = M.get,
+    setState = M.put,
+    modifyState = M.modify,
+    examineState = M.chain.bind(null, extract),
     examineScope = (function(f) {
         return bind(extract, (function(s) {
             return f(s.scope);
@@ -520,8 +523,7 @@ var _transp = (function(node) {
     if ((manager === "node"))(packageManager = node_manager);
     var s = State.empty.setCtx(khepriZipper(ast))
         .setScope(scope.Scope.empty)
-        .setPackageManager(packageManager)
-        .setUnique(data.unique);
-    return StateM.evalState(next(walk(_transform, _transformPost), node), s);
+        .setPackageManager(packageManager);
+    return run(next(walk(_transform, _transformPost), node), s);
 }));
 (exports["transform"] = transform);

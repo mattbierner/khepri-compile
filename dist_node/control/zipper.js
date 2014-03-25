@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/zipper.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/zipper.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Trampoline = require("akh")["trampoline"],
     ZipperT = require("./zippert"),
     Zipper;

@@ -1,16 +1,16 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
-    "neith/zipper", "akh/state", "akh/base", "./scope", "./fun", "./package_manager/amd", "./package_manager/node"
+    "neith/zipper", "akh/state", "akh/unique", "akh/trans/state", "akh/base", "./scope", "./fun",
+    "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
-    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, StateM, __o0, scope, fun,
-    _, _0) {
+    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, StateM, Unique, StateT,
+    __o0, scope, fun, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -19,13 +19,17 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         seqa = __o0["sequencea"],
         flip = fun["flip"],
         transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager",
-            "bindings", "unique"
+            "bindings"
         ]);
     (State.empty = State.create(null, scope.Scope.empty, null, [
         [], null
-    ], 0));
-    var ok = StateM.of,
-        bind = StateM.chain,
+    ]));
+    var M = StateT(Unique),
+        run = (function(m, s, seed) {
+            return Unique.runUnique(StateT.evalStateT(m, s), seed);
+        }),
+        ok = M.of,
+        bind = M.chain,
         pass = ok(),
         binds = (function(p, f) {
             return bind(p, (function(x) {
@@ -40,10 +44,10 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             }));
         }),
         enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-        extract = StateM.get,
-        setState = StateM.put,
-        modifyState = StateM.modify,
-        examineState = StateM.chain.bind(null, StateM.get),
+        extract = M.get,
+        setState = M.put,
+        modifyState = M.modify,
+        examineState = M.chain.bind(null, extract),
         examineScope = (function(f) {
             return bind(extract, (function(s) {
                 return f(s.scope);
@@ -516,9 +520,8 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         if ((manager === "node"))(packageManager = node_manager);
         var s = State.empty.setCtx(khepriZipper(ast))
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager)
-            .setUnique(data.unique);
-        return StateM.evalState(next(walk(_transform, _transformPost), node), s);
+            .setPackageManager(packageManager);
+        return run(next(walk(_transform, _transformPost), node), s);
     }));
     (exports["transform"] = transform);
 }));

@@ -5,7 +5,7 @@
     "khepri-ast-zipper", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope",
     "./fun", "./control/zippert"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, __o0, StateT, Identity, ErrorT,
-    Unique, scope, fun, ZipperT) {
+    Unique, scope, __o1, ZipperT) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -14,6 +14,7 @@
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         Scope = scope["Scope"],
+        foldl = __o1["foldl"],
         check, _check, Zipper = ZipperT(Unique),
         StateM = StateT(Zipper),
         M = ErrorT(StateM),
@@ -260,7 +261,7 @@
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var initialScope = fun.foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+    var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
         suc = (function(x, s) {
             return x;
         }),
