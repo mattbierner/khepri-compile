@@ -22,6 +22,7 @@ with
 
     import './scope' scope#{Scope},
     import './fun' {foldl},
+    import './builtin' builtins,
     
     import './control/zippert' ZipperT
 in {
@@ -46,7 +47,8 @@ var run = \p s ctx ok err->
                     ok \> StateM.of,
                     err \> StateM.of),
                 s),
-            ctx));
+            ctx),
+        1000);
 
 var error = M.fail;
 
@@ -240,7 +242,7 @@ addCheck@'PackageExport' <|
 
 addCheck@'Package' <|
     block(
-        addImmutableBindingChecked('require', null),
+       // addImmutableBindingChecked('require', null),
         addImmutableBindingChecked('exports', null),
         addImmutableBindingChecked('module', null),
         checkChild 'exports',
@@ -524,7 +526,9 @@ _check = \node -> {
     return pass;
 };
 
-var initialScope = foldl@(Scope.addImmutableBinding, Scope.empty);
+var g = \x -> x.concat('require');
+
+var addBindings = foldl@(Scope.addImmutableBinding, Scope.empty);
 
 /**
  * 
@@ -542,7 +546,7 @@ in
                 unique.chain \ unique ->
                 extract.map \ s ->
                     ({'tree': x , 'data': {'unique': unique}})),
-            initialScope(globals || []),
+            addBindings(g(globals || [])),
             khepriZipper(ast),
             suc,
             fail);

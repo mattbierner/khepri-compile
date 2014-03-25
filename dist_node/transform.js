@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -33,6 +32,7 @@ var record = require("bes")["record"],
     scope = require("./scope"),
     fun = require("./fun"),
     flip = fun["flip"],
+    builtins = require("./builtin"),
     transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.run(m, ctx), s), seed);
@@ -112,8 +112,9 @@ var extract = M.lift(M.inner.get),
     addVar = (function(id, uid) {
         return inspectScopeWith((function(s) {
             var name;
-            return (s.hasMapping(uid) ? pass : ((name = s.getUnusedId(id)), setScope(scope.Scope.addMapping(
-                scope.Scope.addMutableBinding(s, name), uid, name))));
+            return (s.hasMapping(uid) ? setScope(scope.Scope.addMutableBinding(s, id)) : ((name = s.getUnusedId(
+                id)), setScope(scope.Scope.addMapping(scope.Scope.addMutableBinding(s, name), uid,
+                name))));
         }));
     }),
     getMapping = (function(uid, f) {
@@ -415,9 +416,9 @@ addTransform("TernaryOperatorExpression", next(modify((function(node) {
 })), _transform));
 addTransform("FunctionExpression", seq(enterBlock, modify((function(node) {
     return functionExpression(node.loc, node.id, node.params, node.body, (node.ud && node.ud.prefix));
-}))), seq(exitBlock, modify((function(node) {
+}))), seq(modify((function(node) {
     return ecma_expression.FunctionExpression.create(null, node.id, node.params, node.body);
-}))));
+})), exitBlock));
 addTransform("ArrayExpression", null, modify((function(node) {
     return ecma_expression.ArrayExpression.create(node.loc, node.elements);
 })));
@@ -431,7 +432,7 @@ addTransform("ArgumentsPattern", null, modify((function(node) {
     return node.id;
 })));
 addTransform("IdentifierPattern", bind(node, (function(node) {
-    return ((node.ud && (node.ud.uid !== undefined)) ? addVar(node.name, node.ud.uid) : pass);
+    return ((node.id.ud && (node.id.ud.uid !== undefined)) ? addVar(node.id.name, node.id.ud.uid) : pass);
 })), modify((function(node) {
     return node.id;
 })));
@@ -493,6 +494,7 @@ var _transp = (function(node) {
     if ((manager === "node"))(packageManager = node_manager);
     var s = State.empty.setScope(scope.Scope.empty)
         .setPackageManager(packageManager);
-    return run(next(walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
+    return run(seq(addVar("require", builtins.require.ud.uid), addVar("exports", builtins.exports.ud.uid), walk(
+        M, _transform, _transformPost), node), s, khepriZipper(ast));
 }));
 (exports["transform"] = transform);

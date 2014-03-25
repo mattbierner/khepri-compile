@@ -2,10 +2,10 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
-    "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun",
+    "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun", "./builtin",
     "./control/zippert"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, ErrorT, Unique, scope,
-    __o1, ZipperT) {
+    __o1, builtins, ZipperT) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -27,7 +27,7 @@
                 return (function(x) {
                     return f(g(x));
                 });
-            })(StateM.of, err)), s), ctx));
+            })(StateM.of, err)), s), ctx), 1000);
         }),
         error = M.fail,
         lift = M.lift,
@@ -163,12 +163,11 @@
     addCheck("PackageExport", inspect((function(node) {
         return addMutableBindingChecked(node.id.name, node.loc);
     })));
-    addCheck("Package", block(addImmutableBindingChecked("require", null), addImmutableBindingChecked("exports",
-        null), addImmutableBindingChecked("module", null), checkChild("exports"), child("body", inspect(
-        (function(node) {
-            return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body",
-                checkChild("body"))) : checkChild("body"));
-        })))));
+    addCheck("Package", block(addImmutableBindingChecked("exports", null), addImmutableBindingChecked("module",
+        null), checkChild("exports"), child("body", inspect((function(node) {
+        return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body",
+            checkChild("body"))) : checkChild("body"));
+    })))));
     addCheck("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
     addCheck("CatchClause", block(inspect((function(node) {
         return addImmutableBindingChecked(node.param.name, node.param.loc);
@@ -264,7 +263,10 @@
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+    var g = (function(x) {
+        return x.concat("require");
+    }),
+        addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
         suc = (function(x, s) {
             return x;
         }),
@@ -283,7 +285,7 @@
                     });
                 }));
             }));
-        }))), initialScope((globals || [])), khepriZipper(ast), suc, fail);
+        }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail);
     }));
     (exports["check"] = check);
 }));

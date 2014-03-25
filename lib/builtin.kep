@@ -1,0 +1,25 @@
+package builtins
+with
+    import 'khepri-ast::node' ast_node#{setData setUserData},
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::value' ast_value
+in {
+
+builtins = {
+    'require': setData(
+        new ast_value.Identifier(null, 'require'),
+        'uid',
+        1),
+    
+    'exports': setData(
+        new ast_value.Identifier(null, 'exports'),
+        'uid',
+        2),
+    
+    'module': setData(
+        new ast_value.Identifier(null, 'module'),
+        'uid',
+        2)
+};
+
+}

@@ -12,7 +12,8 @@ with
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::value' ast_value,
     
-    import '../fun' fun
+    import '../fun' fun,
+    import '../builtin' builtins
 in {
 
 var concat = Function.prototype.call.bind(Array.prototype.concat);
@@ -23,13 +24,19 @@ var path = \path ->
 
 /* Package Manager
  ******************************************************************************/
+/**
+ * 
+ */
 importPackage = \imp -> let
     packagePath = path(imp)
 in
     ast_expression.CallExpression.create(null,
-        ast_value.Identifier.create(null, 'require'),
+        builtins.require,
         [ast_value.Literal.create(null, 'string', packagePath)]);
 
+/**
+ * 
+ */
 definePackage = \loc exports imports targets body -> let
     exportedNames = ?exports.type === 'PackageExports'
         :fun.map(\x -> x.id.name, exports.exports)
@@ -45,7 +52,7 @@ definePackage = \loc exports imports targets body -> let
             ast_statement.ExpressionStatement.create(null,
                 ast_expression.AssignmentExpression.create(null, '=',
                     ast_expression.MemberExpression.create(null,
-                        ast_value.Identifier.create(null, 'exports'),
+                        builtins.exports,
                         x.alias,
                         true),
                     x.id)))
@@ -57,9 +64,9 @@ definePackage = \loc exports imports targets body -> let
             ast_pattern.ArgumentsPattern.create(null, null,
                 concat(
                     ast_pattern.IdentifierPattern.create(null,
-                        ast_value.Identifier.create(null, 'require')),
+                        builtins.require),
                     ast_pattern.IdentifierPattern.create(null,
-                        ast_value.Identifier.create(null, 'exports')),
+                        builtins.exports),
                     map(imports, \x -> targets.(x.from.value)))),
             ast_statement.BlockStatement.create(body.loc,
                 concat(
@@ -75,8 +82,8 @@ in
             ast_value.Identifier.create(null, 'define'),
             [ast_expression.ArrayExpression.create(null,
                 concat(
-                    ast_value.Literal.create(null, 'string', 'require'),
-                    ast_value.Literal.create(null, 'string', 'exports'),
+                    builtins.require,
+                    builtins.exports,
                     map(imports, \x ->
                         ast_value.Literal.create(null, 'string', path(x.from.value))))),
                 packageBody]));

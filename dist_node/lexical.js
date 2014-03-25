@@ -21,6 +21,7 @@ var ast_node = require("khepri-ast")["node"],
     Scope = scope["Scope"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
+    builtins = require("./builtin"),
     ZipperT = require("./control/zippert"),
     check, _check, Zipper = ZipperT(Unique),
     StateM = StateT(Zipper),
@@ -34,7 +35,7 @@ var ast_node = require("khepri-ast")["node"],
             return (function(x) {
                 return f(g(x));
             });
-        })(StateM.of, err)), s), ctx));
+        })(StateM.of, err)), s), ctx), 1000);
     }),
     error = M.fail,
     lift = M.lift,
@@ -169,8 +170,8 @@ addCheck("PackageExports", checkChild("exports"));
 addCheck("PackageExport", inspect((function(node) {
     return addMutableBindingChecked(node.id.name, node.loc);
 })));
-addCheck("Package", block(addImmutableBindingChecked("require", null), addImmutableBindingChecked("exports", null),
-    addImmutableBindingChecked("module", null), checkChild("exports"), child("body", inspect((function(node) {
+addCheck("Package", block(addImmutableBindingChecked("exports", null), addImmutableBindingChecked("module", null),
+    checkChild("exports"), child("body", inspect((function(node) {
         return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body", checkChild(
             "body"))) : checkChild("body"));
     })))));
@@ -266,7 +267,10 @@ addCheck("Identifier", inspect((function(node) {
     if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
     return pass;
 }));
-var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
+var g = (function(x) {
+    return x.concat("require");
+}),
+    addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
     suc = (function(x, s) {
         return x;
     }),
@@ -285,6 +289,6 @@ var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
                 });
             }));
         }));
-    }))), initialScope((globals || [])), khepriZipper(ast), suc, fail);
+    }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail);
 }));
 (exports["check"] = check);

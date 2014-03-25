@@ -1,10 +1,9 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/package_manager/node.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/package_manager/node.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
-    "khepri-ast/value", "../fun"
-], (function(require, exports, ast_declaration, ast_expression, ast_statement, ast_value, fun) {
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/statement",
+    "khepri-ast/value", "../fun", "../builtin"
+], (function(require, exports, ast_declaration, ast_expression, ast_statement, ast_value, fun, builtin) {
     "use strict";
     var definePackage, importPackage, concat = Array.prototype.concat.bind([]),
         map = Function.prototype.call.bind(Array.prototype.map);
@@ -14,8 +13,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
             .reduce((function(p, c) {
                 return ast_expression.MemberExpression.create(null, p, ast_value.Literal.create(
                     null, "string", c), true);
-            }), ast_expression.CallExpression.create(null, ast_value.Identifier.create(null,
-                "require"), [ast_value.Literal.create(null, "string", segs[0])]));
+            }), ast_expression.CallExpression.create(null, builtin.require, [ast_value.Literal.create(
+                null, "string", segs[0])]));
     }));
     (definePackage = (function(loc, exports, imports, targets, body) {
         var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {

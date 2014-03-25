@@ -37,7 +37,8 @@ with
 
     import './scope' scope,
     import './fun' fun#{flip},
-
+    import './builtin' builtins,
+    
     import './package_manager::amd' _,
     import './package_manager::node' _
 in {
@@ -132,7 +133,7 @@ var exitBlock = inspectScopeWith \ s ->
 var addVar = \id uid ->
     inspectScopeWith \ s ->
         ?s.hasMapping(uid)
-            :pass
+            :setScope(scope.Scope.addMutableBinding(s, id))
             :let name = s.getUnusedId(id) in
                 setScope(scope.Scope.addMapping(
                     scope.Scope.addMutableBinding(s, name),
@@ -458,32 +459,32 @@ var addTransform = \type pre post -> {
 // Declarations
 addTransform('VariableDeclaration',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_declaration.VariableDeclaration.create(node.loc,
             node.declarations));
 
 addTransform('VariableDeclarator',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_declaration.VariableDeclarator.create(node.loc,
             node.id,
             node.init));
 
 addTransform('StaticDeclaration',
-    modify \node ->
+    modify \ node ->
         ecma_statement.EmptyStatement.create(node.loc));
 
 // Clauses
 addTransform('CatchClause',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_clause.CatchClause.create(node.loc,
             node.param,
             node.body));
 
 addTransform('SwitchCase',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_clause.SwitchCase.create(node.loc,
             node.test,
             node.consequent));
@@ -492,8 +493,8 @@ addTransform('SwitchCase',
 addTransform('BlockStatement',
     pushBindings,
     seq(
-        getBindings <|\ bindings ->
-            modify \node ->
+        getBindings \ bindings ->
+            modify \ node ->
                 ecma_statement.BlockStatement.create(node.loc,
                     fun.concat(
                         ecma_declaration.VariableDeclaration.create(null,
@@ -505,13 +506,13 @@ addTransform('BlockStatement',
 
 addTransform('ExpressionStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.ExpressionStatement.create(node.loc,
             node.expression));
 
 addTransform('IfStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.IfStatement.create(node.loc,
             node.test,
             node.consequent,
@@ -520,7 +521,7 @@ addTransform('IfStatement',
 addTransform('WithStatement',
     next(
         bind(packageManager, \packageManager -> 
-            modify \node ->
+            modify \ node ->
                 withStatement(
                     packageManager,
                     node.loc,
@@ -530,36 +531,36 @@ addTransform('WithStatement',
 
 addTransform('SwitchStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.SwitchStatement.create(node.loc,
             node.discriminant,
             node.cases));
 
 addTransform('ReturnStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.ReturnStatement.create(node.loc,
             node.argument));
 
 addTransform('ThrowStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.ThrowStatement.create(node.loc,
             node.argument));
 
 addTransform('BreakStatement',
-    modify \node ->
+    modify \ node ->
         ecma_statement.BreakStatement.create(node.loc,
             null));
 
 addTransform('ContinueStatement',
-    modify \node ->
+    modify \ node ->
         ecma_statement.ContinueStatement.create(node.loc,
             null));
 
 addTransform('TryStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.TryStatement.create(node.loc,
             node.block,
             node.handler,
@@ -567,21 +568,21 @@ addTransform('TryStatement',
 
 addTransform('WhileStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.WhileStatement.create(node.loc,
             node.test,
             node.body));
 
 addTransform('DoWhileStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.DoWhileStatement.create(node.loc,
             node.body,
             node.test));
 
 addTransform('ForStatement',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_statement.ForStatement.create(node.loc,
             node.init,
             node.test,
@@ -591,7 +592,7 @@ addTransform('ForStatement',
 // Expression
 addTransform('AssignmentExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.AssignmentExpression.create(node.loc,
             node.operator,
             node.left,
@@ -599,7 +600,7 @@ addTransform('AssignmentExpression',
 
 addTransform('UnaryExpression',
     null,
-    modify \node -> {
+    modify \ node -> {
         var op = node.operator;
         switch (op) {
         case '++': op = '+'; break;
@@ -612,7 +613,7 @@ addTransform('UnaryExpression',
     });
 
 addTransform('BinaryExpression',
-    modify \node -> {
+    modify \ node -> {
         switch (node.operator) {
         case '\\>':
             return singleCompose(node.loc, node.right, node.left);
@@ -630,7 +631,7 @@ addTransform('BinaryExpression',
             return node;
         }
     },
-    modify \node ->
+    modify \ node ->
         ecma_expression.BinaryExpression.create(node.loc,
             node.operator,
             node.left,
@@ -638,7 +639,7 @@ addTransform('BinaryExpression',
 
 addTransform('LogicalExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.LogicalExpression.create(node.loc,
             node.operator,
             node.left,
@@ -646,7 +647,7 @@ addTransform('LogicalExpression',
 
 addTransform('ConditionalExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.ConditionalExpression.create(node.loc,
             node.test,
             node.consequent,
@@ -654,21 +655,21 @@ addTransform('ConditionalExpression',
 
 addTransform('NewExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.NewExpression.create(node.loc,
             node.callee,
             node.args));
 
 addTransform('CallExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.CallExpression.create(node.loc,
             node.callee,
             node.args));
 
 addTransform('MemberExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.MemberExpression.create(node.loc,
             node.object,
             node.property,
@@ -681,55 +682,55 @@ addTransform('LetExpression',
             identifiers = fun.map(\x -> [x.pattern.name, x.pattern.ud.uid], bindings)
         in
             addBindings(identifiers)),
-        modify \node ->
+        modify \ node ->
             letExpression(node.loc,
                 node.bindings,
                 node.body)));
 
 addTransform('CurryExpression',
-    modify \node ->
+    modify \ node ->
         curryExpression(node.loc,
             node.base,
             node.args));
 
 addTransform('TernaryOperatorExpression',
     next(
-        modify \node ->
+        modify \ node ->
             ternaryOperatorExpression(node.loc),
         _transform));
 
 addTransform('FunctionExpression',
     seq(
         enterBlock,
-        modify \node ->
+        modify \ node ->
             functionExpression(node.loc,
                 node.id,
                 node.params,
                 node.body,
                 node.ud && node.ud.prefix)),
     seq(
-        exitBlock,
-        modify \node ->
+        modify \ node ->
             ecma_expression.FunctionExpression.create(null,
                 node.id,
                 node.params,
-                node.body)));
+                node.body),
+        exitBlock));
 
 addTransform('ArrayExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.ArrayExpression.create(node.loc,
             node.elements));
 
 addTransform('ObjectExpression',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_expression.ObjectExpression.create(node.loc,
             node.properties));
 
 addTransform('ObjectValue',
     null,
-    modify \node ->
+    modify \ node ->
         ecma_value.ObjectValue.create(node.loc,
             node.key,
             node.value));
@@ -737,49 +738,49 @@ addTransform('ObjectValue',
 // Patterns
 addTransform('ArgumentsPattern',
     null,
-    modify \node ->
+    modify \ node ->
         node.id);
 
 addTransform('IdentifierPattern',
     bind(node, \node ->
-        ?node.ud && node.ud.uid !== undefined
-            :addVar(node.name, node.ud.uid)
+        ?node.id.ud && node.id.ud.uid !== undefined
+            :addVar(node.id.name, node.id.ud.uid)
             :pass),
-    modify \node ->
+    modify \ node ->
         node.id);
 
 addTransform('AsPattern',
     null,
-    modify \node ->
+    modify \ node ->
         node.id);
 
 addTransform('ObjectPattern',
     null,
-    modify \node ->
+    modify \ node ->
         node.ud.id);
 
 addTransform('EllipsisPattern',
     null,
-    modify \node ->
+    modify \ node ->
         (node.ud && node.ud.id));
 
 addTransform('SinkPattern',
     null,
-    modify \node ->
+    modify \ node ->
         (node.ud && node.ud.id));
 
 // Program
 addTransform('Program',
     seq(
         pushBindings,
-        modify \node ->
+        modify \ node ->
             ?node.body.type === 'Package'
                 :node
                 :setData(node, 'prefix',
                     khepri_statement.ExpressionStatement.create(null,
                         khepri_value.Literal.create(null, 'string', "use strict")))),
-    getBindings <|\ bindings ->
-        modify \node ->
+    getBindings \ bindings ->
+        modify \ node ->
             ecma_program.Program.create(node.loc,
                 fun.concat(
                     ?node.ud && node.ud.prefix :node.ud.prefix :[],
@@ -792,7 +793,7 @@ addTransform('Program',
 // Package
 addTransform('Package',
     bind(packageManager, \packageManager ->
-        modify \node ->
+        modify \ node ->
             packageBlock(
                 packageManager,
                 node.loc,
@@ -844,13 +845,15 @@ transform = \ast manager data -> {
         var packageManager = amd_manager;
         if (manager === 'node')
             packageManager = node_manager;
-
+        
         var s = State.empty
             .setScope(scope.Scope.empty)
             .setPackageManager(packageManager);
         
         return run(
-            next(
+            seq(
+                addVar('require', builtins.require.ud.uid),
+                addVar('exports', builtins.exports.ud.uid),
                 walk(M, _transform, _transformPost),
                 node),
             s,

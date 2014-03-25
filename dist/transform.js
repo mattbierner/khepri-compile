@@ -5,12 +5,12 @@
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
-    "akh/trans/state", "akh/base", "./control/zippert", "./control/walk", "./scope", "./fun",
+    "akh/trans/state", "akh/base", "./control/zippert", "./control/walk", "./scope", "./fun", "./builtin",
     "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
     khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, Unique, StateT, __o0, ZipperT, walk,
-    scope, fun, _, _0) {
+    scope, fun, builtins, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -97,8 +97,9 @@
         addVar = (function(id, uid) {
             return inspectScopeWith((function(s) {
                 var name;
-                return (s.hasMapping(uid) ? pass : ((name = s.getUnusedId(id)), setScope(scope.Scope
-                    .addMapping(scope.Scope.addMutableBinding(s, name), uid, name))));
+                return (s.hasMapping(uid) ? setScope(scope.Scope.addMutableBinding(s, id)) : ((name =
+                    s.getUnusedId(id)), setScope(scope.Scope.addMapping(scope.Scope.addMutableBinding(
+                    s, name), uid, name))));
             }));
         }),
         getMapping = (function(uid, f) {
@@ -409,9 +410,9 @@
     addTransform("FunctionExpression", seq(enterBlock, modify((function(node) {
         return functionExpression(node.loc, node.id, node.params, node.body, (node.ud && node.ud
             .prefix));
-    }))), seq(exitBlock, modify((function(node) {
+    }))), seq(modify((function(node) {
         return ecma_expression.FunctionExpression.create(null, node.id, node.params, node.body);
-    }))));
+    })), exitBlock));
     addTransform("ArrayExpression", null, modify((function(node) {
         return ecma_expression.ArrayExpression.create(node.loc, node.elements);
     })));
@@ -425,7 +426,8 @@
         return node.id;
     })));
     addTransform("IdentifierPattern", bind(node, (function(node) {
-        return ((node.ud && (node.ud.uid !== undefined)) ? addVar(node.name, node.ud.uid) : pass);
+        return ((node.id.ud && (node.id.ud.uid !== undefined)) ? addVar(node.id.name, node.id.ud.uid) :
+            pass);
     })), modify((function(node) {
         return node.id;
     })));
@@ -488,7 +490,8 @@
         if ((manager === "node"))(packageManager = node_manager);
         var s = State.empty.setScope(scope.Scope.empty)
             .setPackageManager(packageManager);
-        return run(next(walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
+        return run(seq(addVar("require", builtins.require.ud.uid), addVar("exports", builtins.exports.ud
+            .uid), walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
     }));
     (exports["transform"] = transform);
 }));

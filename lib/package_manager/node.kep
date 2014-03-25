@@ -10,7 +10,8 @@ with
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::value' ast_value,
     
-    import '../fun' fun
+    import '../fun' fun,
+    import '../builtin' builtin
 in {
 
 var concat = Array.prototype.concat.bind([]);
@@ -33,7 +34,7 @@ in
                 ast_value.Literal.create(null, 'string', c),
                 true),
         ast_expression.CallExpression.create(null,
-            ast_value.Identifier.create(null, 'require'), [
+            builtin.require, [
             ast_value.Literal.create(null, 'string', segs.(0))]));
 
 /**
