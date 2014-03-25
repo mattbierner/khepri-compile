@@ -496,11 +496,11 @@ addCheck@'ObjectValue' <|
     checkChild 'value';
 
 addCheck@'Identifier' <|
-    inspect \ node ->
+    inspect \ node#{name loc} ->
         seq(
             examineScope \ s ->
-                 setNode <| setData(node, 'uid', s.getUid(node.name)),
-            checkHasBinding(node.name, node.loc));
+                 setNode <| setData(node, 'uid', s.getUid(name)),
+            checkHasBinding(name, loc));
 
 /*
  ******************************************************************************/

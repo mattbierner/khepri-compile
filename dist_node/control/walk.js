@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/walk.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/walk.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var zipper = require("neith")["zipper"],
     __o = require("akh")["base"],
     next = __o["next"],

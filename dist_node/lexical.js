@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -251,9 +250,11 @@ addCheck("ObjectPatternElement", seq(checkChild("target"), checkChild("key")));
 addCheck("ArgumentsPattern", seq(checkChild("id"), checkChild("elements"), checkChild("self")));
 addCheck("ObjectValue", checkChild("value"));
 addCheck("Identifier", inspect((function(node) {
+    var name = node["name"],
+        loc = node["loc"];
     return seq(examineScope((function(s) {
-        return setNode(setData(node, "uid", s.getUid(node.name)));
-    })), checkHasBinding(node.name, node.loc));
+        return setNode(setData(node, "uid", s.getUid(name)));
+    })), checkHasBinding(name, loc));
 })));
 (_check = (function(node) {
     if (Array.isArray(node)) {
