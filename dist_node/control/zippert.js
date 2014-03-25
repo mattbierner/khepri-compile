@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/control/zippert.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/control/zippert.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var StateT = require("akh")["trans"]["state"],
     zipper = require("neith")["zipper"],
     tree = require("neith")["tree"],

@@ -21,7 +21,6 @@ var record = require("bes")["record"],
     khepri_value = require("khepri-ast")["value"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
-    zipper = require("neith")["zipper"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
     __o0 = require("akh")["base"],
@@ -29,6 +28,7 @@ var record = require("bes")["record"],
     seq = __o0["sequence"],
     seqa = __o0["sequencea"],
     ZipperT = require("./control/zippert"),
+    walk = require("./control/walk"),
     scope = require("./scope"),
     fun = require("./fun"),
     flip = fun["flip"],
@@ -99,16 +99,9 @@ var extract = M.lift(M.inner.get),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
+    node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
-    ctx = M.get,
-    get = M.inspect,
-    node = M.node,
-    up = M.up,
-    down = M.down,
-    left = M.left,
-    right = M.right,
-    root = M.root,
     enterBlock = examineScope((function(s) {
         return setScope(scope.Scope.empty.setOuter(s));
     })),
@@ -491,23 +484,7 @@ var _transp = (function(node) {
     }
     return pass;
 }),
-    _transformPost = bind(node, _transp),
-    walk = (function(pre, post) {
-        return next(pre, bind(ctx, (function(t) {
-            if (zipper.isLeaf(t)) {
-                var loop = next(post, bind(ctx, (function(t) {
-                    if (zipper.isLast(t)) {
-                        if (zipper.isRoot(t)) return pass;
-                        return next(up, loop);
-                    } else {
-                        return next(right, walk(pre, post));
-                    }
-                })));
-                return loop;
-            }
-            return next(down, walk(pre, post));
-        })));
-    });
+    _transformPost = bind(node, _transp);
 (transform = (function(ast, manager, data) {
     var amd_manager = require("./package_manager/amd"),
         node_manager = require("./package_manager/node"),
@@ -515,6 +492,6 @@ var _transp = (function(node) {
     if ((manager === "node"))(packageManager = node_manager);
     var s = State.empty.setScope(scope.Scope.empty)
         .setPackageManager(packageManager);
-    return run(next(walk(_transform, _transformPost), node), s, khepriZipper(ast));
+    return run(next(walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
 }));
 (exports["transform"] = transform);

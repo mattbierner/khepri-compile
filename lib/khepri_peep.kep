@@ -4,8 +4,6 @@
 package (
     optimize)
 with
-    import 'neith::zipper' zipper,
-
     import 'khepri-ast-zipper' {khepriZipper},
     
     import 'khepri-ast::node' {Node setUserData setData},
@@ -22,7 +20,8 @@ with
     import 'akh::unique' Unique,
 
     import './fun' fun,
-    import './control/zippert' ZipperT
+    import './control/zippert' ZipperT,
+    import './control/walk' walk
 in {
 
 /* Operations
@@ -36,15 +35,7 @@ var run = \c ctx seed ->
 
 var pass = M.of null;
 
-var extract = M.get;
-
 var node =  M.node;
-
-var move = M.move;
-
-var up = M.up;
-var right = M.right;
-var down = M.down;
 
 var modify = M.modifyNode;
 
@@ -331,36 +322,11 @@ var transform = \node transforms ->
         :seqa(transforms.map(\x -> x.map))
         :pass;
 
-var walk = \pre post ->
-    next(
-        pre,
-        extract.chain \ t -> {
-            if (zipper.isLeaf t) {
-                var loop = next(
-                    post,
-                    extract.chain \ t -> {
-                        if (zipper.isLast t) {
-                            if (zipper.isRoot t)
-                                return pass;
-                            return next(
-                                up,
-                               loop);
-                        } else {
-                            return next(right, walk(pre, post));
-                        }
-                    });
-                return loop;
-            }
-            return next(down, walk(pre, post));
-        });
-
 var _transform = node.chain \ node ->
     transform(node, downTransforms node);
 
 var _transformPost = node.chain \node ->
     transform(node, upTransforms node);
-
-var opt = walk@(_transform, _transformPost);
 
 /**
  * 
@@ -368,7 +334,7 @@ var opt = walk@(_transform, _transformPost);
 optimize = \ast data ->
     run(
         next(
-            walk(_transform, _transformPost),
+            walk(M, _transform, _transformPost),
             node),
         khepriZipper(ast),
         data.unique);

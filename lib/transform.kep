@@ -24,8 +24,6 @@ with
     import 'khepri-ast::value' khepri_value,
     
     import 'khepri-ast-zipper' {khepriZipper},
-
-    import 'neith::zipper' zipper,
     
     import 'akh::unique' Unique,
     import 'akh::trans::state' StateT,
@@ -35,6 +33,7 @@ with
         'sequencea': seqa},
     
     import './control/zippert' ZipperT,
+    import './control/walk' walk,
 
     import './scope' scope,
     import './fun' fun#{flip},
@@ -78,7 +77,7 @@ var State = record.declare(null, [
 
 State.empty = State.create(scope.Scope.empty, null, [[], null]);
 
-/* State
+/* Operations
  ******************************************************************************/
 // State Operations
 ////////////////////////////////////////
@@ -119,21 +118,12 @@ var addBindings = \bindings ->
 
 // Zipper Operations
 ////////////////////////////////////////
+var node = M.node;
+
 var modify = M.modifyNode;
 
 var set = M.setNode;
 
-var ctx = M.get;
-
-var get = M.inspect;
-
-var node = M.node;
-
-var up = M.up;
-var down = M.down;
-var left = M.left;
-var right = M.right;
-var root = M.root;
 
 // Scoping Operations
 ////////////////////////////////////////
@@ -845,29 +835,6 @@ var _transp = \node -> {
 
 var _transformPost = bind(node, _transp);
 
-var walk = \pre post ->
-    next(
-        pre,
-        bind(ctx, \t -> {
-        if (zipper.isLeaf t) {
-            var loop = next(
-                post,
-                bind(ctx, \t -> {
-                    if (zipper.isLast t) {
-                        if (zipper.isRoot t)
-                            return pass;
-                        return next(
-                            up,
-                           loop);
-                    } else {
-                        return next(right, walk(pre, post));
-                    }
-                }));
-            return loop;
-        }
-        return next(down, walk(pre, post));
-    }));
-
 /* API
  *****************************************************************************/
 /**
@@ -888,7 +855,7 @@ transform = \ast manager data -> {
         
         return run(
             next(
-                walk(_transform, _transformPost),
+                walk(M, _transform, _transformPost),
                 node),
             s,
             khepriZipper ast);

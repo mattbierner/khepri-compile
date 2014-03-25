@@ -4,12 +4,12 @@
 */define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
-    "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/zipper",
-    "akh/unique", "akh/trans/state", "akh/base", "./control/zippert", "./scope", "./fun", "./package_manager/amd",
-    "./package_manager/node"
+    "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
+    "akh/trans/state", "akh/base", "./control/zippert", "./control/walk", "./scope", "./fun",
+    "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
-    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, zipper, Unique, StateT, __o0, ZipperT,
+    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, Unique, StateT, __o0, ZipperT, walk,
     scope, fun, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
@@ -85,16 +85,9 @@
                 return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
             }));
         }),
+        node = M.node,
         modify = M.modifyNode,
         set = M.setNode,
-        ctx = M.get,
-        get = M.inspect,
-        node = M.node,
-        up = M.up,
-        down = M.down,
-        left = M.left,
-        right = M.right,
-        root = M.root,
         enterBlock = examineScope((function(s) {
             return setScope(scope.Scope.empty.setOuter(s));
         })),
@@ -487,23 +480,7 @@
         }
         return pass;
     }),
-        _transformPost = bind(node, _transp),
-        walk = (function(pre, post) {
-            return next(pre, bind(ctx, (function(t) {
-                if (zipper.isLeaf(t)) {
-                    var loop = next(post, bind(ctx, (function(t) {
-                        if (zipper.isLast(t)) {
-                            if (zipper.isRoot(t)) return pass;
-                            return next(up, loop);
-                        } else {
-                            return next(right, walk(pre, post));
-                        }
-                    })));
-                    return loop;
-                }
-                return next(down, walk(pre, post));
-            })));
-        });
+        _transformPost = bind(node, _transp);
     (transform = (function(ast, manager, data) {
         var amd_manager = require("./package_manager/amd"),
             node_manager = require("./package_manager/node"),
@@ -511,7 +488,7 @@
         if ((manager === "node"))(packageManager = node_manager);
         var s = State.empty.setScope(scope.Scope.empty)
             .setPackageManager(packageManager);
-        return run(next(walk(_transform, _transformPost), node), s, khepriZipper(ast));
+        return run(next(walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
     }));
     (exports["transform"] = transform);
 }));

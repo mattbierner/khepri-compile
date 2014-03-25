@@ -1,10 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
-var zipper = require("neith")["zipper"],
-    __o = require("khepri-ast-zipper"),
+*/"use strict";
+var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
     Node = __o0["Node"],
@@ -22,17 +20,13 @@ var zipper = require("neith")["zipper"],
     Unique = require("akh")["unique"],
     fun = require("./fun"),
     ZipperT = require("./control/zippert"),
+    walk = require("./control/walk"),
     optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
         return Unique.runUnique(ZipperT.run(c, ctx), seed);
     }),
     pass = M.of(null),
-    extract = M.get,
     node = M.node,
-    move = M.move,
-    up = M.up,
-    right = M.right,
-    down = M.down,
     modify = M.modifyNode,
     unique = M.lift(Unique.unique),
     peepholes = ({}),
@@ -183,30 +177,13 @@ var upTransforms = (function(node) {
             return x.map;
         }))) : pass);
     }),
-    walk = (function(pre, post) {
-        return next(pre, extract.chain((function(t) {
-            if (zipper.isLeaf(t)) {
-                var loop = next(post, extract.chain((function(t) {
-                    if (zipper.isLast(t)) {
-                        if (zipper.isRoot(t)) return pass;
-                        return next(up, loop);
-                    } else {
-                        return next(right, walk(pre, post));
-                    }
-                })));
-                return loop;
-            }
-            return next(down, walk(pre, post));
-        })));
-    }),
     _transform = node.chain((function(node) {
         return transform(node, downTransforms(node));
     })),
     _transformPost = node.chain((function(node) {
         return transform(node, upTransforms(node));
-    })),
-    opt = walk.bind(null, _transform, _transformPost);
+    }));
 (optimize = (function(ast, data) {
-    return run(next(walk(_transform, _transformPost), node), khepriZipper(ast), data.unique);
+    return run(next(walk(M, _transform, _transformPost), node), khepriZipper(ast), data.unique);
 }));
 (exports["optimize"] = optimize);
