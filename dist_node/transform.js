@@ -41,8 +41,8 @@ var record = require("bes")["record"],
     pass = ok(null),
     cons = (function(a, b) {
         return a.chain((function(x) {
-            return b.chain((function(y) {
-                return ok([x].concat(y));
+            return b.map((function(y) {
+                return [x].concat(y);
             }));
         }));
     }),
@@ -62,13 +62,13 @@ var extract = M.lift(M.inner.get),
             return f(g(x));
         });
     })(M.lift, M.inner.modify),
-    examineState = M.chain.bind(null, extract),
-    examineScope = (function(f) {
+    inspectStateWith = M.chain.bind(null, extract),
+    inspectScopeWith = (function(f) {
         return bind(extract, (function(s) {
             return f(s.scope);
         }));
     }),
-    packageManager = examineState((function(s) {
+    packageManager = inspectStateWith((function(s) {
         return ok(s.packageManager);
     })),
     modifyScope = (function(f) {
@@ -102,21 +102,21 @@ var extract = M.lift(M.inner.get),
     node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
-    enterBlock = examineScope((function(s) {
+    enterBlock = inspectScopeWith((function(s) {
         return setScope(scope.Scope.empty.setOuter(s));
     })),
-    exitBlock = examineScope((function(s) {
+    exitBlock = inspectScopeWith((function(s) {
         return setScope(s.outer);
     })),
     addVar = (function(id, uid) {
-        return examineScope((function(s) {
+        return inspectScopeWith((function(s) {
             var name;
             return (s.hasMapping(uid) ? pass : ((name = s.getUnusedId(id)), setScope(scope.Scope.addMapping(
                 scope.Scope.addMutableBinding(s, name), uid, name))));
         }));
     }),
     getMapping = (function(uid, f) {
-        return examineScope((function(s) {
+        return inspectScopeWith((function(s) {
             return f(s.getMapping(uid));
         }));
     }),
@@ -124,7 +124,7 @@ var extract = M.lift(M.inner.get),
         return getMapping(uid, ok);
     }),
     getBindings = (function(f) {
-        return bind(examineState((function(s) {
+        return bind(inspectStateWith((function(s) {
             return enumeration(fun.map((function(__o) {
                 var name = __o[0],
                     uid = __o[1];

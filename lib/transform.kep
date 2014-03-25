@@ -42,7 +42,6 @@ with
     import './package_manager::node' _
 in {
 
-
 /* Monad
  ******************************************************************************/
 var M = ZipperT (StateT Unique);
@@ -61,12 +60,10 @@ var pass = ok null;
 
 var cons = \a b ->
     a.chain \ x ->
-    b.chain \ y ->
-        ok <| [x].concat(y);
+    b.map \ y ->
+        [x].concat(y);
 
-var enumeration = fun.foldr@(
-    flip cons,
-    ok []);
+var enumeration = fun.foldr@(flip cons, ok []);
 
 /* State
  ******************************************************************************/
@@ -87,13 +84,13 @@ var setState = M.lift <\ M.inner.put;
 
 var modifyState = M.lift <\ M.inner.modify;
 
-var examineState = M.chain @ extract;
+var inspectStateWith = M.chain @ extract;
 
 // Scope Operations
 ////////////////////////////////////////
-var examineScope = \f -> bind(extract, \s -> f(s.scope));
+var inspectScopeWith = \f -> bind(extract, \s -> f(s.scope));
 
-var packageManager = examineState(\s -> ok(s.packageManager));
+var packageManager = inspectStateWith(\s -> ok(s.packageManager));
 
 var modifyScope = \f ->
     modifyState \ s ->
@@ -124,17 +121,16 @@ var modify = M.modifyNode;
 
 var set = M.setNode;
 
-
 // Scoping Operations
 ////////////////////////////////////////
-var enterBlock = examineScope \ s ->
+var enterBlock = inspectScopeWith \ s ->
     setScope(scope.Scope.empty.setOuter(s));
 
-var exitBlock = examineScope \ s ->
+var exitBlock = inspectScopeWith \ s ->
     setScope(s.outer);
 
 var addVar = \id uid ->
-    examineScope \ s ->
+    inspectScopeWith \ s ->
         ?s.hasMapping(uid)
             :pass
             :let name = s.getUnusedId(id) in
@@ -144,7 +140,7 @@ var addVar = \id uid ->
                     name));
 
 var getMapping = \uid f ->
-    examineScope \ s ->
+    inspectScopeWith \ s ->
         f(s.getMapping(uid));
 
 var getName = \name uid ->
@@ -152,7 +148,7 @@ var getName = \name uid ->
 
 var getBindings = \f ->
     bind(
-        examineState <|\ s -> 
+        inspectStateWith \ s -> 
             enumeration(fun.map(\[name uid] -> getName(name, uid), s.bindings.(0))),
         f);
 
