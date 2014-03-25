@@ -7,7 +7,6 @@ var ast_node = require("khepri-ast")["node"],
     setUserData = ast_node["setUserData"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    zipper = require("neith")["zipper"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("akh")["base"],
@@ -64,6 +63,7 @@ var ast_node = require("khepri-ast")["node"],
     down = lift(StateM.lift(Zipper.down)),
     left = lift(StateM.lift(Zipper.left)),
     right = lift(StateM.lift(Zipper.right)),
+    root = lift(StateM.lift(Zipper.root)),
     moveChild = (function(f, g) {
         return (function(x) {
             return f(g(x));
@@ -272,7 +272,7 @@ var initialScope = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
         throw x;
     });
 (check = (function(ast, globals) {
-    return run(seq(checkTop, move(zipper.root), extractNode.chain((function(x) {
+    return run(seq(checkTop, root, extractNode.chain((function(x) {
         return unique.chain((function(unique) {
             return extract.map((function(s) {
                 return ({

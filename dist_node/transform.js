@@ -21,34 +21,24 @@ var record = require("bes")["record"],
     khepri_value = require("khepri-ast")["value"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
-    tree = require("neith")["tree"],
     zipper = require("neith")["zipper"],
-    StateM = require("akh")["state"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
     __o0 = require("akh")["base"],
     next = __o0["next"],
     seq = __o0["sequence"],
     seqa = __o0["sequencea"],
+    ZipperT = require("./control/zippert"),
     scope = require("./scope"),
     fun = require("./fun"),
     flip = fun["flip"],
-    transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager", "bindings"]);
-(State.empty = State.create(null, scope.Scope.empty, null, [
-    [], null
-]));
-var M = StateT(Unique),
-    run = (function(m, s, seed) {
-        return Unique.runUnique(StateT.evalStateT(m, s), seed);
+    transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
+    run = (function(m, s, ctx, seed) {
+        return Unique.runUnique(StateT.evalStateT(ZipperT.run(m, ctx), s), seed);
     }),
     ok = M.of,
     bind = M.chain,
-    pass = ok(),
-    binds = (function(p, f) {
-        return bind(p, (function(x) {
-            return f.apply(undefined, x);
-        }));
-    }),
+    pass = ok(null),
     cons = (function(a, b) {
         return a.chain((function(x) {
             return b.chain((function(y) {
@@ -57,9 +47,21 @@ var M = StateT(Unique),
         }));
     }),
     enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-    extract = M.get,
-    setState = M.put,
-    modifyState = M.modify,
+    State = record.declare(null, ["scope", "packageManager", "bindings"]);
+(State.empty = State.create(scope.Scope.empty, null, [
+    [], null
+]));
+var extract = M.lift(M.inner.get),
+    setState = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(M.lift, M.inner.put),
+    modifyState = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(M.lift, M.inner.modify),
     examineState = M.chain.bind(null, extract),
     examineScope = (function(f) {
         return bind(extract, (function(s) {
@@ -97,26 +99,16 @@ var M = StateT(Unique),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
-    move = (function(op) {
-        return modifyState((function(s) {
-            return s.setCtx(op(s.ctx));
-        }));
-    }),
-    modify = (function(f) {
-        return move(tree.modifyNode.bind(null, f));
-    }),
-    set = (function(f) {
-        return move(tree.setNode.bind(null, f));
-    }),
-    ctx = examineState((function(s) {
-        return ok(s.ctx);
-    })),
-    get = (function(op) {
-        return examineState((function(s) {
-            return ok(op(s.ctx));
-        }));
-    }),
-    node = get(tree.node),
+    modify = M.modifyNode,
+    set = M.setNode,
+    ctx = M.get,
+    get = M.inspect,
+    node = M.node,
+    up = M.up,
+    down = M.down,
+    left = M.left,
+    right = M.right,
+    root = M.root,
     enterBlock = examineScope((function(s) {
         return setScope(scope.Scope.empty.setOuter(s));
     })),
@@ -506,14 +498,14 @@ var _transp = (function(node) {
                 var loop = next(post, bind(ctx, (function(t) {
                     if (zipper.isLast(t)) {
                         if (zipper.isRoot(t)) return pass;
-                        return next(move(zipper.up), loop);
+                        return next(up, loop);
                     } else {
-                        return next(move(zipper.right), walk(pre, post));
+                        return next(right, walk(pre, post));
                     }
                 })));
                 return loop;
             }
-            return next(move(zipper.down), walk(pre, post));
+            return next(down, walk(pre, post));
         })));
     });
 (transform = (function(ast, manager, data) {
@@ -521,9 +513,8 @@ var _transp = (function(node) {
         node_manager = require("./package_manager/node"),
         packageManager = amd_manager;
     if ((manager === "node"))(packageManager = node_manager);
-    var s = State.empty.setCtx(khepriZipper(ast))
-        .setScope(scope.Scope.empty)
+    var s = State.empty.setScope(scope.Scope.empty)
         .setPackageManager(packageManager);
-    return run(next(walk(_transform, _transformPost), node), s);
+    return run(next(walk(_transform, _transformPost), node), s, khepriZipper(ast));
 }));
 (exports["transform"] = transform);

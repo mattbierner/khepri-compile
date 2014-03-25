@@ -25,14 +25,17 @@ with
     
     import 'khepri-ast-zipper' {khepriZipper},
 
-    import 'neith::tree' tree,
     import 'neith::zipper' zipper,
     
-    import 'akh::state' StateM,
     import 'akh::unique' Unique,
     import 'akh::trans::state' StateT,
-    import 'akh::base' {next 'sequence': seq 'sequencea': seqa},
+    import 'akh::base' {
+        next
+        'sequence': seq
+        'sequencea': seqa},
     
+    import './control/zippert' ZipperT,
+
     import './scope' scope,
     import './fun' fun#{flip},
 
@@ -40,33 +43,22 @@ with
     import './package_manager::node' _
 in {
 
-/* State
+
+/* Monad
  ******************************************************************************/
-var State = record.declare(null, [
-    'ctx',
-    'scope',
-    'packageManager',
-    'bindings']);
+var M = ZipperT (StateT Unique);
 
-State.empty = State.create(null, scope.Scope.empty, null, [[], null]);
-
-/*
- ******************************************************************************/
-var M = StateT (Unique);
-
-var run = \m s seed ->
+var run = \m s ctx seed ->
     Unique.runUnique(
-        StateT.evalStateT(m, s),
+        StateT.evalStateT(
+            ZipperT.run(m, ctx),
+            s),
         seed);
 
 var ok = M.of;
 var bind = M.chain;
 
-var pass = ok();
-
-var binds = \p f ->
-    bind(p, \x ->
-        f.apply(undefined, x));
+var pass = ok null;
 
 var cons = \a b ->
     a.chain \ x ->
@@ -77,13 +69,24 @@ var enumeration = fun.foldr@(
     flip cons,
     ok []);
 
+/* State
+ ******************************************************************************/
+var State = record.declare(null, [
+    'scope',
+    'packageManager',
+    'bindings']);
+
+State.empty = State.create(scope.Scope.empty, null, [[], null]);
+
+/* State
+ ******************************************************************************/
 // State Operations
 ////////////////////////////////////////
-var extract = M.get;
+var extract = M.lift (M.inner.get);
 
-var setState = M.put;
+var setState = M.lift <\ M.inner.put;
 
-var modifyState = M.modify;
+var modifyState = M.lift <\ M.inner.modify;
 
 var examineState = M.chain @ extract;
 
@@ -116,24 +119,21 @@ var addBindings = \bindings ->
 
 // Zipper Operations
 ////////////////////////////////////////
-var move = \op ->
-    modifyState \ s ->
-        s.setCtx(op(s.ctx));
+var modify = M.modifyNode;
 
-var modify = \f ->
-    move tree.modifyNode@f;
+var set = M.setNode;
 
-var set = \f ->
-    move tree.setNode@f;
+var ctx = M.get;
 
-var ctx = examineState(\s ->
-    ok(s.ctx));
+var get = M.inspect;
 
-var get = \op ->
-    examineState(\s ->
-        ok(op(s.ctx)));
+var node = M.node;
 
-var node = get tree.node;
+var up = M.up;
+var down = M.down;
+var left = M.left;
+var right = M.right;
+var root = M.root;
 
 // Scoping Operations
 ////////////////////////////////////////
@@ -857,15 +857,15 @@ var walk = \pre post ->
                         if (zipper.isRoot t)
                             return pass;
                         return next(
-                            move zipper.up,
+                            up,
                            loop);
                     } else {
-                        return next(move zipper.right, walk(pre, post));
+                        return next(right, walk(pre, post));
                     }
                 }));
             return loop;
         }
-        return next(move zipper.down, walk(pre, post));
+        return next(down, walk(pre, post));
     }));
 
 /* API
@@ -883,7 +883,6 @@ transform = \ast manager data -> {
             packageManager = node_manager;
 
         var s = State.empty
-            .setCtx(khepriZipper ast)
             .setScope(scope.Scope.empty)
             .setPackageManager(packageManager);
         
@@ -891,7 +890,8 @@ transform = \ast manager data -> {
             next(
                 walk(_transform, _transformPost),
                 node),
-            s);
+            s,
+            khepriZipper ast);
     }
 };
 

@@ -50,6 +50,8 @@ ZipperT = \m -> {
     Instance.left = Instance.move zipper.left;
     Instance.right = Instance.move zipper.right;
     
+    Instance.root = Instance.move zipper.root;
+    
     /* Tree Operations
      ******************************************************************************/
     /**

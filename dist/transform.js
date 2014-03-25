@@ -4,13 +4,13 @@
 */define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
-    "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/tree",
-    "neith/zipper", "akh/state", "akh/unique", "akh/trans/state", "akh/base", "./scope", "./fun",
-    "./package_manager/amd", "./package_manager/node"
+    "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "neith/zipper",
+    "akh/unique", "akh/trans/state", "akh/base", "./control/zippert", "./scope", "./fun", "./package_manager/amd",
+    "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
-    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, tree, zipper, StateM, Unique, StateT,
-    __o0, scope, fun, _, _0) {
+    khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, zipper, Unique, StateT, __o0, ZipperT,
+    scope, fun, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -18,24 +18,13 @@
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         flip = fun["flip"],
-        transform, objectElementUnpack, State = record.declare(null, ["ctx", "scope", "packageManager",
-            "bindings"
-        ]);
-    (State.empty = State.create(null, scope.Scope.empty, null, [
-        [], null
-    ]));
-    var M = StateT(Unique),
-        run = (function(m, s, seed) {
-            return Unique.runUnique(StateT.evalStateT(m, s), seed);
+        transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
+        run = (function(m, s, ctx, seed) {
+            return Unique.runUnique(StateT.evalStateT(ZipperT.run(m, ctx), s), seed);
         }),
         ok = M.of,
         bind = M.chain,
-        pass = ok(),
-        binds = (function(p, f) {
-            return bind(p, (function(x) {
-                return f.apply(undefined, x);
-            }));
-        }),
+        pass = ok(null),
         cons = (function(a, b) {
             return a.chain((function(x) {
                 return b.chain((function(y) {
@@ -44,9 +33,21 @@
             }));
         }),
         enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-        extract = M.get,
-        setState = M.put,
-        modifyState = M.modify,
+        State = record.declare(null, ["scope", "packageManager", "bindings"]);
+    (State.empty = State.create(scope.Scope.empty, null, [
+        [], null
+    ]));
+    var extract = M.lift(M.inner.get),
+        setState = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(M.lift, M.inner.put),
+        modifyState = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(M.lift, M.inner.modify),
         examineState = M.chain.bind(null, extract),
         examineScope = (function(f) {
             return bind(extract, (function(s) {
@@ -84,26 +85,16 @@
                 return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
             }));
         }),
-        move = (function(op) {
-            return modifyState((function(s) {
-                return s.setCtx(op(s.ctx));
-            }));
-        }),
-        modify = (function(f) {
-            return move(tree.modifyNode.bind(null, f));
-        }),
-        set = (function(f) {
-            return move(tree.setNode.bind(null, f));
-        }),
-        ctx = examineState((function(s) {
-            return ok(s.ctx);
-        })),
-        get = (function(op) {
-            return examineState((function(s) {
-                return ok(op(s.ctx));
-            }));
-        }),
-        node = get(tree.node),
+        modify = M.modifyNode,
+        set = M.setNode,
+        ctx = M.get,
+        get = M.inspect,
+        node = M.node,
+        up = M.up,
+        down = M.down,
+        left = M.left,
+        right = M.right,
+        root = M.root,
         enterBlock = examineScope((function(s) {
             return setScope(scope.Scope.empty.setOuter(s));
         })),
@@ -503,14 +494,14 @@
                     var loop = next(post, bind(ctx, (function(t) {
                         if (zipper.isLast(t)) {
                             if (zipper.isRoot(t)) return pass;
-                            return next(move(zipper.up), loop);
+                            return next(up, loop);
                         } else {
-                            return next(move(zipper.right), walk(pre, post));
+                            return next(right, walk(pre, post));
                         }
                     })));
                     return loop;
                 }
-                return next(move(zipper.down), walk(pre, post));
+                return next(down, walk(pre, post));
             })));
         });
     (transform = (function(ast, manager, data) {
@@ -518,10 +509,9 @@
             node_manager = require("./package_manager/node"),
             packageManager = amd_manager;
         if ((manager === "node"))(packageManager = node_manager);
-        var s = State.empty.setCtx(khepriZipper(ast))
-            .setScope(scope.Scope.empty)
+        var s = State.empty.setScope(scope.Scope.empty)
             .setPackageManager(packageManager);
-        return run(next(walk(_transform, _transformPost), node), s);
+        return run(next(walk(_transform, _transformPost), node), s, khepriZipper(ast));
     }));
     (exports["transform"] = transform);
 }));

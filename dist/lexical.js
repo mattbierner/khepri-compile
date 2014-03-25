@@ -1,11 +1,11 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "neith/zipper",
-    "khepri-ast-zipper", "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope",
-    "./fun", "./control/zippert"
-], (function(require, exports, ast_node, ast_pattern, ast_value, zipper, __o, __o0, StateT, Identity, ErrorT,
-    Unique, scope, __o1, ZipperT) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+    "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun",
+    "./control/zippert"
+], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, ErrorT, Unique, scope,
+    __o1, ZipperT) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
@@ -56,6 +56,7 @@
         down = lift(StateM.lift(Zipper.down)),
         left = lift(StateM.lift(Zipper.left)),
         right = lift(StateM.lift(Zipper.right)),
+        root = lift(StateM.lift(Zipper.root)),
         moveChild = (function(f, g) {
             return (function(x) {
                 return f(g(x));
@@ -269,7 +270,7 @@
             throw x;
         });
     (check = (function(ast, globals) {
-        return run(seq(checkTop, move(zipper.root), extractNode.chain((function(x) {
+        return run(seq(checkTop, root, extractNode.chain((function(x) {
             return unique.chain((function(unique) {
                 return extract.map((function(s) {
                     return ({

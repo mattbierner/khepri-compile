@@ -8,9 +8,7 @@ with
     import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-    
-    import 'neith::zipper' zipper,
-    
+        
     import 'khepri-ast-zipper' {khepriZipper},
     
     import 'akh::base' {
@@ -79,6 +77,8 @@ var up = lift (StateM.lift Zipper.up);
 var down = lift (StateM.lift Zipper.down);
 var left = lift (StateM.lift Zipper.left);
 var right = lift (StateM.lift Zipper.right);
+
+var root = lift (StateM.lift Zipper.root);
 
 var moveChild =  lift <\ StateM.lift <\ Zipper.child;
 
@@ -537,7 +537,7 @@ in
         run(
             seq(
                 checkTop,
-                move zipper.root,
+                root,
                 extractNode.chain \ x ->
                 unique.chain \ unique ->
                 extract.map \ s ->
