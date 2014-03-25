@@ -32,8 +32,8 @@ with
         'sequence': seq
         'sequencea': seqa},
     
-    import './control/zippert' ZipperT,
-    import './control/walk' walk,
+    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::walk' walk,
 
     import './scope' scope,
     import './fun' fun#{flip},
@@ -50,7 +50,7 @@ var M = ZipperT (StateT Unique);
 var run = \m s ctx seed ->
     Unique.runUnique(
         StateT.evalStateT(
-            ZipperT.run(m, ctx),
+            ZipperT.runZipperT(m, ctx),
             s),
         seed);
 

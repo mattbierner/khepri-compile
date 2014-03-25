@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
@@ -19,12 +18,12 @@ var __o = require("khepri-ast-zipper"),
     seq = __o1["sequence"],
     seqa = __o1["sequencea"],
     Unique = require("akh")["unique"],
+    ZipperT = require("zipper-m")["trans"]["zipper"],
+    walk = require("zipper-m")["walk"],
     fun = require("./fun"),
-    ZipperT = require("./control/zippert"),
-    walk = require("./control/walk"),
     optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
-        return Unique.runUnique(ZipperT.run(c, ctx), seed);
+        return Unique.runUnique(ZipperT.runZipperT(c, ctx), seed);
     }),
     pass = M.of(null),
     node = M.node,

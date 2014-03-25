@@ -22,12 +22,12 @@ var ast_node = require("khepri-ast")["node"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
     builtins = require("./builtin"),
-    ZipperT = require("./control/zippert"),
+    ZipperT = require("zipper-m")["trans"]["zipper"],
     check, _check, Zipper = ZipperT(Unique),
     StateM = StateT(Zipper),
     M = ErrorT(StateM),
     run = (function(p, s, ctx, ok, err) {
-        return Unique.runUnique(ZipperT.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
+        return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });

@@ -24,7 +24,7 @@ with
     import './fun' {foldl},
     import './builtin' builtins,
     
-    import './control/zippert' ZipperT
+    import 'zipper-m::trans::zipper' ZipperT
 in {
 
 /* Forward declarations
@@ -40,7 +40,7 @@ var M = ErrorT(StateM);
 
 var run = \p s ctx ok err->
     Unique.runUnique(
-        ZipperT.run(
+        ZipperT.runZipperT(
             StateT.evalStateT(
                 ErrorT.runErrorT(
                     p,

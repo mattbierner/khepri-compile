@@ -18,10 +18,11 @@ with
         'sequence': seq
         'sequencea': seqa},
     import 'akh::unique' Unique,
+    
+    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::walk' walk,
 
-    import './fun' fun,
-    import './control/zippert' ZipperT,
-    import './control/walk' walk
+    import './fun' fun
 in {
 
 /* Operations
@@ -30,7 +31,7 @@ var M = ZipperT(Unique);
 
 var run = \c ctx seed ->
     Unique.runUnique(
-        ZipperT.run(c, ctx),
+        ZipperT.runZipperT(c, ctx),
         seed);
 
 var pass = M.of null;

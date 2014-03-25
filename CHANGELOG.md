@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.2 - March 25, 2014
+* Fixed reserved identifiers like `require` potentially being hidden by user
+  identifiers.
+
 ## 0.3.1 - March 24, 2014
 * Fixed stack issue from `akh`.
 

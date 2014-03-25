@@ -5,7 +5,7 @@
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
-    "akh/trans/state", "akh/base", "./control/zippert", "./control/walk", "./scope", "./fun", "./builtin",
+    "akh/trans/state", "akh/base", "zipper-m/trans/zipper", "zipper-m/walk", "./scope", "./fun", "./builtin",
     "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
@@ -20,7 +20,7 @@
         flip = fun["flip"],
         transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
-            return Unique.runUnique(StateT.evalStateT(ZipperT.run(m, ctx), s), seed);
+            return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
         ok = M.of,
         bind = M.chain,

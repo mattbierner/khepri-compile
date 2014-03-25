@@ -3,7 +3,7 @@
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun", "./builtin",
-    "./control/zippert"
+    "zipper-m/trans/zipper"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, ErrorT, Unique, scope,
     __o1, builtins, ZipperT) {
     "use strict";
@@ -19,7 +19,7 @@
         StateM = StateT(Zipper),
         M = ErrorT(StateM),
         run = (function(p, s, ctx, ok, err) {
-            return Unique.runUnique(ZipperT.run(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
+            return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
                 return (function(x) {
                     return f(g(x));
                 });

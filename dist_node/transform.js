@@ -27,15 +27,15 @@ var record = require("bes")["record"],
     next = __o0["next"],
     seq = __o0["sequence"],
     seqa = __o0["sequencea"],
-    ZipperT = require("./control/zippert"),
-    walk = require("./control/walk"),
+    ZipperT = require("zipper-m")["trans"]["zipper"],
+    walk = require("zipper-m")["walk"],
     scope = require("./scope"),
     fun = require("./fun"),
     flip = fun["flip"],
     builtins = require("./builtin"),
     transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.run(m, ctx), s), seed);
+        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
     }),
     ok = M.of,
     bind = M.chain,
