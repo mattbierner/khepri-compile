@@ -455,7 +455,7 @@ addCheck@'AsPattern' <|
         inspect \ node ->
             child('target',
                 modifyNode \ target ->
-                    // Hack: For generating argument lists, we want to used the 
+                    // Hack: For generating argument lists, we want to use the 
                     // as pattern name if possible.
                     setData(target, 'id', node.id),
                 checkTop));
@@ -537,7 +537,7 @@ check = let
     suc = \x,s -> x,
     fail = \x -> { throw x; }
 in
-    \ast globals ->
+    \ast globals seed ->
         run(
             seq(
                 checkTop,
@@ -549,5 +549,6 @@ in
             addBindings(g(globals || [])),
             khepriZipper(ast),
             suc,
-            fail);
+            fail,
+            seed);
 }

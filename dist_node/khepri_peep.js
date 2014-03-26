@@ -1,35 +1,53 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
-var __o = require("khepri-ast-zipper"),
+*/"use strict";
+var hashtrie = require("hashtrie"),
+    __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
-    __o0 = require("khepri-ast")["node"],
-    Node = __o0["Node"],
-    setUserData = __o0["setUserData"],
-    setData = __o0["setData"],
+    __o0 = require("neith")["walk"],
+    neithWalk = __o0["walk"],
+    tree = require("neith")["tree"],
+    __o1 = require("khepri-ast")["node"],
+    Node = __o1["Node"],
+    setUserData = __o1["setUserData"],
+    setData = __o1["setData"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o1 = require("akh")["base"],
-    next = __o1["next"],
-    seq = __o1["sequence"],
-    seqa = __o1["sequencea"],
+    __o2 = require("akh")["base"],
+    next = __o2["next"],
+    seq = __o2["sequence"],
+    seqa = __o2["sequencea"],
     Unique = require("akh")["unique"],
+    StateT = require("akh")["trans"]["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
+    builtins = require("./builtin"),
     fun = require("./fun"),
-    optimize, M = ZipperT(Unique),
+    innerPattern = require("./unpack"),
+    optimize, M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, seed) {
-        return Unique.runUnique(ZipperT.runZipperT(c, ctx), seed);
+        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
     }),
     pass = M.of(null),
     node = M.node,
     modify = M.modifyNode,
-    unique = M.lift(Unique.unique),
+    set = M.setNode,
+    unique = M.liftInner(Unique.unique),
+    addBinding = (function(uid, target) {
+        return M.lift(M.inner.modify((function(bindings) {
+            return hashtrie.set(uid, target, bindings);
+        })));
+    }),
+    getBinding = (function(uid) {
+        return M.lift(M.inner.get)
+            .map((function(bindings) {
+                return hashtrie.get(uid, bindings);
+            }));
+    }),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
@@ -40,7 +58,171 @@ var __o = require("khepri-ast-zipper"),
         types.forEach((function(type) {
             (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
         }));
+    }),
+    rewrite = (function(base, list, root) {
+        return tree.node(neithWalk((function(ctx) {
+            var node = tree.node(ctx);
+            return (((node.ud && node.ud.uid) && (list.indexOf(node.ud.uid) !== -1)) ? tree.modifyNode(
+                (function(node) {
+                    return setData(node, "uid", ((base + "-") + node.ud.uid));
+                }), ctx) : ctx);
+        }), (function(x) {
+            return x;
+        }), khepriZipper(root)));
+    }),
+    isPrimitive = (function(node) {
+        return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) || (node.kind ===
+            "boolean")) || (node.kind === "null")));
+    }),
+    isTruthy = (function(node) {
+        return (isPrimitive(node) && (!(!node.value)));
+    }),
+    arithmetic = ({
+        "+": (function(x, y) {
+            return (x + y);
+        }),
+        "-": (function(x, y) {
+            return (x - y);
+        }),
+        "*": (function(x, y) {
+            return (x * y);
+        }),
+        "/": (function(x, y) {
+            return (x / y);
+        }),
+        "%": "%",
+        "<<": (function(x, y) {
+            return (x << y);
+        }),
+        ">>": (function(x, y) {
+            return (x >> y);
+        }),
+        ">>>": (function(x, y) {
+            return (x >>> y);
+        }),
+        "<": (function(x, y) {
+            return (x < y);
+        }),
+        ">": (function(x, y) {
+            return (x > y);
+        }),
+        "<=": (function(x, y) {
+            return (x <= y);
+        }),
+        ">=": (function(x, y) {
+            return (x >= y);
+        }),
+        "||": (function(x, y) {
+            return (x || y);
+        }),
+        "&&": (function(x, y) {
+            return (x && y);
+        })
     });
+addPeephole(["BinaryExpression", "LogicalExpression"], true, (function(__o) {
+    var operator = __o["operator"],
+        left = __o["left"],
+        right = __o["right"];
+    return ((arithmetic[operator] && isPrimitive(left)) && isPrimitive(right));
+}), modify((function(__o) {
+    var operator = __o["operator"],
+        left = __o["left"],
+        right = __o["right"],
+        value = arithmetic[operator](left.value, right.value);
+    return ast_value.Literal.create(null, (typeof value), value);
+})));
+var arithmetic0 = ({
+    "!": (function(x) {
+        return (!x);
+    }),
+    "~": (function(x) {
+        return (~x);
+    }),
+    "typeof": (function(x) {
+        return (typeof x);
+    }),
+    "+": (function(x) {
+        return (+x);
+    }),
+    "-": (function(x) {
+        return (-x);
+    })
+});
+addPeephole(["UnaryExpression"], true, (function(__o) {
+    var operator = __o["operator"],
+        argument = __o["argument"];
+    return (arithmetic0[operator] && isPrimitive(argument));
+}), modify((function(__o) {
+    var operator = __o["operator"],
+        argument = __o["argument"],
+        value = arithmetic0[operator](argument.value);
+    return ast_value.Literal.create(null, (typeof value), value);
+})));
+addPeephole(["IfStatement"], true, (function(node) {
+    return isPrimitive(node.test);
+}), modify((function(__o) {
+    var test = __o["test"],
+        consequent = __o["consequent"],
+        alternate = __o["alternate"];
+    return (isTruthy(test) ? consequent : alternate);
+})));
+addPeephole(["ConditionalExpression"], true, (function(node) {
+    return isPrimitive(node.test);
+}), modify((function(__o) {
+    var test = __o["test"],
+        consequent = __o["consequent"],
+        alternate = __o["alternate"];
+    return (isTruthy(test) ? consequent : alternate);
+})));
+addPeephole(["VariableDeclarator"], true, (function(node) {
+    return ((node.immutable && node.init) && ((((node.init.type === "Identifier") && (node.init.ud.uid !== node
+        .id.ud.uid)) || isPrimitive(node.init)) || (node.init.type === "FunctionExpression")));
+}), node.chain((function(node) {
+    return seq(addBinding(node.id.ud.uid, node.init));
+})));
+addPeephole(["Binding"], true, (function(node) {
+    return ((node.pattern.type === "IdentifierPattern") && (((node.value.type === "Identifier") && (node.value.ud
+        .uid !== node.pattern.id.ud.uid)) || isPrimitive(node.value)));
+}), node.chain((function(node) {
+    return seq(addBinding(node.pattern.id.ud.uid, node.value), set(null));
+})));
+addPeephole(["Identifier"], true, (function(node) {
+    return (node.ud && node.ud.uid);
+}), node.chain((function(node) {
+    return getBinding(node.ud.uid)
+        .chain((function(binding) {
+            return ((binding && (binding.type !== "FunctionExpression")) ? set(binding) : pass);
+        }));
+})));
+addPeephole(["LetExpression"], true, (function(node) {
+    return true;
+}), modify((function(node) {
+    return ast_expression.LetExpression.create(null, fun.flatten(node.bindings), node.body);
+})));
+addPeephole(["CallExpression"], false, (function(node) {
+    return (node.callee.type === "Identifier");
+}), node.chain((function(node) {
+    return getBinding(node.callee.ud.uid)
+        .chain((function(binding) {
+            return (binding ? modify((function(node) {
+                return ast_expression.CallExpression.create(null, binding, node.args);
+            })) : pass);
+        }));
+})));
+addPeephole(["CallExpression"], false, (function(node) {
+    return (((node.callee.type === "FunctionExpression") && (node.callee.body.type !== "BlockStatement")) && (!
+        node.callee.params.self));
+}), unique.chain((function(uid) {
+    return modify((function(node) {
+        var bindings = node.callee.params.elements.map((function(x, i) {
+            return ast_declaration.Binding.create(null, x, (node.args[i] ? node.args[i] :
+                ast_value.Identifier.create(null, "undefined")));
+        }));
+        return rewrite(uid, bindings.map((function(x) {
+            return x.pattern.id.ud.uid;
+        })), ast_expression.LetExpression.create(null, bindings, node.callee.body));
+    }));
+})));
 addPeephole(["ReturnStatement"], false, (function(node) {
     return (node.argument && (node.argument.type === "LetExpression"));
 }), modify((function(node) {
@@ -179,7 +361,8 @@ var upTransforms = (function(node) {
         }))) : pass);
     }),
     _transform = node.chain((function(node) {
-        return transform(node, downTransforms(node));
+        var t = downTransforms(node);
+        return (t.length ? next(transform(node, [t[0]]), _transform) : pass);
     })),
     _transformPost = node.chain((function(node) {
         return transform(node, upTransforms(node));

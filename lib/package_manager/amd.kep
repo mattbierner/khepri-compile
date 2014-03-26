@@ -3,12 +3,14 @@
  */
 package (
     definePackage
+    defineProgram
     importPackage)
 with
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::node' {setData},
     import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::program' ast_program,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::value' ast_value,
     
@@ -24,6 +26,16 @@ var path = \path ->
 
 /* Package Manager
  ******************************************************************************/
+/**
+ * 
+ */
+defineProgram = \body -> 
+    ast_program.Program.create(null,
+        fun.concat(
+            ast_statement.ExpressionStatement.create(null,
+                ast_value.Literal.create(null, 'string', "use strict")),
+            body));
+
 /**
  * 
  */

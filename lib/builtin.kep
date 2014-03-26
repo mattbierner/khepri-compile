@@ -2,24 +2,99 @@ package builtins
 with
     import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::expression' ast_expression,
+
     import 'khepri-ast::value' ast_value
 in {
 
+var unique = \-> {
+    var x = 0;
+    return \-> {
+        x = x + 1;
+        return x;
+    };
+}();
+
+var binary = \uid op -> let
+    xArg = setData(
+        ast_value.Identifier.create(null, 'x'),
+        'uid',
+        unique()),
+    
+    yArg = setData(
+        ast_value.Identifier.create(null, 'y'),
+        'uid',
+        unique())
+in
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg),
+            ast_pattern.IdentifierPattern.create(null, yArg)]),
+        op(xArg, yArg));
+
+var binaryOp = \op flipped ->
+    binary @ unique() \ x y ->
+        ast_expression.BinaryExpression.create(null, op,
+            ?flipped : y : x,
+            ?flipped : x : y);
+
+/* Position
+ ******************************************************************************/
 builtins = {
     'require': setData(
         new ast_value.Identifier(null, 'require'),
         'uid',
-        1),
+        unique()),
     
     'exports': setData(
         new ast_value.Identifier(null, 'exports'),
         'uid',
-        2),
+        unique()),
     
     'module': setData(
         new ast_value.Identifier(null, 'module'),
         'uid',
-        2)
+        unique())
 };
 
+/* Position
+ ******************************************************************************/
+[
+    ['+', '__add'],
+    ['-', '__sub'],
+    ['*', '__mul'],
+    ['/', '__div'],
+    ['%', '__mod'],
+    ['<<', '__blas'],
+    ['>>', '__bras'],
+    ['>>>', '__brls'],
+    ['&', '__band'],
+    ['^', '__bxor'],
+    ['|', 'bor'],
+    ['<', '__lt'],
+    ['>', '__gt'],
+    ['<=', '__lte'],
+    ['>=', '__gte'],
+    ['==', '__eq'],
+    ['!=', '__neq'],
+    ['===', '__seq'],
+    ['!==', '__sneq'],
+    ['|>', '__pipe'],
+    ['<|', '__rpipe'],
+    ['\\>', '__compose'],
+    ['\\>>', '__composen'],
+    ['<\\', '__rcompose'],
+    ['<<\\', '__rcomposen']].forEach \ [op name] -> {
+        builtins.(op) = binaryOp(op);
+        builtins.('_' + op) = binaryOp(op, true);
+    };
+    
+    
+    /*
+     '.'
+    'new'
+    '@'))),
+
+};
+*/
 }

@@ -4,8 +4,12 @@
 package (
     optimize)
 with
-    import 'khepri-ast-zipper' {khepriZipper},
+    import 'hashtrie' hashtrie,
     
+    import 'khepri-ast-zipper' {khepriZipper},
+    import 'neith::walk' {'walk': neithWalk},
+    import 'neith::tree' tree,
+
     import 'khepri-ast::node' {Node setUserData setData},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
@@ -17,21 +21,27 @@ with
         next
         'sequence': seq
         'sequencea': seqa},
-    import 'akh::unique' Unique,
     
+    import 'akh::unique' Unique,
+    import 'akh::trans::state' StateT,
+
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
-
-    import './fun' fun
+    
+    import './builtin' builtins,
+    import './fun' fun,
+    import './unpack' innerPattern
 in {
 
 /* Operations
  ******************************************************************************/
-var M = ZipperT(Unique);
+var M = ZipperT (StateT Unique);
 
 var run = \c ctx seed ->
     Unique.runUnique(
-        ZipperT.runZipperT(c, ctx),
+        StateT.evalStateT(
+            ZipperT.runZipperT(c, ctx),
+            hashtrie.empty),
         seed);
 
 var pass = M.of null;
@@ -39,9 +49,17 @@ var pass = M.of null;
 var node =  M.node;
 
 var modify = M.modifyNode;
+var set = M.setNode;
 
-var unique = M.lift (Unique.unique);
+var unique = M.liftInner (Unique.unique);
 
+var addBinding = \uid target ->
+    M.lift <| M.inner.modify(\bindings ->
+        hashtrie.set(uid, target, bindings));
+
+var getBinding = \uid ->
+    M.lift(M.inner.get).map(\bindings ->
+        hashtrie.get(uid, bindings));
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -53,12 +71,207 @@ var addPeephole = \types, up, condition, f -> {
         'up': up
     };
     
-    types.forEach <|\ type -> {
+    types.forEach \ type -> {
         peepholes.(type) = ?peepholes.(type)
             :fun.concat(peepholes.(type), entry)
             :[entry];
     };
 };
+
+var rewrite = \base list root ->
+    neithWalk(
+        \ctx -> let node = tree.node(ctx) in
+            ?node.ud && node.ud.uid && list.indexOf(node.ud.uid) !== --1
+                :tree.modifyNode(\node ->
+                    setData(node, 'uid', base + '-' + node.ud.uid), ctx)
+                :ctx,
+        \x -> x,
+        khepriZipper(root))
+            |> tree.node;
+
+/* Constant Folding
+ ******************************************************************************/
+var isPrimitive = \node ->
+    node.type === 'Literal' && (
+        node.kind === 'string'
+        || node.kind === 'number'
+        || node.kind === 'boolean'
+        || node.kind === 'null');
+
+var isTruthy = \node ->
+    (  isPrimitive node 
+    && !!node.value);
+
+/**
+ * Combine binary arithmetic operations on primitive literals
+ */
+let
+    arithmetic = {
+        '+': (+),
+        '-': (-),
+        '*': (*),
+        '/': (/),
+        '%': ('%'),
+        '<<': (<<),
+        '>>': (>>),
+        '>>>': (>>>),
+        '<': (<),
+        '>': (>),
+        '<=': (<=),
+        '>=': (>=),
+        '||': (||),
+        '&&': (&&)}
+in
+    addPeephole(['BinaryExpression', 'LogicalExpression'], true,
+        \{operator left right} ->
+            arithmetic.(operator)
+            && isPrimitive(left)
+            && isPrimitive(right),
+        
+        modify \ {operator left right} -> let
+            value = arithmetic.(operator)(left.value, right.value)
+        in
+            ast_value.Literal.create(null, typeof value, value));
+
+/**
+ * Combine simple unary operations on primitive literals
+ */
+let
+    arithmetic = {
+        '!': (!),
+        '~': (~),
+        'typeof': (typeof),
+        '+': (++),
+        '-': (--)}
+in
+    addPeephole(['UnaryExpression'], true,
+        \{operator argument} ->
+            arithmetic.(operator)
+            && isPrimitive(argument),
+        
+        modify \ {operator argument} -> let
+            value = arithmetic.(operator)(argument.value)
+        in
+            ast_value.Literal.create(null, typeof value, value));
+
+/**
+ * Reduce if statements with simple test.
+ */
+addPeephole(['IfStatement'], true,
+    \node ->
+        isPrimitive node.test,
+    
+    modify \ {test consequent alternate} ->
+        ?isTruthy test
+            :consequent
+            :alternate);
+
+/**
+ * Reduce ternary expression with simple test.
+ */
+addPeephole(['ConditionalExpression'], true,
+    \node ->
+        isPrimitive node.test,
+    
+    modify \ {test consequent alternate} ->
+        ?isTruthy test
+            :consequent
+            :alternate);
+
+/* Constant Propagation
+ ******************************************************************************/
+/**
+ */
+addPeephole(['VariableDeclarator'], true,
+    \node ->
+        (  node.immutable
+        && node.init
+        && (  (node.init.type === 'Identifier' && node.init.ud.uid !== node.id.ud.uid)
+           || isPrimitive node.init
+           || node.init.type === 'FunctionExpression')),
+    
+    node.chain \ node ->
+        seq(
+            addBinding(node.id.ud.uid, node.init)));
+
+/**
+ * 
+ */
+addPeephole(['Binding'], true,
+    \node ->
+        (node.pattern.type === 'IdentifierPattern'
+        && (  (node.value.type === 'Identifier' && node.value.ud.uid !== node.pattern.id.ud.uid)
+           || isPrimitive node.value)),
+    
+    node.chain \ node ->
+        seq(
+            addBinding(node.pattern.id.ud.uid, node.value),
+            set(null)));
+
+/**
+ */
+addPeephole(['Identifier'], true,
+    \node -> node.ud && node.ud.uid,
+    
+    node.chain \ node ->
+    getBinding(node.ud.uid).chain \ binding ->
+        ?binding && binding.type !== 'FunctionExpression'
+            :set(binding)
+            :pass);
+
+/* Constant Propagation
+ ******************************************************************************/
+/*addPeephole(['Binding'], true,
+    \node ->
+        (node.pattern.type !== 'IdentifierPattern'),
+    
+    modify \ node ->
+        innerPattern(node.value, node.pattern));
+*/
+
+addPeephole(['LetExpression'], true,
+    \node -> true,
+    
+    modify \ node ->
+        ast_expression.LetExpression.create(null,
+            fun.flatten <| node.bindings,
+            node.body));
+
+
+addPeephole(['CallExpression'], false,
+    \node ->
+        (node.callee.type === 'Identifier'),
+    
+    node.chain \ node ->
+    getBinding(node.callee.ud.uid).chain \ binding ->
+        ?binding
+            :modify \ node ->
+                ast_expression.CallExpression.create(null,
+                    binding,
+                    node.args)
+            :pass);
+            
+
+addPeephole(['CallExpression'], false,
+    \node ->
+        (  node.callee.type === 'FunctionExpression'
+        && node.callee.body.type !== 'BlockStatement'
+        && !node.callee.params.self),
+    
+    unique.chain \ uid ->
+    modify \ node -> let
+        bindings =
+            node.callee.params.elements.map \ x i ->
+                ast_declaration.Binding.create(null,
+                    x,
+                    ?node.args.(i)
+                        :node.args.(i)
+                        :ast_value.Identifier.create(null, 'undefined'))
+    in
+        rewrite(uid, bindings.map(\x -> x.pattern.id.ud.uid),
+            ast_expression.LetExpression.create(null,
+                bindings,
+                node.callee.body)));
 
 /* Peepholes
  ******************************************************************************/
@@ -185,6 +398,7 @@ addPeephole(['BinaryOperatorExpression'], true,
                     :\loc _ x y -> ast_expression.NewExpression.create(loc, x, [y])
                 :ast_expression.BinaryExpression.create
         in
+            
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null, xArg),
@@ -308,6 +522,7 @@ addPeephole(['CallExpression'], true,
                 node.callee.args || [],
                 node.args)));
 
+
 /* Interface
  ******************************************************************************/
 var upTransforms = \node -> 
@@ -323,10 +538,14 @@ var transform = \node transforms ->
         :seqa(transforms.map(\x -> x.map))
         :pass;
 
-var _transform = node.chain \ node ->
-    transform(node, downTransforms node);
+var _transform = node.chain \ node -> let
+    t = downTransforms node
+in
+    ?t.length
+        :next(transform(node, [t.(0)]), _transform)
+        :pass;
 
-var _transformPost = node.chain \node ->
+var _transformPost = node.chain \ node ->
     transform(node, upTransforms node);
 
 /**

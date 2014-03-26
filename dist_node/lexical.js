@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -278,7 +277,7 @@ var g = (function(x) {
     fail = (function(x) {
         throw x;
     });
-(check = (function(ast, globals) {
+(check = (function(ast, globals, seed) {
     return run(seq(checkTop, root, extractNode.chain((function(x) {
         return unique.chain((function(unique) {
             return extract.map((function(s) {
@@ -290,6 +289,6 @@ var g = (function(x) {
                 });
             }));
         }));
-    }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail);
+    }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail, seed);
 }));
 (exports["check"] = check);

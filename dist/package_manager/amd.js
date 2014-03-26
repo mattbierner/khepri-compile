@@ -1,19 +1,22 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/package_manager/amd.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
-    "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value", "../fun", "../builtin"
-], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_statement, ast_value, fun,
-    builtins) {
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
+    "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "../fun", "../builtin"
+], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_program, ast_statement,
+    ast_value, fun, builtins) {
     "use strict";
     var setData = __o["setData"],
-        definePackage, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
+        definePackage, defineProgram, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
         map = Function.prototype.call.bind(Array.prototype.map),
         path = (function(path) {
             return path.split("::")
                 .join("/");
         });
+    (defineProgram = (function(body) {
+        return ast_program.Program.create(null, fun.concat(ast_statement.ExpressionStatement.create(
+            null, ast_value.Literal.create(null, "string", "use strict")), body));
+    }));
     (importPackage = (function(imp) {
         var packagePath = path(imp);
         return ast_expression.CallExpression.create(null, builtins.require, [ast_value.Literal.create(
@@ -48,5 +51,6 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 })))), packageBody]));
     }));
     (exports["definePackage"] = definePackage);
+    (exports["defineProgram"] = defineProgram);
     (exports["importPackage"] = importPackage);
 }));

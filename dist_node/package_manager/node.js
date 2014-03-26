@@ -5,11 +5,16 @@
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_statement = require("khepri-ast")["statement"],
+    ast_program = require("khepri-ast")["program"],
     ast_value = require("khepri-ast")["value"],
     fun = require("../fun"),
     builtin = require("../builtin"),
-    definePackage, importPackage, concat = Array.prototype.concat.bind([]),
+    definePackage, defineProgram, importPackage, concat = Array.prototype.concat.bind([]),
     map = Function.prototype.call.bind(Array.prototype.map);
+(defineProgram = (function(body) {
+    return ast_program.Program.create(null, fun.concat(ast_statement.ExpressionStatement.create(null, ast_value
+        .Literal.create(null, "string", "use strict")), body));
+}));
 (importPackage = (function(path) {
     var segs = path.split("::");
     return segs.slice(1)
@@ -41,4 +46,5 @@ var ast_declaration = require("khepri-ast")["declaration"],
         })), ast_statement.BlockStatement.create(null, concat(exportHeader, body, exportBody)))]);
 }));
 (exports["definePackage"] = definePackage);
+(exports["defineProgram"] = defineProgram);
 (exports["importPackage"] = importPackage);

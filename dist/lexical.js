@@ -273,7 +273,7 @@
         fail = (function(x) {
             throw x;
         });
-    (check = (function(ast, globals) {
+    (check = (function(ast, globals, seed) {
         return run(seq(checkTop, root, extractNode.chain((function(x) {
             return unique.chain((function(unique) {
                 return extract.map((function(s) {
@@ -285,7 +285,7 @@
                     });
                 }));
             }));
-        }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail);
+        }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail, seed);
     }));
     (exports["check"] = check);
 }));

@@ -38,6 +38,7 @@ with
     import './scope' scope,
     import './fun' fun#{flip},
     import './builtin' builtins,
+    import './unpack' innerPattern,
     
     import './package_manager::amd' _,
     import './package_manager::node' _
@@ -179,43 +180,6 @@ var variableDeclarator = ecma_declaration.VariableDeclarator.create;
 /* Unpacks
  ******************************************************************************/
 /**
- * Expand a complex binding to a list of identifier bindings.
- * 
- * @param base Value being unpacked.
- * @param pattern Pattern unpacking base value.
- */
-var innerPattern = let
-    objectElementUnpack = \base, pattern, key -> let
-        innerBase = khepri_expression.MemberExpression.create(null, base, key, true)
-    in
-        ?pattern
-            :fun.flatten <| innerPattern(innerBase, pattern)
-            :khepri_declaration.Binding.create(null, identifier(null, key.value), innerBase)
-in
-    \base, pattern -> {
-        switch (pattern.type) {
-        case 'IdentifierPattern':
-            return [
-                khepri_declaration.Binding.create(null,
-                    pattern.id,
-                    base)];
-        
-        case 'AsPattern':
-            return fun.concat(
-                innerPattern(base, pattern.id),
-                fun.flatten <| innerPattern(pattern.id, pattern.target));
-        
-        case 'ObjectPattern':
-            return pattern.elements
-                |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id, target, key))
-                |> fun.flatten;
-        
-        default:
-            return [];
-        }
-    };
-
-/**
  * 
  */
 var unpack = \pattern, value ->
@@ -274,7 +238,7 @@ in
 var withStatementNoImport = \loc, bindings, body -> let
     vars = bindings
         |> (fun.map @ \imp ->
-            unpack(imp.pattern, imp.value))
+            imp && unpack(imp.pattern, imp.value))
         |> fun.flatten,
     
     prefix = variableDeclaration(null, vars)
@@ -289,7 +253,7 @@ in
  */
 var withStatement = \packageManager, loc, bindings, body -> let
     flattenImport = \imp ->
-        ?imp.type === 'ImportPattern'
+        ?imp && imp.type === 'ImportPattern'
             :khepri_declaration.Binding.create(null,
                 imp.pattern,
                 packageManager.importPackage(imp.from.value))
@@ -333,7 +297,11 @@ in
 var letExpression = \loc, bindings, body ->
     ecma_expression.SequenceExpression.create(null,
         fun.flatten <| fun.concat(
-            fun.map(\x -> unpackAssign(x.pattern, x.value), bindings),
+            fun.map(\x ->
+                ?x
+                    :unpackAssign(x.pattern, x.value)
+                    :[],
+                bindings),
             body));
 
 /**
@@ -425,7 +393,7 @@ var multiCompose = \loc, f, g ->
  ******************************************************************************/
 var packageBlock = \packageManager, loc, exports, body -> let
     imports = ?body.type === 'WithStatement'
-        :fun.filter(\x -> x.type === 'ImportPattern', body.bindings)
+        :fun.filter(\x -> x && x.type === 'ImportPattern', body.bindings)
         :[],
     
     targets = fun.reduce(imports, \p c -> {
@@ -435,7 +403,7 @@ var packageBlock = \packageManager, loc, exports, body -> let
     
     fBody = ?body.type === 'WithStatement'
         :khepri_statement.WithStatement.create(null,
-            fun.filter(\x -> x.type !== 'ImportPattern', body.bindings),
+            fun.filter(\x -> x && x.type !== 'ImportPattern', body.bindings),
             body.body)
         :body
 in
@@ -678,8 +646,8 @@ addTransform('MemberExpression',
 addTransform('LetExpression',
     seq(
         bind(node, \node -> let
-            bindings = fun.flatten <| fun.map(\x -> innerPattern(null, x.pattern), node.bindings),
-            identifiers = fun.map(\x -> [x.pattern.name, x.pattern.ud.uid], bindings)
+            bindings = fun.flatten <| fun.map(\x -> ?x : innerPattern(null, x.pattern) : [], node.bindings),
+            identifiers = fun.map(\x -> [x.pattern.id.name, x.pattern.id.ud.uid], bindings)
         in
             addBindings(identifiers)),
         modify \ node ->
@@ -779,6 +747,7 @@ addTransform('Program',
                 :setData(node, 'prefix',
                     khepri_statement.ExpressionStatement.create(null,
                         khepri_value.Literal.create(null, 'string', "use strict")))),
+    
     getBindings \ bindings ->
         modify \ node ->
             ecma_program.Program.create(node.loc,

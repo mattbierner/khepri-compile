@@ -3,11 +3,13 @@
  */
 package (
     definePackage
+    defineProgram
     importPackage)
 with
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::statement' ast_statement,
+    import 'khepri-ast::program' ast_program,
     import 'khepri-ast::value' ast_value,
     
     import '../fun' fun,
@@ -19,6 +21,16 @@ var map = Function.prototype.call.bind(Array.prototype.map);
 
 /* Package Manager
  ******************************************************************************/
+/**
+ * 
+ */
+defineProgram = \body -> 
+    ast_program.Program.create(null,
+        fun.concat(
+            ast_statement.ExpressionStatement.create(null,
+                ast_value.Literal.create(null, 'string', "use strict")),
+            body));
+
 /**
  * Node import code generator.
  * 

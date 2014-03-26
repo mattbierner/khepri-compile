@@ -6,11 +6,11 @@
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
     "akh/trans/state", "akh/base", "zipper-m/trans/zipper", "zipper-m/walk", "./scope", "./fun", "./builtin",
-    "./package_manager/amd", "./package_manager/node"
+    "./unpack", "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
     khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, Unique, StateT, __o0, ZipperT, walk,
-    scope, fun, builtins, _, _0) {
+    scope, fun, builtins, innerPattern, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -18,7 +18,7 @@
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         flip = fun["flip"],
-        transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
+        transform, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
@@ -133,27 +133,6 @@
         }),
         variableDeclaration = khepri_declaration.VariableDeclaration.create,
         variableDeclarator = ecma_declaration.VariableDeclarator.create,
-        innerPattern = ((objectElementUnpack = (function(base, pattern, key) {
-            var innerBase = khepri_expression.MemberExpression.create(null, base, key, true);
-            return (pattern ? fun.flatten(innerPattern(innerBase, pattern)) : khepri_declaration.Binding
-                .create(null, identifier(null, key.value), innerBase));
-        })), (function(base, pattern) {
-            switch (pattern.type) {
-                case "IdentifierPattern":
-                    return [khepri_declaration.Binding.create(null, pattern.id, base)];
-                case "AsPattern":
-                    return fun.concat(innerPattern(base, pattern.id), fun.flatten(innerPattern(pattern.id,
-                        pattern.target)));
-                case "ObjectPattern":
-                    return fun.flatten(fun.map((function(__o) {
-                        var target = __o["target"],
-                            key = __o["key"];
-                        return objectElementUnpack(pattern.ud.id, target, key);
-                    }), pattern.elements));
-                default:
-                    return [];
-            }
-        })),
         unpack = (function(pattern, value) {
             return fun.map((function(x) {
                 return variableDeclarator(null, x.pattern, x.value);
@@ -182,15 +161,15 @@
         }),
         withStatementNoImport = (function(loc, bindings, body) {
             var vars = fun.flatten(fun.map((function(imp) {
-                return unpack(imp.pattern, imp.value);
+                return (imp && unpack(imp.pattern, imp.value));
             }), bindings)),
                 prefix = variableDeclaration(null, vars);
             return khepri_statement.BlockStatement.create(loc, fun.concat(prefix, body.body));
         }),
         withStatement = (function(packageManager, loc, bindings, body) {
             var flattenImport = (function(imp) {
-                return ((imp.type === "ImportPattern") ? khepri_declaration.Binding.create(null, imp.pattern,
-                    packageManager.importPackage(imp.from.value)) : imp);
+                return ((imp && (imp.type === "ImportPattern")) ? khepri_declaration.Binding.create(
+                    null, imp.pattern, packageManager.importPackage(imp.from.value)) : imp);
             });
             return withStatementNoImport(loc, fun.map(flattenImport, bindings), body);
         }),
@@ -210,7 +189,7 @@
         letExpression = (function(loc, bindings, body) {
             return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map((function(
                 x) {
-                return unpackAssign(x.pattern, x.value);
+                return (x ? unpackAssign(x.pattern, x.value) : []);
             }), bindings), body)));
         }),
         ternaryOperatorExpression = (function(loc) {
@@ -254,7 +233,7 @@
         }),
         packageBlock = (function(packageManager, loc, exports, body) {
             var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
-                return (x.type === "ImportPattern");
+                return (x && (x.type === "ImportPattern"));
             }), body.bindings) : []),
                 targets = fun.reduce(imports, (function(p, c) {
                     (p[c.from.value] = c.pattern);
@@ -262,7 +241,7 @@
                 }), ({})),
                 fBody = ((body.type === "WithStatement") ? khepri_statement.WithStatement.create(null, fun.filter(
                     (function(x) {
-                        return (x.type !== "ImportPattern");
+                        return (x && (x.type !== "ImportPattern"));
                     }), body.bindings), body.body) : body);
             return packageManager.definePackage(loc, exports, imports, targets, fBody);
         }),
@@ -392,10 +371,10 @@
     })));
     addTransform("LetExpression", seq(bind(node, (function(node) {
         var bindings = fun.flatten(fun.map((function(x) {
-            return innerPattern(null, x.pattern);
+            return (x ? innerPattern(null, x.pattern) : []);
         }), node.bindings)),
             identifiers = fun.map((function(x) {
-                return [x.pattern.name, x.pattern.ud.uid];
+                return [x.pattern.id.name, x.pattern.id.ud.uid];
             }), bindings);
         return addBindings(identifiers);
     })), modify((function(node) {

@@ -1,0 +1,51 @@
+package innerPattern
+with
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::value' ast_value,
+
+    import './fun' fun
+in {
+    
+/**
+ * Expand a complex binding to a list of identifier bindings.
+ * 
+ * @param base Value being unpacked.
+ * @param pattern Pattern unpacking base value.
+ */
+innerPattern = let
+    objectElementUnpack = \base, pattern, key -> let
+        innerBase = ast_expression.MemberExpression.create(null, base, key, true)
+    in
+        ?pattern
+            :fun.flatten <| innerPattern(innerBase, pattern)
+            :ast_declaration.Binding.create(null,
+                ast_pattern.IdentifierPattern.create(null,
+                    ast_value.Identifier.create(null, key.value)),
+                innerBase)
+in
+    \base, pattern -> {
+        switch (pattern.type) {
+        case 'IdentifierPattern':
+            return [
+                ast_declaration.Binding.create(null,
+                    pattern,
+                    base)];
+        
+        case 'AsPattern':
+            return fun.concat(
+                innerPattern(base, pattern.id),
+                fun.flatten <| innerPattern(pattern.id, pattern.target));
+        
+        case 'ObjectPattern':
+            return pattern.elements
+                |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id, target, key))
+                |> fun.flatten;
+        
+        default:
+            return [];
+        }
+    };
+
+}

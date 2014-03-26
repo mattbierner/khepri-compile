@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -34,7 +33,8 @@ var record = require("bes")["record"],
     fun = require("./fun"),
     flip = fun["flip"],
     builtins = require("./builtin"),
-    transform, objectElementUnpack, M = ZipperT(StateT(Unique)),
+    innerPattern = require("./unpack"),
+    transform, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
     }),
@@ -149,26 +149,6 @@ var extract = M.lift(M.inner.get),
     }),
     variableDeclaration = khepri_declaration.VariableDeclaration.create,
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
-    innerPattern = ((objectElementUnpack = (function(base, pattern, key) {
-        var innerBase = khepri_expression.MemberExpression.create(null, base, key, true);
-        return (pattern ? fun.flatten(innerPattern(innerBase, pattern)) : khepri_declaration.Binding.create(
-            null, identifier(null, key.value), innerBase));
-    })), (function(base, pattern) {
-        switch (pattern.type) {
-            case "IdentifierPattern":
-                return [khepri_declaration.Binding.create(null, pattern.id, base)];
-            case "AsPattern":
-                return fun.concat(innerPattern(base, pattern.id), fun.flatten(innerPattern(pattern.id, pattern.target)));
-            case "ObjectPattern":
-                return fun.flatten(fun.map((function(__o) {
-                    var target = __o["target"],
-                        key = __o["key"];
-                    return objectElementUnpack(pattern.ud.id, target, key);
-                }), pattern.elements));
-            default:
-                return [];
-        }
-    })),
     unpack = (function(pattern, value) {
         return fun.map((function(x) {
             return variableDeclarator(null, x.pattern, x.value);
@@ -196,14 +176,14 @@ var extract = M.lift(M.inner.get),
     }),
     withStatementNoImport = (function(loc, bindings, body) {
         var vars = fun.flatten(fun.map((function(imp) {
-            return unpack(imp.pattern, imp.value);
+            return (imp && unpack(imp.pattern, imp.value));
         }), bindings)),
             prefix = variableDeclaration(null, vars);
         return khepri_statement.BlockStatement.create(loc, fun.concat(prefix, body.body));
     }),
     withStatement = (function(packageManager, loc, bindings, body) {
         var flattenImport = (function(imp) {
-            return ((imp.type === "ImportPattern") ? khepri_declaration.Binding.create(null, imp.pattern,
+            return ((imp && (imp.type === "ImportPattern")) ? khepri_declaration.Binding.create(null, imp.pattern,
                 packageManager.importPackage(imp.from.value)) : imp);
         });
         return withStatementNoImport(loc, fun.map(flattenImport, bindings), body);
@@ -223,7 +203,7 @@ var extract = M.lift(M.inner.get),
     }),
     letExpression = (function(loc, bindings, body) {
         return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map((function(x) {
-            return unpackAssign(x.pattern, x.value);
+            return (x ? unpackAssign(x.pattern, x.value) : []);
         }), bindings), body)));
     }),
     ternaryOperatorExpression = (function(loc) {
@@ -266,7 +246,7 @@ var extract = M.lift(M.inner.get),
     }),
     packageBlock = (function(packageManager, loc, exports, body) {
         var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
-            return (x.type === "ImportPattern");
+            return (x && (x.type === "ImportPattern"));
         }), body.bindings) : []),
             targets = fun.reduce(imports, (function(p, c) {
                 (p[c.from.value] = c.pattern);
@@ -274,7 +254,7 @@ var extract = M.lift(M.inner.get),
             }), ({})),
             fBody = ((body.type === "WithStatement") ? khepri_statement.WithStatement.create(null, fun.filter((
                 function(x) {
-                    return (x.type !== "ImportPattern");
+                    return (x && (x.type !== "ImportPattern"));
                 }), body.bindings), body.body) : body);
         return packageManager.definePackage(loc, exports, imports, targets, fBody);
     }),
@@ -400,10 +380,10 @@ addTransform("MemberExpression", null, modify((function(node) {
 })));
 addTransform("LetExpression", seq(bind(node, (function(node) {
     var bindings = fun.flatten(fun.map((function(x) {
-        return innerPattern(null, x.pattern);
+        return (x ? innerPattern(null, x.pattern) : []);
     }), node.bindings)),
         identifiers = fun.map((function(x) {
-            return [x.pattern.name, x.pattern.ud.uid];
+            return [x.pattern.id.name, x.pattern.id.ud.uid];
         }), bindings);
     return addBindings(identifiers);
 })), modify((function(node) {
