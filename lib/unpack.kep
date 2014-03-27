@@ -10,7 +10,7 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
 
-    import './fun' fun
+    import './fun' fun#{flatten}
 in {
 
 /**
@@ -24,7 +24,7 @@ innerPattern = let
         innerBase = ast_expression.MemberExpression.create(null, base, key, true)
     in
         ?pattern
-            :fun.flatten <| innerPattern(innerBase, pattern)
+            :flatten <| innerPattern(innerBase, pattern)
             :ast_declaration.Binding.create(null,
                 ast_pattern.IdentifierPattern.create(null,
                     ast_value.Identifier.create(null, key.value)),
@@ -41,30 +41,33 @@ in
         case 'AsPattern':
             return fun.concat(
                 innerPattern(base, pattern.id),
-                fun.flatten <| innerPattern(pattern.id, pattern.target));
+                flatten <| innerPattern(pattern.id, pattern.target));
         
         case 'ObjectPattern':
             return pattern.elements
                 |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id, target, key))
-                |> fun.flatten;
+                |> flatten;
         
         default:
             return [];
         }
     };
-    
-unpackParameters = \elements ->
-    elements
-        |> (fun.map@\x -> {
-            switch (x.type) {
-            // Avoid generating redundant unpacks for parameters names.
-            case 'SinkPattern':
-            case 'IdentifierPattern':
-                return [];
-            case 'AsPattern':
-                return fun.flatten <| innerPattern(x.id, x.target);
-            default:
-                return innerPattern(x, x);
-            }
-        });
+
+/**
+ * Expand a parameter list to a list of inner bindings.
+ */
+unpackParameters = flatten <\
+    fun.map @ \x -> {
+        switch (x.type) {
+        // Avoid generating redundant unpacks for parameters names.
+        case 'SinkPattern':
+        case 'IdentifierPattern':
+            return [];
+        case 'AsPattern':
+            return flatten <| innerPattern(x.id, x.target);
+        default:
+            return innerPattern(x, x);
+        }
+    };
+
 }

@@ -7,9 +7,10 @@ var ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
+    flatten = fun["flatten"],
     innerPattern, unpackParameters, objectElementUnpack = (function(base, pattern, key) {
         var innerBase = ast_expression.MemberExpression.create(null, base, key, true);
-        return (pattern ? fun.flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
+        return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
         ));
     });
@@ -18,9 +19,9 @@ var ast_expression = require("khepri-ast")["expression"],
         case "IdentifierPattern":
             return [ast_declaration.Binding.create(null, pattern, base)];
         case "AsPattern":
-            return fun.concat(innerPattern(base, pattern.id), fun.flatten(innerPattern(pattern.id, pattern.target)));
+            return fun.concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target)));
         case "ObjectPattern":
-            return fun.flatten(fun.map((function(__o) {
+            return flatten(fun.map((function(__o) {
                 var target = __o["target"],
                     key = __o["key"];
                 return objectElementUnpack(pattern.ud.id, target, key);
@@ -29,18 +30,20 @@ var ast_expression = require("khepri-ast")["expression"],
             return [];
     }
 }));
-(unpackParameters = (function(elements) {
-    return fun.map((function(x) {
-        switch (x.type) {
-            case "SinkPattern":
-            case "IdentifierPattern":
-                return [];
-            case "AsPattern":
-                return fun.flatten(innerPattern(x.id, x.target));
-            default:
-                return innerPattern(x, x);
-        }
-    }), elements);
-}));
+(unpackParameters = (function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})(flatten, fun.map.bind(null, (function(x) {
+    switch (x.type) {
+        case "SinkPattern":
+        case "IdentifierPattern":
+            return [];
+        case "AsPattern":
+            return flatten(innerPattern(x.id, x.target));
+        default:
+            return innerPattern(x, x);
+    }
+}))));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);

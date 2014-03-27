@@ -2,6 +2,8 @@ package (
     isPrimitive
     isSimple
     isTruthy
+    
+    isBlockFunction
     isLambda)
 {
 
@@ -23,7 +25,6 @@ isSimple = \node ->
     || node.type === 'ArrayExpression'
     || node.type === 'ObjectExpression');
 
-
 /**
  * 
  */
@@ -34,9 +35,16 @@ isTruthy = \node ->
 /**
  * 
  */
+isBlockFunction = \node ->
+    (  node.type === 'FunctionExpression'
+    && node.body.type === 'BlockStatement');
+
+/**
+ * 
+ */
 isLambda = \node ->
     (  node.type === 'FunctionExpression'
-    && node.body.type !== 'BlockStatement'
+    && !isBlockFunction node
     && !node.params.self
     && !node.params.id);
 
