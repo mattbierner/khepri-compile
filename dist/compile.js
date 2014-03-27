@@ -1,10 +1,9 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "./stage/lexical", "./stage/normalize", "./stage/transform", "./stage/khepri_peep",
-    "./stage/ecma_peep"
-], (function(require, exports, lexical, normalize, transform, khepri_peep, ecma_peep) {
+*/define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./stages/post_normalize",
+    "./stages/inline", "./stages/khepri_peep", "./stages/transform", "./stages/ecma_peep"
+], (function(require, exports, pre_normalize, lexical, post_normalize, inline, khepri_peep, transform, ecma_peep) {
     "use strict";
     var compile, compiler = (function(f, g) {
             return (function(x) {
@@ -22,7 +21,15 @@ define(["require", "exports", "./stage/lexical", "./stage/normalize", "./stage/t
             return (function(x) {
                 return f(g(x));
             });
-        })(ecma_peep, transform), khepri_peep), lexical), normalize);
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(ecma_peep, transform), khepri_peep), inline), post_normalize), lexical), pre_normalize);
     (compile = (function(f, g) {
         return (function() {
             return f(g.apply(null, arguments));

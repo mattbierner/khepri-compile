@@ -432,11 +432,12 @@ addCheck@'CurryExpression' <|
 // Patterns
 addCheck@'SinkPattern'<|
     unique.chain \ uid ->
-        setNode <|
+    modifyNode \ node ->
+        setData(node, 'id',
             setData(
                 ast_value.Identifier.create(null, '_'),
                 'uid',
-                uid);
+                uid));
 
 addCheck@'IdentifierPattern' <|
     seq(
@@ -461,26 +462,7 @@ addCheck@'AsPattern' <|
                 checkTop));
 
 addCheck@'ObjectPattern' <|
-    inspect \ node -> {
-        if (!node.ud || !node.ud.id) {
-            return seq(
-                unique.chain \ uid -> {
-                    var id = ast_pattern.IdentifierPattern.create(node.loc,
-                        setData(
-                            ast_value.Identifier.create(null, '__o'),
-                            'uid',
-                            uid));
-                    
-                    // TODO: Hack. Tells later check not to complain if '__o' is not unique
-                    // because this doesn't matter since the uid is unique.
-                    id.reserved = true;
-                    
-                    return setNode(ast_pattern.AsPattern.create(null, id, node));
-                },
-                checkTop);
-        }
-        return checkChild 'elements';
-    };
+    checkChild 'elements';
 
 addCheck@'ObjectPatternElement' <|
     seq(

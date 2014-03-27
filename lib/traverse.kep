@@ -1,0 +1,23 @@
+package traverse
+with
+    import 'neith::zipper' {children},
+    
+    import 'nu-stream::stream' {map toArray},
+    
+    import 'akh::base' {next 'sequencea': seqa 'sequence': seq}
+in {
+
+traverse = \m op ->
+    op <|
+        m.inspect(children).chain \ list ->
+            seqa(
+                ?list
+                    :toArray <| map(\{key} ->
+                        seq(
+                            m.child(key),
+                            traverse(m, op),
+                            m.up),
+                        list)
+                :[m.of null]);
+
+}

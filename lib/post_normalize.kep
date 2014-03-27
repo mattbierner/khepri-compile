@@ -1,0 +1,144 @@
+/**
+ * @fileOverview Post-lexical check tree normalization.
+ * 
+ * This stage is run once after identifiers have been assigned uids by lexical
+ * check.
+ * 
+ * It rewrites complex Khepri statements to simplified forms that can be 
+ * better optimized and transformed by later stages.
+ */
+package (
+    normalize)
+with
+    import 'neith::tree' tree,
+    import 'neith::walk' {walk},
+    import 'neith::zipper' zipper,
+
+    import 'khepri-ast-zipper' {khepriZipper},
+    
+    import 'khepri-ast::node' {setData},
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::statement' ast_statement,
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::package' ast_package,
+    import 'khepri-ast::value' ast_value,
+    
+    import './fun' fun#{flattenr},
+    import './unpack' innerPattern
+in {
+
+var unpackParameters = \elements ->
+    elements
+        |> (fun.map@\x -> {
+            switch (x.type) {
+            // Avoid generating redundant unpacks for parameters names.
+            case 'SinkPattern':
+            case 'IdentifierPattern':
+                return [];
+            case 'AsPattern':
+                return fun.flatten <| innerPattern(x.id, x.target);
+            default:
+                return innerPattern(x, x);
+            }
+        });
+
+/*
+ ******************************************************************************/
+var DOWN := false,
+    UP := true;
+
+var peepholes = {};
+
+var addPeephole = \types, up, condition, f -> {
+    var entry = {
+        'condition': condition,
+        'map': f,
+        'up': up
+    };
+    
+    types.forEach <|\ type -> {
+        peepholes.(type) = ?peepholes.(type)
+            :fun.concat(peepholes.(type), entry)
+            :[entry];
+    };
+};
+
+/* Binding Expansion
+ ******************************************************************************/
+/**
+ * Expand binding list of let Expression to simple bindings.
+ */
+addPeephole(['LetExpression'], UP,
+    \_ -> true,
+    
+    \node ->
+        ast_expression.LetExpression.create(node.loc,
+            flattenr <| node.bindings.map\x -> innerPattern(x.value, x.pattern),
+            node.body));
+
+/**
+ * Expand binding list of let Expression to simple bindings.
+ */
+addPeephole(['FunctionExpression'], UP,
+    \_ -> true,
+    
+    \node -> let
+        params = node.params.elements
+            |> (fun.filter @ \x -> x.type !== 'EllipsisPattern')
+            |> (fun.map @ \x -> {
+                switch (x.type) {
+                case 'IdentifierPattern':
+                    return x;
+                default:
+                    return ast_pattern.IdentifierPattern.create(null,
+                        (x.id && x.id.id) || x.ud.id );
+                }
+            }),
+        
+        bindings = unpackParameters(node.params.elements),
+        
+        body = ?node.body.type === "BlockStatement"
+            :ast_statement.BlockStatement.create(null,
+                [ast_statement.WithStatement.create(null,
+                    bindings,
+                    node.body)])
+            :ast_expression.LetExpression.create(null,
+                bindings,
+                node.body)
+    in
+        ast_expression.FunctionExpression.create(null,
+            node.id,
+            ast_pattern.ArgumentsPattern.create(null,
+                node.params.id,
+                params,
+                node.params.self),
+            body));
+
+/* Interface
+ ******************************************************************************/
+var upTransforms = \node -> 
+    ((node && peepholes.(node.type)) || [])
+        .filter(\x -> x.up && x.condition(node));
+
+var downTransforms = \node -> 
+    ((node && peepholes.(node.type)) || [])
+        .filter(\x -> !x.up && x.condition(node));
+
+var transform = \ctx transforms ->
+    ?transforms.length
+        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
+        :ctx;
+
+var opt = walk@(
+    \ctx -> let node = tree.node ctx in
+        transform(ctx, downTransforms node),
+    \ctx -> let node = tree.node ctx in
+        transform(ctx, upTransforms node));
+
+normalize = \ast->
+    (opt(khepriZipper(ast))
+        |> zipper.root
+        |> tree.node);
+
+}

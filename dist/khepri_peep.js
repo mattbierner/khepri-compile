@@ -1,21 +1,21 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree", "khepri-ast/node",
-    "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
-    "./builtin", "./fun", "./unpack"
-], (function(require, exports, hashtrie, __o, __o0, tree, __o1, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, builtins, fun, innerPattern) {
+*/define(["require", "exports", "hashtrie", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
+    "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
+    "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk", "./builtin", "./fun", "./ast"
+], (function(require, exports, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
+    ast_value, __o1, Unique, StateT, ZipperT, walk, builtins, fun, __o2) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
-        neithWalk = __o0["walk"],
-        Node = __o1["Node"],
-        setUserData = __o1["setUserData"],
-        setData = __o1["setData"],
-        next = __o2["next"],
-        seq = __o2["sequence"],
-        seqa = __o2["sequencea"],
+        Node = __o0["Node"],
+        setUserData = __o0["setUserData"],
+        setData = __o0["setData"],
+        next = __o1["next"],
+        seq = __o1["sequence"],
+        seqa = __o1["sequencea"],
+        isPrimitive = __o2["isPrimitive"],
+        isTruthy = __o2["isTruthy"],
         optimize, M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
@@ -25,15 +25,19 @@
         modify = M.modifyNode,
         set = M.setNode,
         unique = M.liftInner(Unique.unique),
-        addBinding = (function(uid, target) {
-            return M.lift(M.inner.modify((function(bindings) {
-                return hashtrie.set(uid, target, bindings);
-            })));
-        }),
         getBinding = (function(uid) {
-            return M.lift(M.inner.get)
+            return (uid ? M.lift(M.inner.get)
                 .map((function(bindings) {
                     return hashtrie.get(uid, bindings);
+                })) : pass);
+        }),
+        addBinding = (function(uid, target) {
+            return getBinding((target.ud && target.ud.uid))
+                .chain((function(existing) {
+                    return (existing ? addBinding(uid, existing) : M.lift(M.inner.modify((function(
+                        bindings) {
+                        return hashtrie.set(uid, target, bindings);
+                    }))));
                 }));
         }),
         peepholes = ({}),
@@ -46,24 +50,6 @@
             types.forEach((function(type) {
                 (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
             }));
-        }),
-        rewrite = (function(base, list, root) {
-            return tree.node(neithWalk((function(ctx) {
-                var node = tree.node(ctx);
-                return (((node.ud && node.ud.uid) && (list.indexOf(node.ud.uid) !== -1)) ? tree
-                    .modifyNode((function(node) {
-                        return setData(node, "uid", ((base + "-") + node.ud.uid));
-                    }), ctx) : ctx);
-            }), (function(x) {
-                return x;
-            }), khepriZipper(root)));
-        }),
-        isPrimitive = (function(node) {
-            return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) ||
-                (node.kind === "boolean")) || (node.kind === "null")));
-        }),
-        isTruthy = (function(node) {
-            return (isPrimitive(node) && (!(!node.value)));
         }),
         arithmetic = ({
             "+": (function(x, y) {
@@ -129,10 +115,10 @@
         "typeof": (function(x) {
             return (typeof x);
         }),
-        "+": (function(x) {
+        "++": (function(x) {
             return (+x);
         }),
-        "-": (function(x) {
+        "--": (function(x) {
             return (-x);
         })
     });
@@ -163,158 +149,60 @@
         return (isTruthy(test) ? consequent : alternate);
     })));
     addPeephole(["VariableDeclarator"], true, (function(node) {
-        return ((node.immutable && node.init) && ((((node.init.type === "Identifier") && (node.init.ud.uid !==
-            node.id.ud.uid)) || isPrimitive(node.init)) || (node.init.type ===
-            "FunctionExpression")));
+        return ((node.immutable && node.init) && (((node.init.type === "Identifier") && (node.init.ud.uid !==
+            node.id.ud.uid)) || isPrimitive(node.init)));
     }), node.chain((function(node) {
-        return seq(addBinding(node.id.ud.uid, node.init));
+        return seq(addBinding(node.id.ud.uid, node.init), set([]));
     })));
     addPeephole(["Binding"], true, (function(node) {
-        return ((node.pattern.type === "IdentifierPattern") && (((node.value.type === "Identifier") &&
-            (node.value.ud.uid !== node.pattern.id.ud.uid)) || isPrimitive(node.value)));
+        return (((node.pattern.type === "IdentifierPattern") && node.pattern.id.ud) && (((node.value.type ===
+            "Identifier") && (node.value.ud.uid !== node.pattern.id.ud.uid)) || isPrimitive(
+            node.value)));
     }), node.chain((function(node) {
-        return seq(addBinding(node.pattern.id.ud.uid, node.value), set(null));
+        return seq(addBinding(node.pattern.id.ud.uid, node.value), set([]));
     })));
     addPeephole(["Identifier"], true, (function(node) {
         return (node.ud && node.ud.uid);
     }), node.chain((function(node) {
         return getBinding(node.ud.uid)
             .chain((function(binding) {
-                return ((binding && (binding.type !== "FunctionExpression")) ? set(binding) :
-                    pass);
+                return (binding ? set(binding) : pass);
             }));
     })));
-    addPeephole(["LetExpression"], true, (function(node) {
+    addPeephole(["Binding"], false, (function(node) {
+        return (node.value.type === "LetExpression");
+    }), modify((function(node) {
+        return fun.flatten(node.value.bindings.concat(ast_declaration.Binding.create(null, node.pattern,
+            node.value.body)));
+    })));
+    addPeephole(["VariableDeclaration"], true, (function(_) {
         return true;
-    }), modify((function(node) {
-        return ast_expression.LetExpression.create(null, fun.flatten(node.bindings), node.body);
+    }), modify((function(__o) {
+        var declarations = __o["declarations"],
+            bound = fun.flattenr(declarations);
+        return (bound.length ? ast_declaration.VariableDeclaration.create(null, bound) : null);
     })));
-    addPeephole(["CallExpression"], false, (function(node) {
-        return (node.callee.type === "Identifier");
-    }), node.chain((function(node) {
-        return getBinding(node.callee.ud.uid)
-            .chain((function(binding) {
-                return (binding ? modify((function(node) {
-                    return ast_expression.CallExpression.create(null, binding,
-                        node.args);
-                })) : pass);
-            }));
+    addPeephole(["LetExpression"], true, (function(_) {
+        return true;
+    }), modify((function(__o) {
+        var bindings = __o["bindings"],
+            body = __o["body"],
+            bound = fun.flattenr(bindings);
+        return (bound.length ? ast_expression.LetExpression.create(null, bound, body) : body);
     })));
-    addPeephole(["CallExpression"], false, (function(node) {
-        return (((node.callee.type === "FunctionExpression") && (node.callee.body.type !==
-            "BlockStatement")) && (!node.callee.params.self));
-    }), unique.chain((function(uid) {
-        return modify((function(node) {
-            var bindings = node.callee.params.elements.map((function(x, i) {
-                return ast_declaration.Binding.create(null, x, (node.args[i] ? node
-                    .args[i] : ast_value.Identifier.create(null, "undefined")));
-            }));
-            return rewrite(uid, bindings.map((function(x) {
-                return x.pattern.id.ud.uid;
-            })), ast_expression.LetExpression.create(null, bindings, node.callee.body));
-        }));
-    })));
-    addPeephole(["ReturnStatement"], false, (function(node) {
-        return (node.argument && (node.argument.type === "LetExpression"));
-    }), modify((function(node) {
-        return ast_statement.WithStatement.create(null, node.argument.bindings, ast_statement.BlockStatement
-            .create(null, [ast_statement.ReturnStatement.create(node.loc, node.argument.body)]));
-    })));
-    addPeephole(["FunctionExpression"], false, (function(node) {
-        return (node.body.type === "LetExpression");
-    }), modify((function(node) {
-        return ast_expression.FunctionExpression.create(null, node.id, node.params, ast_statement.BlockStatement
-            .create(null, [ast_statement.WithStatement.create(null, node.body.bindings,
-                ast_statement.BlockStatement.create(null, [ast_statement.ReturnStatement.create(
-                    node.loc, node.body.body)]))]));
-    })));
-    addPeephole(["ExpressionStatement"], true, (function(node) {
-        return (node.expression && (node.expression.type === "LetExpression"));
-    }), modify((function(node) {
-        return ast_statement.WithStatement.create(null, node.expression.bindings, ast_statement.BlockStatement
-            .create(null, [ast_statement.ExpressionStatement.create(node.loc, node.expression.body)])
-        );
-    })));
-    addPeephole(["ExpressionStatement"], true, (function(node) {
-        return ((node.expression && (node.expression.type === "AssignmentExpression")) && (node.expression
-            .right.type === "LetExpression"));
-    }), modify((function(node) {
-        return ast_statement.WithStatement.create(null, node.expression.right.bindings,
-            ast_statement.BlockStatement.create(null, [ast_statement.ExpressionStatement.create(
-                node.loc, ast_expression.AssignmentExpression.create(node.expression.loc,
-                    node.expression.operator, node.expression.left, node.expression.right.body
-                ))]));
+    addPeephole(["WithStatement"], true, (function(_) {
+        return true;
+    }), modify((function(__o) {
+        var bindings = __o["bindings"],
+            body = __o["body"],
+            bound = fun.flattenr(bindings);
+        return (bound.length ? ast_statement.WithStatement.create(null, bound, body) : body);
     })));
     addPeephole(["LetExpression"], true, (function(node) {
         return (node.body.type === "LetExpression");
     }), modify((function(node) {
-        return ast_expression.LetExpression.create(null, fun.concat(node.bindings, node.body.bindings),
-            node.body.body);
-    })));
-    addPeephole(["UnaryOperatorExpression"], true, (function(_) {
-        return true;
-    }), unique.chain((function(xUid) {
-        return modify((function(node) {
-            var arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid);
-            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, [ast_pattern.IdentifierPattern.create(null, arg)]),
-                ast_expression.UnaryExpression.create(null, node.op, arg));
-        }));
-    })));
-    addPeephole(["BinaryOperatorExpression"], true, (function(_) {
-        return true;
-    }), unique.chain((function(xUid) {
-        return unique.chain((function(yUid) {
-            return modify((function(node) {
-                var xArg = setData(ast_value.Identifier.create(null, "x"), "uid",
-                    xUid),
-                    yArg = setData(ast_value.Identifier.create(null, "y"), "uid",
-                        yUid),
-                    kind = (((node.op === "||") || (node.op === "&&")) ?
-                        ast_expression.LogicalExpression.create : ((node.op === ".") ?
-                            (function(loc, _, x, y) {
-                                return ast_expression.MemberExpression.create(
-                                    loc, x, y, true);
-                            }) : ((node.op === "@") ? (function(loc, _, x, y) {
-                                return ast_expression.CurryExpression.create(
-                                    loc, x, y);
-                            }) : ((node.op === "new") ? (function(loc, _, x, y) {
-                                return ast_expression.NewExpression.create(
-                                    loc, x, [y]);
-                            }) : ast_expression.BinaryExpression.create))));
-                return ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                        .create(null, xArg), ast_pattern.IdentifierPattern.create(
-                            null, yArg)
-                    ]), (node.flipped ? kind(null, node.op, yArg, xArg) : kind(null,
-                        node.op, xArg, yArg)));
-            }));
-        }));
-    })));
-    addPeephole(["CurryExpression"], true, (function(node) {
-        return ((node.base.type === "FunctionExpression") && (!node.base.params.id));
-    }), modify((function(node) {
-        var first = node.base.params.elements[0],
-            rest = node.base.params.elements.slice(1),
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.params.self), node.base.body);
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, [
-            ast_declaration.Binding.create(null, first, node.args[0])
-        ], body) : body);
-    })));
-    addPeephole(["CurryExpression"], true, (function(node) {
-        return (((node.base.type === "LetExpression") && (node.base.body.type === "FunctionExpression")) &&
-            (!node.base.body.params.id));
-    }), modify((function(node) {
-        var first = node.base.body.params.elements[0],
-            rest = node.base.body.params.elements.slice(1),
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.body.params.self), node.base.body.body);
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(
-                node.base.bindings, ast_declaration.Binding.create(null, first, node.args[0])),
-            body) : ast_expression.LetExpression.create(null, node.base.bindings, body));
+        return ((node.body.type === "LetExpression") ? ast_expression.LetExpression.create(null,
+            fun.concat(node.bindings, node.body.bindings), node.body.body) : node);
     })));
     addPeephole(["CurryExpression"], true, (function(node) {
         return (node.base.type === "CurryExpression");
@@ -336,13 +224,6 @@
         return ast_expression.CallExpression.create(null, node.left.base, fun.concat((node.left.args || []),
             node.right));
     })));
-    addPeephole(["CallExpression"], true, (function(__o) {
-        var callee = __o["callee"];
-        return (callee.type === "CurryExpression");
-    }), modify((function(node) {
-        return ast_expression.CallExpression.create(null, node.callee.base, fun.concat((node.callee
-            .args || []), node.args));
-    })));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])
             .filter((function(x) {
@@ -361,8 +242,7 @@
             }))) : pass);
         }),
         _transform = node.chain((function(node) {
-            var t = downTransforms(node);
-            return (t.length ? next(transform(node, [t[0]]), _transform) : pass);
+            return transform(node, downTransforms(node));
         })),
         _transformPost = node.chain((function(node) {
             return transform(node, upTransforms(node));

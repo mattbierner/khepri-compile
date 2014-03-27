@@ -224,7 +224,9 @@ addCheck("ObjectExpression", checkChild("properties"));
 addCheck("LetExpression", block(checkChild("bindings"), checkChild("body")));
 addCheck("CurryExpression", seq(checkChild("base"), checkChild("args")));
 addCheck("SinkPattern", unique.chain((function(uid) {
-    return setNode(setData(ast_value.Identifier.create(null, "_"), "uid", uid));
+    return modifyNode((function(node) {
+        return setData(node, "id", setData(ast_value.Identifier.create(null, "_"), "uid", uid));
+    }));
 })));
 addCheck("IdentifierPattern", seq(inspect((function(node) {
     return (node.reserved ? addImmutableBinding(node.id.name, node.loc) : addImmutableBindingChecked(
@@ -236,17 +238,7 @@ addCheck("AsPattern", seq(checkChild("id"), inspect((function(node) {
         return setData(target, "id", node.id);
     })), checkTop);
 }))));
-addCheck("ObjectPattern", inspect((function(node) {
-    if (((!node.ud) || (!node.ud.id))) {
-        return seq(unique.chain((function(uid) {
-            var id = ast_pattern.IdentifierPattern.create(node.loc, setData(ast_value.Identifier
-                .create(null, "__o"), "uid", uid));
-            (id.reserved = true);
-            return setNode(ast_pattern.AsPattern.create(null, id, node));
-        })), checkTop);
-    }
-    return checkChild("elements");
-})));
+addCheck("ObjectPattern", checkChild("elements"));
 addCheck("ObjectPatternElement", seq(checkChild("target"), checkChild("key")));
 addCheck("ArgumentsPattern", seq(checkChild("id"), checkChild("elements"), checkChild("self")));
 addCheck("ObjectValue", checkChild("value"));

@@ -1,0 +1,19 @@
+/**
+ * @fileOverview Khepri source optimization compiler stage.
+ */
+package optimize
+with
+    import '../inline' inline,
+    import 'bes::object' {setProperty}
+in {
+
+/**
+ * 
+ */
+optimize = \input#{ast data} ->
+    setProperty(
+        input,
+        'ast',
+        inline.optimize(ast, data));
+
+}

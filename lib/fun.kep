@@ -16,7 +16,8 @@ package (
     filter
     map
     
-    flatten)
+    flatten
+    flattenr)
 {
 
 constant = \x -> \() -> x;
@@ -38,6 +39,11 @@ map = \f, a ->  Array.prototype.map.call(a, f);
 flatten = \x ->
     ?Array.isArray(x)
         :Array.prototype.concat.apply([], x)
+        :x;
+
+flattenr = \x ->
+    ?Array.isArray(x)
+        :flatten <| x.map(flattenr)
         :x;
 
 }

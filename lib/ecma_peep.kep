@@ -104,57 +104,6 @@ addPeephole(['Program', 'BlockStatement'], true,
                 ?!x || x.type === 'EmptyStatement' :[] :x))
             }, {}));
 
-/**
- * Combine binary arithmetic operations on primitive literals
- */
-let
-    arithmetic = {
-        '+': (+),
-        '-': (-),
-        '*': (*),
-        '/': (/),
-        '%': ('%'),
-        '<<': (<<),
-        '>>': (>>),
-        '>>>': (>>>),
-        '<': (<),
-        '>': (>),
-        '<=': (<=),
-        '>=': (>=),
-        '||': (||),
-        '&&': (&&)}
-in
-    addPeephole(['BinaryExpression', 'LogicalExpression'], true,
-        \{operator left right} ->
-            arithmetic.(operator)
-            && isPrimitive(left)
-            && isPrimitive(right),
-        
-        \{operator left right} -> let
-            value = arithmetic.(operator)(left.value, right.value)
-        in
-            ast_value.Literal.create(null, typeof value, value));
-
-/**
- * Combine simple unary operations on primitive literals
- */
-let
-    arithmetic = {
-        '!': (!),
-        '~': (~),
-        'typeof': (typeof),
-        '+': (++),
-        '-': (--)}
-in
-    addPeephole(['UnaryExpression'], true,
-        \{operator argument} ->
-            arithmetic.(operator)
-            && isPrimitive(argument),
-        
-        \{operator argument} -> let
-            value = arithmetic.(operator)(argument.value)
-        in
-            ast_value.Literal.create(null, typeof value, value));
 
 /* Interface
  ******************************************************************************/

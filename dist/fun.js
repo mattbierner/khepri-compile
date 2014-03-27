@@ -1,10 +1,9 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/fun.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/fun.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports"], (function(require, exports) {
+*/define(["require", "exports"], (function(require, exports) {
     "use strict";
-    var constant, flip, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten;
+    var constant, flip, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten, flattenr;
     (constant = (function(x) {
         return (function() {
             return x;
@@ -33,6 +32,9 @@ define(["require", "exports"], (function(require, exports) {
     (flatten = (function(x) {
         return (Array.isArray(x) ? Array.prototype.concat.apply([], x) : x);
     }));
+    (flattenr = (function(x) {
+        return (Array.isArray(x) ? flatten(x.map(flattenr)) : x);
+    }));
     (exports["constant"] = constant);
     (exports["flip"] = flip);
     (exports["reduce"] = reduce);
@@ -43,4 +45,5 @@ define(["require", "exports"], (function(require, exports) {
     (exports["filter"] = filter);
     (exports["map"] = map);
     (exports["flatten"] = flatten);
+    (exports["flattenr"] = flattenr);
 }));

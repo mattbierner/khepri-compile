@@ -1,0 +1,21 @@
+/**
+ * @fileOverview Post-lexical check tree normalization compiler stage.
+ * 
+ * Rewrites complex Khepri expressions to a simplified form.
+ */
+package optimize
+with
+    import '../post_normalize' post_normalize,
+    import 'bes::object' {setProperty}
+in {
+
+/**
+ * 
+ */
+optimize = \input#{ast data} ->
+    setProperty(
+        input,
+        'ast',
+        post_normalize.normalize(ast, data));
+
+}

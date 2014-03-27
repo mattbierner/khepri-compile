@@ -1,0 +1,44 @@
+package (
+    isPrimitive
+    isSimple
+    isTruthy
+    isLambda)
+{
+
+/**
+ * 
+ */
+isPrimitive = \node ->
+    node.type === 'Literal' && (
+        node.kind === 'string'
+        || node.kind === 'number'
+        || node.kind === 'boolean'
+        || node.kind === 'null');
+
+/**
+ * 
+ */
+isSimple = \node ->
+    (  isPrimitive node 
+    || node.type === 'ArrayExpression'
+    || node.type === 'ObjectExpression');
+
+
+/**
+ * 
+ */
+isTruthy = \node ->
+    (  isPrimitive node
+    && !!node.value);
+
+/**
+ * 
+ */
+isLambda = \node ->
+    (  node.type === 'FunctionExpression'
+    && node.body.type !== 'BlockStatement'
+    && !node.params.self
+    && !node.params.id);
+
+
+}

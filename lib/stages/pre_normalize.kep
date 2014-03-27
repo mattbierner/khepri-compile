@@ -1,0 +1,19 @@
+/**
+ * @fileOverview Pre-lexical check tree normalization compiler stage.
+ * 
+ * Expands shorthand elements to explicit forms.
+ */
+package normalize
+with
+    import '../pre_normalize' pre_normalize
+in {
+
+/**
+ * 
+ */
+normalize = \{options ast} -> ({
+    'options': options,
+    'ast': pre_normalize.normalize(ast)
+});
+
+}

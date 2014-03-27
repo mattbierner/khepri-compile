@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Unpack expansion.
+ */
 package innerPattern
 with
     import 'khepri-ast::expression' ast_expression,
@@ -7,7 +10,7 @@ with
 
     import './fun' fun
 in {
-    
+
 /**
  * Expand a complex binding to a list of identifier bindings.
  * 

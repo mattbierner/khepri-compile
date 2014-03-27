@@ -7,8 +7,6 @@ with
     import 'hashtrie' hashtrie,
     
     import 'khepri-ast-zipper' {khepriZipper},
-    import 'neith::walk' {'walk': neithWalk},
-    import 'neith::tree' tree,
 
     import 'khepri-ast::node' {Node setUserData setData},
     import 'khepri-ast::declaration' ast_declaration,
@@ -30,7 +28,7 @@ with
     
     import './builtin' builtins,
     import './fun' fun,
-    import './unpack' innerPattern
+    import './ast' {isPrimitive isTruthy}
 in {
 
 /* Operations
@@ -53,13 +51,19 @@ var set = M.setNode;
 
 var unique = M.liftInner (Unique.unique);
 
-var addBinding = \uid target ->
-    M.lift <| M.inner.modify(\bindings ->
-        hashtrie.set(uid, target, bindings));
-
 var getBinding = \uid ->
-    M.lift(M.inner.get).map(\bindings ->
-        hashtrie.get(uid, bindings));
+    ?uid
+        :M.lift(M.inner.get).map(\bindings ->
+            hashtrie.get(uid, bindings))
+        :pass;
+
+var addBinding = \uid target ->
+    getBinding(target.ud && target.ud.uid).chain \ existing -> 
+        ?existing
+            :addBinding(uid, existing)
+            :M.lift <| M.inner.modify(\bindings ->
+                hashtrie.set(uid, target, bindings));
+
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -78,30 +82,8 @@ var addPeephole = \types, up, condition, f -> {
     };
 };
 
-var rewrite = \base list root ->
-    neithWalk(
-        \ctx -> let node = tree.node(ctx) in
-            ?node.ud && node.ud.uid && list.indexOf(node.ud.uid) !== --1
-                :tree.modifyNode(\node ->
-                    setData(node, 'uid', base + '-' + node.ud.uid), ctx)
-                :ctx,
-        \x -> x,
-        khepriZipper(root))
-            |> tree.node;
-
 /* Constant Folding
  ******************************************************************************/
-var isPrimitive = \node ->
-    node.type === 'Literal' && (
-        node.kind === 'string'
-        || node.kind === 'number'
-        || node.kind === 'boolean'
-        || node.kind === 'null');
-
-var isTruthy = \node ->
-    (  isPrimitive node 
-    && !!node.value);
-
 /**
  * Combine binary arithmetic operations on primitive literals
  */
@@ -141,8 +123,8 @@ let
         '!': (!),
         '~': (~),
         'typeof': (typeof),
-        '+': (++),
-        '-': (--)}
+        '++': (++),
+        '--': (--)}
 in
     addPeephole(['UnaryExpression'], true,
         \{operator argument} ->
@@ -154,8 +136,9 @@ in
         in
             ast_value.Literal.create(null, typeof value, value));
 
+
 /**
- * Reduce if statements with simple test.
+ * Reduce if statements with constant test.
  */
 addPeephole(['IfStatement'], true,
     \node ->
@@ -167,7 +150,7 @@ addPeephole(['IfStatement'], true,
             :alternate);
 
 /**
- * Reduce ternary expression with simple test.
+ * Reduce ternary expression with constant test.
  */
 addPeephole(['ConditionalExpression'], true,
     \node ->
@@ -178,295 +161,129 @@ addPeephole(['ConditionalExpression'], true,
             :consequent
             :alternate);
 
-/* Constant Propagation
+/* Constant Binding
  ******************************************************************************/
 /**
+ * Register constants bound in immutable variable declarations.
+ * 
+ * This also removes the declarations since it will be unused, unless it is the
+ * only declaration of a var bound immutable to itself.
  */
 addPeephole(['VariableDeclarator'], true,
     \node ->
         (  node.immutable
         && node.init
         && (  (node.init.type === 'Identifier' && node.init.ud.uid !== node.id.ud.uid)
-           || isPrimitive node.init
-           || node.init.type === 'FunctionExpression')),
+           || isPrimitive node.init)),
     
     node.chain \ node ->
         seq(
-            addBinding(node.id.ud.uid, node.init)));
+            addBinding(node.id.ud.uid, node.init),
+            set([])));
 
 /**
+ * Register constants bound in bindings.
  * 
+ * This also removes the declarations since it will be unused.
  */
 addPeephole(['Binding'], true,
     \node ->
         (node.pattern.type === 'IdentifierPattern'
+        && node.pattern.id.ud
         && (  (node.value.type === 'Identifier' && node.value.ud.uid !== node.pattern.id.ud.uid)
            || isPrimitive node.value)),
     
     node.chain \ node ->
         seq(
             addBinding(node.pattern.id.ud.uid, node.value),
-            set(null)));
+            set([])));
 
 /**
+ * Substitute bound value for identifies.
  */
 addPeephole(['Identifier'], true,
     \node -> node.ud && node.ud.uid,
     
     node.chain \ node ->
     getBinding(node.ud.uid).chain \ binding ->
-        ?binding && binding.type !== 'FunctionExpression'
+        ?binding
             :set(binding)
             :pass);
 
-/* Constant Propagation
+/* Binding Simplification
  ******************************************************************************/
-/*addPeephole(['Binding'], true,
+/**
+ * Expand a binding of a let expression to a set of bindings, with the top level
+ * binding to the let body last.
+ */
+addPeephole(['Binding'], false,
     \node ->
-        (node.pattern.type !== 'IdentifierPattern'),
+        (node.value.type === 'LetExpression'),
     
     modify \ node ->
-        innerPattern(node.value, node.pattern));
-*/
+        fun.flatten(
+           node.value.bindings.concat(
+               ast_declaration.Binding.create(null, node.pattern, node.value.body))));
 
+
+/* Binding Expression Normalization
+ ******************************************************************************/
+/**
+ * Flatten variable declaration declaration lists and remove if declaration list
+ * is empty.
+ */
+addPeephole(['VariableDeclaration'], true,
+    \_ -> true,
+    
+    modify \ {declarations} ->
+        let bound = fun.flattenr <| declarations in
+            ?bound.length
+                :ast_declaration.VariableDeclaration.create(null, bound)
+                :null);
+
+
+/**
+ * Flatten let expression bindings lists and collapse to body 
+ * when binding list is empty
+ */
 addPeephole(['LetExpression'], true,
-    \node -> true,
+    \_ -> true,
     
-    modify \ node ->
-        ast_expression.LetExpression.create(null,
-            fun.flatten <| node.bindings,
-            node.body));
+    modify \ {bindings body} ->
+        let bound = fun.flattenr <| bindings in
+            ?bound.length
+                :ast_expression.LetExpression.create(null, bound, body)
+                :body);
 
-
-addPeephole(['CallExpression'], false,
-    \node ->
-        (node.callee.type === 'Identifier'),
+/**
+ * Flatten with statement bindings lists and collapse to body 
+ * when binding list is empty.
+ */
+addPeephole(['WithStatement'], true,
+    \_ -> true,
     
-    node.chain \ node ->
-    getBinding(node.callee.ud.uid).chain \ binding ->
-        ?binding
-            :modify \ node ->
-                ast_expression.CallExpression.create(null,
-                    binding,
-                    node.args)
-            :pass);
-            
-
-addPeephole(['CallExpression'], false,
-    \node ->
-        (  node.callee.type === 'FunctionExpression'
-        && node.callee.body.type !== 'BlockStatement'
-        && !node.callee.params.self),
-    
-    unique.chain \ uid ->
-    modify \ node -> let
-        bindings =
-            node.callee.params.elements.map \ x i ->
-                ast_declaration.Binding.create(null,
-                    x,
-                    ?node.args.(i)
-                        :node.args.(i)
-                        :ast_value.Identifier.create(null, 'undefined'))
-    in
-        rewrite(uid, bindings.map(\x -> x.pattern.id.ud.uid),
-            ast_expression.LetExpression.create(null,
-                bindings,
-                node.callee.body)));
+    modify \ {bindings body} ->
+        let bound = fun.flattenr <| bindings in
+            ?bound.length
+                :ast_statement.WithStatement.create(null, bound, body)
+                :body);
 
 /* Peepholes
  ******************************************************************************/
-/**
- * Rewrite `return let` to a with statement.
- */
-addPeephole(['ReturnStatement'], false,
-    \node ->
-        (node.argument && node.argument.type === 'LetExpression'),
-    modify\node ->
-        ast_statement.WithStatement.create(null,
-            node.argument.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ReturnStatement.create(node.loc, node.argument.body)])));
-
-/**
- * Rewrite `\...-> let` to a with statement.
- */
-addPeephole(['FunctionExpression'], false,
-    \node ->
-        (node.body.type === 'LetExpression'),
-    modify\node ->
-        ast_expression.FunctionExpression.create(null,
-            node.id,
-            node.params,
-            ast_statement.BlockStatement.create(null, [
-                ast_statement.WithStatement.create(null,
-                    node.body.bindings,
-                    ast_statement.BlockStatement.create(null, 
-                        [ast_statement.ReturnStatement.create(node.loc, node.body.body)]))])));
-
-/**
- * Rewrite top level let expressions to with statements.
- */
-addPeephole(['ExpressionStatement'], true,
-    \node ->
-        (node.expression && node.expression.type === 'LetExpression'),
-    modify\node ->
-        ast_statement.WithStatement.create(null,
-            node.expression.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ExpressionStatement.create(node.loc, node.expression.body)])));
-
-/**
- * Rewrite top level let expressions to with statements.
- */
-addPeephole(['ExpressionStatement'], true,
-    \node ->
-        (  node.expression
-        && node.expression.type === 'AssignmentExpression'
-        && node.expression.right.type === 'LetExpression'),
-    modify\node ->
-        ast_statement.WithStatement.create(null,
-            node.expression.right.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ExpressionStatement.create(node.loc,
-                    ast_expression.AssignmentExpression.create(node.expression.loc, node.expression.operator,
-                        node.expression.left,
-                        node.expression.right.body))])));
-
 /**
  * Flatten let with let body.
  */
 addPeephole(['LetExpression'], true,
     \node ->
         node.body.type === 'LetExpression',
-    modify\node ->
-        ast_expression.LetExpression.create(null,
-            fun.concat(
-                node.bindings,
-                node.body.bindings),
-            node.body.body));
-
-/**
- * Convert Unary Op Expression to function.
- * 
- * TODO: Should not be in this stage
- */
-addPeephole(['UnaryOperatorExpression'], true,
-    \_ -> true,
-    unique.chain \ xUid ->
-        modify\node -> let
-            arg = setData(
-                ast_value.Identifier.create(null, 'x'),
-                'uid',
-                xUid)
-        in
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, arg)]),
-                ast_expression.UnaryExpression.create(null,
-                    node.op,
-                    arg)));
-
-/**
- * Convert binary op expression to function.
- * 
- * TODO: Should not be in this stage
- */
-addPeephole(['BinaryOperatorExpression'], true,
-    \_ -> true,
-    
-    unique.chain \ xUid ->
-    unique.chain \ yUid ->
-        modify \ node -> let
-            xArg = setData(
-                ast_value.Identifier.create(null, 'x'),
-                'uid',
-                xUid),
-            
-            yArg = setData(
-                ast_value.Identifier.create(null, 'y'),
-                'uid',
-                yUid),
-            
-            kind =
-                ?node.op === '||' || node.op === '&&'
-                    :ast_expression.LogicalExpression.create
-                :?node.op === '.'
-                    :\loc _ x y -> ast_expression.MemberExpression.create(loc, x, y, true)
-                :?node.op === '@'
-                    :\loc _ x y -> ast_expression.CurryExpression.create(loc, x, y)
-                :?node.op === 'new'
-                    :\loc _ x y -> ast_expression.NewExpression.create(loc, x, [y])
-                :ast_expression.BinaryExpression.create
-        in
-            
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, xArg),
-                    ast_pattern.IdentifierPattern.create(null, yArg)]),
-                ?node.flipped
-                    :kind(null, node.op, yArg, xArg)
-                    :kind(null, node.op, xArg, yArg)));
-
-/**
- * Convert curry on function expression to function.
- * 
- * Note that this discards arguments that are not used.
- */
-addPeephole(['CurryExpression'], true,
-    \node ->
-        node.base.type === 'FunctionExpression'
-        && !node.base.params.id, // make sure no one is using arguments object
-    
-    modify\node -> let
-        first = node.base.params.elements.(0),
-        rest = node.base.params.elements.slice(1),
-        
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
-                node.base.params.self),
-            node.base.body)
-    in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-            :ast_expression.LetExpression.create(null,
-                [ast_declaration.Binding.create(null,
-                    first,
-                    node.args.(0))],
-                body)
-            :body);
-
-/**
- * Try Convert curry on let with function body to function.
- * 
- * Note that this may discard arguments that are not used.
- */
-addPeephole(['CurryExpression'], true,
-    \node ->
-        node.base.type === 'LetExpression'
-        && node.base.body.type === 'FunctionExpression'
-        && !node.base.body.params.id, // make sure no one is using arguments object
-    
-    modify\node -> let
-        first = node.base.body.params.elements.(0),
-        rest = node.base.body.params.elements.slice(1),
-        
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
-                node.base.body.params.self),
-            node.base.body.body)
-    in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+    modify \ node ->
+        ?node.body.type === 'LetExpression'
             :ast_expression.LetExpression.create(null,
                 fun.concat(
-                    node.base.bindings,
-                    ast_declaration.Binding.create(null,
-                        first,
-                        node.args.(0))),
-                body)
-            :ast_expression.LetExpression.create(null,
-                node.base.bindings,
-                body));
+                    node.bindings,
+                    node.body.bindings),
+                node.body.body)
+            :node);
 
 /**
  * Flatten curry of curry.
@@ -508,21 +325,6 @@ addPeephole(['BinaryExpression'], true,
                 node.left.args || [],
                 node.right)));
 
-/**
- * Rewrite call of curried expression to a call direct call on curry base.
- */
-addPeephole(['CallExpression'], true,
-    \{callee} ->
-        callee.type ==='CurryExpression',
-    
-    modify\node ->
-        ast_expression.CallExpression.create(null,
-            node.callee.base,
-            fun.concat(
-                node.callee.args || [],
-                node.args)));
-
-
 /* Interface
  ******************************************************************************/
 var upTransforms = \node -> 
@@ -538,12 +340,8 @@ var transform = \node transforms ->
         :seqa(transforms.map(\x -> x.map))
         :pass;
 
-var _transform = node.chain \ node -> let
-    t = downTransforms node
-in
-    ?t.length
-        :next(transform(node, [t.(0)]), _transform)
-        :pass;
+var _transform = node.chain \ node -> 
+    transform(node, downTransforms node);
 
 var _transformPost = node.chain \ node ->
     transform(node, upTransforms node);

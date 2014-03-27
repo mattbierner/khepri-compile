@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],
@@ -76,87 +75,6 @@ addPeephole(["Program", "BlockStatement"], true, (function(_) {
             return (((!x) || (x.type === "EmptyStatement")) ? [] : x);
         })))
     }), ({}));
-}));
-var arithmetic = ({
-    "+": (function(x, y) {
-        return (x + y);
-    }),
-    "-": (function(x, y) {
-        return (x - y);
-    }),
-    "*": (function(x, y) {
-        return (x * y);
-    }),
-    "/": (function(x, y) {
-        return (x / y);
-    }),
-    "%": "%",
-    "<<": (function(x, y) {
-        return (x << y);
-    }),
-    ">>": (function(x, y) {
-        return (x >> y);
-    }),
-    ">>>": (function(x, y) {
-        return (x >>> y);
-    }),
-    "<": (function(x, y) {
-        return (x < y);
-    }),
-    ">": (function(x, y) {
-        return (x > y);
-    }),
-    "<=": (function(x, y) {
-        return (x <= y);
-    }),
-    ">=": (function(x, y) {
-        return (x >= y);
-    }),
-    "||": (function(x, y) {
-        return (x || y);
-    }),
-    "&&": (function(x, y) {
-        return (x && y);
-    })
-});
-addPeephole(["BinaryExpression", "LogicalExpression"], true, (function(__o) {
-    var operator = __o["operator"],
-        left = __o["left"],
-        right = __o["right"];
-    return ((arithmetic[operator] && isPrimitive(left)) && isPrimitive(right));
-}), (function(__o) {
-    var operator = __o["operator"],
-        left = __o["left"],
-        right = __o["right"],
-        value = arithmetic[operator](left.value, right.value);
-    return ast_value.Literal.create(null, (typeof value), value);
-}));
-var arithmetic0 = ({
-    "!": (function(x) {
-        return (!x);
-    }),
-    "~": (function(x) {
-        return (~x);
-    }),
-    "typeof": (function(x) {
-        return (typeof x);
-    }),
-    "+": (function(x) {
-        return (+x);
-    }),
-    "-": (function(x) {
-        return (-x);
-    })
-});
-addPeephole(["UnaryExpression"], true, (function(__o) {
-    var operator = __o["operator"],
-        argument = __o["argument"];
-    return (arithmetic0[operator] && isPrimitive(argument));
-}), (function(__o) {
-    var operator = __o["operator"],
-        argument = __o["argument"],
-        value = arithmetic0[operator](argument.value);
-    return ast_value.Literal.create(null, (typeof value), value);
 }));
 var upTransforms = (function(node) {
     return ((node && peepholes[node.type]) || [])

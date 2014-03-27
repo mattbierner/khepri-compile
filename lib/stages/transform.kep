@@ -1,0 +1,20 @@
+/**
+ * @fileOverview Khepri to ECMAScript translation stage.
+ */
+package transform
+with 
+    import '../transform/transform' transformer,
+    import 'bes::object' {setProperty}
+in {
+
+
+transform = \input#{options ast data} ->
+    setProperty(
+        input,
+        'ast',
+        transformer.transform(
+            ast,
+            (options.package_manager || 'amd'),
+            data));
+
+}
