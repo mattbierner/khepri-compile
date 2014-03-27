@@ -3,9 +3,9 @@
  * DO NOT EDIT
 */define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/package", "khepri-ast/value", "./fun", "./unpack"
+    "khepri-ast/package", "khepri-ast/value", "./fun", "./unpack", "./builtin"
 ], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_package, ast_value, fun, __o2) {
+    ast_pattern, ast_package, ast_value, fun, __o2, builtins) {
     "use strict";
     var walk = __o["walk"],
         khepriZipper = __o0["khepriZipper"],
@@ -67,6 +67,15 @@
         var left = __o["left"],
             right = __o["right"];
         return ast_expression.CallExpression.create(null, left, [right]);
+    }));
+    addPeephole(["BinaryExpression"], true, (function(node) {
+        return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) ||
+            (node.operator === "<<\\"));
+    }), (function(__o) {
+        var operator = __o["operator"],
+            left = __o["left"],
+            right = __o["right"];
+        return ast_expression.CallExpression.create(null, builtins[operator], [left, right]);
     }));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])

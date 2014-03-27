@@ -1,6 +1,12 @@
 # ChangeLog #
 
-## 0.3.3 - March 25, 2014
+## 0.3.4 - March 27, 2014
+* Fixed potentially incorrect inlining of named functions.
+* Better generated code for call of curried expression.
+* Fixed incorrect AMD code generated when using Sink imports as targets of imports.
+* Slightly better code generated for compose expressions.
+
+## 0.3.3 - March 27, 2014
 * Fixed AMD packages using global `require` instead of string `'require'` for imports.
 * Improvements to constant folding.
 * Fixed curry of function expression inlining potentially discarding arguments.

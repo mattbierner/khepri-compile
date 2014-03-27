@@ -25,52 +25,10 @@ with
     import 'khepri-ast::value' ast_value,
     
     import './fun' fun#{flattenr},
-    import './unpack' {innerPattern unpackParameters}
+    import './unpack' {innerPattern unpackParameters},
+    import './builtin' builtins
 in {
 
-/*
-var singleCompose = \loc, f, g -> let
-    fo = identifier(null, 'f'),
-    go = identifier(null, 'g')
-in
-    ast_expression.CallExpression.create(loc,
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    fo),
-                ast_pattern.IdentifierPattern.create(null,
-                    go)]),
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null,
-                        identifier(null, 'x'))]),
-                ast_expression.CallExpression.create(null,
-                    fo, [
-                        ast_expression.CallExpression.create(null,
-                            go,
-                            [identifier(null, 'x')])]))),
-        [f, g]);
-
-var multiCompose = \loc, f, g ->
-    ast_expression.CallExpression.create(loc,
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    identifier(null, 'f')),
-                ast_pattern.IdentifierPattern.create(null,
-                    identifier(null, 'g'))]),
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, []),
-            ast_expression.CallExpression.create(null,
-                identifier(null, 'f'), [
-                    ast_expression.CallExpression.create(null,
-                         ast_expression.MemberExpression.create(null,
-                             identifier(null, 'g'),
-                             identifier(null, 'apply')),
-                         [nullLiteral(null),
-                         identifier(null, 'arguments')])]))),
-        [f, g]);
-*/
 
 /*
  ******************************************************************************/
@@ -169,6 +127,21 @@ addPeephole(['BinaryExpression'], true,
         ast_expression.CallExpression.create(null,
             left,
             [right]));
+
+/**
+ * Rewrite Composes.
+ */
+addPeephole(['BinaryExpression'], true,
+    \node->
+        (  node.operator === '\\>'
+        || node.operator === '\\>>'
+        || node.operator === '<\\'
+        || node.operator === '<<\\'),
+    
+    \{operator left right} ->
+        ast_expression.CallExpression.create(null,
+            builtins.(operator),
+            [left, right]));
 
 /* Interface
  ******************************************************************************/

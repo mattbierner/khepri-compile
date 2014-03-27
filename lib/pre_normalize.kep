@@ -64,6 +64,7 @@ addPeephole(['PackageExport'], UP,
 addPeephole(['LetExpression'], UP,
     \node ->
         node.bindings.length > 1,
+    
     \{loc bindings body} ->
         fun.foldr(\p c ->
             ast_expression.LetExpression.create(loc,
@@ -78,6 +79,7 @@ addPeephole(['LetExpression'], UP,
 addPeephole(['CurryExpression'], DOWN,
     \node ->
         node.args.length > 1,
+    
     \node ->
         fun.foldl(
             \p arg -> 

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],

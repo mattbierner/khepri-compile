@@ -322,62 +322,6 @@ var curryExpression = \loc, base, args ->
             nullLiteral(null),
             args));
 
-/**
- * Pipe operator translation.
- */
-var pipe = \loc, value, target ->
-    khepri_expression.CallExpression.create(loc,
-        target,
-        [value]);
-
-/**
- * 
- */
-var singleCompose = \loc, f, g -> let
-    fo = identifier(null, 'f'),
-    go = identifier(null, 'g')
-in
-    khepri_expression.CallExpression.create(loc,
-        khepri_expression.FunctionExpression.create(null, null,
-            khepri_pattern.ArgumentsPattern.create(null, null, [
-                khepri_pattern.IdentifierPattern.create(null,
-                    fo),
-                khepri_pattern.IdentifierPattern.create(null,
-                    go)]),
-            khepri_expression.FunctionExpression.create(null, null,
-                khepri_pattern.ArgumentsPattern.create(null, null, [
-                    khepri_pattern.IdentifierPattern.create(null,
-                        identifier(null, 'x'))]),
-                khepri_expression.CallExpression.create(null,
-                    fo, [
-                        khepri_expression.CallExpression.create(null,
-                            go,
-                            [identifier(null, 'x')])]))),
-        [f, g]);
-
-/**
- * 
- */
-var multiCompose = \loc, f, g ->
-    khepri_expression.CallExpression.create(loc,
-        khepri_expression.FunctionExpression.create(null, null,
-            khepri_pattern.ArgumentsPattern.create(null, null, [
-                khepri_pattern.IdentifierPattern.create(null,
-                    identifier(null, 'f')),
-                khepri_pattern.IdentifierPattern.create(null,
-                    identifier(null, 'g'))]),
-        khepri_expression.FunctionExpression.create(null, null,
-            khepri_pattern.ArgumentsPattern.create(null, null, []),
-            khepri_expression.CallExpression.create(null,
-                identifier(null, 'f'), [
-                    khepri_expression.CallExpression.create(null,
-                         khepri_expression.MemberExpression.create(null,
-                             identifier(null, 'g'),
-                             identifier(null, 'apply')),
-                         [nullLiteral(null),
-                         identifier(null, 'arguments')])]))),
-        [f, g]);
-
 /* Package
  ******************************************************************************/
 var packageBlock = \packageManager, loc, exports, body -> let
@@ -570,24 +514,7 @@ addTransform('UnaryExpression',
     });
 
 addTransform('BinaryExpression',
-    modify \ node -> {
-        switch (node.operator) {
-        case '\\>':
-            return singleCompose(node.loc, node.right, node.left);
-        case '\\>>':
-            return multiCompose(node.loc, node.right, node.left);
-        case '<\\':
-            return singleCompose(node.loc, node.left, node.right);
-        case '<<\\':
-            return multiCompose(node.loc, node.left, node.right);
-        case '|>':
-            return pipe(node.loc, node.left, node.right);
-        case '<|':
-            return pipe(node.loc, node.right, node.left);
-        default:
-            return node;
-        }
-    },
+    null,
     modify \ node ->
         ecma_expression.BinaryExpression.create(node.loc,
             node.operator,
@@ -717,12 +644,10 @@ addTransform('ObjectPattern',
         node.ud.id);
 
 addTransform('EllipsisPattern',
-    null,
     modify \ node ->
         (node.ud && node.ud.id));
 
 addTransform('SinkPattern',
-    null,
     modify \ node ->
         (node.ud && node.ud.id));
 
@@ -760,6 +685,7 @@ addTransform('Package',
 
 // Value
 addTransform('Identifier',
+    null,
     bind(node, \node ->
         ?node.ud && node.ud.uid
             :next(

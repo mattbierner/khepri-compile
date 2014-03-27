@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Khepri builtins.
+ */
 package builtins
 with
     import 'khepri-ast::node' ast_node#{setData setUserData},
@@ -15,30 +18,7 @@ var unique = \-> {
     };
 }();
 
-var binary = \uid op -> let
-    xArg = setData(
-        ast_value.Identifier.create(null, 'x'),
-        'uid',
-        unique()),
-    
-    yArg = setData(
-        ast_value.Identifier.create(null, 'y'),
-        'uid',
-        unique())
-in
-    ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg),
-            ast_pattern.IdentifierPattern.create(null, yArg)]),
-        op(xArg, yArg));
-
-var binaryOp = \op flipped ->
-    binary @ unique() \ x y ->
-        ast_expression.BinaryExpression.create(null, op,
-            ?flipped : y : x,
-            ?flipped : x : y);
-
-/* Position
+/* Identifiers
  ******************************************************************************/
 builtins = {
     'require': setData(
@@ -56,9 +36,63 @@ builtins = {
         'uid',
         unique())
 };
-
-/* Position
+/* Unary Operators
  ******************************************************************************/
+var unary = \uid op -> let
+    xArg = setData(
+        ast_value.Identifier.create(null, 'x'),
+        'uid',
+        unique())
+in
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg)]),
+        op(xArg));
+
+var unaryOp = \op ->
+    unary(unique(), \x ->
+        ast_expression.UnaryExpression.create(null, op, x));
+
+[
+    ['typeof', '__typeof'],
+    ['void', '__void'],
+    ['~', '__bnot'],
+    ['!', '__lnot'],
+    ['++', '__plus'],
+    ['--', '__minus']].forEach \ [op name] -> {
+        builtins.(op) = unaryOp(op);
+    };
+
+/* Binary Operators
+ ******************************************************************************/
+var binary = \uid flipped op -> let
+    xArg = setData(
+        ast_value.Identifier.create(null, 'x'),
+        'uid',
+        unique()),
+    
+    yArg = setData(
+        ast_value.Identifier.create(null, 'y'),
+        'uid',
+        unique())
+in
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg),
+            ast_pattern.IdentifierPattern.create(null, yArg)]),
+        ?flipped
+            :op(yArg, xArg)
+            :op(xArg, yArg));
+
+var binaryOp = \op flipped ->
+    binary(unique(), flipped, \x y ->
+        ast_expression.BinaryExpression.create(null, op, x, y));
+
+var logicalOp = \op flipped ->
+    binary(unique(), flipped, \x y ->
+        ast_expression.LogicalExpression.create(null, op, x, y));
+
+// 
 [
     ['+', '__add'],
     ['-', '__sub'],
@@ -70,7 +104,7 @@ builtins = {
     ['>>>', '__brls'],
     ['&', '__band'],
     ['^', '__bxor'],
-    ['|', 'bor'],
+    ['|', '__bor'],
     ['<', '__lt'],
     ['>', '__gt'],
     ['<=', '__lte'],
@@ -79,22 +113,109 @@ builtins = {
     ['!=', '__neq'],
     ['===', '__seq'],
     ['!==', '__sneq'],
-    ['|>', '__pipe'],
-    ['<|', '__rpipe'],
-    ['\\>', '__compose'],
-    ['\\>>', '__composen'],
-    ['<\\', '__rcompose'],
-    ['<<\\', '__rcomposen']].forEach \ [op name] -> {
+    ['instanceof', '__instanceof']].forEach \ [op name] -> {
         builtins.(op) = binaryOp(op);
         builtins.('_' + op) = binaryOp(op, true);
     };
-    
-    
-    /*
-     '.'
-    'new'
-    '@'))),
 
-};
-*/
+// Logical
+[
+    ['||', '__or'],
+    ['&&', '__and']].forEach \ [op name] -> {
+        builtins.(op) = logicalOp(op);
+        builtins.('_' + op) = logicalOp(op, true);
+    };
+
+// New
+builtins.('new') = binary(unique(), false, \x y ->
+    ast_expression.NewExpression.create(null, x, [y]));
+
+builtins.('_new') = binary(unique(), true, \x y ->
+    ast_expression.NewExpression.create(null, x, [y]));
+
+// Dot
+builtins.('.') = binary(unique(), false, \x y ->
+    ast_expression.MemberExpression.create(null, x, y, true));
+
+builtins.('_.') = binary(unique(), true, \x y ->
+    ast_expression.MemberExpression.create(null, x, y, true));
+
+// Curry
+builtins.('@') = binary(unique(), false, \x y ->
+    ast_expression.CurryExpression.create(null, x, y));
+
+builtins.('_@') = binary(unique(), true, \x y ->
+    ast_expression.CurryExpression.create(null, x, y));
+
+// Pipes
+var pipe = \callee arg ->
+    ast_expression.CallExpression.create(null,
+        callee,
+        [arg]);
+
+builtins.('<|') = builtins.('_|>') = binary(unique(), false, pipe);
+builtins.('|>') = builtins.('_<|') = binary(unique(), true, pipe);
+
+// Compose
+var identifier = \loc name uid ->
+    setData(
+        ast_value.Identifier.create(loc, name),
+        'uid',
+        uid);
+
+var singleCompose = \f, g -> let
+    fo = identifier(null, 'f', unique()),
+    go = identifier(null, 'g', unique()),
+    x = identifier(null, 'x', unique())
+in
+    ast_expression.CallExpression.create(null,
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null,
+                    fo),
+                ast_pattern.IdentifierPattern.create(null,
+                    go)]),
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null,
+                        x)]),
+                ast_expression.CallExpression.create(null,
+                    fo, [
+                        ast_expression.CallExpression.create(null,
+                            go,
+                            [x])]))),
+        [f, g]);
+
+var multiCompose = \f, g -> let
+    fo = identifier(null, 'f', unique()),
+    go = identifier(null, 'g', unique())
+in
+    ast_expression.CallExpression.create(null,
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null,
+                    fo),
+                ast_pattern.IdentifierPattern.create(null,
+                    go)]),
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, []),
+            ast_expression.CallExpression.create(null,
+                fo, [
+                    ast_expression.CallExpression.create(null,
+                         ast_expression.MemberExpression.create(null,
+                             go,
+                             identifier(null, 'apply')),
+                         [ast_value.Literal.create(null, 'null'),
+                         identifier(null, 'arguments')])]))),
+        [f, g]);
+
+builtins.('<\\') = builtins.('_\\>') = binary(unique(), false, singleCompose);
+builtins.('\\>') = builtins.('_<\\') = binary(unique(), true, singleCompose);
+
+
+builtins.('<<\\') = builtins.('_\\>>') = binary(unique(), false, multiCompose);
+builtins.('\\>>') = builtins.('_<<\\') = binary(unique(), true, multiCompose);
+
+
+
 }

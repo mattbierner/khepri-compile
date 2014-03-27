@@ -79,7 +79,7 @@ var pop = M.lift <| M.inner.modify(\s ->
 var rewrite = \base list root ->
     neithWalk(
         \ctx -> let node = tree.node(ctx) in
-            ?node.ud && node.ud.uid && list.indexOf(node.ud.uid) !== --1
+            ?node && node.ud && node.ud.uid && list.indexOf(node.ud.uid) !== --1
                 :tree.modifyNode(\node ->
                     setData(node, 'uid', base + '-' + node.ud.uid), ctx)
                 :ctx,
@@ -120,57 +120,16 @@ var always = \_-> true;
  */
 addPeephole(['UnaryOperatorExpression'], true,
     always,
-    unique.chain \ xUid ->
-        modify \ node -> let
-            arg = setData(
-                ast_value.Identifier.create(null, 'x'),
-                'uid',
-                xUid)
-        in
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, arg)]),
-                ast_expression.UnaryExpression.create(null,
-                    node.op,
-                    arg)));
+    modify \ {op} ->
+        builtins.(op));
 
 /**
  * Convert binary op expression to function.
  */
 addPeephole(['BinaryOperatorExpression'], true,
     always,
-    unique.chain \ xUid ->
-    unique.chain \ yUid ->
-        modify \ node -> let
-            xArg = setData(
-                ast_value.Identifier.create(null, 'x'),
-                'uid',
-                xUid),
-            
-            yArg = setData(
-                ast_value.Identifier.create(null, 'y'),
-                'uid',
-                yUid),
-            
-            kind =
-                ?node.op === '||' || node.op === '&&'
-                    :ast_expression.LogicalExpression.create
-                :?node.op === '.'
-                    :\loc _ x y -> ast_expression.MemberExpression.create(loc, x, y, true)
-                :?node.op === '@'
-                    :\loc _ x y -> ast_expression.CurryExpression.create(loc, x, y)
-                :?node.op === 'new'
-                    :\loc _ x y -> ast_expression.NewExpression.create(loc, x, [y])
-                :ast_expression.BinaryExpression.create
-        in
-            
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, xArg),
-                    ast_pattern.IdentifierPattern.create(null, yArg)]),
-                ?node.flipped
-                    :kind(null, node.op, yArg, xArg)
-                    :kind(null, node.op, xArg, yArg)));
+    modify \ {op flipped} ->
+        builtins.(?flipped : '_' + op : op));
 
 /* 
  ******************************************************************************/

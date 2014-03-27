@@ -197,33 +197,6 @@
             return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(
                 null, base, identifier(null, "bind")), fun.concat(nullLiteral(null), args));
         }),
-        pipe = (function(loc, value, target) {
-            return khepri_expression.CallExpression.create(loc, target, [value]);
-        }),
-        singleCompose = (function(loc, f, g) {
-            var fo = identifier(null, "f"),
-                go = identifier(null, "g");
-            return khepri_expression.CallExpression.create(loc, khepri_expression.FunctionExpression.create(
-                null, null, khepri_pattern.ArgumentsPattern.create(null, null, [khepri_pattern.IdentifierPattern
-                    .create(null, fo), khepri_pattern.IdentifierPattern.create(null, go)
-                ]), khepri_expression.FunctionExpression.create(null, null, khepri_pattern.ArgumentsPattern
-                    .create(null, null, [khepri_pattern.IdentifierPattern.create(null, identifier(null,
-                        "x"))]), khepri_expression.CallExpression.create(null, fo, [khepri_expression.CallExpression
-                        .create(null, go, [identifier(null, "x")])
-                    ]))), [f, g]);
-        }),
-        multiCompose = (function(loc, f, g) {
-            return khepri_expression.CallExpression.create(loc, khepri_expression.FunctionExpression.create(
-                null, null, khepri_pattern.ArgumentsPattern.create(null, null, [khepri_pattern.IdentifierPattern
-                    .create(null, identifier(null, "f")), khepri_pattern.IdentifierPattern.create(
-                        null, identifier(null, "g"))
-                ]), khepri_expression.FunctionExpression.create(null, null, khepri_pattern.ArgumentsPattern
-                    .create(null, null, []), khepri_expression.CallExpression.create(null, identifier(
-                        null, "f"), [khepri_expression.CallExpression.create(null,
-                        khepri_expression.MemberExpression.create(null, identifier(null, "g"),
-                            identifier(null, "apply")), [nullLiteral(null), identifier(null,
-                            "arguments")])]))), [f, g]);
-        }),
         packageBlock = (function(packageManager, loc, exports, body) {
             var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
                 return (x && (x.type === "ImportPattern"));
@@ -326,24 +299,7 @@
         }
         return ecma_expression.UnaryExpression.create(node.loc, op, node.argument);
     })));
-    addTransform("BinaryExpression", modify((function(node) {
-        switch (node.operator) {
-            case "\\>":
-                return singleCompose(node.loc, node.right, node.left);
-            case "\\>>":
-                return multiCompose(node.loc, node.right, node.left);
-            case "<\\":
-                return singleCompose(node.loc, node.left, node.right);
-            case "<<\\":
-                return multiCompose(node.loc, node.left, node.right);
-            case "|>":
-                return pipe(node.loc, node.left, node.right);
-            case "<|":
-                return pipe(node.loc, node.right, node.left);
-            default:
-                return node;
-        }
-    })), modify((function(node) {
+    addTransform("BinaryExpression", null, modify((function(node) {
         return ecma_expression.BinaryExpression.create(node.loc, node.operator, node.left, node.right);
     })));
     addTransform("LogicalExpression", null, modify((function(node) {
@@ -409,10 +365,10 @@
     addTransform("ObjectPattern", null, modify((function(node) {
         return node.ud.id;
     })));
-    addTransform("EllipsisPattern", null, modify((function(node) {
+    addTransform("EllipsisPattern", modify((function(node) {
         return (node.ud && node.ud.id);
     })));
-    addTransform("SinkPattern", null, modify((function(node) {
+    addTransform("SinkPattern", modify((function(node) {
         return (node.ud && node.ud.id);
     })));
     addTransform("Program", seq(pushBindings, modify((function(node) {
@@ -434,7 +390,7 @@
             return packageBlock(packageManager, node.loc, node.exports, node.body);
         }));
     })));
-    addTransform("Identifier", bind(node, (function(node) {
+    addTransform("Identifier", null, bind(node, (function(node) {
         return ((node.ud && node.ud.uid) ? next(addVar(node.name, node.ud.uid), getMapping(node.ud.uid, (
             function(name) {
                 return set(identifier(node.loc, name));

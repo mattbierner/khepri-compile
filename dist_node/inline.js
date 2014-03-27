@@ -66,7 +66,7 @@ var record = require("bes")["record"],
     rewrite = (function(base, list, root) {
         return tree.node(neithWalk((function(ctx) {
             var node = tree.node(ctx);
-            return (((node.ud && node.ud.uid) && (list.indexOf(node.ud.uid) !== -1)) ? tree.modifyNode(
+            return ((((node && node.ud) && node.ud.uid) && (list.indexOf(node.ud.uid) !== -1)) ? tree.modifyNode(
                 (function(node) {
                     return setData(node, "uid", ((base + "-") + node.ud.uid));
                 }), ctx) : ctx);
@@ -93,37 +93,14 @@ var record = require("bes")["record"],
     always = (function(_) {
         return true;
     });
-addPeephole(["UnaryOperatorExpression"], true, always, unique.chain((function(xUid) {
-    return modify((function(node) {
-        var arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid);
-        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                null, null, [ast_pattern.IdentifierPattern.create(null, arg)]), ast_expression.UnaryExpression
-            .create(null, node.op, arg));
-    }));
+addPeephole(["UnaryOperatorExpression"], true, always, modify((function(__o) {
+    var op = __o["op"];
+    return builtins[op];
 })));
-addPeephole(["BinaryOperatorExpression"], true, always, unique.chain((function(xUid) {
-    return unique.chain((function(yUid) {
-        return modify((function(node) {
-            var xArg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid),
-                yArg = setData(ast_value.Identifier.create(null, "y"), "uid", yUid),
-                kind = (((node.op === "||") || (node.op === "&&")) ? ast_expression.LogicalExpression
-                    .create : ((node.op === ".") ? (function(loc, _, x, y) {
-                        return ast_expression.MemberExpression.create(loc, x, y,
-                            true);
-                    }) : ((node.op === "@") ? (function(loc, _, x, y) {
-                        return ast_expression.CurryExpression.create(loc, x, y);
-                    }) : ((node.op === "new") ? (function(loc, _, x, y) {
-                        return ast_expression.NewExpression.create(loc, x, [
-                            y
-                        ]);
-                    }) : ast_expression.BinaryExpression.create))));
-            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg),
-                    ast_pattern.IdentifierPattern.create(null, yArg)
-                ]), (node.flipped ? kind(null, node.op, yArg, xArg) : kind(null, node.op,
-                    xArg, yArg)));
-        }));
-    }));
+addPeephole(["BinaryOperatorExpression"], true, always, modify((function(__o) {
+    var op = __o["op"],
+        flipped = __o["flipped"];
+    return builtins[(flipped ? ("_" + op) : op)];
 })));
 addPeephole(["VariableDeclarator"], true, (function(node) {
     return ((node.immutable && node.init) && isLambda(node.init));

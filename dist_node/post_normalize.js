@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],
@@ -22,6 +21,7 @@ var tree = require("neith")["tree"],
     __o2 = require("./unpack"),
     innerPattern = __o2["innerPattern"],
     unpackParameters = __o2["unpackParameters"],
+    builtins = require("./builtin"),
     normalize, DOWN = false,
     UP = true,
     peepholes = ({}),
@@ -75,6 +75,15 @@ addPeephole(["BinaryExpression"], true, (function(node) {
     var left = __o["left"],
         right = __o["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
+}));
+addPeephole(["BinaryExpression"], true, (function(node) {
+    return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) || (node.operator ===
+        "<<\\"));
+}), (function(__o) {
+    var operator = __o["operator"],
+        left = __o["left"],
+        right = __o["right"];
+    return ast_expression.CallExpression.create(null, builtins[operator], [left, right]);
 }));
 var upTransforms = (function(node) {
     return ((node && peepholes[node.type]) || [])
