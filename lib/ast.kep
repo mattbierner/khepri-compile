@@ -44,6 +44,7 @@ isBlockFunction = \node ->
  */
 isLambda = \node ->
     (  node.type === 'FunctionExpression'
+    && !node.id
     && !isBlockFunction node
     && !node.params.self
     && !node.params.id);

@@ -17,8 +17,8 @@ var isPrimitive, isSimple, isTruthy, isBlockFunction, isLambda;
     return ((node.type === "FunctionExpression") && (node.body.type === "BlockStatement"));
 }));
 (isLambda = (function(node) {
-    return ((((node.type === "FunctionExpression") && (!isBlockFunction(node))) && (!node.params.self)) && (!
-        node.params.id));
+    return (((((node.type === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
+        .self)) && (!node.params.id));
 }));
 (exports["isPrimitive"] = isPrimitive);
 (exports["isSimple"] = isSimple);

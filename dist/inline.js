@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
+*/
+define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
     "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
     "zipper-m/walk", "./builtin", "./ast", "./fun"
@@ -36,8 +37,8 @@
         getBinding = (function(uid) {
             return (uid ? M.lift(M.inner.get)
                 .map((function(__o) {
-                    var bindings = __o["bindings"];
-                    return hashtrie.get(uid, bindings);
+                    var bindings;
+                    return ((bindings = __o["bindings"]), hashtrie.get(uid, bindings));
                 })) : pass);
         }),
         stack = M.lift(M.inner.get)
@@ -52,11 +53,11 @@
         }))),
         rewrite = (function(base, list, root) {
             return tree.node(neithWalk((function(ctx) {
-                var node = tree.node(ctx);
-                return (((node.ud && node.ud.uid) && (list.indexOf(node.ud.uid) !== -1)) ? tree
-                    .modifyNode((function(node) {
-                        return setData(node, "uid", ((base + "-") + node.ud.uid));
-                    }), ctx) : ctx);
+                var node;
+                return ((node = tree.node(ctx)), (((node.ud && node.ud.uid) && (list.indexOf(
+                    node.ud.uid) !== -1)) ? tree.modifyNode((function(node) {
+                    return setData(node, "uid", ((base + "-") + node.ud.uid));
+                }), ctx) : ctx));
             }), (function(x) {
                 return x;
             }), khepriZipper(root)));
@@ -82,37 +83,38 @@
         });
     addPeephole(["UnaryOperatorExpression"], true, always, unique.chain((function(xUid) {
         return modify((function(node) {
-            var arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid);
-            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, [ast_pattern.IdentifierPattern.create(null, arg)]),
-                ast_expression.UnaryExpression.create(null, node.op, arg));
+            var arg;
+            return ((arg = setData(ast_value.Identifier.create(null, "x"), "uid", xUid)),
+                ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+                    .create(null, null, [ast_pattern.IdentifierPattern.create(null, arg)]),
+                    ast_expression.UnaryExpression.create(null, node.op, arg)));
         }));
     })));
     addPeephole(["BinaryOperatorExpression"], true, always, unique.chain((function(xUid) {
         return unique.chain((function(yUid) {
             return modify((function(node) {
-                var xArg = setData(ast_value.Identifier.create(null, "x"), "uid",
-                    xUid),
-                    yArg = setData(ast_value.Identifier.create(null, "y"), "uid",
-                        yUid),
-                    kind = (((node.op === "||") || (node.op === "&&")) ?
-                        ast_expression.LogicalExpression.create : ((node.op === ".") ?
-                            (function(loc, _, x, y) {
-                                return ast_expression.MemberExpression.create(
-                                    loc, x, y, true);
-                            }) : ((node.op === "@") ? (function(loc, _, x, y) {
-                                return ast_expression.CurryExpression.create(
-                                    loc, x, y);
-                            }) : ((node.op === "new") ? (function(loc, _, x, y) {
-                                return ast_expression.NewExpression.create(
-                                    loc, x, [y]);
-                            }) : ast_expression.BinaryExpression.create))));
-                return ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                        .create(null, xArg), ast_pattern.IdentifierPattern.create(
-                            null, yArg)
-                    ]), (node.flipped ? kind(null, node.op, yArg, xArg) : kind(null,
-                        node.op, xArg, yArg)));
+                var xArg, yArg, kind;
+                return ((xArg = setData(ast_value.Identifier.create(null, "x"),
+                        "uid", xUid)), (yArg = setData(ast_value.Identifier.create(
+                        null, "y"), "uid", yUid)), (kind = (((node.op === "||") ||
+                            (node.op === "&&")) ? ast_expression.LogicalExpression
+                        .create : ((node.op === ".") ? (function(loc, _, x, y) {
+                            return ast_expression.MemberExpression.create(
+                                loc, x, y, true);
+                        }) : ((node.op === "@") ? (function(loc, _, x, y) {
+                            return ast_expression.CurryExpression.create(
+                                loc, x, y);
+                        }) : ((node.op === "new") ? (function(loc, _, x,
+                            y) {
+                            return ast_expression.NewExpression
+                                .create(loc, x, [y]);
+                        }) : ast_expression.BinaryExpression.create))))),
+                    ast_expression.FunctionExpression.create(null, null,
+                        ast_pattern.ArgumentsPattern.create(null, null, [
+                            ast_pattern.IdentifierPattern.create(null, xArg),
+                            ast_pattern.IdentifierPattern.create(null, yArg)
+                        ]), (node.flipped ? kind(null, node.op, yArg, xArg) : kind(
+                            null, node.op, xArg, yArg))));
             }));
         }));
     })));
@@ -130,16 +132,15 @@
         return isLambda(node.callee);
     }), unique.chain((function(uid) {
         return modify((function(node) {
-            var map = node.callee.params.elements.map((function(x) {
+            var map, bindings;
+            return ((map = node.callee.params.elements.map((function(x) {
                 return x.id.ud.uid;
-            })),
-                bindings = node.callee.params.elements.map((function(x, i) {
-                    return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
-                        node.args[i] ? node.args[i] : ast_value.Identifier.create(
-                            null, "undefined")));
-                }));
-            return ast_expression.LetExpression.create(null, bindings, rewrite(uid, map,
-                node.callee.body));
+            }))), (bindings = node.callee.params.elements.map((function(x, i) {
+                return ast_declaration.Binding.create(null, rewrite(uid,
+                    map, x), (node.args[i] ? node.args[i] : ast_value.Identifier
+                    .create(null, "undefined")));
+            }))), ast_expression.LetExpression.create(null, bindings, rewrite(uid, map,
+                node.callee.body)));
         }));
     })));
     addPeephole(["CallExpression"], true, (function(node) {
@@ -147,21 +148,20 @@
             "FunctionExpression"));
     }), unique.chain((function(uid) {
         return modify((function(node) {
-            var map = node.callee.body.params.elements.map((function(x) {
+            var map, bindings;
+            return ((map = node.callee.body.params.elements.map((function(x) {
                 return x.id.ud.uid;
-            })),
-                bindings = node.callee.body.params.elements.map((function(x, i) {
-                    return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
-                        node.args[i] ? node.args[i] : ast_value.Identifier.create(
-                            null, "undefined")));
-                }));
-            return ast_expression.LetExpression.create(null, fun.concat(node.callee.bindings,
-                bindings), rewrite(uid, map, node.callee.body.body));
+            }))), (bindings = node.callee.body.params.elements.map((function(x, i) {
+                return ast_declaration.Binding.create(null, rewrite(uid,
+                    map, x), (node.args[i] ? node.args[i] : ast_value.Identifier
+                    .create(null, "undefined")));
+            }))), ast_expression.LetExpression.create(null, fun.concat(node.callee.bindings,
+                bindings), rewrite(uid, map, node.callee.body.body)));
         }));
     })));
     addPeephole(["CallExpression"], true, (function(__o) {
-        var callee = __o["callee"];
-        return (callee.type === "CurryExpression");
+        var callee;
+        return ((callee = __o["callee"]), (callee.type === "CurryExpression"));
     }), modify((function(node) {
         return ast_expression.CallExpression.create(null, node.callee.base, fun.concat((node.callee
             .args || []), node.args));
@@ -169,38 +169,39 @@
     addPeephole(["CallExpression"], true, (function(node) {
         return ((node.callee.type === "LetExpression") && (node.callee.body.type === "CurryExpression"));
     }), modify((function(node) {
-        var first = node.callee.body.params.elements[0],
-            rest = node.base.body.params.elements.slice(1),
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.body.params.self), node.base.body.body);
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(
-                node.base.bindings, ast_declaration.Binding.create(null, first, node.args[0])),
-            body) : ast_expression.LetExpression.create(null, node.base.bindings, body));
+        var first, rest, body;
+        return ((first = node.callee.body.params.elements[0]), (rest = node.base.body.params.elements
+            .slice(1)), (body = ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, rest, node.base.body.params.self),
+            node.base.body.body)), ((first && (((first.type === "IdentifierPattern") || (first.type ===
+                "AsPattern")) || (first.type === "ObjectPattern"))) ? ast_expression.LetExpression
+            .create(null, fun.concat(node.base.bindings, ast_declaration.Binding.create(null,
+                first, node.args[0])), body) : ast_expression.LetExpression.create(null, node.base
+                .bindings, body)));
     })));
     addPeephole(["CurryExpression"], true, (function(node) {
         return isLambda(node.base);
     }), modify((function(node) {
-        var first = node.base.params.elements[0],
-            rest = node.base.params.elements.slice(1),
+        var first, rest, body;
+        return ((first = node.base.params.elements[0]), (rest = node.base.params.elements.slice(1)), (
             body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.params.self), node.base.body);
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, [
-            ast_declaration.Binding.create(null, first, node.args[0])
-        ], body) : body);
+                .create(null, null, rest, node.base.params.self), node.base.body)), ((first &&
+            (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (
+                first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(
+            null, [ast_declaration.Binding.create(null, first, node.args[0])], body) : body));
     })));
     addPeephole(["CurryExpression"], true, (function(node) {
         return ((node.base.type === "LetExpression") && isLambda(node.base.body));
     }), modify((function(node) {
-        var first = node.base.body.params.elements[0],
-            rest = node.base.body.params.elements.slice(1),
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.body.params.self), node.base.body.body);
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(
-                node.base.bindings, ast_declaration.Binding.create(null, first, node.args[0])),
-            body) : ast_expression.LetExpression.create(null, node.base.bindings, body));
+        var first, rest, body;
+        return ((first = node.base.body.params.elements[0]), (rest = node.base.body.params.elements
+            .slice(1)), (body = ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, rest, node.base.body.params.self),
+            node.base.body.body)), ((first && (((first.type === "IdentifierPattern") || (first.type ===
+                "AsPattern")) || (first.type === "ObjectPattern"))) ? ast_expression.LetExpression
+            .create(null, fun.concat(node.base.bindings, ast_declaration.Binding.create(null,
+                first, node.args[0])), body) : ast_expression.LetExpression.create(null, node.base
+                .bindings, body)));
     })));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])
