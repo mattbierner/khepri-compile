@@ -58,11 +58,8 @@ var getBinding = \uid ->
         :pass;
 
 var addBinding = \uid target ->
-    getBinding(target.ud && target.ud.uid).chain \ existing -> 
-        ?existing
-            :addBinding(uid, existing)
-            :M.lift <| M.inner.modify(\bindings ->
-                hashtrie.set(uid, target, bindings));
+    M.lift <| M.inner.modify(\bindings ->
+        hashtrie.set(uid, target, bindings));
 
 /*
  ******************************************************************************/
@@ -172,19 +169,10 @@ addPeephole(['ConditionalExpression'], true,
 addPeephole(['VariableDeclarator'], true,
     \node ->
         (  node.immutable
-        && node.init
-        && (  (node.init.type === 'Identifier' && node.init.ud.uid !== node.id.ud.uid)
-           || isPrimitive node.init)),
+        && node.init),
     
     node.chain \ node ->
-        ?node.init.type === 'Identifier'
-            :getBinding(node.init.ud.uid).chain \ binding ->
-                ?binding
-                    :addBinding(node.id.ud.uid, binding)
-                    :pass
-            :seq(
-                addBinding(node.id.ud.uid, node.init),
-                set([])));
+        addBinding(node.id.ud.uid, node.init));
 
 /**
  * Register constants bound in bindings.
@@ -194,19 +182,20 @@ addPeephole(['VariableDeclarator'], true,
 addPeephole(['Binding'], true,
     \node ->
         (node.pattern.type === 'IdentifierPattern'
-        && node.pattern.id.ud
-        && (  (node.value.type === 'Identifier' && node.value.ud.uid !== node.pattern.id.ud.uid)
-           || isPrimitive node.value)),
+        && node.pattern.id.ud),
     
     node.chain \ node ->
-        ?node.value.type === 'Identifier'
-            :getBinding(node.value.ud.uid).chain \ binding ->
-                ?binding
-                    :addBinding(node.value.id.ud.uid, binding)
-                    :pass
-            :seq(
-                addBinding(node.pattern.id.ud.uid, node.value),
-                set([])));
+        seq(
+            addBinding(node.pattern.id.ud.uid, node.value),
+            ?isPrimitive(node.value)
+                :set([])
+                :pass,
+            ?node.value.type === 'Identifier'
+                :getBinding(node.value.ud.uid).chain \ binding ->
+                    ?binding
+                        :set([])
+                        :pass
+                :pass));
 
 /**
  * Substitute bound value for identifies.
@@ -216,7 +205,7 @@ addPeephole(['Identifier'], true,
     
     node.chain \ node ->
     getBinding(node.ud.uid).chain \ binding ->
-        ?binding
+        ?binding && (isPrimitive(binding) || binding.type === 'Identifier')
             :set(binding)
             :pass);
 

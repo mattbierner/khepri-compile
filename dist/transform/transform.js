@@ -21,7 +21,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         flip = fun["flip"],
         innerPattern = __o1["innerPattern"],
         unpackParameters = __o1["unpackParameters"],
-        transform, M = ZipperT(StateT(Unique)),
+        transform, x, y, f, g, x0, y0, f0, g0, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
@@ -41,16 +41,12 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         [], null
     ]));
     var extract = M.lift(M.inner.get),
-        setState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, M.inner.put),
-        modifyState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, M.inner.modify),
+        setState = ((x = M.lift), (y = M.inner.put), (f = x), (g = y), (function(x) {
+            return f(g(x));
+        })),
+        modifyState = ((x0 = M.lift), (y0 = M.inner.modify), (f0 = x0), (g0 = y0), (function(x) {
+            return f0(g0(x));
+        })),
         inspectStateWith = M.chain.bind(null, extract),
         inspectScopeWith = (function(f) {
             return bind(extract, (function(s) {
