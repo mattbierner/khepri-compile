@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
@@ -11,7 +10,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
     khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, Unique, StateT, __o0, ZipperT, walk,
-    scope, fun, builtins, innerPattern, _, _0) {
+    scope, fun, builtins, __o1, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -19,6 +18,8 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         flip = fun["flip"],
+        innerPattern = __o1["innerPattern"],
+        unpackParameters = __o1["unpackParameters"],
         transform, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
@@ -144,17 +145,8 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
                 return ecma_expression.AssignmentExpression.create(null, "=", x.pattern, x.value);
             }), fun.flatten(innerPattern(value, pattern)));
         }),
-        unpackParameters = (function(parameters) {
-            var elementsPrefix = fun.map((function(x) {
-                switch (x.type) {
-                    case "IdentifierPattern":
-                        return [];
-                    case "AsPattern":
-                        return fun.flatten(innerPattern(x.id, x.target));
-                    default:
-                        return innerPattern(x, x);
-                }
-            }), parameters.elements),
+        unpackArgumentsPattern = (function(parameters) {
+            var elementsPrefix = unpackParameters(parameters.elements),
                 selfPrefix = (parameters.self ? innerPattern(ecma_expression.ThisExpression.create(null),
                     parameters.self) : []),
                 argumentsPrefix = (parameters.id ? innerPattern(identifier(null, "arguments"), parameters.id) : []);
@@ -180,7 +172,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             }), parameters.elements),
                 bindings = fun.map((function(x) {
                     return variableDeclarator(null, x.pattern, x.value);
-                }), unpackParameters(parameters)),
+                }), unpackArgumentsPattern(parameters)),
                 body = ((functionBody.type === "BlockStatement") ? functionBody : khepri_statement.BlockStatement
                     .create(null, khepri_statement.ReturnStatement.create(null, functionBody)));
             return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement

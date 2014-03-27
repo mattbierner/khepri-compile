@@ -1,7 +1,9 @@
 /**
  * @fileOverview Unpack expansion.
  */
-package innerPattern
+package (
+    innerPattern
+    unpackParameters)
 with
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::declaration' ast_declaration,
@@ -50,5 +52,19 @@ in
             return [];
         }
     };
-
+    
+unpackParameters = \elements ->
+    elements
+        |> (fun.map@\x -> {
+            switch (x.type) {
+            // Avoid generating redundant unpacks for parameters names.
+            case 'SinkPattern':
+            case 'IdentifierPattern':
+                return [];
+            case 'AsPattern':
+                return fun.flatten <| innerPattern(x.id, x.target);
+            default:
+                return innerPattern(x, x);
+            }
+        });
 }

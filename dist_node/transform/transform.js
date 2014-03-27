@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -34,7 +33,9 @@ var record = require("bes")["record"],
     fun = require("../fun"),
     flip = fun["flip"],
     builtins = require("../builtin"),
-    innerPattern = require("../unpack"),
+    __o1 = require("../unpack"),
+    innerPattern = __o1["innerPattern"],
+    unpackParameters = __o1["unpackParameters"],
     transform, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
@@ -160,17 +161,8 @@ var extract = M.lift(M.inner.get),
             return ecma_expression.AssignmentExpression.create(null, "=", x.pattern, x.value);
         }), fun.flatten(innerPattern(value, pattern)));
     }),
-    unpackParameters = (function(parameters) {
-        var elementsPrefix = fun.map((function(x) {
-            switch (x.type) {
-                case "IdentifierPattern":
-                    return [];
-                case "AsPattern":
-                    return fun.flatten(innerPattern(x.id, x.target));
-                default:
-                    return innerPattern(x, x);
-            }
-        }), parameters.elements),
+    unpackArgumentsPattern = (function(parameters) {
+        var elementsPrefix = unpackParameters(parameters.elements),
             selfPrefix = (parameters.self ? innerPattern(ecma_expression.ThisExpression.create(null), parameters.self) : []),
             argumentsPrefix = (parameters.id ? innerPattern(identifier(null, "arguments"), parameters.id) : []);
         return fun.flatten(fun.concat(elementsPrefix, selfPrefix, argumentsPrefix));
@@ -195,7 +187,7 @@ var extract = M.lift(M.inner.get),
         }), parameters.elements),
             bindings = fun.map((function(x) {
                 return variableDeclarator(null, x.pattern, x.value);
-            }), unpackParameters(parameters)),
+            }), unpackArgumentsPattern(parameters)),
             body = ((functionBody.type === "BlockStatement") ? functionBody : khepri_statement.BlockStatement.create(
                 null, khepri_statement.ReturnStatement.create(null, functionBody)));
         return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(

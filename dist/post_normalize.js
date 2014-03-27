@@ -5,26 +5,15 @@
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/value", "./fun", "./unpack"
 ], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_package, ast_value, fun, innerPattern) {
+    ast_pattern, ast_package, ast_value, fun, __o2) {
     "use strict";
     var walk = __o["walk"],
         khepriZipper = __o0["khepriZipper"],
         setData = __o1["setData"],
         flattenr = fun["flattenr"],
-        normalize, unpackParameters = (function(elements) {
-            return fun.map((function(x) {
-                switch (x.type) {
-                    case "SinkPattern":
-                    case "IdentifierPattern":
-                        return [];
-                    case "AsPattern":
-                        return fun.flatten(innerPattern(x.id, x.target));
-                    default:
-                        return innerPattern(x, x);
-                }
-            }), elements);
-        }),
-        DOWN = false,
+        innerPattern = __o2["innerPattern"],
+        unpackParameters = __o2["unpackParameters"],
+        normalize, DOWN = false,
         UP = true,
         peepholes = ({}),
         addPeephole = (function(types, up, condition, f) {

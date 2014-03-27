@@ -1,14 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
-    innerPattern, objectElementUnpack = (function(base, pattern, key) {
+    innerPattern, unpackParameters, objectElementUnpack = (function(base, pattern, key) {
         var innerBase = ast_expression.MemberExpression.create(null, base, key, true);
         return (pattern ? fun.flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
@@ -30,4 +29,18 @@ var ast_expression = require("khepri-ast")["expression"],
             return [];
     }
 }));
-(module.exports = innerPattern);
+(unpackParameters = (function(elements) {
+    return fun.map((function(x) {
+        switch (x.type) {
+            case "SinkPattern":
+            case "IdentifierPattern":
+                return [];
+            case "AsPattern":
+                return fun.flatten(innerPattern(x.id, x.target));
+            default:
+                return innerPattern(x, x);
+        }
+    }), elements);
+}));
+(exports["innerPattern"] = innerPattern);
+(exports["unpackParameters"] = unpackParameters);

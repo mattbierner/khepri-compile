@@ -18,21 +18,10 @@ var tree = require("neith")["tree"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
     flattenr = fun["flattenr"],
-    innerPattern = require("./unpack"),
-    normalize, unpackParameters = (function(elements) {
-        return fun.map((function(x) {
-            switch (x.type) {
-                case "SinkPattern":
-                case "IdentifierPattern":
-                    return [];
-                case "AsPattern":
-                    return fun.flatten(innerPattern(x.id, x.target));
-                default:
-                    return innerPattern(x, x);
-            }
-        }), elements);
-    }),
-    DOWN = false,
+    __o2 = require("./unpack"),
+    innerPattern = __o2["innerPattern"],
+    unpackParameters = __o2["unpackParameters"],
+    normalize, DOWN = false,
     UP = true,
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {

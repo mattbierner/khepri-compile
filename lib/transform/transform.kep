@@ -38,7 +38,7 @@ with
     import '../scope' scope,
     import '../fun' fun#{flip},
     import '../builtin' builtins,
-    import '../unpack' innerPattern,
+    import '../unpack' {innerPattern unpackParameters},
     
     import './package_manager::amd' _,
     import './package_manager::node' _
@@ -198,19 +198,8 @@ var unpackAssign = \pattern, value ->
 /**
  * 
  */
-var unpackParameters = \parameters -> let
-    elementsPrefix = parameters.elements
-        |> (fun.map@\x -> {
-            // Avoid generating redundant unpacks for parameters names.
-            switch (x.type) {
-            case 'IdentifierPattern':
-                return [];
-            case 'AsPattern':
-                return fun.flatten <| innerPattern(x.id, x.target);
-            default:
-                return innerPattern(x, x);
-            }
-        }),
+var unpackArgumentsPattern = \parameters -> let
+    elementsPrefix = unpackParameters(parameters.elements),
     
     selfPrefix = ?parameters.self
         :innerPattern(
@@ -272,7 +261,7 @@ var functionExpression = \loc, id, parameters, functionBody, prefix -> let
     params = parameters.elements
         |> (fun.filter@\x -> x.type !== 'EllipsisPattern'),
         
-    bindings = unpackParameters(parameters)
+    bindings = unpackArgumentsPattern(parameters)
         |> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value)),
     
     body = ?functionBody.type === "BlockStatement"
