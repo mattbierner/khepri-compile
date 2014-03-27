@@ -177,9 +177,14 @@ addPeephole(['VariableDeclarator'], true,
            || isPrimitive node.init)),
     
     node.chain \ node ->
-        seq(
-            addBinding(node.id.ud.uid, node.init),
-            set([])));
+        ?node.init.type === 'Identifier'
+            :getBinding(node.init.ud.uid).chain \ binding ->
+                ?binding
+                    :addBinding(node.id.ud.uid, binding)
+                    :pass
+            :seq(
+                addBinding(node.id.ud.uid, node.init),
+                set([])));
 
 /**
  * Register constants bound in bindings.
@@ -194,9 +199,14 @@ addPeephole(['Binding'], true,
            || isPrimitive node.value)),
     
     node.chain \ node ->
-        seq(
-            addBinding(node.pattern.id.ud.uid, node.value),
-            set([])));
+        ?node.value.type === 'Identifier'
+            :getBinding(node.value.ud.uid).chain \ binding ->
+                ?binding
+                    :addBinding(node.value.id.ud.uid, binding)
+                    :pass
+            :seq(
+                addBinding(node.pattern.id.ud.uid, node.value),
+                set([])));
 
 /**
  * Substitute bound value for identifies.

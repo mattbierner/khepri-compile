@@ -129,7 +129,7 @@ addPeephole(['BinaryExpression'], true,
             [right]));
 
 /**
- * Rewrite Composes.
+ * Rewrite compose.
  */
 addPeephole(['BinaryExpression'], true,
     \node->

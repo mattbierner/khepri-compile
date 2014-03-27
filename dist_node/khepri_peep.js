@@ -162,13 +162,19 @@ addPeephole(["VariableDeclarator"], true, (function(node) {
     return ((node.immutable && node.init) && (((node.init.type === "Identifier") && (node.init.ud.uid !== node.id
         .ud.uid)) || isPrimitive(node.init)));
 }), node.chain((function(node) {
-    return seq(addBinding(node.id.ud.uid, node.init), set([]));
+    return ((node.init.type === "Identifier") ? getBinding(node.init.ud.uid)
+        .chain((function(binding) {
+            return (binding ? addBinding(node.id.ud.uid, binding) : pass);
+        })) : seq(addBinding(node.id.ud.uid, node.init), set([])));
 })));
 addPeephole(["Binding"], true, (function(node) {
     return (((node.pattern.type === "IdentifierPattern") && node.pattern.id.ud) && (((node.value.type ===
         "Identifier") && (node.value.ud.uid !== node.pattern.id.ud.uid)) || isPrimitive(node.value)));
 }), node.chain((function(node) {
-    return seq(addBinding(node.pattern.id.ud.uid, node.value), set([]));
+    return ((node.value.type === "Identifier") ? getBinding(node.value.ud.uid)
+        .chain((function(binding) {
+            return (binding ? addBinding(node.value.id.ud.uid, binding) : pass);
+        })) : seq(addBinding(node.pattern.id.ud.uid, node.value), set([])));
 })));
 addPeephole(["Identifier"], true, (function(node) {
     return (node.ud && node.ud.uid);

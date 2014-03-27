@@ -5,6 +5,9 @@
 * Better generated code for call of curried expression.
 * Fixed incorrect AMD code generated when using Sink imports as targets of imports.
 * Slightly better code generated for compose expressions.
+* Fixed inlined curried expression potentially not capturing value of immutable
+  binding, but instead using regular uncaptured identifier that can changed values.
+  
 
 ## 0.3.3 - March 27, 2014
 * Fixed AMD packages using global `require` instead of string `'require'` for imports.
