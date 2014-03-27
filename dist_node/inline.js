@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     array = require("bes")["array"],
     hashtrie = require("hashtrie"),
@@ -32,7 +31,6 @@ var record = require("bes")["record"],
     __o3 = require("./ast"),
     isLambda = __o3["isLambda"],
     fun = require("./fun"),
-    traverse = require("./traverse"),
     optimize, State = record.declare(null, ["bindings", "stack"]),
     M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, seed) {

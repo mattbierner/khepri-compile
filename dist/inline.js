@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
+*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
     "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
-    "zipper-m/walk", "./builtin", "./ast", "./fun", "./traverse"
+    "zipper-m/walk", "./builtin", "./ast", "./fun"
 ], (function(require, exports, record, array, hashtrie, __o, __o0, tree, __o1, ast_declaration, ast_statement,
-    ast_expression, ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, builtins, __o3, fun, traverse) {
+    ast_expression, ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, builtins, __o3, fun) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         neithWalk = __o0["walk"],

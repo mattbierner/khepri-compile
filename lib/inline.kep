@@ -33,8 +33,7 @@ with
     
     import './builtin' builtins,
     import './ast' {isLambda},
-    import './fun' fun,
-    import './traverse' traverse
+    import './fun' fun
 in {
 
 var State := record.declare(null, ['bindings', 'stack']);
