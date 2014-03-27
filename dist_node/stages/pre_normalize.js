@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/pre_normalize.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var pre_normalize = require("../pre_normalize"),
     normalize;
 (normalize = (function(__o) {

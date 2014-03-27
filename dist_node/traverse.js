@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/traverse.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/traverse.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("neith")["zipper"],
     children = __o["children"],
     __o0 = require("nu-stream")["stream"],

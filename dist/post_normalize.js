@@ -65,6 +65,20 @@
         return ast_expression.FunctionExpression.create(null, node.id, ast_pattern.ArgumentsPattern.create(
             null, node.params.id, params, node.params.self), body);
     }));
+    addPeephole(["BinaryExpression"], true, (function(node) {
+        return (node.operator === "|>");
+    }), (function(__o) {
+        var left = __o["left"],
+            right = __o["right"];
+        return ast_expression.CallExpression.create(null, right, [left]);
+    }));
+    addPeephole(["BinaryExpression"], true, (function(node) {
+        return (node.operator === "<|");
+    }), (function(__o) {
+        var left = __o["left"],
+            right = __o["right"];
+        return ast_expression.CallExpression.create(null, left, [right]);
+    }));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])
             .filter((function(x) {

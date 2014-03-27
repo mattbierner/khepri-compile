@@ -94,8 +94,8 @@ in
             ast_value.Identifier.create(null, 'define'),
             [ast_expression.ArrayExpression.create(null,
                 concat(
-                    builtins.require,
-                    builtins.exports,
+                    ast_value.Literal.create(null, 'string', 'require'),
+                    ast_value.Literal.create(null, 'string', 'exports'),
                     map(imports, \x ->
                         ast_value.Literal.create(null, 'string', path(x.from.value))))),
                 packageBody]));

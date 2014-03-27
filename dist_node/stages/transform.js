@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/transform.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var transformer = require("../transform/transform"),
     __o = require("bes")["object"],
     setProperty = __o["setProperty"],

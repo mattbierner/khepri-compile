@@ -2,7 +2,7 @@
  * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
  * DO NOT EDIT
 */
-define([require, exports, "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
+define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
     "use strict";
     var Scope, push, pop;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));

@@ -47,9 +47,10 @@
                 ast_value.Literal.create(null, "string", "use strict")));
         return ast_statement.ExpressionStatement.create(loc, ast_expression.CallExpression.create(loc,
             ast_value.Identifier.create(null, "define"), [ast_expression.ArrayExpression.create(
-                null, concat(builtins.require, builtins.exports, map(imports, (function(x) {
-                    return ast_value.Literal.create(null, "string", path(x.from.value));
-                })))), packageBody]));
+                null, concat(ast_value.Literal.create(null, "string", "require"), ast_value.Literal
+                    .create(null, "string", "exports"), map(imports, (function(x) {
+                        return ast_value.Literal.create(null, "string", path(x.from.value));
+                    })))), packageBody]));
     }));
     (exports["definePackage"] = definePackage);
     (exports["defineProgram"] = defineProgram);

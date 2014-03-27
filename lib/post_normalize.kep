@@ -115,6 +115,32 @@ addPeephole(['FunctionExpression'], UP,
                 node.params.self),
             body));
 
+/* Expression Conversion
+ ******************************************************************************/
+/**
+ * Rewrite left pipe to a call.
+ */
+addPeephole(['BinaryExpression'], true,
+    \node ->
+        (node.operator === '|>'),
+    
+    \{left right} ->
+        ast_expression.CallExpression.create(null,
+            right,
+            [left]));
+
+/**
+ * Rewrite right pipe to a call.
+ */
+addPeephole(['BinaryExpression'], true,
+    \node->
+        (node.operator === '<|'),
+    
+    \{left right} ->
+        ast_expression.CallExpression.create(null,
+            left,
+            [right]));
+
 /* Interface
  ******************************************************************************/
 var upTransforms = \node -> 

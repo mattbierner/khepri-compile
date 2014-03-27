@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/traverse.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/traverse.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "neith/zipper", "nu-stream/stream", "akh/base"], (function(require, exports, __o, __o0,
+*/
+define(["require", "exports", "neith/zipper", "nu-stream/stream", "akh/base"], (function(require, exports, __o, __o0,
     __o1) {
     "use strict";
     var children = __o["children"],

@@ -210,20 +210,6 @@
         return ast_expression.CurryExpression.create(null, node.base.base, fun.concat(node.base.args,
             node.args));
     })));
-    addPeephole(["BinaryExpression"], true, (function(node) {
-        return ((node.operator === "|>") && (node.right.type === "CurryExpression"));
-    }), modify((function(node) {
-        return ast_expression.CallExpression.create(null, node.right.base, fun.concat((node.right.args || []),
-            node.left));
-    })));
-    addPeephole(["BinaryExpression"], true, (function(__o) {
-        var operator = __o["operator"],
-            left = __o["left"];
-        return ((operator === "<|") && (left.type === "CurryExpression"));
-    }), modify((function(node) {
-        return ast_expression.CallExpression.create(null, node.left.base, fun.concat((node.left.args || []),
-            node.right));
-    })));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])
             .filter((function(x) {

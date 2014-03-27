@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/khepri_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var khepri_peep = require("../khepri_peep"),
     __o = require("bes")["object"],
     setProperty = __o["setProperty"],

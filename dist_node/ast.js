@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var isPrimitive, isSimple, isTruthy, isLambda;
 (isPrimitive = (function(node) {
     return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) || (node.kind ===

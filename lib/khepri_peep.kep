@@ -298,33 +298,6 @@ addPeephole(['CurryExpression'], true,
                 node.base.args,
                 node.args)));
 
-/**
- * Rewrite left pipe of curried expression to a call.
- */
-addPeephole(['BinaryExpression'], true,
-    \node ->
-        (node.operator === '|>' && node.right.type === 'CurryExpression'),
-    modify\node ->
-        ast_expression.CallExpression.create(null,
-            node.right.base,
-            fun.concat(
-                node.right.args || [],
-                node.left)));
-
-/**
- * Rewrite right pipe of curried expression to a call.
- */
-addPeephole(['BinaryExpression'], true,
-    \{operator left} ->
-        (operator === '<|' && left.type === 'CurryExpression'),
-    
-    modify\node ->
-        ast_expression.CallExpression.create(null,
-            node.left.base,
-            fun.concat(
-                node.left.args || [],
-                node.right)));
-
 /* Interface
  ******************************************************************************/
 var upTransforms = \node -> 
