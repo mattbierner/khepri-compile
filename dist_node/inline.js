@@ -150,6 +150,22 @@ addPeephole(["CallExpression"], true, (function(node) {
         return ast_expression.LetExpression.create(null, bindings, rewrite(uid, map, node.callee.body));
     }));
 })));
+addPeephole(["CallExpression"], true, (function(node) {
+    return ((node.callee.type === "LetExpression") && (node.callee.body.type === "FunctionExpression"));
+}), unique.chain((function(uid) {
+    return modify((function(node) {
+        var map = node.callee.body.params.elements.map((function(x) {
+            return x.id.ud.uid;
+        })),
+            bindings = node.callee.body.params.elements.map((function(x, i) {
+                return ast_declaration.Binding.create(null, rewrite(uid, map, x), (node.args[
+                    i] ? node.args[i] : ast_value.Identifier.create(null,
+                    "undefined")));
+            }));
+        return ast_expression.LetExpression.create(null, fun.concat(node.callee.bindings, bindings),
+            rewrite(uid, map, node.callee.body.body));
+    }));
+})));
 addPeephole(["CallExpression"], true, (function(__o) {
     var callee = __o["callee"];
     return (callee.type === "CurryExpression");

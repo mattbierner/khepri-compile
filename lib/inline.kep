@@ -219,6 +219,7 @@ addPeephole(['Binding'], true,
 addPeephole(['CallExpression'], true,
     \node ->
         isLambda(node.callee),
+    
     unique.chain \ uid ->
         modify \ node -> let
             map = node.callee.params.elements.map(\x -> x.id.ud.uid),
@@ -234,6 +235,32 @@ addPeephole(['CallExpression'], true,
             ast_expression.LetExpression.create(null,
                 bindings,
                 rewrite(uid, map, node.callee.body)));
+
+/**
+ * 
+ */
+addPeephole(['CallExpression'], true,
+    \node ->
+        (  node.callee.type === 'LetExpression'
+        && node.callee.body.type === 'FunctionExpression'),
+    
+    unique.chain \ uid ->
+        modify \ node -> let
+            map = node.callee.body.params.elements.map(\x -> x.id.ud.uid),
+    
+            bindings =
+                node.callee.body.params.elements.map \ x i ->
+                    ast_declaration.Binding.create(null,
+                        rewrite(uid, map, x),
+                        ?node.args.(i)
+                            :node.args.(i)
+                            :ast_value.Identifier.create(null, 'undefined'))
+        in
+            ast_expression.LetExpression.create(null,
+                fun.concat(
+                    node.callee.bindings,
+                    bindings),
+                rewrite(uid, map, node.callee.body.body)));
 
 /**
  * Rewrite call of curried expression to a call direct call on curry base.
@@ -278,20 +305,6 @@ addPeephole(['CallExpression'], true,
             :ast_expression.LetExpression.create(null,
                 node.base.bindings,
                 body));
-
-/**
- * Flatten curry of curry.
- */
-/*addPeephole(['CurryExpression'], true,
-    \node ->
-        node.base.type === 'CurryExpression',
-        
-    modify \ node ->
-        ast_expression.CurryExpression.create(null,
-            node.base.base,
-            fun.concat(
-                node.base.args,
-                node.args)));*/
 
 /**
  * Convert curry on function expression to function.

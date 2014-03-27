@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
+*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
     "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
     "zipper-m/walk", "./builtin", "./ast", "./fun"
@@ -141,6 +140,23 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
                 }));
             return ast_expression.LetExpression.create(null, bindings, rewrite(uid, map,
                 node.callee.body));
+        }));
+    })));
+    addPeephole(["CallExpression"], true, (function(node) {
+        return ((node.callee.type === "LetExpression") && (node.callee.body.type ===
+            "FunctionExpression"));
+    }), unique.chain((function(uid) {
+        return modify((function(node) {
+            var map = node.callee.body.params.elements.map((function(x) {
+                return x.id.ud.uid;
+            })),
+                bindings = node.callee.body.params.elements.map((function(x, i) {
+                    return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
+                        node.args[i] ? node.args[i] : ast_value.Identifier.create(
+                            null, "undefined")));
+                }));
+            return ast_expression.LetExpression.create(null, fun.concat(node.callee.bindings,
+                bindings), rewrite(uid, map, node.callee.body.body));
         }));
     })));
     addPeephole(["CallExpression"], true, (function(__o) {

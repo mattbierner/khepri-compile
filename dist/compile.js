@@ -40,8 +40,8 @@ define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./s
             return f(g(x));
         });
     })((function(__o) {
-        var ast = __o["ast"];
-        return ast;
+        var ast;
+        return ((ast = __o["ast"]), ast);
     }), compiler), (function(root, options) {
         return ({
             "ast": root,
