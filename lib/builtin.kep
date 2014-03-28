@@ -211,51 +211,30 @@ registerAliasedSymbol('|>','__rpipe',  rPipe);
 registerAliasedSymbol('_<|', '__piper', rPipe);
 
 // Compose
-var singleCompose = \f, g -> let
-    fo = identifier(null, 'f', unique()),
-    go = identifier(null, 'g', unique()),
+var singleCompose = \f g -> let
     x = identifier(null, 'x', unique())
 in
-    ast_expression.CallExpression.create(null,
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    fo),
-                ast_pattern.IdentifierPattern.create(null,
-                    go)]),
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null,
-                        x)]),
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null,
+                x)]),
+        ast_expression.CallExpression.create(null,
+            f, [
                 ast_expression.CallExpression.create(null,
-                    fo, [
-                        ast_expression.CallExpression.create(null,
-                            go,
-                            [x])]))),
-        [f, g]);
+                    g,
+                    [x])]));
 
-var multiCompose = \f, g -> let
-    fo = identifier(null, 'f', unique()),
-    go = identifier(null, 'g', unique())
-in
-    ast_expression.CallExpression.create(null,
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    fo),
-                ast_pattern.IdentifierPattern.create(null,
-                    go)]),
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, []),
-            ast_expression.CallExpression.create(null,
-                fo, [
-                    ast_expression.CallExpression.create(null,
-                         ast_expression.MemberExpression.create(null,
-                             go,
-                             identifier(null, 'apply')),
-                         [ast_value.Literal.create(null, 'null'),
-                         identifier(null, 'arguments')])]))),
-        [f, g]);
+var multiCompose = \f, g ->
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, []),
+        ast_expression.CallExpression.create(null,
+            f, [
+                ast_expression.CallExpression.create(null,
+                     ast_expression.MemberExpression.create(null,
+                         g,
+                         identifier(null, 'apply')),
+                     [ast_value.Literal.create(null, 'null'),
+                     identifier(null, 'arguments')])]));
 
 var rCompose := binary(false, singleCompose),
     lCompose := binary(true, singleCompose);

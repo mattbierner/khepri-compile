@@ -144,29 +144,17 @@ registerAliasedSymbol("_|>", "__rpiper", lPipe);
 registerAliasedSymbol("|>", "__rpipe", rPipe);
 registerAliasedSymbol("_<|", "__piper", rPipe);
 var singleCompose = (function(f, g) {
-    var fo = identifier(null, "f", unique()),
-        go = identifier(null, "g", unique()),
-        x = identifier(null, "x", unique());
-    return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null, fo),
-            ast_pattern.IdentifierPattern.create(null, go)
-        ]), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, x)
-        ]), ast_expression.CallExpression.create(null, fo, [ast_expression.CallExpression.create(null, go, [
-            x
-        ])]))), [f, g]);
+    var x = identifier(null, "x", unique());
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_pattern.IdentifierPattern.create(null, x)
+    ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, g, [x])]));
 }),
     multiCompose = (function(f, g) {
-        var fo = identifier(null, "f", unique()),
-            go = identifier(null, "g", unique());
-        return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null, fo),
-                ast_pattern.IdentifierPattern.create(null, go)
-            ]), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-                null, []), ast_expression.CallExpression.create(null, fo, [ast_expression.CallExpression.create(
-                null, ast_expression.MemberExpression.create(null, go, identifier(null, "apply")), [
-                    ast_value.Literal.create(null, "null"), identifier(null, "arguments")
-                ])]))), [f, g]);
+        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
+            ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null,
+                ast_expression.MemberExpression.create(null, g, identifier(null, "apply")), [ast_value.Literal
+                    .create(null, "null"), identifier(null, "arguments")
+                ])]));
     }),
     rCompose = binary(false, singleCompose),
     lCompose = binary(true, singleCompose);

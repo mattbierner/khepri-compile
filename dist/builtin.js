@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
     function(require, exports, ast_node, ast_pattern, ast_expression, ast_value) {
         "use strict";
         var setData = ast_node["setData"],
@@ -144,28 +143,18 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         registerAliasedSymbol("|>", "__rpipe", rPipe);
         registerAliasedSymbol("_<|", "__piper", rPipe);
         var singleCompose = (function(f, g) {
-            var fo = identifier(null, "f", unique()),
-                go = identifier(null, "g", unique()),
-                x = identifier(null, "x", unique());
-            return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null,
-                null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
-                    null, fo), ast_pattern.IdentifierPattern.create(null, go)]), ast_expression.FunctionExpression
-                .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                    .create(null, x)
-                ]), ast_expression.CallExpression.create(null, fo, [ast_expression.CallExpression.create(
-                    null, go, [x])]))), [f, g]);
+            var x = identifier(null, "x", unique());
+            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression
+                .create(null, f, [ast_expression.CallExpression.create(null, g, [x])]));
         }),
             multiCompose = (function(f, g) {
-                var fo = identifier(null, "f", unique()),
-                    go = identifier(null, "g", unique());
-                return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null,
-                    null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
-                        null, fo), ast_pattern.IdentifierPattern.create(null, go)]), ast_expression.FunctionExpression
-                    .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []), ast_expression
-                        .CallExpression.create(null, fo, [ast_expression.CallExpression.create(null,
-                            ast_expression.MemberExpression.create(null, go, identifier(null,
-                                "apply")), [ast_value.Literal.create(null, "null"), identifier(null,
-                                "arguments")])]))), [f, g]);
+                return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, []), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression
+                    .create(null, ast_expression.MemberExpression.create(null, g, identifier(null,
+                        "apply")), [ast_value.Literal.create(null, "null"), identifier(null,
+                        "arguments")])
+                ]));
             }),
             rCompose = binary(false, singleCompose),
             lCompose = binary(true, singleCompose);

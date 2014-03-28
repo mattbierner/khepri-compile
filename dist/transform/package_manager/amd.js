@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/amd.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
+*/
+define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node",
     "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "../../fun",
     "../../builtin"
 ], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_program, ast_statement,
