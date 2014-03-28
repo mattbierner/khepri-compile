@@ -1,8 +1,7 @@
 /**
- * 
+ * @fileOverview
  */
-package (
-    compile)
+package compile
 with
     import './stages/pre_normalize' pre_normalize,
     import './stages/lexical' lexical,
@@ -22,11 +21,13 @@ var compiler :=
     \> transform
     \> ecma_peep;
 
+var extract := \{tree} -> tree;
+
 compile =
     (\root options -> ({
         'ast': root,
         'options': options || {}}))
    \>> compiler
-   \> \{ast} -> ast;
+   \> extract;
 
 }

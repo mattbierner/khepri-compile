@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./stages/post_normalize",
+*/define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./stages/post_normalize",
     "./stages/inline", "./stages/khepri_peep", "./stages/transform", "./stages/ecma_peep"
 ], (function(require, exports, pre_normalize, lexical, post_normalize, inline, khepri_peep, transform, ecma_peep) {
     "use strict";
@@ -30,7 +29,11 @@ define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./s
             return (function(x) {
                 return f(g(x));
             });
-        })(ecma_peep, transform), khepri_peep), inline), post_normalize), lexical), pre_normalize);
+        })(ecma_peep, transform), khepri_peep), inline), post_normalize), lexical), pre_normalize),
+        extract = (function(__o) {
+            var tree = __o["tree"];
+            return tree;
+        });
     (compile = (function(f, g) {
         return (function() {
             return f(g.apply(null, arguments));
@@ -39,14 +42,11 @@ define(["require", "exports", "./stages/pre_normalize", "./stages/lexical", "./s
         return (function(x) {
             return f(g(x));
         });
-    })((function(__o) {
-        var ast;
-        return ((ast = __o["ast"]), ast);
-    }), compiler), (function(root, options) {
+    })(extract, compiler), (function(root, options) {
         return ({
             "ast": root,
             "options": (options || ({}))
         });
     })));
-    (exports["compile"] = compile);
+    return compile;
 }));

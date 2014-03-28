@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "../ecma_peep"], (function(require, exports, ecma_peep) {
+*/define(["require", "exports", "../ecma_peep"], (function(require, exports, ecma_peep) {
     "use strict";
     var optimize;
     (optimize = (function(__o) {
@@ -10,7 +9,7 @@ define(["require", "exports", "../ecma_peep"], (function(require, exports, ecma_
             ast = __o["ast"];
         return ({
             "options": options,
-            "ast": ecma_peep.optimize(ast)
+            "tree": ecma_peep.optimize(ast)
         });
     }));
     return optimize;

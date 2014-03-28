@@ -11,7 +11,7 @@ var options = {
 };
 
 var testParser = function(input) {
-    return unparse_print.print(unparse.unparse(compile.compile(parser.parseStream(lexer.lex(input)), options)));
+    return unparse_print.print(unparse.unparse(compile(parser.parseStream(lexer.lex(input)), options)));
 };
 
 

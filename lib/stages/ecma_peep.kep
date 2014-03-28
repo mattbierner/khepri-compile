@@ -11,7 +11,7 @@ in {
  */
 optimize = \{options ast} ->({
     'options': options,
-    'ast': ecma_peep.optimize(ast)
+    'tree': ecma_peep.optimize(ast)
 });
 
 }

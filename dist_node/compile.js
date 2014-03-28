@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var pre_normalize = require("./stages/pre_normalize"),
     lexical = require("./stages/lexical"),
     post_normalize = require("./stages/post_normalize"),
@@ -34,7 +33,11 @@ var pre_normalize = require("./stages/pre_normalize"),
         return (function(x) {
             return f(g(x));
         });
-    })(ecma_peep, transform), khepri_peep), inline), post_normalize), lexical), pre_normalize);
+    })(ecma_peep, transform), khepri_peep), inline), post_normalize), lexical), pre_normalize),
+    extract = (function(__o) {
+        var tree = __o["tree"];
+        return tree;
+    });
 (compile = (function(f, g) {
     return (function() {
         return f(g.apply(null, arguments));
@@ -43,13 +46,10 @@ var pre_normalize = require("./stages/pre_normalize"),
     return (function(x) {
         return f(g(x));
     });
-})((function(__o) {
-    var ast = __o["ast"];
-    return ast;
-}), compiler), (function(root, options) {
+})(extract, compiler), (function(root, options) {
     return ({
         "ast": root,
         "options": (options || ({}))
     });
 })));
-(exports["compile"] = compile);
+(module.exports = compile);

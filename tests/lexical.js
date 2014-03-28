@@ -7,7 +7,7 @@ var unparse_print = require('ecma-unparse').print;
 var compile = require('../index').compile;
 
 var run = function(input) {
-    return eval(unparse_print.print(unparse.unparse(compile.compile(parser.parseStream(lexer.lex(input))))));
+    return eval(unparse_print.print(unparse.unparse(compile(parser.parseStream(lexer.lex(input))))));
 };
   
 
