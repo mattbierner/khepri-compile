@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
+*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
     "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
     "zipper-m/walk", "./builtin", "./ast", "./fun"
@@ -234,11 +233,12 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
         _transform = node.chain((function(node) {
             return transform(node, downTransforms(node));
         })),
-        _transformPost = node.chain((function(node) {
-            var t = upTransforms(node);
-            return (t.length ? M.chain(transform(node, [t[0]]), (function(x) {
-                return ((x && (x !== node)) ? _transformPost : pass);
-            })) : pass);
+        _transformPost = node.chain((function(n) {
+            var t = upTransforms(n);
+            return (t.length ? next(transform(n, [t[0]]), node)
+                .chain((function(x) {
+                    return ((x && (x !== n)) ? _transformPost : pass);
+                })) : pass);
         })),
         initialState = Object.keys(builtins)
             .reduce((function(s, name) {

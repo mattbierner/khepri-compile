@@ -236,6 +236,7 @@ var multiCompose = \f, g ->
                      [ast_value.Literal.create(null, 'null'),
                      identifier(null, 'arguments')])]));
 
+    
 var rCompose := binary(false, singleCompose),
     lCompose := binary(true, singleCompose);
 

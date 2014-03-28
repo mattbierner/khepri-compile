@@ -380,14 +380,12 @@ var transform = \node transforms ->
 var _transform = node.chain \ node -> 
     transform(node, downTransforms node);
 
-var _transformPost = node.chain \ node -> let
-    t = upTransforms node
+var _transformPost = node.chain \ n -> let
+    t = upTransforms n
 in
     ?t.length
-        :M.chain(transform(node, [t.(0)]), \x -> ?x && x !== node : _transformPost : pass)
+        :next(transform(n, [t.(0)]), node).chain\x -> ?x && x !== n : _transformPost : pass
         :pass;
-        
-   // transform(node, upTransforms node);
 
 var initialState = Object.keys(builtins).reduce(
     \s name -> let

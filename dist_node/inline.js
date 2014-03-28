@@ -243,11 +243,12 @@ var upTransforms = (function(node) {
     _transform = node.chain((function(node) {
         return transform(node, downTransforms(node));
     })),
-    _transformPost = node.chain((function(node) {
-        var t = upTransforms(node);
-        return (t.length ? M.chain(transform(node, [t[0]]), (function(x) {
-            return ((x && (x !== node)) ? _transformPost : pass);
-        })) : pass);
+    _transformPost = node.chain((function(n) {
+        var t = upTransforms(n);
+        return (t.length ? next(transform(n, [t[0]]), node)
+            .chain((function(x) {
+                return ((x && (x !== n)) ? _transformPost : pass);
+            })) : pass);
     })),
     initialState = Object.keys(builtins)
         .reduce((function(s, name) {
