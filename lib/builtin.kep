@@ -12,6 +12,8 @@ with
     import 'khepri-ast::value' ast_value
 in {
 
+var flip := \f -> \x y -> f(y, x);
+
 var unique = (\-> {
     var x = 0;
     return \-> {
@@ -20,13 +22,16 @@ var unique = (\-> {
     };
 }());
 
-var identifier = \loc name uid ->
+var identifier = \name uid ->
     setData(
-        ast_value.Identifier.create(loc, name),
+        ast_value.Identifier.create(null, name),
         'uid',
         uid);
 
+/* Exports
+ ******************************************************************************/
 definitions = {};
+builtins = {};
 
 var addSymbol = \name id def -> {
     builtins.(name) = id;
@@ -35,34 +40,21 @@ var addSymbol = \name id def -> {
 
 var registerAliasedSymbol = \name alias def -> {
     addSymbol(name,
-        identifier(null, alias, unique()),
+        identifier(alias, unique()),
         def);
 };
 
-/* Identifiers
+/* Reserved Identifiers
  ******************************************************************************/
-builtins = {
-    'require': setData(
-        new ast_value.Identifier(null, 'require'),
-        'uid',
-        unique()),
-    
-    'exports': setData(
-        new ast_value.Identifier(null, 'exports'),
-        'uid',
-        unique()),
-    
-    'module': setData(
-        new ast_value.Identifier(null, 'module'),
-        'uid',
-        unique())
-};
+builtins.('require') = identifier('require', unique());
+builtins.('exports') = identifier('exports', unique());
+builtins.('module') = identifier('module', unique());
 
 /* Unary Operators
  ******************************************************************************/
 with
     unary = \op -> let
-        xArg = identifier(null, 'x', unique())
+        xArg = identifier('x', unique())
     in
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
@@ -89,9 +81,9 @@ in {
  ******************************************************************************/
 with
     ternaryOperator = let
-        xArg = identifier(null, 'x', unique()),
-        yArg = identifier(null, 'y', unique()),
-        zArg = identifier(null, 'z', unique())
+        xArg = identifier('x', unique()),
+        yArg = identifier('y', unique()),
+        zArg = identifier('z', unique())
     in
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
@@ -113,8 +105,8 @@ in {
 /* Binary Operators
  ******************************************************************************/
 var binary = \flipped op -> let
-    xArg = identifier(null, 'x', unique()),
-    yArg = identifier(null, 'y', unique())
+    xArg = identifier('x', unique()),
+    yArg = identifier('y', unique())
 in
     ast_expression.FunctionExpression.create(null, null,
         ast_pattern.ArgumentsPattern.create(null, null, [
@@ -124,15 +116,19 @@ in
             :op(yArg, xArg)
             :op(xArg, yArg));
 
-var binaryOp = \op flipped ->
-    binary(flipped, \x y ->
-        ast_expression.BinaryExpression.create(null, op, x, y));
+var registerBinary = \op name impl -> {
+    registerAliasedSymbol(op, name,
+        binary(false, impl));
+    
+    registerAliasedSymbol('_' + op, name + 'r',
+        binary(true, impl));
+};
 
-var logicalOp = \op flipped ->
-    binary(flipped, \x y ->
-        ast_expression.LogicalExpression.create(null, op, x, y));
+// Binary Operations
+var binaryOp = \op ->
+    \x y ->
+        ast_expression.BinaryExpression.create(null, op, x, y);
 
-// 
 [
     ['+', '__add'],
     ['-', '__sub'],
@@ -155,64 +151,51 @@ var logicalOp = \op flipped ->
     ['!==', '__sneq'],
     ['instanceof', '__instanceof']
 ].forEach \ [op name] -> {
-    registerAliasedSymbol(op, name,
+    registerBinary(op, name,
         binaryOp(op));
-    
-    registerAliasedSymbol('_' + op, name + 'r',
-        binaryOp(op, true));
 };
 
 // Logical
-[
-    ['||', '__or'],
-    ['&&', '__and']
-].forEach \ [op name] -> {
-    registerAliasedSymbol(op, name,
-        logicalOp(op));
-        
-    registerAliasedSymbol('_' + op, name + 'r',
-        logicalOp(op, true));
-};
+with
+    logicalOp = \op ->
+        \x y ->
+            ast_expression.LogicalExpression.create(null, op, x, y)
+in {
+    [
+        ['||', '__or'],
+        ['&&', '__and']
+    ].forEach \ [op name] -> {
+        registerBinary(op, name,
+            logicalOp(op));
+    };
+}
 
 // New
-registerAliasedSymbol('new', '__new', binary(false, \x y ->
-    ast_expression.NewExpression.create(null, x, [y])));
-
-registerAliasedSymbol('_new', '__newr', binary(true, \x y ->
-    ast_expression.NewExpression.create(null, x, [y])));
+registerBinary('new', '__new', \x y ->
+    ast_expression.NewExpression.create(null, x, [y]));
 
 // Dot
-registerAliasedSymbol('.', '__dot', binary(false, \x y ->
-    ast_expression.MemberExpression.create(null, x, y, true)));
-
-registerAliasedSymbol('_.', '__dotr', binary(true, \x y ->
-    ast_expression.MemberExpression.create(null, x, y, true)));
+registerBinary('.', '__dot', \x y ->
+    ast_expression.MemberExpression.create(null, x, y, true));
 
 // Curry
-registerAliasedSymbol('@', '__curry', binary(false, \x y ->
-    ast_expression.CurryExpression.create(null, x, [y])));
-
-registerAliasedSymbol('_@', '__curryr', binary(true, \x y ->
-    ast_expression.CurryExpression.create(null, x, [y])));
+registerBinary('@', '__curry', \x y ->
+    ast_expression.CurryExpression.create(null, x, [y]));
 
 // Pipes
-var pipe = \callee arg ->
-    ast_expression.CallExpression.create(null,
-        callee,
-        [arg]);
-
-var lPipe := binary(false, pipe),
-    rPipe := binary(true, pipe);
-
-registerAliasedSymbol('<|', '__pipe', lPipe);
-registerAliasedSymbol('_|>', '__rpiper', lPipe);
-
-registerAliasedSymbol('|>','__rpipe',  rPipe);
-registerAliasedSymbol('_<|', '__piper', rPipe);
+with
+    pipe = \callee arg ->
+        ast_expression.CallExpression.create(null,
+            callee,
+            [arg])
+in {
+    registerBinary('<|', '__pipe', pipe);
+    registerBinary('|>', '__pipe', flip pipe);
+}
 
 // Compose
 var singleCompose = \f g -> let
-    x = identifier(null, 'x', unique())
+    x = identifier('x', unique())
 in
     ast_expression.FunctionExpression.create(null, null,
         ast_pattern.ArgumentsPattern.create(null, null, [
@@ -232,28 +215,15 @@ var multiCompose = \f, g ->
                 ast_expression.CallExpression.create(null,
                      ast_expression.MemberExpression.create(null,
                          g,
-                         identifier(null, 'apply')),
+                         identifier('apply')),
                      [ast_value.Literal.create(null, 'null'),
-                     identifier(null, 'arguments')])]));
+                     identifier('arguments')])]));
 
 
-var rCompose := binary(false, singleCompose),
-    lCompose := binary(true, singleCompose);
+registerBinary('<\\', '__compose', singleCompose);
+registerAliasedSymbol('\\>', '__rcompose',  flip singleCompose);
 
-registerAliasedSymbol('<\\', '__compose', rCompose);
-registerAliasedSymbol('_\\>', '__rcomposer',  rCompose);
-
-registerAliasedSymbol('\\>', '__rcompose', lCompose);
-registerAliasedSymbol('_<\\', '__composer', lCompose);
-
-
-var rNCompose := binary(false, multiCompose),
-    lNCompose :=  binary(true, multiCompose);
-
-registerAliasedSymbol('<<\\', '__composen', rNCompose);
-registerAliasedSymbol('_\\>>', '__rcomposenr', rNCompose);
-
-registerAliasedSymbol('\\>>', '__rcomposen', lNCompose);
-registerAliasedSymbol('_<<\\', '__composenr', lNCompose);
+registerBinary('<<\\', '__composen', multiCompose);
+registerBinary('\\>>', '__rcomposen', flip multiCompose);
 
 }

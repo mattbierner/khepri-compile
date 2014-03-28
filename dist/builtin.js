@@ -1,37 +1,40 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
     function(require, exports, ast_node, ast_pattern, ast_expression, ast_value) {
         "use strict";
         var setData = ast_node["setData"],
             setUserData = ast_node["setUserData"],
-            builtins, definitions, unique = (function() {
+            builtins, definitions, flip = (function(f) {
+                return (function(x, y) {
+                    return f(y, x);
+                });
+            }),
+            unique = (function() {
                 var x = 0;
                 return (function() {
                     (x = (x + 1));
                     return x;
                 });
             })(),
-            identifier = (function(loc, name, uid) {
-                return setData(ast_value.Identifier.create(loc, name), "uid", uid);
+            identifier = (function(name, uid) {
+                return setData(ast_value.Identifier.create(null, name), "uid", uid);
             });
         (definitions = ({}));
+        (builtins = ({}));
         var addSymbol = (function(name, id, def) {
             (builtins[name] = id);
             (definitions[name] = def);
         }),
             registerAliasedSymbol = (function(name, alias, def) {
-                addSymbol(name, identifier(null, alias, unique()), def);
+                addSymbol(name, identifier(alias, unique()), def);
             });
-        (builtins = ({
-            "require": setData(new(ast_value.Identifier)(null, "require"), "uid", unique()),
-            "exports": setData(new(ast_value.Identifier)(null, "exports"), "uid", unique()),
-            "module": setData(new(ast_value.Identifier)(null, "module"), "uid", unique())
-        }));
+        (builtins["require"] = identifier("require", unique()));
+        (builtins["exports"] = identifier("exports", unique()));
+        (builtins["module"] = identifier("module", unique()));
         var unary = (function(op) {
-            var xArg = identifier(null, "x", unique());
+            var xArg = identifier("x", unique());
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                 null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), op(xArg));
         }),
@@ -52,30 +55,29 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 name = __o[1];
             registerAliasedSymbol(op, name, unaryOp(op));
         }));
-        var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null,
-                "y", unique())), (zArg = identifier(null, "z", unique())), ast_expression.FunctionExpression.create(
-                null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
-                        null, xArg), ast_pattern.IdentifierPattern.create(null, yArg), ast_pattern.IdentifierPattern
+        var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier("x", unique())), (yArg = identifier("y", unique())), (
+                zArg = identifier("z", unique())), ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
+                        xArg), ast_pattern.IdentifierPattern.create(null, yArg), ast_pattern.IdentifierPattern
                     .create(null, zArg)
                 ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)));
         registerAliasedSymbol("?", "__cond", ternaryOperator);
         var binary = (function(flipped, op) {
-            var xArg = identifier(null, "x", unique()),
-                yArg = identifier(null, "y", unique());
+            var xArg = identifier("x", unique()),
+                yArg = identifier("y", unique());
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                 null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern
                     .create(null, yArg)
                 ]), (flipped ? op(yArg, xArg) : op(xArg, yArg)));
         }),
-            binaryOp = (function(op, flipped) {
-                return binary(flipped, (function(x, y) {
-                    return ast_expression.BinaryExpression.create(null, op, x, y);
-                }));
+            registerBinary = (function(op, name, impl) {
+                registerAliasedSymbol(op, name, binary(false, impl));
+                registerAliasedSymbol(("_" + op), (name + "r"), binary(true, impl));
             }),
-            logicalOp = (function(op, flipped) {
-                return binary(flipped, (function(x, y) {
-                    return ast_expression.LogicalExpression.create(null, op, x, y);
-                }));
+            binaryOp = (function(op) {
+                return (function(x, y) {
+                    return ast_expression.BinaryExpression.create(null, op, x, y);
+                });
             });
         [
             ["+", "__add"],
@@ -101,47 +103,37 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         ].forEach((function(__o) {
             var op = __o[0],
                 name = __o[1];
-            registerAliasedSymbol(op, name, binaryOp(op));
-            registerAliasedSymbol(("_" + op), (name + "r"), binaryOp(op, true));
+            registerBinary(op, name, binaryOp(op));
         }));
+        var logicalOp = (function(op) {
+            return (function(x, y) {
+                return ast_expression.LogicalExpression.create(null, op, x, y);
+            });
+        });
         [
             ["||", "__or"],
             ["&&", "__and"]
         ].forEach((function(__o) {
             var op = __o[0],
                 name = __o[1];
-            registerAliasedSymbol(op, name, logicalOp(op));
-            registerAliasedSymbol(("_" + op), (name + "r"), logicalOp(op, true));
+            registerBinary(op, name, logicalOp(op));
         }));
-        registerAliasedSymbol("new", "__new", binary(false, (function(x, y) {
+        registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);
-        })));
-        registerAliasedSymbol("_new", "__newr", binary(true, (function(x, y) {
-            return ast_expression.NewExpression.create(null, x, [y]);
-        })));
-        registerAliasedSymbol(".", "__dot", binary(false, (function(x, y) {
+        }));
+        registerBinary(".", "__dot", (function(x, y) {
             return ast_expression.MemberExpression.create(null, x, y, true);
-        })));
-        registerAliasedSymbol("_.", "__dotr", binary(true, (function(x, y) {
-            return ast_expression.MemberExpression.create(null, x, y, true);
-        })));
-        registerAliasedSymbol("@", "__curry", binary(false, (function(x, y) {
+        }));
+        registerBinary("@", "__curry", (function(x, y) {
             return ast_expression.CurryExpression.create(null, x, [y]);
-        })));
-        registerAliasedSymbol("_@", "__curryr", binary(true, (function(x, y) {
-            return ast_expression.CurryExpression.create(null, x, [y]);
-        })));
+        }));
         var pipe = (function(callee, arg) {
             return ast_expression.CallExpression.create(null, callee, [arg]);
-        }),
-            lPipe = binary(false, pipe),
-            rPipe = binary(true, pipe);
-        registerAliasedSymbol("<|", "__pipe", lPipe);
-        registerAliasedSymbol("_|>", "__rpiper", lPipe);
-        registerAliasedSymbol("|>", "__rpipe", rPipe);
-        registerAliasedSymbol("_<|", "__piper", rPipe);
+        });
+        registerBinary("<|", "__pipe", pipe);
+        registerBinary("|>", "__pipe", flip(pipe));
         var singleCompose = (function(f, g) {
-            var x = identifier(null, "x", unique());
+            var x = identifier("x", unique());
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                     null, null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression
                 .create(null, f, [ast_expression.CallExpression.create(null, g, [x])]));
@@ -149,23 +141,15 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             multiCompose = (function(f, g) {
                 return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                     null, null, []), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression
-                    .create(null, ast_expression.MemberExpression.create(null, g, identifier(null,
-                        "apply")), [ast_value.Literal.create(null, "null"), identifier(null,
-                        "arguments")])
+                    .create(null, ast_expression.MemberExpression.create(null, g, identifier("apply")), [
+                        ast_value.Literal.create(null, "null"), identifier("arguments")
+                    ])
                 ]));
-            }),
-            rCompose = binary(false, singleCompose),
-            lCompose = binary(true, singleCompose);
-        registerAliasedSymbol("<\\", "__compose", rCompose);
-        registerAliasedSymbol("_\\>", "__rcomposer", rCompose);
-        registerAliasedSymbol("\\>", "__rcompose", lCompose);
-        registerAliasedSymbol("_<\\", "__composer", lCompose);
-        var rNCompose = binary(false, multiCompose),
-            lNCompose = binary(true, multiCompose);
-        registerAliasedSymbol("<<\\", "__composen", rNCompose);
-        registerAliasedSymbol("_\\>>", "__rcomposenr", rNCompose);
-        registerAliasedSymbol("\\>>", "__rcomposen", lNCompose);
-        registerAliasedSymbol("_<<\\", "__composenr", lNCompose);
+            });
+        registerBinary("<\\", "__compose", singleCompose);
+        registerAliasedSymbol("\\>", "__rcompose", flip(singleCompose));
+        registerBinary("<<\\", "__composen", multiCompose);
+        registerBinary("\\>>", "__rcomposen", flip(multiCompose));
         (exports["builtins"] = builtins);
         (exports["definitions"] = definitions);
     }));
