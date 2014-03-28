@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
     function(require, exports, ast_node, ast_pattern, ast_expression, ast_value) {
         "use strict";
         var setData = ast_node["setData"],
@@ -54,12 +55,13 @@
                 name = __o[1];
             registerAliasedSymbol(op, name, unaryOp(op));
         }));
-        var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null,
-                "y", unique())), (zArg = identifier(null, "z", unique())), ast_expression.FunctionExpression.create(
-                null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
-                        null, xArg), ast_pattern.IdentifierPattern.create(null, yArg), ast_pattern.IdentifierPattern
-                    .create(null, zArg)
-                ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)));
+        var xArg = identifier(null, "x", unique()),
+            yArg = identifier(null, "y", unique()),
+            zArg = identifier(null, "z", unique()),
+            ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+                        null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression
+                .create(null, xArg, yArg, zArg));
         registerAliasedSymbol("?", "__cond", ternaryOperator);
         var binary = (function(flipped, op) {
             var xArg = identifier(null, "x", unique()),

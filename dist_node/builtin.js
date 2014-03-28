@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -57,11 +58,13 @@ var unary = (function(op) {
         name = __o[1];
     registerAliasedSymbol(op, name, unaryOp(op));
 }));
-var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null, "y", unique())), (
-        zArg = identifier(null, "z", unique())), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-        .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
-            null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
-            null, xArg, yArg, zArg)));
+var xArg = identifier(null, "x", unique()),
+    yArg = identifier(null, "y", unique()),
+    zArg = identifier(null, "z", unique()),
+    ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+        null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg),
+            ast_pattern.IdentifierPattern.create(null, zArg)
+        ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg));
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(flipped, op) {
     var xArg = identifier(null, "x", unique()),

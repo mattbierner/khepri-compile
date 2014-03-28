@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],
@@ -25,9 +26,7 @@ var tree = require("neith")["tree"],
     __o4 = require("./builtin"),
     builtins = __o4["builtins"],
     definitions = __o4["definitions"],
-    normalize, expandBinding, DOWN = false,
-    UP = true,
-    always = (function(_) {
+    normalize, expandBinding, always = (function(_) {
         return true;
     }),
     peepholes = ({}),
@@ -41,12 +40,12 @@ var tree = require("neith")["tree"],
             (peepholes[type] = concat((peepholes[type] || []), entry));
         }));
     });
-addPeephole(["LetExpression"], UP, always, ((expandBinding = (function(binding) {
+addPeephole(["LetExpression"], true, always, ((expandBinding = (function(binding) {
     return innerPattern(binding.value, binding.pattern, binding.recursive);
 })), (function(node) {
     return ast_expression.LetExpression.create(node.loc, flattenr(map(expandBinding, node.bindings)), node.body);
 })));
-addPeephole(["FunctionExpression"], UP, always, (function(node) {
+addPeephole(["FunctionExpression"], true, always, (function(node) {
     var params = map((function(x) {
         switch (x.type) {
             case "IdentifierPattern":
@@ -63,21 +62,21 @@ addPeephole(["FunctionExpression"], UP, always, (function(node) {
     return ast_expression.FunctionExpression.create(null, node.id, ast_pattern.ArgumentsPattern.create(null,
         node.params.id, params, node.params.self), body);
 }));
-addPeephole(["BinaryExpression"], UP, (function(node) {
+addPeephole(["BinaryExpression"], true, (function(node) {
     return (node.operator === "|>");
 }), (function(__o) {
     var left = __o["left"],
         right = __o["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
-addPeephole(["BinaryExpression"], UP, (function(node) {
+addPeephole(["BinaryExpression"], true, (function(node) {
     return (node.operator === "<|");
 }), (function(__o) {
     var left = __o["left"],
         right = __o["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
-addPeephole(["BinaryExpression"], UP, (function(node) {
+addPeephole(["BinaryExpression"], true, (function(node) {
     return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) || (node.operator ===
         "<<\\"));
 }), (function(__o) {

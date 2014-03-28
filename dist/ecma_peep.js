@@ -1,21 +1,16 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-ast-zipper", "ecma-ast/node",
-    "ecma-ast/value", "ecma-ast/declaration", "ecma-ast/statement", "ecma-ast/expression", "./fun"
+*/define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-ast-zipper", "ecma-ast/node",
+    "ecma-ast/value", "ecma-ast/declaration", "ecma-ast/statement", "ecma-ast/expression", "./ast", "./fun"
 ], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_value, ast_declaration, ast_statement,
-    ast_expression, fun) {
+    ast_expression, __o2, fun) {
     "use strict";
     var walk = __o["walk"],
         ecmaZipper = __o0["ecmaZipper"],
         modify = __o1["modify"],
-        Node = __o1["Node"],
-        optimize, isPrimitive = (function(node) {
-            return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) ||
-                (node.kind === "boolean")) || (node.kind === "null")));
-        }),
-        peepholes = ({}),
+        isPrimitive = __o2["isPrimitive"],
+        optimize, peepholes = ({}),
         addPeephole = (function(types, up, condition, f) {
             var entry = ({
                 "condition": condition,

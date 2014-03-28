@@ -1,5 +1,5 @@
 /**
- * 
+ * @fileOverview ECMAScript AST peephole optimization pass.
  */
 package (
     optimize)
@@ -10,24 +10,17 @@ with
 
     import 'ecma-ast-zipper' {ecmaZipper},
     
-    import 'ecma-ast::node' {modify, Node},
+    import 'ecma-ast::node' {modify},
     import 'ecma-ast::value' ast_value,
     import 'ecma-ast::declaration' ast_declaration,
     import 'ecma-ast::statement' ast_statement,
     import 'ecma-ast::expression' ast_expression,
     
+    import './ast' {isPrimitive},
     import './fun' fun
 in {
 
-
-var isPrimitive = \node ->
-    node.type === 'Literal' && (
-        node.kind === 'string'
-        || node.kind === 'number'
-        || node.kind === 'boolean'
-        || node.kind === 'null');
-
-/*
+/* Transforms
  ******************************************************************************/
 var peepholes = {};
 

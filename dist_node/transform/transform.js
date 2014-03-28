@@ -230,8 +230,10 @@ var extract = M.lift(M.inner.get),
         });
         (transformers[type] = (transformers[type] ? transformers[type].concat(entry) : [entry]));
     });
-addTransform("VariableDeclaration", null, modify((function(node) {
-    return ecma_declaration.VariableDeclaration.create(node.loc, node.declarations);
+addTransform("VariableDeclaration", null, modify((function(__o) {
+    var loc = __o["loc"],
+        declarations = __o["declarations"];
+    return (declarations.length ? ecma_declaration.VariableDeclaration.create(loc, declarations) : null);
 })));
 addTransform("VariableDeclarator", null, modify((function(node) {
     return ecma_declaration.VariableDeclarator.create(node.loc, node.id, node.init);

@@ -1,5 +1,10 @@
 /**
- * @fileOverview
+ * @fileOverview Main khepri compiler function.
+ * 
+ * Translates Khepri source to ECMAScript.
+ * 
+ * TODO: Use Error monad for each stage instead of direct composition with 
+ * throwing functions.
  */
 package compile
 with
@@ -23,6 +28,13 @@ var compiler :=
 
 var extract := \{tree} -> tree;
 
+
+/**
+ * Translate a Khepri AST to an ECMAScript AST.
+ * 
+ * @param root Khepri ast.
+ * @param [options] Map of options sepecifying behavior of compiler.
+ */
 compile =
     (\root options -> ({
         'ast': root,

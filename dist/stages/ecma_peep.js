@@ -6,10 +6,10 @@
     var optimize;
     (optimize = (function(__o) {
         var options = __o["options"],
-            ast = __o["ast"];
+            tree = __o["tree"];
         return ({
             "options": options,
-            "tree": ecma_peep.optimize(ast)
+            "tree": ecma_peep.optimize(tree)
         });
     }));
     return optimize;

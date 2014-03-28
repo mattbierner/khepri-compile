@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var tree = require("neith")["tree"],
     __o = require("neith")["walk"],
     walk = __o["walk"],
@@ -11,17 +10,14 @@ var tree = require("neith")["tree"],
     ecmaZipper = __o0["ecmaZipper"],
     __o1 = require("ecma-ast")["node"],
     modify = __o1["modify"],
-    Node = __o1["Node"],
     ast_value = require("ecma-ast")["value"],
     ast_declaration = require("ecma-ast")["declaration"],
     ast_statement = require("ecma-ast")["statement"],
     ast_expression = require("ecma-ast")["expression"],
+    __o2 = require("./ast"),
+    isPrimitive = __o2["isPrimitive"],
     fun = require("./fun"),
-    optimize, isPrimitive = (function(node) {
-        return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) || (node.kind ===
-            "boolean")) || (node.kind === "null")));
-    }),
-    peepholes = ({}),
+    optimize, peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
             "condition": condition,

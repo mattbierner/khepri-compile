@@ -194,33 +194,33 @@ addPeephole(["CurryExpression"], true, (function(node) {
     return isLambda(node.base);
 }), unique.chain((function(uid) {
     return modify((function(node) {
-        var first = node.base.params.elements[0],
-            rest = node.base.params.elements.slice(1),
-            map = [first.id.ud.uid],
+        var first, rest, map, body;
+        return ((!node.base.params.elements.length) ? node.base : ((first = node.base.params.elements[
+            0]), (rest = node.base.params.elements.slice(1)), (map = [first.id.ud.uid]), (
             body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.params.self), rewrite(uid, map, node.base.body)
-            );
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, [
-            rewrite(uid, map, ast_declaration.Binding.create(null, first, node.args[0]))
-        ], body) : body);
+                .create(null, null, rest, node.base.params.self), rewrite(uid, map, node.base
+                    .body))), ((first && (((first.type === "IdentifierPattern") || (first.type ===
+                "AsPattern")) || (first.type === "ObjectPattern"))) ? ast_expression.LetExpression
+            .create(null, [rewrite(uid, map, ast_declaration.Binding.create(null, first,
+                node.args[0]))], body) : body)));
     }));
 })));
 addPeephole(["CurryExpression"], true, (function(node) {
     return ((node.base.type === "LetExpression") && isLambda(node.base.body));
 }), unique.chain((function(uid) {
     return modify((function(node) {
-        var first = node.base.body.params.elements[0],
-            rest = node.base.body.params.elements.slice(1),
-            map = [first.id.ud.uid],
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, node.base.body.params.self), rewrite(uid, map, node.base.body
-                    .body));
-        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(
-            node.base.bindings, rewrite(uid, map, ast_declaration.Binding.create(null,
-                first, node.args[0]))), body) : ast_expression.LetExpression.create(null, node.base
-            .bindings, body));
+        var first, rest, map, body;
+        return ((!node.base.body.params.elements.length) ? node.base : ((first = node.base.body.params
+            .elements[0]), (rest = node.base.body.params.elements.slice(1)), (map = [first.id
+            .ud.uid
+        ]), (body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+            .create(null, null, rest, node.base.body.params.self), rewrite(uid, map,
+                node.base.body.body))), ((first && (((first.type === "IdentifierPattern") ||
+                (first.type === "AsPattern")) || (first.type === "ObjectPattern"))) ?
+            ast_expression.LetExpression.create(null, fun.concat(node.base.bindings,
+                rewrite(uid, map, ast_declaration.Binding.create(null, first, node.args[
+                    0]))), body) : ast_expression.LetExpression.create(null, node.base.bindings,
+                body))));
     }));
 })));
 var upTransforms = (function(node) {

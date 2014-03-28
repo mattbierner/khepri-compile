@@ -11,7 +11,7 @@ in {
 transform = \input#{options ast data} ->
     setProperty(
         input,
-        'ast',
+        'tree',
         transformer.transform(
             ast,
             (options.package_manager || 'amd'),

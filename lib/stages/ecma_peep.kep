@@ -9,9 +9,9 @@ in {
 /**
  * 
  */
-optimize = \{options ast} ->({
+optimize = \{options tree} -> ({
     'options': options,
-    'tree': ecma_peep.optimize(ast)
+    'tree': ecma_peep.optimize(tree)
 });
 
 }

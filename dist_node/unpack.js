@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -31,20 +32,22 @@ var ast_expression = require("khepri-ast")["expression"],
             return [];
     }
 }));
-(unpackParameters = (function(f, g) {
-    return (function(x) {
-        return f(g(x));
-    });
-})(flatten, fun.map.bind(null, (function(x) {
-    switch (x.type) {
-        case "SinkPattern":
-        case "IdentifierPattern":
-            return [];
-        case "AsPattern":
-            return flatten(innerPattern(x.id, x.target));
-        default:
-            return innerPattern(x, x);
-    }
-}))));
+var x = flatten,
+    y = fun.map.bind(null, (function(x) {
+        switch (x.type) {
+            case "SinkPattern":
+            case "IdentifierPattern":
+                return [];
+            case "AsPattern":
+                return flatten(innerPattern(x.id, x.target));
+            default:
+                return innerPattern(x, x);
+        }
+    })),
+    f = x,
+    g = y;
+(unpackParameters = (function(x) {
+    return f(g(x));
+}));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);

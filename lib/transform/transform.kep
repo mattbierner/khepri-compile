@@ -351,9 +351,11 @@ var addTransform = \type pre post -> {
 // Declarations
 addTransform('VariableDeclaration',
     null,
-    modify \ node ->
-        ecma_declaration.VariableDeclaration.create(node.loc,
-            node.declarations));
+    modify \ {loc declarations} ->
+        ?declarations.length
+            :ecma_declaration.VariableDeclaration.create(loc,
+                declarations)
+            :null);
 
 addTransform('VariableDeclarator',
     null,

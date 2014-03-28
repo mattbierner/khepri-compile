@@ -214,7 +214,7 @@ addPeephole(['CallExpression'], true,
     unique.chain \ uid ->
         modify \ node -> let
             map = node.callee.params.elements.map(\x -> x.id.ud.uid),
-    
+            
             bindings =
                 node.callee.params.elements.map \ x i ->
                     ast_declaration.Binding.create(null,
@@ -260,7 +260,7 @@ addPeephole(['CallExpression'], true,
     \{callee} ->
         callee.type ==='CurryExpression',
    
-    modify\node ->
+    modify \ node ->
         ast_expression.CallExpression.create(null,
             node.callee.base,
             fun.concat(
@@ -275,7 +275,7 @@ addPeephole(['CallExpression'], true,
         (  node.callee.type === 'LetExpression'
         && node.callee.body.type === 'CurryExpression'),
 
-    modify\node -> let
+    modify \ node -> let
         first = node.callee.body.params.elements.(0),
         rest = node.base.body.params.elements.slice(1),
         
@@ -307,25 +307,28 @@ addPeephole(['CurryExpression'], true,
         isLambda(node.base),
     
     unique.chain \ uid ->
-    modify \ node -> let
-        first = node.base.params.elements.(0),
-        rest = node.base.params.elements.slice(1),
-        
-        map = [first.id.ud.uid],
-        
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
-                node.base.params.self),
-            rewrite(uid, map, node.base.body))
-    in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-            :ast_expression.LetExpression.create(null,
-                [rewrite(uid, map, ast_declaration.Binding.create(null,
-                    first,
-                    node.args.(0)))],
-                body)
-            :body);
+    modify \ node ->
+        ?!node.base.params.elements.length
+            :node.base
+            :let
+                first = node.base.params.elements.(0),
+                rest = node.base.params.elements.slice(1),
+                
+                map = [first.id.ud.uid],
+                
+                body = ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null,
+                        rest,
+                        node.base.params.self),
+                    rewrite(uid, map, node.base.body))
+            in
+                ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+                    :ast_expression.LetExpression.create(null,
+                        [rewrite(uid, map, ast_declaration.Binding.create(null,
+                            first,
+                            node.args.(0)))],
+                        body)
+                    :body);
 
 /**
  * Try Convert curry on let with function body to function.
@@ -338,29 +341,32 @@ addPeephole(['CurryExpression'], true,
         && isLambda(node.base.body)),
     
     unique.chain \ uid -> 
-    modify \ node -> let
-        first = node.base.body.params.elements.(0),
-        rest = node.base.body.params.elements.slice(1),
-        
-        map = [first.id.ud.uid],
-
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
-                node.base.body.params.self),
-            rewrite(uid, map, node.base.body.body))
-    in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-            :ast_expression.LetExpression.create(null,
-                fun.concat(
+    modify \ node ->
+        ?!node.base.body.params.elements.length
+            :node.base
+        :let
+            first = node.base.body.params.elements.(0),
+            rest = node.base.body.params.elements.slice(1),
+            
+            map = [first.id.ud.uid],
+    
+            body = ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null,
+                    rest,
+                    node.base.body.params.self),
+                rewrite(uid, map, node.base.body.body))
+        in
+            ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+                :ast_expression.LetExpression.create(null,
+                    fun.concat(
+                        node.base.bindings,
+                        rewrite(uid, map, ast_declaration.Binding.create(null,
+                            first,
+                            node.args.(0)))),
+                    body)
+                :ast_expression.LetExpression.create(null,
                     node.base.bindings,
-                    rewrite(uid, map, ast_declaration.Binding.create(null,
-                        first,
-                        node.args.(0)))),
-                body)
-            :ast_expression.LetExpression.create(null,
-                node.base.bindings,
-                body));
+                    body));
 
 /* Interface
  ******************************************************************************/
