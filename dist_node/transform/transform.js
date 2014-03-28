@@ -29,21 +29,22 @@ var record = require("bes")["record"],
     seqa = __o0["sequencea"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
+    __o1 = require("../ast"),
+    getUid = __o1["getUid"],
     scope = require("../scope"),
     fun = require("../fun"),
     flip = fun["flip"],
-    __o1 = require("../builtin"),
-    builtins = __o1["builtins"],
-    definitions = __o1["definitions"],
-    __o2 = require("../unpack"),
-    innerPattern = __o2["innerPattern"],
-    unpackParameters = __o2["unpackParameters"],
+    __o2 = require("../builtin"),
+    builtins = __o2["builtins"],
+    definitions = __o2["definitions"],
+    __o3 = require("../unpack"),
+    innerPattern = __o3["innerPattern"],
+    unpackParameters = __o3["unpackParameters"],
     transform, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
     }),
     ok = M.of,
-    bind = M.chain,
     pass = ok(null),
     cons = (function(a, b) {
         return a.chain((function(x) {
@@ -73,12 +74,12 @@ var extract = M.lift(M.inner.get),
         return s.globals;
     })),
     inspectScopeWith = (function(f) {
-        return bind(extract, (function(s) {
+        return extract.chain((function(s) {
             return f(s.scope);
         }));
     }),
-    packageManager = inspectStateWith((function(s) {
-        return ok(s.packageManager);
+    packageManager = extract.map((function(s) {
+        return s.packageManager;
     })),
     modifyScope = (function(f) {
         return modifyState((function(s) {
@@ -111,6 +112,7 @@ var extract = M.lift(M.inner.get),
     node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
+    withNode = node.chain.bind(node),
     enterBlock = inspectScopeWith((function(s) {
         return setScope(scope.Scope.empty.setOuter(s));
     })),
@@ -133,17 +135,15 @@ var extract = M.lift(M.inner.get),
     getName = (function(name, uid) {
         return getMapping(uid, ok);
     }),
-    getBindings = (function(f) {
-        return bind(inspectStateWith((function(s) {
-            return enumeration(fun.map((function(__o) {
-                var name = __o[0],
-                    uid = __o[1];
-                return getName(name, uid);
-            }), s.bindings[0]));
-        })), f);
-    }),
-    _trans, _transform = bind(node, (function(x) {
-        return _trans(x);
+    getBindings = M.chain.bind(null, inspectStateWith((function(s) {
+        return enumeration(fun.map((function(__o) {
+            var name = __o[0],
+                uid = __o[1];
+            return getName(name, uid);
+        }), s.bindings[0]));
+    }))),
+    _trans, _transform = withNode((function(node) {
+        return _trans(node);
     })),
     identifier = (function(loc, name) {
         return ecma_value.Identifier.create(loc, name);
@@ -262,7 +262,7 @@ addTransform("ExpressionStatement", null, modify((function(node) {
 addTransform("IfStatement", null, modify((function(node) {
     return ecma_statement.IfStatement.create(node.loc, node.test, node.consequent, node.alternate);
 })));
-addTransform("WithStatement", next(bind(packageManager, (function(packageManager) {
+addTransform("WithStatement", next(packageManager.chain((function(packageManager) {
     return modify((function(node) {
         return withStatement(packageManager, node.loc, node.bindings, node.body);
     }));
@@ -327,12 +327,12 @@ addTransform("CallExpression", null, modify((function(node) {
 addTransform("MemberExpression", null, modify((function(node) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
 })));
-addTransform("LetExpression", seq(bind(node, (function(node) {
+addTransform("LetExpression", seq(withNode((function(node) {
     var bindings = fun.flatten(fun.map((function(x) {
         return (x ? innerPattern(null, x.pattern) : []);
     }), node.bindings)),
         identifiers = fun.map((function(x) {
-            return [x.pattern.id.name, x.pattern.id.ud.uid];
+            return [x.pattern.id.name, getUid(x.pattern.id)];
         }), bindings);
     return addBindings(identifiers);
 })), modify((function(node) {
@@ -358,10 +358,8 @@ addTransform("ObjectValue", null, modify((function(node) {
 addTransform("ArgumentsPattern", null, modify((function(node) {
     return node.id;
 })));
-addTransform("IdentifierPattern", bind(node, (function(node) {
-    return ((node.id.ud && (node.id.ud.uid !== undefined)) ? addVar(node.id.name, node.id.ud.uid) : pass);
-})), modify((function(node) {
-    return node.id;
+addTransform("IdentifierPattern", withNode((function(node) {
+    return seq((getUid(node.id) ? addVar(node.id.name, getUid(node.id)) : pass), set(node.id));
 })));
 addTransform("AsPattern", null, modify((function(node) {
     return node.id;
@@ -391,18 +389,17 @@ addTransform("Program", seq(pushBindings, globals.chain((function(globals) {
             }))), node.body));
     }));
 })));
-addTransform("Package", bind(packageManager, (function(packageManager) {
+addTransform("Package", packageManager.chain((function(packageManager) {
     return globals.chain((function(globals) {
         return modify((function(node) {
             return packageBlock(packageManager, node.loc, node.exports, globals, node.body);
         }));
     }));
 })));
-addTransform("Identifier", null, bind(node, (function(node) {
-    return ((node.ud && node.ud.uid) ? next(addVar(node.name, node.ud.uid), getMapping(node.ud.uid, (
-        function(name) {
-            return set(identifier(node.loc, name));
-        }))) : set(identifier(node.loc, node.name)));
+addTransform("Identifier", null, withNode((function(node) {
+    return (getUid(node) ? next(addVar(node.name, getUid(node)), getMapping(getUid(node), (function(name) {
+        return set(identifier(node.loc, name));
+    }))) : set(identifier(node.loc, node.name)));
 })));
 (_trans = (function(node) {
     if ((node && (node instanceof khepri_node.Node))) {
@@ -418,7 +415,7 @@ var _transp = (function(node) {
     }
     return pass;
 }),
-    _transformPost = bind(node, _transp);
+    _transformPost = withNode(_transp);
 (transform = (function(ast, manager, data) {
     var amd_manager = require("./package_manager/amd"),
         node_manager = require("./package_manager/node"),
@@ -432,7 +429,7 @@ var _transp = (function(node) {
                     return khepri_declaration.VariableDeclarator.create(null, builtins[x],
                         definitions[x]);
                 }))) : []));
-    return run(seq(addVar("require", builtins.require.ud.uid), addVar("exports", builtins.exports.ud.uid), walk(
-        M, _transform, _transformPost), node), s, khepriZipper(ast));
+    return run(seq(addVar("require", getUid(builtins.require)), addVar("exports", getUid(builtins.exports)),
+        walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
 }));
 (exports["transform"] = transform);

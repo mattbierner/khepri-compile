@@ -31,8 +31,10 @@ with
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
     
+    import './ast' {
+        getUid
+        isLambda},
     import './builtin' {builtins definitions},
-    import './ast' {isLambda},
     import './fun' fun
 in {
 
@@ -86,10 +88,11 @@ var pop = M.lift <| M.inner.modify(\s ->
 
 var rewrite = \base list root ->
     neithWalk(
-        \ctx -> let node = tree.node(ctx) in
-            ?node && node.ud && node.ud.uid && list.indexOf(node.ud.uid) !== --1
+        \ctx ->
+            let node = tree.node(ctx), uid = getUid(node) in
+            ?list.indexOf(uid) !== --1
                 :tree.modifyNode(\node ->
-                    setData(node, 'uid', base + '-' + node.ud.uid), ctx)
+                    setData(node, 'uid', base + '-' + uid), ctx)
                 :ctx,
         \x -> x,
         khepriZipper(root))
@@ -158,7 +161,7 @@ addPeephole(['VariableDeclarator'], true,
         && isLambda(node.init)
         && false),
     node.chain \ node ->
-        addBinding(node.id.ud.uid, node.init));
+        addBinding(getUid(node.id), node.init));
 
 /**
  * 
@@ -170,16 +173,16 @@ addPeephole(['Binding'], true,
         && !node.recursive
         && isLambda(node.value)),
     node.chain \ node ->
-        addBinding(node.pattern.id.ud.uid, node.value));
+        addBinding(getUid(node.pattern.id), node.value));
 
 /* Inlining
  ******************************************************************************/
 addPeephole(['CallExpression'], true,
     \node ->
-        (node.callee.type === 'Identifier' && node.callee.ud.uid),
+        (node.callee.type === 'Identifier' && getUid(node.callee)),
 
     node.chain \ node ->
-        getBinding(node.callee.ud.uid).chain \ binding ->
+        getBinding(getUid(node.callee)).chain \ binding ->
             ?binding
                 :modify \ node ->
                     ast_expression.CallExpression.create(null,
@@ -189,10 +192,10 @@ addPeephole(['CallExpression'], true,
 
 addPeephole(['CurryExpression'], true,
     \node ->
-        (node.base.type === 'Identifier' && node.base.ud.uid),
+        (node.base.type === 'Identifier' && getUid(node.base)),
 
     node.chain \ node ->
-        getBinding(node.base.ud.uid).chain \ binding ->
+        getBinding(getUid(node.base)).chain \ binding ->
             ?binding
                 :modify \ node ->
                     ast_expression.CurryExpression.create(null,
@@ -213,7 +216,7 @@ addPeephole(['CallExpression'], true,
     
     unique.chain \ uid ->
         modify \ node -> let
-            map = node.callee.params.elements.map(\x -> x.id.ud.uid),
+            map = node.callee.params.elements.map(\x -> getUid(x.id)),
             
             bindings =
                 node.callee.params.elements.map \ x i ->
@@ -237,7 +240,7 @@ addPeephole(['CallExpression'], true,
     
     unique.chain \ uid ->
         modify \ node -> let
-            map = node.callee.body.params.elements.map(\x -> x.id.ud.uid),
+            map = node.callee.body.params.elements.map(\x -> getUid(x.id)),
     
             bindings =
                 node.callee.body.params.elements.map \ x i ->
@@ -314,7 +317,7 @@ addPeephole(['CurryExpression'], true,
                 first = node.base.params.elements.(0),
                 rest = node.base.params.elements.slice(1),
                 
-                map = [first.id.ud.uid],
+                map = [getUid(first.id)],
                 
                 body = ast_expression.FunctionExpression.create(null, null,
                     ast_pattern.ArgumentsPattern.create(null, null,
@@ -348,7 +351,7 @@ addPeephole(['CurryExpression'], true,
             first = node.base.body.params.elements.(0),
             rest = node.base.body.params.elements.slice(1),
             
-            map = [first.id.ud.uid],
+            map = [getUid(first.id)],
     
             body = ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null,

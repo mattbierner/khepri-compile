@@ -1,11 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
+*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
     "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
-    "zipper-m/walk", "./builtin", "./ast", "./fun"
+    "zipper-m/walk", "./ast", "./builtin", "./fun"
 ], (function(require, exports, record, array, hashtrie, __o, __o0, tree, __o1, ast_declaration, ast_statement,
     ast_expression, ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, __o3, __o4, fun) {
     "use strict";
@@ -17,9 +16,10 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
         next = __o2["next"],
         seq = __o2["sequence"],
         seqa = __o2["sequencea"],
-        builtins = __o3["builtins"],
-        definitions = __o3["definitions"],
-        isLambda = __o4["isLambda"],
+        getUid = __o3["getUid"],
+        isLambda = __o3["isLambda"],
+        builtins = __o4["builtins"],
+        definitions = __o4["definitions"],
         optimize, State = record.declare(null, ["bindings", "globals"]),
         M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, state, seed) {
@@ -63,10 +63,10 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
         }))),
         rewrite = (function(base, list, root) {
             return tree.node(neithWalk((function(ctx) {
-                var node = tree.node(ctx);
-                return ((((node && node.ud) && node.ud.uid) && (list.indexOf(node.ud.uid) !== -
-                    1)) ? tree.modifyNode((function(node) {
-                    return setData(node, "uid", ((base + "-") + node.ud.uid));
+                var node = tree.node(ctx),
+                    uid = getUid(node);
+                return ((list.indexOf(uid) !== -1) ? tree.modifyNode((function(node) {
+                    return setData(node, "uid", ((base + "-") + uid));
                 }), ctx) : ctx);
             }), (function(x) {
                 return x;
@@ -100,17 +100,17 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
     addPeephole(["VariableDeclarator"], true, (function(node) {
         return (((node.immutable && node.init) && isLambda(node.init)) && false);
     }), node.chain((function(node) {
-        return addBinding(node.id.ud.uid, node.init);
+        return addBinding(getUid(node.id), node.init);
     })));
     addPeephole(["Binding"], true, (function(node) {
         return (((node.pattern.id && node.pattern.id.ud) && (!node.recursive)) && isLambda(node.value));
     }), node.chain((function(node) {
-        return addBinding(node.pattern.id.ud.uid, node.value);
+        return addBinding(getUid(node.pattern.id), node.value);
     })));
     addPeephole(["CallExpression"], true, (function(node) {
-        return ((node.callee.type === "Identifier") && node.callee.ud.uid);
+        return ((node.callee.type === "Identifier") && getUid(node.callee));
     }), node.chain((function(node) {
-        return getBinding(node.callee.ud.uid)
+        return getBinding(getUid(node.callee))
             .chain((function(binding) {
                 return (binding ? modify((function(node) {
                     return ast_expression.CallExpression.create(null, binding,
@@ -119,9 +119,9 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
             }));
     })));
     addPeephole(["CurryExpression"], true, (function(node) {
-        return ((node.base.type === "Identifier") && node.base.ud.uid);
+        return ((node.base.type === "Identifier") && getUid(node.base));
     }), node.chain((function(node) {
-        return getBinding(node.base.ud.uid)
+        return getBinding(getUid(node.base))
             .chain((function(binding) {
                 return (binding ? modify((function(node) {
                     return ast_expression.CurryExpression.create(null, binding,
@@ -134,7 +134,7 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
     }), unique.chain((function(uid) {
         return modify((function(node) {
             var map = node.callee.params.elements.map((function(x) {
-                return x.id.ud.uid;
+                return getUid(x.id);
             })),
                 bindings = node.callee.params.elements.map((function(x, i) {
                     return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
@@ -151,7 +151,7 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
     }), unique.chain((function(uid) {
         return modify((function(node) {
             var map = node.callee.body.params.elements.map((function(x) {
-                return x.id.ud.uid;
+                return getUid(x.id);
             })),
                 bindings = node.callee.body.params.elements.map((function(x, i) {
                     return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
@@ -188,7 +188,7 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
             var first, rest, map, body;
             return ((!node.base.params.elements.length) ? node.base : ((first = node.base.params
                 .elements[0]), (rest = node.base.params.elements.slice(1)), (map = [
-                first.id.ud.uid
+                getUid(first.id)
             ]), (body = ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, rest, node.base
                     .params.self), rewrite(uid, map, node.base.body))), ((first &&
@@ -206,7 +206,7 @@ define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast
             var first, rest, map, body;
             return ((!node.base.body.params.elements.length) ? node.base : ((first = node.base
                 .body.params.elements[0]), (rest = node.base.body.params.elements.slice(
-                1)), (map = [first.id.ud.uid]), (body = ast_expression.FunctionExpression
+                1)), (map = [getUid(first.id)]), (body = ast_expression.FunctionExpression
                 .create(null, null, ast_pattern.ArgumentsPattern.create(null, null,
                     rest, node.base.body.params.self), rewrite(uid, map, node.base
                     .body.body))), ((first && (((first.type === "IdentifierPattern") ||

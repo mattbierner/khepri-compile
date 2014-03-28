@@ -34,6 +34,8 @@ with
     
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
+    
+    import '../ast' {getUid},
 
     import '../scope' scope,
     import '../fun' fun#{flip},
@@ -56,7 +58,6 @@ var run = \m s ctx seed ->
         seed);
 
 var ok = M.of;
-var bind = M.chain;
 
 var pass = ok null;
 
@@ -93,9 +94,9 @@ var globals = extract.map\s -> s.globals;
 
 // Scope Operations
 ////////////////////////////////////////
-var inspectScopeWith = \f -> bind(extract, \s -> f(s.scope));
+var inspectScopeWith = \f -> extract.chain\s -> f(s.scope);
 
-var packageManager = inspectStateWith(\s -> ok(s.packageManager));
+var packageManager = extract.map\s -> s.packageManager;
 
 var modifyScope = \f ->
     modifyState \ s ->
@@ -126,6 +127,8 @@ var modify = M.modifyNode;
 
 var set = M.setNode;
 
+var withNode = node.chain.bind(node);
+
 // Scoping Operations
 ////////////////////////////////////////
 var enterBlock = inspectScopeWith \ s ->
@@ -151,17 +154,18 @@ var getMapping = \uid f ->
 var getName = \name uid ->
     getMapping(uid, ok);
 
-var getBindings = \f ->
-    bind(
-        inspectStateWith \ s -> 
-            enumeration(fun.map(\[name uid] -> getName(name, uid), s.bindings.(0))),
-        f);
+var getBindings = M.chain @ inspectStateWith(\s -> 
+    enumeration(
+        fun.map(
+            \[name uid] ->
+                getName(name, uid),
+            s.bindings.(0))));
 
 /* Forward
  ******************************************************************************/
 var _trans;
 
-var _transform =  bind(node, \x -> _trans(x));// Late
+var _transform = withNode \node -> _trans(node); // Late
 
 /* Values
  ******************************************************************************/
@@ -414,13 +418,13 @@ addTransform('IfStatement',
 
 addTransform('WithStatement',
     next(
-        bind(packageManager, \packageManager -> 
+        packageManager.chain \ packageManager -> 
             modify \ node ->
                 withStatement(
                     packageManager,
                     node.loc,
                     node.bindings,
-                    node.body)),
+                    node.body),
         _transform));
 
 addTransform('SwitchStatement',
@@ -554,11 +558,11 @@ addTransform('MemberExpression',
 
 addTransform('LetExpression',
     seq(
-        bind(node, \node -> let
+        withNode \ node -> let
             bindings = fun.flatten <| fun.map(\x -> ?x : innerPattern(null, x.pattern) : [], node.bindings),
-            identifiers = fun.map(\x -> [x.pattern.id.name, x.pattern.id.ud.uid], bindings)
+            identifiers = fun.map(\x -> [x.pattern.id.name, getUid(x.pattern.id)], bindings)
         in
-            addBindings(identifiers)),
+            addBindings(identifiers),
         modify \ node ->
             letExpression(node.loc,
                 node.bindings,
@@ -613,12 +617,12 @@ addTransform('ArgumentsPattern',
         node.id);
 
 addTransform('IdentifierPattern',
-    bind(node, \node ->
-        ?node.id.ud && node.id.ud.uid !== undefined
-            :addVar(node.id.name, node.id.ud.uid)
-            :pass),
-    modify \ node ->
-        node.id);
+    withNode \ node ->
+        seq(
+            ?getUid(node.id)
+                :addVar(node.id.name, getUid(node.id))
+                :pass,
+            set <| node.id));
 
 addTransform('AsPattern',
     null,
@@ -663,26 +667,26 @@ addTransform('Program',
 
 // Package
 addTransform('Package',
-    bind(packageManager, \packageManager ->
-        globals.chain \ globals ->
-        modify \ node ->
-            packageBlock(
-                packageManager,
-                node.loc,
-                node.exports,
-                globals,
-                node.body)));
+    packageManager.chain \packageManager ->
+    globals.chain \ globals ->
+    modify \ node ->
+        packageBlock(
+            packageManager,
+            node.loc,
+            node.exports,
+            globals,
+            node.body));
 
 // Value
 addTransform('Identifier',
     null,
-    bind(node, \node ->
-        ?node.ud && node.ud.uid
+    withNode \ node ->
+        ?getUid node
             :next(
-                addVar(node.name, node.ud.uid),
-                getMapping(node.ud.uid, \name ->
+                addVar(node.name, getUid(node)),
+                getMapping(getUid node, \name ->
                     set <| identifier(node.loc, name)))
-            :set <| identifier(node.loc, node.name)));
+            :set <| identifier(node.loc, node.name));
 
 /*
  *****************************************************************************/
@@ -704,7 +708,7 @@ var _transp = \node -> {
     return pass;
 };
 
-var _transformPost = bind(node, _transp);
+var _transformPost = withNode _transp;
 
 /* API
  *****************************************************************************/
@@ -730,8 +734,8 @@ transform = \ast manager data -> {
         
         return run(
             seq(
-                addVar('require', builtins.require.ud.uid),
-                addVar('exports', builtins.exports.ud.uid),
+                addVar('require', getUid(builtins.require)),
+                addVar('exports', getUid(builtins.exports)),
                 walk(M, _transform, _transformPost),
                 node),
             s,
