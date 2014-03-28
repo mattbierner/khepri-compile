@@ -1,15 +1,15 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/node.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/node.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_statement = require("khepri-ast")["statement"],
     ast_program = require("khepri-ast")["program"],
     ast_value = require("khepri-ast")["value"],
     fun = require("../../fun"),
-    builtins = require("../../builtin"),
+    __o = require("../../builtin"),
+    builtins = __o["builtins"],
     definePackage, defineProgram, importPackage, concat = Array.prototype.concat.bind([]),
     map = Function.prototype.call.bind(Array.prototype.map);
 (defineProgram = (function(body) {

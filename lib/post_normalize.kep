@@ -26,7 +26,7 @@ with
     
     import './fun' fun#{flattenr},
     import './unpack' {innerPattern unpackParameters},
-    import './builtin' builtins
+    import './builtin' {builtins definitions}
 in {
 
 
@@ -61,7 +61,7 @@ addPeephole(['LetExpression'], UP,
     
     \node ->
         ast_expression.LetExpression.create(node.loc,
-            flattenr <| node.bindings.map\x -> innerPattern(x.value, x.pattern),
+            flattenr <| node.bindings.map\x -> innerPattern(x.value, x.pattern, x.recursive),
             node.body));
 
 /**
@@ -79,7 +79,7 @@ addPeephole(['FunctionExpression'], UP,
                     return x;
                 default:
                     return ast_pattern.IdentifierPattern.create(null,
-                        (x.id && x.id.id) || x.ud.id );
+                        (x.id && x.id.id) || x.ud.id);
                 }
             }),
         
@@ -140,7 +140,7 @@ addPeephole(['BinaryExpression'], true,
     
     \{operator left right} ->
         ast_expression.CallExpression.create(null,
-            builtins.(operator),
+            definitions.(operator),
             [left, right]));
 
 /* Interface

@@ -22,7 +22,6 @@ with
 
     import './scope' scope#{Scope},
     import './fun' {foldl},
-    import './builtin' builtins,
     
     import 'zipper-m::trans::zipper' ZipperT
 in {

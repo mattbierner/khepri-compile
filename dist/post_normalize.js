@@ -5,7 +5,7 @@
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/value", "./fun", "./unpack", "./builtin"
 ], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_package, ast_value, fun, __o2, builtins) {
+    ast_pattern, ast_package, ast_value, fun, __o2, __o3) {
     "use strict";
     var walk = __o["walk"],
         khepriZipper = __o0["khepriZipper"],
@@ -13,6 +13,8 @@
         flattenr = fun["flattenr"],
         innerPattern = __o2["innerPattern"],
         unpackParameters = __o2["unpackParameters"],
+        builtins = __o3["builtins"],
+        definitions = __o3["definitions"],
         normalize, DOWN = false,
         UP = true,
         peepholes = ({}),
@@ -30,7 +32,7 @@
         return true;
     }), (function(node) {
         return ast_expression.LetExpression.create(node.loc, flattenr(node.bindings.map((function(x) {
-            return innerPattern(x.value, x.pattern);
+            return innerPattern(x.value, x.pattern, x.recursive);
         }))), node.body);
     }));
     addPeephole(["FunctionExpression"], UP, (function(_) {
@@ -75,7 +77,7 @@
         var operator = __o["operator"],
             left = __o["left"],
             right = __o["right"];
-        return ast_expression.CallExpression.create(null, builtins[operator], [left, right]);
+        return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
     }));
     var upTransforms = (function(node) {
         return ((node && peepholes[node.type]) || [])

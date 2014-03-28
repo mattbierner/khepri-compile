@@ -5,7 +5,7 @@
     "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
     "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk", "./builtin", "./fun", "./ast"
 ], (function(require, exports, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_value, __o1, Unique, StateT, ZipperT, walk, builtins, fun, __o2) {
+    ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, fun, __o3) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
@@ -14,8 +14,10 @@
         next = __o1["next"],
         seq = __o1["sequence"],
         seqa = __o1["sequencea"],
-        isPrimitive = __o2["isPrimitive"],
-        isTruthy = __o2["isTruthy"],
+        builtins = __o2["builtins"],
+        isPrimitive = __o3["isPrimitive"],
+        isNumberish = __o3["isNumberish"],
+        isTruthy = __o3["isTruthy"],
         optimize, M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
@@ -143,6 +145,12 @@
             consequent = __o["consequent"],
             alternate = __o["alternate"];
         return (isTruthy(test) ? consequent : alternate);
+    })));
+    addPeephole(["MemberExpression"], true, (function(node) {
+        return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
+    }), modify((function(node) {
+        return (node.object.elements[node.property.value] || ast_value.Identifier.create(null,
+            "undefined"));
     })));
     addPeephole(["VariableDeclarator"], true, (function(node) {
         return (node.immutable && node.init);

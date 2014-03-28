@@ -21,7 +21,9 @@ var tree = require("neith")["tree"],
     __o2 = require("./unpack"),
     innerPattern = __o2["innerPattern"],
     unpackParameters = __o2["unpackParameters"],
-    builtins = require("./builtin"),
+    __o3 = require("./builtin"),
+    builtins = __o3["builtins"],
+    definitions = __o3["definitions"],
     normalize, DOWN = false,
     UP = true,
     peepholes = ({}),
@@ -39,7 +41,7 @@ addPeephole(["LetExpression"], UP, (function(_) {
     return true;
 }), (function(node) {
     return ast_expression.LetExpression.create(node.loc, flattenr(node.bindings.map((function(x) {
-        return innerPattern(x.value, x.pattern);
+        return innerPattern(x.value, x.pattern, x.recursive);
     }))), node.body);
 }));
 addPeephole(["FunctionExpression"], UP, (function(_) {
@@ -83,7 +85,7 @@ addPeephole(["BinaryExpression"], true, (function(node) {
     var operator = __o["operator"],
         left = __o["left"],
         right = __o["right"];
-    return ast_expression.CallExpression.create(null, builtins[operator], [left, right]);
+    return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
 }));
 var upTransforms = (function(node) {
     return ((node && peepholes[node.type]) || [])

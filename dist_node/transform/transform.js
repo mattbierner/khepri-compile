@@ -32,10 +32,12 @@ var record = require("bes")["record"],
     scope = require("../scope"),
     fun = require("../fun"),
     flip = fun["flip"],
-    builtins = require("../builtin"),
-    __o1 = require("../unpack"),
-    innerPattern = __o1["innerPattern"],
-    unpackParameters = __o1["unpackParameters"],
+    __o1 = require("../builtin"),
+    builtins = __o1["builtins"],
+    definitions = __o1["definitions"],
+    __o2 = require("../unpack"),
+    innerPattern = __o2["innerPattern"],
+    unpackParameters = __o2["unpackParameters"],
     transform, M = ZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
@@ -51,10 +53,10 @@ var record = require("bes")["record"],
         }));
     }),
     enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-    State = record.declare(null, ["scope", "packageManager", "bindings"]);
+    State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
 (State.empty = State.create(scope.Scope.empty, null, [
     [], null
-]));
+], []));
 var extract = M.lift(M.inner.get),
     setState = (function(f, g) {
         return (function(x) {
@@ -67,6 +69,9 @@ var extract = M.lift(M.inner.get),
         });
     })(M.lift, M.inner.modify),
     inspectStateWith = M.chain.bind(null, extract),
+    globals = extract.map((function(s) {
+        return s.globals;
+    })),
     inspectScopeWith = (function(f) {
         return bind(extract, (function(s) {
             return f(s.scope);
@@ -198,14 +203,6 @@ var extract = M.lift(M.inner.get),
         return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map((function(x) {
             return (x ? unpackAssign(x.pattern, x.value) : []);
         }), bindings), body)));
-    }),
-    ternaryOperatorExpression = (function(loc) {
-        return khepri_expression.FunctionExpression.create(loc, null, khepri_pattern.ArgumentsPattern.create(null,
-            null, [khepri_pattern.IdentifierPattern.create(null, identifier(null, "x")), khepri_pattern.IdentifierPattern
-                .create(null, identifier(null, "y")), khepri_pattern.IdentifierPattern.create(null, identifier(
-                    null, "z"))
-            ]), khepri_expression.ConditionalExpression.create(null, identifier(null, "x"), identifier(null,
-            "y"), identifier(null, "z")));
     }),
     curryExpression = (function(loc, base, args) {
         return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(null, base,
@@ -342,9 +339,6 @@ addTransform("LetExpression", seq(bind(node, (function(node) {
 addTransform("CurryExpression", modify((function(node) {
     return curryExpression(node.loc, node.base, node.args);
 })));
-addTransform("TernaryOperatorExpression", next(modify((function(node) {
-    return ternaryOperatorExpression(node.loc);
-})), _transform));
 addTransform("FunctionExpression", seq(enterBlock, modify((function(node) {
     return functionExpression(node.loc, node.id, node.params, node.body, (node.ud && node.ud.prefix));
 }))), seq(modify((function(node) {
@@ -379,9 +373,12 @@ addTransform("EllipsisPattern", modify((function(node) {
 addTransform("SinkPattern", modify((function(node) {
     return (node.ud && node.ud.id);
 })));
-addTransform("Program", seq(pushBindings, modify((function(node) {
-    return ((node.body.type === "Package") ? node : setData(node, "prefix", khepri_statement.ExpressionStatement
-        .create(null, khepri_value.Literal.create(null, "string", "use strict"))));
+addTransform("Program", seq(pushBindings, globals.chain((function(globals) {
+    return modify((function(node) {
+        return ((node.body.type === "Package") ? node : setData(khepri_program.Program.create(
+                null, fun.concat(globals, node.body)), "prefix", khepri_statement.ExpressionStatement
+            .create(null, khepri_value.Literal.create(null, "string", "use strict"))));
+    }));
 }))), getBindings((function(bindings) {
     return modify((function(node) {
         return ecma_program.Program.create(node.loc, fun.concat(((node.ud && node.ud.prefix) ? node
@@ -423,8 +420,14 @@ var _transp = (function(node) {
         node_manager = require("./package_manager/node"),
         packageManager = amd_manager;
     if ((manager === "node"))(packageManager = node_manager);
-    var s = State.empty.setScope(scope.Scope.empty)
-        .setPackageManager(packageManager);
+    var globals = data.globals,
+        s = State.empty.setScope(scope.Scope.empty)
+            .setPackageManager(packageManager)
+            .setGlobals((data.globals ? khepri_declaration.VariableDeclaration.create(null, data.globals.map((
+                function(x) {
+                    return khepri_declaration.VariableDeclarator.create(null, builtins[x],
+                        definitions[x]);
+                }))) : []));
     return run(seq(addVar("require", builtins.require.ud.uid), addVar("exports", builtins.exports.ud.uid), walk(
         M, _transform, _transformPost), node), s, khepriZipper(ast));
 }));

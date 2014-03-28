@@ -1,17 +1,28 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports"], (function(require, exports) {
+*/define(["require", "exports"], (function(require, exports) {
     "use strict";
-    var isPrimitive, isSimple, isTruthy, isBlockFunction, isLambda;
+    var isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda;
+    (isLiteral = (function(node) {
+        return (node.type === "Literal");
+    }));
+    (isNumberish = (function(node) {
+        return (isPrimitive(node) && (!isNaN(node.value)));
+    }));
     (isPrimitive = (function(node) {
-        return ((node.type === "Literal") && ((((node.kind === "string") || (node.kind === "number")) ||
-            (node.kind === "boolean")) || (node.kind === "null")));
+        return (isLiteral(node) && ((((node.kind === "string") || (node.kind === "number")) || (node.kind ===
+            "boolean")) || (node.kind === "null")));
     }));
     (isSimple = (function(node) {
-        return ((isPrimitive(node) || (node.type === "ArrayExpression")) || (node.type ===
+        return ((isLiteral(node) || (node.type === "ArrayExpression")) || (node.type ===
             "ObjectExpression"));
+    }));
+    (isPod = (function(node) {
+        return (((isPrimitive(node) || (node.type === "ArrayExpression")) && (node.elements.every(isPod) ||
+            (node.type === "ObjectExpression"))) && node.elements.every((function(x) {
+            return isPod(x.value);
+        })));
     }));
     (isTruthy = (function(node) {
         return (isPrimitive(node) && (!(!node.value)));
@@ -23,8 +34,11 @@ define(["require", "exports"], (function(require, exports) {
         return (((((node.type === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
             (!node.params.self)) && (!node.params.id));
     }));
+    (exports["isLiteral"] = isLiteral);
+    (exports["isNumberish"] = isNumberish);
     (exports["isPrimitive"] = isPrimitive);
     (exports["isSimple"] = isSimple);
+    (exports["isPod"] = isPod);
     (exports["isTruthy"] = isTruthy);
     (exports["isBlockFunction"] = isBlockFunction);
     (exports["isLambda"] = isLambda);

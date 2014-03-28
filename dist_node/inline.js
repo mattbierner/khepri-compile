@@ -27,14 +27,16 @@ var record = require("bes")["record"],
     StateT = require("akh")["trans"]["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    builtins = require("./builtin"),
-    __o3 = require("./ast"),
-    isLambda = __o3["isLambda"],
+    __o3 = require("./builtin"),
+    builtins = __o3["builtins"],
+    definitions = __o3["definitions"],
+    __o4 = require("./ast"),
+    isLambda = __o4["isLambda"],
     fun = require("./fun"),
-    optimize, State = record.declare(null, ["bindings", "stack"]),
+    optimize, State = record.declare(null, ["bindings", "globals"]),
     M = ZipperT(StateT(Unique)),
-    run = (function(c, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), new(State)(hashtrie.empty, [])), seed);
+    run = (function(c, ctx, state, seed) {
+        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
     }),
     pass = M.of(null),
     node = M.node,
@@ -53,6 +55,15 @@ var record = require("bes")["record"],
                 return hashtrie.get(uid, bindings);
             })) : pass);
     }),
+    addGlobal = (function(name) {
+        return M.lift(M.inner.modify((function(s) {
+            return s.setGlobals(hashtrie.set(name, name, s.globals));
+        })));
+    }),
+    globals = M.lift(M.inner.get)
+        .map((function(s) {
+            return s.globals;
+        })),
     stack = M.lift(M.inner.get)
         .map((function(s) {
             return s.stack;
@@ -85,32 +96,49 @@ var record = require("bes")["record"],
             (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
         }));
     }),
-    when = (function(test, body) {
-        return node.chain((function(node) {
-            return (test(node) ? body(node) : pass);
-        }));
-    }),
     always = (function(_) {
         return true;
     });
-addPeephole(["UnaryOperatorExpression"], true, always, modify((function(__o) {
+addPeephole(["UnaryOperatorExpression"], false, always, node.chain((function(__o) {
     var op = __o["op"];
-    return builtins[op];
+    return seq(addGlobal(op), set(builtins[op]));
 })));
-addPeephole(["BinaryOperatorExpression"], true, always, modify((function(__o) {
+addPeephole(["BinaryOperatorExpression"], false, always, node.chain((function(__o) {
     var op = __o["op"],
-        flipped = __o["flipped"];
-    return builtins[(flipped ? ("_" + op) : op)];
+        flipped = __o["flipped"],
+        name = (flipped ? ("_" + op) : op);
+    return seq(addGlobal(name), set(builtins[name]));
 })));
+addPeephole(["TernaryOperatorExpression"], false, always, seq(addGlobal("?"), set(builtins["?"])));
 addPeephole(["VariableDeclarator"], true, (function(node) {
-    return ((node.immutable && node.init) && isLambda(node.init));
+    return (((node.immutable && node.init) && isLambda(node.init)) && false);
 }), node.chain((function(node) {
     return addBinding(node.id.ud.uid, node.init);
 })));
 addPeephole(["Binding"], true, (function(node) {
-    return ((node.pattern.id && node.pattern.id.ud) && isLambda(node.value));
+    return (((node.pattern.id && node.pattern.id.ud) && (!node.recursive)) && isLambda(node.value));
 }), node.chain((function(node) {
     return addBinding(node.pattern.id.ud.uid, node.value);
+})));
+addPeephole(["CallExpression"], true, (function(node) {
+    return ((node.callee.type === "Identifier") && node.callee.ud.uid);
+}), node.chain((function(node) {
+    return getBinding(node.callee.ud.uid)
+        .chain((function(binding) {
+            return (binding ? modify((function(node) {
+                return ast_expression.CallExpression.create(null, binding, node.args);
+            })) : pass);
+        }));
+})));
+addPeephole(["CurryExpression"], true, (function(node) {
+    return ((node.base.type === "Identifier") && node.base.ud.uid);
+}), node.chain((function(node) {
+    return getBinding(node.base.ud.uid)
+        .chain((function(binding) {
+            return (binding ? modify((function(node) {
+                return ast_expression.CurryExpression.create(null, binding, node.args);
+            })) : pass);
+        }));
 })));
 addPeephole(["CallExpression"], true, (function(node) {
     return isLambda(node.callee);
@@ -164,26 +192,36 @@ addPeephole(["CallExpression"], true, (function(node) {
 })));
 addPeephole(["CurryExpression"], true, (function(node) {
     return isLambda(node.base);
-}), modify((function(node) {
-    var first = node.base.params.elements[0],
-        rest = node.base.params.elements.slice(1),
-        body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-            null, null, rest, node.base.params.self), node.base.body);
-    return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
-        "ObjectPattern"))) ? ast_expression.LetExpression.create(null, [ast_declaration.Binding.create(
-        null, first, node.args[0])], body) : body);
+}), unique.chain((function(uid) {
+    return modify((function(node) {
+        var first = node.base.params.elements[0],
+            rest = node.base.params.elements.slice(1),
+            map = [first.id.ud.uid],
+            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+                .create(null, null, rest, node.base.params.self), rewrite(uid, map, node.base.body)
+            );
+        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
+            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, [
+            rewrite(uid, map, ast_declaration.Binding.create(null, first, node.args[0]))
+        ], body) : body);
+    }));
 })));
 addPeephole(["CurryExpression"], true, (function(node) {
     return ((node.base.type === "LetExpression") && isLambda(node.base.body));
-}), modify((function(node) {
-    var first = node.base.body.params.elements[0],
-        rest = node.base.body.params.elements.slice(1),
-        body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-            null, null, rest, node.base.body.params.self), node.base.body.body);
-    return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
-            "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(node.base.bindings,
-            ast_declaration.Binding.create(null, first, node.args[0])), body) : ast_expression.LetExpression
-        .create(null, node.base.bindings, body));
+}), unique.chain((function(uid) {
+    return modify((function(node) {
+        var first = node.base.body.params.elements[0],
+            rest = node.base.body.params.elements.slice(1),
+            map = [first.id.ud.uid],
+            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+                .create(null, null, rest, node.base.body.params.self), rewrite(uid, map, node.base.body
+                    .body));
+        return ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
+            (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null, fun.concat(
+            node.base.bindings, rewrite(uid, map, ast_declaration.Binding.create(null,
+                first, node.args[0]))), body) : ast_expression.LetExpression.create(null, node.base
+            .bindings, body));
+    }));
 })));
 var upTransforms = (function(node) {
     return ((node && peepholes[node.type]) || [])
@@ -206,9 +244,30 @@ var upTransforms = (function(node) {
         return transform(node, downTransforms(node));
     })),
     _transformPost = node.chain((function(node) {
-        return transform(node, upTransforms(node));
-    }));
+        var t = upTransforms(node);
+        return (t.length ? M.chain(transform(node, [t[0]]), (function(x) {
+            return ((x && (x !== node)) ? _transformPost : pass);
+        })) : pass);
+    })),
+    initialState = Object.keys(builtins)
+        .reduce((function(s, name) {
+            var id = builtins[name],
+                def = definitions[name];
+            return s.setBindings(hashtrie.set(id.ud.uid, def, s.bindings));
+        }), new(State)(hashtrie.empty, hashtrie.empty));
 (optimize = (function(ast, data) {
-    return run(next(walk(M, _transform, _transformPost), node), khepriZipper(ast), data.unique);
+    return run(next(walk(M, _transform, _transformPost), node.chain((function(node) {
+        return globals.chain((function(g) {
+            return unique.chain((function(unique) {
+                return M.of(({
+                    "tree": node,
+                    "data": ({
+                        "globals": hashtrie.keys(g),
+                        "unique": unique
+                    })
+                }));
+            }));
+        }));
+    }))), khepriZipper(ast), initialState, data.unique);
 }));
 (exports["optimize"] = optimize);

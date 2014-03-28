@@ -8,26 +8,40 @@ var ast_node = require("khepri-ast")["node"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
-    builtins, unique = (function() {
+    builtins, definitions, xArg, yArg, zArg, unique = (function() {
         var x = 0;
         return (function() {
             (x = (x + 1));
             return x;
         });
-    })();
+    })(),
+    identifier = (function(loc, name, uid) {
+        return setData(ast_value.Identifier.create(loc, name), "uid", uid);
+    });
+(definitions = ({}));
+var addSymbol = (function(name, id, def) {
+    (builtins[name] = id);
+    (definitions[name] = def);
+}),
+    registerAliasedSymbol = (function(name, alias, def) {
+        addSymbol(name, identifier(null, alias, unique()), def);
+    }),
+    registerSymbol = (function(name, def) {
+        return registerAliasedSymbol(name, name, def);
+    });
 (builtins = ({
     "require": setData(new(ast_value.Identifier)(null, "require"), "uid", unique()),
     "exports": setData(new(ast_value.Identifier)(null, "exports"), "uid", unique()),
     "module": setData(new(ast_value.Identifier)(null, "module"), "uid", unique())
 }));
-var unary = (function(uid, op) {
-    var xArg = setData(ast_value.Identifier.create(null, "x"), "uid", unique());
+var unary = (function(op) {
+    var xArg = identifier(null, "x", unique());
     return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
         ast_pattern.IdentifierPattern.create(null, xArg)
     ]), op(xArg));
 }),
     unaryOp = (function(op) {
-        return unary(unique(), (function(x) {
+        return unary((function(x) {
             return ast_expression.UnaryExpression.create(null, op, x);
         }));
     });
@@ -41,22 +55,28 @@ var unary = (function(uid, op) {
 ].forEach((function(__o) {
     var op = __o[0],
         name = __o[1];
-    (builtins[op] = unaryOp(op));
+    registerAliasedSymbol(op, name, unaryOp(op));
 }));
-var binary = (function(uid, flipped, op) {
-    var xArg = setData(ast_value.Identifier.create(null, "x"), "uid", unique()),
-        yArg = setData(ast_value.Identifier.create(null, "y"), "uid", unique());
+var ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null, "y", unique())), (zArg =
+    identifier(null, "z", unique())), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+    .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+        null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
+        null, xArg, yArg, zArg)));
+registerAliasedSymbol("?", "__cond", ternaryOperator);
+var binary = (function(flipped, op) {
+    var xArg = identifier(null, "x", unique()),
+        yArg = identifier(null, "y", unique());
     return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
         ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg)
     ]), (flipped ? op(yArg, xArg) : op(xArg, yArg)));
 }),
     binaryOp = (function(op, flipped) {
-        return binary(unique(), flipped, (function(x, y) {
+        return binary(flipped, (function(x, y) {
             return ast_expression.BinaryExpression.create(null, op, x, y);
         }));
     }),
     logicalOp = (function(op, flipped) {
-        return binary(unique(), flipped, (function(x, y) {
+        return binary(flipped, (function(x, y) {
             return ast_expression.LogicalExpression.create(null, op, x, y);
         }));
     });
@@ -84,8 +104,8 @@ var binary = (function(uid, flipped, op) {
 ].forEach((function(__o) {
     var op = __o[0],
         name = __o[1];
-    (builtins[op] = binaryOp(op));
-    (builtins[("_" + op)] = binaryOp(op, true));
+    registerAliasedSymbol(op, name, binaryOp(op));
+    registerAliasedSymbol(("_" + op), (name + "r"), binaryOp(op, true));
 }));
 [
     ["||", "__or"],
@@ -93,46 +113,49 @@ var binary = (function(uid, flipped, op) {
 ].forEach((function(__o) {
     var op = __o[0],
         name = __o[1];
-    (builtins[op] = logicalOp(op));
-    (builtins[("_" + op)] = logicalOp(op, true));
+    registerSymbol(op, logicalOp(op));
+    registerSymbol(("_" + op), logicalOp(op, true));
 }));
-(builtins["new"] = binary(unique(), false, (function(x, y) {
+registerAliasedSymbol("new", "__new", binary(false, (function(x, y) {
     return ast_expression.NewExpression.create(null, x, [y]);
 })));
-(builtins["_new"] = binary(unique(), true, (function(x, y) {
+registerAliasedSymbol("_new", "__newr", binary(true, (function(x, y) {
     return ast_expression.NewExpression.create(null, x, [y]);
 })));
-(builtins["."] = binary(unique(), false, (function(x, y) {
+registerAliasedSymbol(".", "__dot", binary(false, (function(x, y) {
     return ast_expression.MemberExpression.create(null, x, y, true);
 })));
-(builtins["_."] = binary(unique(), true, (function(x, y) {
+registerAliasedSymbol("_.", "__dotr", binary(true, (function(x, y) {
     return ast_expression.MemberExpression.create(null, x, y, true);
 })));
-(builtins["@"] = binary(unique(), false, (function(x, y) {
-    return ast_expression.CurryExpression.create(null, x, y);
+registerAliasedSymbol("@", "__curry", binary(false, (function(x, y) {
+    return ast_expression.CurryExpression.create(null, x, [y]);
 })));
-(builtins["_@"] = binary(unique(), true, (function(x, y) {
-    return ast_expression.CurryExpression.create(null, x, y);
+registerAliasedSymbol("_@", "__curryr", binary(true, (function(x, y) {
+    return ast_expression.CurryExpression.create(null, x, [y]);
 })));
 var pipe = (function(callee, arg) {
     return ast_expression.CallExpression.create(null, callee, [arg]);
-});
-(builtins["<|"] = (builtins["_|>"] = binary(unique(), false, pipe)));
-(builtins["|>"] = (builtins["_<|"] = binary(unique(), true, pipe)));
-var identifier = (function(loc, name, uid) {
-    return setData(ast_value.Identifier.create(loc, name), "uid", uid);
 }),
-    singleCompose = (function(f, g) {
-        var fo = identifier(null, "f", unique()),
-            go = identifier(null, "g", unique()),
-            x = identifier(null, "x", unique());
-        return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null, fo),
-                ast_pattern.IdentifierPattern.create(null, go)
-            ]), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-                null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression.create(
-                null, fo, [ast_expression.CallExpression.create(null, go, [x])]))), [f, g]);
-    }),
+    lPipe = binary(false, pipe),
+    rPipe = binary(true, pipe);
+registerAliasedSymbol("<|", "__pipe", lPipe);
+registerAliasedSymbol("_|>", "__rpiper", lPipe);
+registerAliasedSymbol("|>", "__rpipe", rPipe);
+registerAliasedSymbol("_<|", "__piper", rPipe);
+var singleCompose = (function(f, g) {
+    var fo = identifier(null, "f", unique()),
+        go = identifier(null, "g", unique()),
+        x = identifier(null, "x", unique());
+    return ast_expression.CallExpression.create(null, ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null, fo),
+            ast_pattern.IdentifierPattern.create(null, go)
+        ]), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, x)
+        ]), ast_expression.CallExpression.create(null, fo, [ast_expression.CallExpression.create(null, go, [
+            x
+        ])]))), [f, g]);
+}),
     multiCompose = (function(f, g) {
         var fo = identifier(null, "f", unique()),
             go = identifier(null, "g", unique());
@@ -144,9 +167,18 @@ var identifier = (function(loc, name, uid) {
                 null, ast_expression.MemberExpression.create(null, go, identifier(null, "apply")), [
                     ast_value.Literal.create(null, "null"), identifier(null, "arguments")
                 ])]))), [f, g]);
-    });
-(builtins["<\\"] = (builtins["_\\>"] = binary(unique(), false, singleCompose)));
-(builtins["\\>"] = (builtins["_<\\"] = binary(unique(), true, singleCompose)));
-(builtins["<<\\"] = (builtins["_\\>>"] = binary(unique(), false, multiCompose)));
-(builtins["\\>>"] = (builtins["_<<\\"] = binary(unique(), true, multiCompose)));
-(module.exports = builtins);
+    }),
+    rCompose = binary(false, singleCompose),
+    lCompose = binary(true, singleCompose);
+registerAliasedSymbol("<\\", "__compose", rCompose);
+registerAliasedSymbol("_\\>", "__rcomposer", rCompose);
+registerAliasedSymbol("\\>", "__rcompose", lCompose);
+registerAliasedSymbol("_<\\", "__composer", lCompose);
+var rNCompose = binary(false, multiCompose),
+    lNCompose = binary(true, multiCompose);
+registerAliasedSymbol("<<\\", "__composen", rNCompose);
+registerAliasedSymbol("_\\>>", "__rcomposenr", rNCompose);
+registerAliasedSymbol("\\>>", "__rcomposen", lNCompose);
+registerAliasedSymbol("_<<\\", "__composenr", lNCompose);
+(exports["builtins"] = builtins);
+(exports["definitions"] = definitions);

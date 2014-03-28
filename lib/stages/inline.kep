@@ -10,10 +10,12 @@ in {
 /**
  * 
  */
-optimize = \input#{ast data} ->
+optimize = \input#{ast data} -> let
+    out = inline.optimize(ast, data)
+in
     setProperty(
-        input,
-        'ast',
-        inline.optimize(ast, data));
+        setProperty(input, 'ast', out.tree),
+        'data',
+        out.data);
 
 }

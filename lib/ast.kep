@@ -1,6 +1,10 @@
 package (
+    isLiteral
+    isNumberish
     isPrimitive
     isSimple
+    isPod
+    
     isTruthy
     
     isBlockFunction
@@ -8,29 +12,57 @@ package (
 {
 
 /**
+ * Is a node a literal.
  * 
+ * This includes regular expressions.
+ */
+isLiteral = \node ->
+    (node.type === 'Literal');
+
+/**
+ * Can a node be treated as a number?
+ */
+isNumberish = \node ->
+    (  isPrimitive node
+    && !isNaN node.value);
+
+/**
+ * Is a node a primitive value.
  */
 isPrimitive = \node ->
-    node.type === 'Literal' && (
+    isLiteral node && (
         node.kind === 'string'
         || node.kind === 'number'
         || node.kind === 'boolean'
         || node.kind === 'null');
 
 /**
- * 
+ * Is a node a language literal?
  */
 isSimple = \node ->
-    (  isPrimitive node 
+    (  isLiteral node 
     || node.type === 'ArrayExpression'
     || node.type === 'ObjectExpression');
 
 /**
+ * Is a node plain old data?
  * 
+ * Plain old data includes all primitives as well as arrays and objects, so long
+ * as those object contain only pod.
+ */
+isPod = \node ->
+    (  isPrimitive node
+    || node.type === 'ArrayExpression' && node.elements.every(isPod)
+    || node.type === 'ObjectExpression' && node.elements.every(\x -> isPod(x.value)));
+
+/**
+ * Is a node a constant truthy value.
  */
 isTruthy = \node ->
     (  isPrimitive node
     && !!node.value);
+
+
 
 /**
  * 

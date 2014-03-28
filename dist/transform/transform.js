@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
@@ -11,7 +10,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_clause, khepri_declaration, khepri_expression, khepri_node,
     khepri_pattern, khepri_program, khepri_statement, khepri_value, __o, Unique, StateT, __o0, ZipperT, walk,
-    scope, fun, builtins, __o1, _, _0) {
+    scope, fun, __o1, __o2, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         khepriZipper = __o["khepriZipper"],
@@ -19,9 +18,11 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
         flip = fun["flip"],
-        innerPattern = __o1["innerPattern"],
-        unpackParameters = __o1["unpackParameters"],
-        transform, x, y, f, g, x0, y0, f0, g0, M = ZipperT(StateT(Unique)),
+        builtins = __o1["builtins"],
+        definitions = __o1["definitions"],
+        innerPattern = __o2["innerPattern"],
+        unpackParameters = __o2["unpackParameters"],
+        transform, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
@@ -36,18 +37,25 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             }));
         }),
         enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-        State = record.declare(null, ["scope", "packageManager", "bindings"]);
+        State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
     (State.empty = State.create(scope.Scope.empty, null, [
         [], null
-    ]));
+    ], []));
     var extract = M.lift(M.inner.get),
-        setState = ((x = M.lift), (y = M.inner.put), (f = x), (g = y), (function(x) {
-            return f(g(x));
-        })),
-        modifyState = ((x0 = M.lift), (y0 = M.inner.modify), (f0 = x0), (g0 = y0), (function(x) {
-            return f0(g0(x));
-        })),
+        setState = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(M.lift, M.inner.put),
+        modifyState = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(M.lift, M.inner.modify),
         inspectStateWith = M.chain.bind(null, extract),
+        globals = extract.map((function(s) {
+            return s.globals;
+        })),
         inspectScopeWith = (function(f) {
             return bind(extract, (function(s) {
                 return f(s.scope);
@@ -181,14 +189,6 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
                 x) {
                 return (x ? unpackAssign(x.pattern, x.value) : []);
             }), bindings), body)));
-        }),
-        ternaryOperatorExpression = (function(loc) {
-            return khepri_expression.FunctionExpression.create(loc, null, khepri_pattern.ArgumentsPattern.create(
-                null, null, [khepri_pattern.IdentifierPattern.create(null, identifier(null, "x")),
-                    khepri_pattern.IdentifierPattern.create(null, identifier(null, "y")),
-                    khepri_pattern.IdentifierPattern.create(null, identifier(null, "z"))
-                ]), khepri_expression.ConditionalExpression.create(null, identifier(null, "x"),
-                identifier(null, "y"), identifier(null, "z")));
         }),
         curryExpression = (function(loc, base, args) {
             return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(
@@ -329,9 +329,6 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
     addTransform("CurryExpression", modify((function(node) {
         return curryExpression(node.loc, node.base, node.args);
     })));
-    addTransform("TernaryOperatorExpression", next(modify((function(node) {
-        return ternaryOperatorExpression(node.loc);
-    })), _transform));
     addTransform("FunctionExpression", seq(enterBlock, modify((function(node) {
         return functionExpression(node.loc, node.id, node.params, node.body, (node.ud && node.ud
             .prefix));
@@ -368,10 +365,13 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
     addTransform("SinkPattern", modify((function(node) {
         return (node.ud && node.ud.id);
     })));
-    addTransform("Program", seq(pushBindings, modify((function(node) {
-        return ((node.body.type === "Package") ? node : setData(node, "prefix",
-            khepri_statement.ExpressionStatement.create(null, khepri_value.Literal.create(
-                null, "string", "use strict"))));
+    addTransform("Program", seq(pushBindings, globals.chain((function(globals) {
+        return modify((function(node) {
+            return ((node.body.type === "Package") ? node : setData(khepri_program.Program
+                .create(null, fun.concat(globals, node.body)), "prefix",
+                khepri_statement.ExpressionStatement.create(null, khepri_value.Literal
+                    .create(null, "string", "use strict"))));
+        }));
     }))), getBindings((function(bindings) {
         return modify((function(node) {
             return ecma_program.Program.create(node.loc, fun.concat(((node.ud && node.ud.prefix) ?
@@ -413,8 +413,14 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             node_manager = require("./package_manager/node"),
             packageManager = amd_manager;
         if ((manager === "node"))(packageManager = node_manager);
-        var s = State.empty.setScope(scope.Scope.empty)
-            .setPackageManager(packageManager);
+        var globals = data.globals,
+            s = State.empty.setScope(scope.Scope.empty)
+                .setPackageManager(packageManager)
+                .setGlobals((data.globals ? khepri_declaration.VariableDeclaration.create(null, data.globals
+                    .map((function(x) {
+                        return khepri_declaration.VariableDeclarator.create(null,
+                            builtins[x], definitions[x]);
+                    }))) : []));
         return run(seq(addVar("require", builtins.require.ud.uid), addVar("exports", builtins.exports.ud
             .uid), walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
     }));

@@ -37,7 +37,7 @@ with
 
     import '../scope' scope,
     import '../fun' fun#{flip},
-    import '../builtin' builtins,
+    import '../builtin' {builtins definitions},
     import '../unpack' {innerPattern unpackParameters},
     
     import './package_manager::amd' _,
@@ -72,9 +72,10 @@ var enumeration = fun.foldr@(flip cons, ok []);
 var State = record.declare(null, [
     'scope',
     'packageManager',
-    'bindings']);
+    'bindings',
+    'globals']);
 
-State.empty = State.create(scope.Scope.empty, null, [[], null]);
+State.empty = State.create(scope.Scope.empty, null, [[], null], []);
 
 /* Operations
  ******************************************************************************/
@@ -87,6 +88,8 @@ var setState = M.lift <\ M.inner.put;
 var modifyState = M.lift <\ M.inner.modify;
 
 var inspectStateWith = M.chain @ extract;
+
+var globals = extract.map\s -> s.globals;
 
 // Scope Operations
 ////////////////////////////////////////
@@ -292,23 +295,6 @@ var letExpression = \loc, bindings, body ->
                     :[],
                 bindings),
             body));
-
-/**
- * 
- */
-var ternaryOperatorExpression = \loc ->
-    khepri_expression.FunctionExpression.create(loc, null,
-        khepri_pattern.ArgumentsPattern.create(null, null, [
-            khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'x')),
-            khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'y')),
-                khepri_pattern.IdentifierPattern.create(null,
-                identifier(null, 'z'))]),
-        khepri_expression.ConditionalExpression.create(null,
-            identifier(null, 'x'),
-            identifier(null, 'y'),
-            identifier(null, 'z')));
 
 /**
  * Curry expression translation.
@@ -577,12 +563,6 @@ addTransform('CurryExpression',
             node.base,
             node.args));
 
-addTransform('TernaryOperatorExpression',
-    next(
-        modify \ node ->
-            ternaryOperatorExpression(node.loc),
-        _transform));
-
 addTransform('FunctionExpression',
     seq(
         enterBlock,
@@ -655,23 +635,24 @@ addTransform('SinkPattern',
 addTransform('Program',
     seq(
         pushBindings,
+        globals.chain \ globals ->
         modify \ node ->
             ?node.body.type === 'Package'
                 :node
-                :setData(node, 'prefix',
+                :setData(khepri_program.Program.create(null, fun.concat(globals, node.body)), 'prefix',
                     khepri_statement.ExpressionStatement.create(null,
                         khepri_value.Literal.create(null, 'string', "use strict")))),
     
     getBindings \ bindings ->
-        modify \ node ->
-            ecma_program.Program.create(node.loc,
-                fun.concat(
-                    ?node.ud && node.ud.prefix :node.ud.prefix :[],
-                    ecma_declaration.VariableDeclaration.create(null,
-                        bindings.map(\x ->
-                            ecma_declaration.VariableDeclarator.create(null,
-                                identifier(null, x)))),
-                    node.body)));
+    modify \ node ->
+        ecma_program.Program.create(node.loc,
+            fun.concat(
+                ?node.ud && node.ud.prefix :node.ud.prefix :[],
+                ecma_declaration.VariableDeclaration.create(null,
+                    bindings.map(\x ->
+                        ecma_declaration.VariableDeclarator.create(null,
+                            identifier(null, x)))),
+                node.body)));
 
 // Package
 addTransform('Package',
@@ -730,9 +711,13 @@ transform = \ast manager data -> {
         if (manager === 'node')
             packageManager = node_manager;
         
+        var globals = data.globals;
+        
         var s = State.empty
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager);
+            .setPackageManager(packageManager)
+            .setGlobals(?data.globals : khepri_declaration.VariableDeclaration.create(null,data.globals.map(\x ->
+                khepri_declaration.VariableDeclarator.create(null, builtins.(x), definitions.(x)))) : []);
         
         return run(
             seq(

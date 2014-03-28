@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -22,7 +21,6 @@ var ast_node = require("khepri-ast")["node"],
     Scope = scope["Scope"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
-    builtins = require("./builtin"),
     ZipperT = require("zipper-m")["trans"]["zipper"],
     check, _check, Zipper = ZipperT(Unique),
     StateM = StateT(Zipper),

@@ -22,11 +22,13 @@ var hashtrie = require("hashtrie"),
     StateT = require("akh")["trans"]["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    builtins = require("./builtin"),
+    __o2 = require("./builtin"),
+    builtins = __o2["builtins"],
     fun = require("./fun"),
-    __o2 = require("./ast"),
-    isPrimitive = __o2["isPrimitive"],
-    isTruthy = __o2["isTruthy"],
+    __o3 = require("./ast"),
+    isPrimitive = __o3["isPrimitive"],
+    isNumberish = __o3["isNumberish"],
+    isTruthy = __o3["isTruthy"],
     optimize, M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
@@ -154,6 +156,11 @@ addPeephole(["ConditionalExpression"], true, (function(node) {
         consequent = __o["consequent"],
         alternate = __o["alternate"];
     return (isTruthy(test) ? consequent : alternate);
+})));
+addPeephole(["MemberExpression"], true, (function(node) {
+    return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
+}), modify((function(node) {
+    return (node.object.elements[node.property.value] || ast_value.Identifier.create(null, "undefined"));
 })));
 addPeephole(["VariableDeclarator"], true, (function(node) {
     return (node.immutable && node.init);

@@ -13,7 +13,7 @@ with
     import 'khepri-ast::value' ast_value,
    
     import '../../fun' fun,
-    import '../../builtin' builtins
+    import '../../builtin' {builtins}
 in {
 
 var concat = Array.prototype.concat.bind([]);

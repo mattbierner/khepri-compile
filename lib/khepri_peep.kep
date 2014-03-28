@@ -26,9 +26,9 @@ with
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
     
-    import './builtin' builtins,
+    import './builtin' {builtins},
     import './fun' fun,
-    import './ast' {isPrimitive isTruthy}
+    import './ast' {isPrimitive isNumberish isTruthy}
 in {
 
 /* Operations
@@ -157,6 +157,18 @@ addPeephole(['ConditionalExpression'], true,
         ?isTruthy test
             :consequent
             :alternate);
+
+/**
+ * Constant index in array expression.
+ */
+addPeephole(['MemberExpression'], true,
+    \node ->
+        (  node.computed
+        && node.object.type === 'ArrayExpression'
+        && isNumberish node.property),
+    
+    modify \ node ->
+        node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined'));
 
 /* Constant Binding
  ******************************************************************************/

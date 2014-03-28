@@ -15,7 +15,7 @@ with
     import 'khepri-ast::value' ast_value,
     
     import '../../fun' fun,
-    import '../../builtin' builtins
+    import '../../builtin' {builtins}
 in {
 
 var concat = Function.prototype.call.bind(Array.prototype.concat);
