@@ -10,6 +10,7 @@ with
     import 'hashtrie' hashtrie,
     
     import 'khepri-ast-zipper' {khepriZipper},
+    import 'neith::zipper' {detach},
     import 'neith::walk' {'walk': neithWalk},
     import 'neith::tree' tree,
 
@@ -37,6 +38,8 @@ with
     import './builtin' {builtins definitions},
     import './fun' fun
 in {
+
+var visit;
 
 var State := record.declare(null, [
     'bindings',
@@ -90,7 +93,7 @@ var rewrite = \base list root ->
     neithWalk(
         \ctx ->
             let node = tree.node(ctx), uid = getUid(node) in
-            ?list.indexOf(uid) !== --1
+            ?list.indexOf(uid) >= 0
                 :tree.modifyNode(\node ->
                     setData(node, 'uid', base + '-' + uid), ctx)
                 :ctx,
@@ -100,6 +103,9 @@ var rewrite = \base list root ->
 
 /*
  ******************************************************************************/
+var UP := true,
+    DOWN := false;
+
 var peepholes = {};
 
 var addPeephole = \types up test f -> {
@@ -123,7 +129,7 @@ var always = \_ -> true;
 /**
  * Convert Unary Op Expression to function.
  */
-addPeephole(['UnaryOperatorExpression'], false,
+addPeephole(['UnaryOperatorExpression'], DOWN,
     always,
     node.chain \ {op} ->
         seq(
@@ -133,7 +139,7 @@ addPeephole(['UnaryOperatorExpression'], false,
 /**
  * Convert binary op expression to function.
  */
-addPeephole(['BinaryOperatorExpression'], false,
+addPeephole(['BinaryOperatorExpression'], DOWN,
     always,
     node.chain \ {op flipped} ->
         let name = ?flipped : '_' + op : op in
@@ -144,7 +150,7 @@ addPeephole(['BinaryOperatorExpression'], false,
 /**
  * Convert ternary op expression to function.
  */
-addPeephole(['TernaryOperatorExpression'], false,
+addPeephole(['TernaryOperatorExpression'], DOWN,
     always,
     seq(
         addGlobal('?'),
@@ -154,7 +160,7 @@ addPeephole(['TernaryOperatorExpression'], false,
  ******************************************************************************/
 /**
  */
-addPeephole(['VariableDeclarator'], true,
+addPeephole(['VariableDeclarator'], UP,
     \node -> 
         (  node.immutable
         && node.init
@@ -166,7 +172,7 @@ addPeephole(['VariableDeclarator'], true,
 /**
  * 
  */
-addPeephole(['Binding'], true, 
+addPeephole(['Binding'], UP, 
     \node -> 
         (  node.pattern.id
         && node.pattern.id.ud
@@ -177,7 +183,7 @@ addPeephole(['Binding'], true,
 
 /* Inlining
  ******************************************************************************/
-addPeephole(['CallExpression'], true,
+addPeephole(['CallExpression'], UP,
     \node ->
         (node.callee.type === 'Identifier' && getUid(node.callee)),
 
@@ -190,7 +196,7 @@ addPeephole(['CallExpression'], true,
                         node.args)
                 :pass);
 
-addPeephole(['CurryExpression'], true,
+addPeephole(['CurryExpression'], UP,
     \node ->
         (node.base.type === 'Identifier' && getUid(node.base)),
 
@@ -210,56 +216,55 @@ addPeephole(['CurryExpression'], true,
  * 
  * The let expression is then rewritten to ensure the resulting values are unique.
  */
-addPeephole(['CallExpression'], true,
+addPeephole(['CallExpression'], UP,
     \node ->
         isLambda(node.callee),
-    
-    unique.chain \ uid ->
+    (unique.chain \ uid ->
         modify \ node -> let
             map = node.callee.params.elements.map(\x -> getUid(x.id)),
             
             bindings =
                 node.callee.params.elements.map \ x i ->
                     ast_declaration.Binding.create(null,
-                        rewrite(uid, map, x),
+                        x,
                         ?node.args.(i)
                             :node.args.(i)
                             :ast_value.Identifier.create(null, 'undefined'))
         in
-            ast_expression.LetExpression.create(null,
+            rewrite(uid, map, ast_expression.LetExpression.create(null,
                 bindings,
-                rewrite(uid, map, node.callee.body)));
+                node.callee.body))).chain \ -> visit);
 
 /**
  * 
  */
-addPeephole(['CallExpression'], true,
+addPeephole(['CallExpression'], UP,
     \node ->
         (  node.callee.type === 'LetExpression'
-        && node.callee.body.type === 'FunctionExpression'),
+        && isLambda(node.callee.body)),
     
-    unique.chain \ uid ->
+    (unique.chain \ uid ->
         modify \ node -> let
             map = node.callee.body.params.elements.map(\x -> getUid(x.id)),
     
             bindings =
                 node.callee.body.params.elements.map \ x i ->
                     ast_declaration.Binding.create(null,
-                        rewrite(uid, map, x),
+                        x,
                         ?node.args.(i)
                             :node.args.(i)
                             :ast_value.Identifier.create(null, 'undefined'))
         in
-            ast_expression.LetExpression.create(null,
+            rewrite(uid, map, ast_expression.LetExpression.create(null,
                 fun.concat(
                     node.callee.bindings,
                     bindings),
-                rewrite(uid, map, node.callee.body.body)));
+                node.callee.body.body))).chain \ -> visit);
 
 /**
  * Rewrite call of curried expression to a call direct call on curry base.
  */
-addPeephole(['CallExpression'], true,
+addPeephole(['CallExpression'], UP,
     \{callee} ->
         callee.type ==='CurryExpression',
    
@@ -273,7 +278,7 @@ addPeephole(['CallExpression'], true,
 /**
  * 
  */
-addPeephole(['CallExpression'], true,
+addPeephole(['CallExpression'], UP,
     \node ->
         (  node.callee.type === 'LetExpression'
         && node.callee.body.type === 'CurryExpression'),
@@ -305,7 +310,7 @@ addPeephole(['CallExpression'], true,
  * 
  * Note that this discards arguments that are not used.
  */
-addPeephole(['CurryExpression'], true,
+addPeephole(['CurryExpression'], UP,
     \node ->
         isLambda(node.base),
     
@@ -338,7 +343,7 @@ addPeephole(['CurryExpression'], true,
  * 
  * Note that this may discard arguments that are not used.
  */
-addPeephole(['CurryExpression'], true,
+addPeephole(['CurryExpression'], UP,
     \node ->
         (  node.base.type === 'LetExpression'
         && isLambda(node.base.body)),
@@ -407,13 +412,25 @@ var initialState = Object.keys(builtins).reduce(
         hashtrie.empty,
         hashtrie.empty));
 
+var merge = \ctx o ->
+    ?o
+        :ctx.setLoc(ctx.loc.setFocus(o && o.loc.focus).setDirty(o.loc.dirty))
+        :o;
+
+visit =  walk(M, _transform, _transformPost);/*M.get.chain \ ctx ->
+    seq(
+        M.move detach,
+        walk(M, _transform, _transformPost),
+        M.get.chain \n ->
+            M.put(merge(ctx, n)));*/
+
 /**
  * 
  */
 optimize = \ast data ->
     run(
         next(
-            walk(M, _transform, _transformPost),
+            visit,
             node.chain \ node ->
             globals.chain \ g ->
             unique.chain \ unique ->

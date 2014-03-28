@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
+*/define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
     "use strict";
     var Scope, push, pop;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
@@ -39,7 +38,7 @@ define(["require", "exports", "bes/record", "hashtrie"], (function(require, expo
     }));
     (Scope.prototype.getUnusedId = (function(id) {
         var self = this;
-        if ((!self.hasOwnBinding(id))) return id;
+        if ((!self.hasBinding(id))) return id;
         for (var i = 0;;
             (i = (i + 1)))
             if ((!self.hasBinding((id + i)))) return (id + i);

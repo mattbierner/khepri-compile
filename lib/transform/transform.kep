@@ -149,7 +149,7 @@ var addVar = \id uid ->
 
 var getMapping = \uid f ->
     inspectScopeWith \ s ->
-        f(s.getMapping(uid));
+        f <| s.getMapping(uid);
 
 var getName = \name uid ->
     getMapping(uid, ok);

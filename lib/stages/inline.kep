@@ -14,7 +14,7 @@ optimize = \input#{ast data} -> let
     out = inline.optimize(ast, data)
 in
     setProperty(
-        setProperty(input, 'ast', out.tree),
+        setProperty(input, 'tree', out.tree),
         'data',
         out.data);
 

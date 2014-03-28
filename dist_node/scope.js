@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hashtrie = require("hashtrie"),
     Scope, push, pop;
@@ -39,7 +38,7 @@ var record = require("bes")["record"],
 }));
 (Scope.prototype.getUnusedId = (function(id) {
     var self = this;
-    if ((!self.hasOwnBinding(id))) return id;
+    if ((!self.hasBinding(id))) return id;
     for (var i = 0;;
         (i = (i + 1)))
         if ((!self.hasBinding((id + i)))) return (id + i);

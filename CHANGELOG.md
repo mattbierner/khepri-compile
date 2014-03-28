@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.7 - March 28, 2014
+* Fixed possibly incorrect translation of names after inlining.
+* Fixed not inlining some constants.
+
 ## 0.3.6 - March 28, 2014
 * Fix for inling with too few args crashing.
 * Fixed logical ops not registering alised names.

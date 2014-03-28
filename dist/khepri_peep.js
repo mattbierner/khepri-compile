@@ -161,12 +161,13 @@
         return addBinding(getUid(node.id), node.init);
     })));
     addPeephole(["Binding"], true, (function(node) {
-        return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern));
+        return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
     }), node.chain((function(node) {
-        return seq(addBinding(getUid(node.pattern.id), node.value), (isPrimitive(node.value) ? set(
-            []) : pass), ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
+        var uid = getUid(node.pattern.id);
+        return (isPrimitive(node.value) ? seq(addBinding(uid, node.value), set([])) : ((node.value.type ===
+                "Identifier") ? getBinding(getUid(node.value))
             .chain((function(binding) {
-                return (binding ? set([]) : pass);
+                return (binding ? seq(addBinding(uid, node.value), set([])) : pass);
             })) : pass));
     })));
     addPeephole(["Identifier"], true, (function(node) {

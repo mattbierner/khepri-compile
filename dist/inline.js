@@ -1,26 +1,27 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/walk", "neith/tree",
-    "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
+*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/zipper", "neith/walk",
+    "neith/tree", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
     "zipper-m/walk", "./ast", "./builtin", "./fun"
-], (function(require, exports, record, array, hashtrie, __o, __o0, tree, __o1, ast_declaration, ast_statement,
-    ast_expression, ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, __o3, __o4, fun) {
+], (function(require, exports, record, array, hashtrie, __o, __o0, __o1, tree, __o2, ast_declaration, ast_statement,
+    ast_expression, ast_pattern, ast_value, __o3, Unique, StateT, ZipperT, walk, __o4, __o5, fun) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
-        neithWalk = __o0["walk"],
-        Node = __o1["Node"],
-        setUserData = __o1["setUserData"],
-        setData = __o1["setData"],
-        next = __o2["next"],
-        seq = __o2["sequence"],
-        seqa = __o2["sequencea"],
-        getUid = __o3["getUid"],
-        isLambda = __o3["isLambda"],
-        builtins = __o4["builtins"],
-        definitions = __o4["definitions"],
-        optimize, State = record.declare(null, ["bindings", "globals"]),
+        detach = __o0["detach"],
+        neithWalk = __o1["walk"],
+        Node = __o2["Node"],
+        setUserData = __o2["setUserData"],
+        setData = __o2["setData"],
+        next = __o3["next"],
+        seq = __o3["sequence"],
+        seqa = __o3["sequencea"],
+        getUid = __o4["getUid"],
+        isLambda = __o4["isLambda"],
+        builtins = __o5["builtins"],
+        definitions = __o5["definitions"],
+        optimize, visit, State = record.declare(null, ["bindings", "globals"]),
         M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, state, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
@@ -65,13 +66,15 @@
             return tree.node(neithWalk((function(ctx) {
                 var node = tree.node(ctx),
                     uid = getUid(node);
-                return ((list.indexOf(uid) !== -1) ? tree.modifyNode((function(node) {
+                return ((list.indexOf(uid) >= 0) ? tree.modifyNode((function(node) {
                     return setData(node, "uid", ((base + "-") + uid));
                 }), ctx) : ctx);
             }), (function(x) {
                 return x;
             }), khepriZipper(root)));
         }),
+        UP = true,
+        DOWN = false,
         peepholes = ({}),
         addPeephole = (function(types, up, test, f) {
             var entry = ({
@@ -86,28 +89,28 @@
         always = (function(_) {
             return true;
         });
-    addPeephole(["UnaryOperatorExpression"], false, always, node.chain((function(__o) {
+    addPeephole(["UnaryOperatorExpression"], DOWN, always, node.chain((function(__o) {
         var op = __o["op"];
         return seq(addGlobal(op), set(builtins[op]));
     })));
-    addPeephole(["BinaryOperatorExpression"], false, always, node.chain((function(__o) {
+    addPeephole(["BinaryOperatorExpression"], DOWN, always, node.chain((function(__o) {
         var op = __o["op"],
             flipped = __o["flipped"],
             name = (flipped ? ("_" + op) : op);
         return seq(addGlobal(name), set(builtins[name]));
     })));
-    addPeephole(["TernaryOperatorExpression"], false, always, seq(addGlobal("?"), set(builtins["?"])));
-    addPeephole(["VariableDeclarator"], true, (function(node) {
+    addPeephole(["TernaryOperatorExpression"], DOWN, always, seq(addGlobal("?"), set(builtins["?"])));
+    addPeephole(["VariableDeclarator"], UP, (function(node) {
         return (((node.immutable && node.init) && isLambda(node.init)) && false);
     }), node.chain((function(node) {
         return addBinding(getUid(node.id), node.init);
     })));
-    addPeephole(["Binding"], true, (function(node) {
+    addPeephole(["Binding"], UP, (function(node) {
         return (((node.pattern.id && node.pattern.id.ud) && (!node.recursive)) && isLambda(node.value));
     }), node.chain((function(node) {
         return addBinding(getUid(node.pattern.id), node.value);
     })));
-    addPeephole(["CallExpression"], true, (function(node) {
+    addPeephole(["CallExpression"], UP, (function(node) {
         return ((node.callee.type === "Identifier") && getUid(node.callee));
     }), node.chain((function(node) {
         return getBinding(getUid(node.callee))
@@ -118,7 +121,7 @@
                 })) : pass);
             }));
     })));
-    addPeephole(["CurryExpression"], true, (function(node) {
+    addPeephole(["CurryExpression"], UP, (function(node) {
         return ((node.base.type === "Identifier") && getUid(node.base));
     }), node.chain((function(node) {
         return getBinding(getUid(node.base))
@@ -129,47 +132,52 @@
                 })) : pass);
             }));
     })));
-    addPeephole(["CallExpression"], true, (function(node) {
-        return isLambda(node.callee);
-    }), unique.chain((function(uid) {
-        return modify((function(node) {
-            var map = node.callee.params.elements.map((function(x) {
-                return getUid(x.id);
-            })),
-                bindings = node.callee.params.elements.map((function(x, i) {
-                    return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
-                        node.args[i] ? node.args[i] : ast_value.Identifier.create(
-                            null, "undefined")));
-                }));
-            return ast_expression.LetExpression.create(null, bindings, rewrite(uid, map,
-                node.callee.body));
-        }));
-    })));
-    addPeephole(["CallExpression"], true, (function(node) {
-        return ((node.callee.type === "LetExpression") && (node.callee.body.type ===
-            "FunctionExpression"));
-    }), unique.chain((function(uid) {
-        return modify((function(node) {
-            var map = node.callee.body.params.elements.map((function(x) {
-                return getUid(x.id);
-            })),
-                bindings = node.callee.body.params.elements.map((function(x, i) {
-                    return ast_declaration.Binding.create(null, rewrite(uid, map, x), (
-                        node.args[i] ? node.args[i] : ast_value.Identifier.create(
-                            null, "undefined")));
-                }));
-            return ast_expression.LetExpression.create(null, fun.concat(node.callee.bindings,
-                bindings), rewrite(uid, map, node.callee.body.body));
-        }));
-    })));
-    addPeephole(["CallExpression"], true, (function(__o) {
+    addPeephole(["CallExpression"], UP, (function(node) {
+            return isLambda(node.callee);
+        }), unique.chain((function(uid) {
+            return modify((function(node) {
+                var map = node.callee.params.elements.map((function(x) {
+                    return getUid(x.id);
+                })),
+                    bindings = node.callee.params.elements.map((function(x, i) {
+                        return ast_declaration.Binding.create(null, x, (node.args[i] ?
+                            node.args[i] : ast_value.Identifier.create(null,
+                                "undefined")));
+                    }));
+                return rewrite(uid, map, ast_expression.LetExpression.create(null, bindings,
+                    node.callee.body));
+            }));
+        }))
+        .chain((function() {
+            return visit;
+        })));
+    addPeephole(["CallExpression"], UP, (function(node) {
+            return ((node.callee.type === "LetExpression") && isLambda(node.callee.body));
+        }), unique.chain((function(uid) {
+            return modify((function(node) {
+                var map = node.callee.body.params.elements.map((function(x) {
+                    return getUid(x.id);
+                })),
+                    bindings = node.callee.body.params.elements.map((function(x, i) {
+                        return ast_declaration.Binding.create(null, x, (node.args[i] ?
+                            node.args[i] : ast_value.Identifier.create(null,
+                                "undefined")));
+                    }));
+                return rewrite(uid, map, ast_expression.LetExpression.create(null, fun.concat(
+                    node.callee.bindings, bindings), node.callee.body.body));
+            }));
+        }))
+        .chain((function() {
+            return visit;
+        })));
+    addPeephole(["CallExpression"], UP, (function(__o) {
         var callee = __o["callee"];
         return (callee.type === "CurryExpression");
     }), modify((function(node) {
         return ast_expression.CallExpression.create(null, node.callee.base, fun.concat((node.callee
             .args || []), node.args));
     })));
-    addPeephole(["CallExpression"], true, (function(node) {
+    addPeephole(["CallExpression"], UP, (function(node) {
         return ((node.callee.type === "LetExpression") && (node.callee.body.type === "CurryExpression"));
     }), modify((function(node) {
         var first = node.callee.body.params.elements[0],
@@ -181,7 +189,7 @@
                 node.base.bindings, ast_declaration.Binding.create(null, first, node.args[0])),
             body) : ast_expression.LetExpression.create(null, node.base.bindings, body));
     })));
-    addPeephole(["CurryExpression"], true, (function(node) {
+    addPeephole(["CurryExpression"], UP, (function(node) {
         return isLambda(node.base);
     }), unique.chain((function(uid) {
         return modify((function(node) {
@@ -199,7 +207,7 @@
                 )], body) : body)));
         }));
     })));
-    addPeephole(["CurryExpression"], true, (function(node) {
+    addPeephole(["CurryExpression"], UP, (function(node) {
         return ((node.base.type === "LetExpression") && isLambda(node.base.body));
     }), unique.chain((function(uid) {
         return modify((function(node) {
@@ -250,9 +258,14 @@
                 var id = builtins[name],
                     def = definitions[name];
                 return s.setBindings(hashtrie.set(id.ud.uid, def, s.bindings));
-            }), new(State)(hashtrie.empty, hashtrie.empty));
+            }), new(State)(hashtrie.empty, hashtrie.empty)),
+        merge = (function(ctx, o) {
+            return (o ? ctx.setLoc(ctx.loc.setFocus((o && o.loc.focus))
+                .setDirty(o.loc.dirty)) : o);
+        });
+    (visit = walk(M, _transform, _transformPost));
     (optimize = (function(ast, data) {
-        return run(next(walk(M, _transform, _transformPost), node.chain((function(node) {
+        return run(next(visit, node.chain((function(node) {
             return globals.chain((function(g) {
                 return unique.chain((function(unique) {
                     return M.of(({

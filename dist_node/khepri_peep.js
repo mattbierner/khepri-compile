@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var hashtrie = require("hashtrie"),
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
@@ -31,63 +30,6 @@ var hashtrie = require("hashtrie"),
     isNumberish = __o3["isNumberish"],
     isTruthy = __o3["isTruthy"],
     getUid = __o3["getUid"],
-    __plus = (function(x) {
-        return (+x);
-    }),
-    __blas = (function(x, y) {
-        return (x << y);
-    }),
-    __or = (function(x, y) {
-        return (x || y);
-    }),
-    __minus = (function(x) {
-        return (-x);
-    }),
-    __and = (function(x, y) {
-        return (x && y);
-    }),
-    __bras = (function(x, y) {
-        return (x >> y);
-    }),
-    __lnot = (function(x) {
-        return (!x);
-    }),
-    __lte = (function(x, y) {
-        return (x <= y);
-    }),
-    __typeof = (function(x) {
-        return (typeof x);
-    }),
-    __mod = (function(x, y) {
-        return (x % y);
-    }),
-    __mul = (function(x, y) {
-        return (x * y);
-    }),
-    __add = (function(x, y) {
-        return (x + y);
-    }),
-    __lt = (function(x, y) {
-        return (x < y);
-    }),
-    __sub = (function(x, y) {
-        return (x - y);
-    }),
-    __gt = (function(x, y) {
-        return (x > y);
-    }),
-    __bnot = (function(x) {
-        return (~x);
-    }),
-    __brls = (function(x, y) {
-        return (x >>> y);
-    }),
-    __div = (function(x, y) {
-        return (x / y);
-    }),
-    __gte = (function(x, y) {
-        return (x >= y);
-    }),
     optimize, M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
@@ -120,20 +62,48 @@ var hashtrie = require("hashtrie"),
         }));
     }),
     arithmetic = ({
-        "+": __add,
-        "-": __sub,
-        "*": __mul,
-        "/": __div,
-        "%": __mod,
-        "<<": __blas,
-        ">>": __bras,
-        ">>>": __brls,
-        "<": __lt,
-        ">": __gt,
-        "<=": __lte,
-        ">=": __gte,
-        "||": __or,
-        "&&": __and
+        "+": (function(x, y) {
+            return (x + y);
+        }),
+        "-": (function(x, y) {
+            return (x - y);
+        }),
+        "*": (function(x, y) {
+            return (x * y);
+        }),
+        "/": (function(x, y) {
+            return (x / y);
+        }),
+        "%": (function(x, y) {
+            return (x % y);
+        }),
+        "<<": (function(x, y) {
+            return (x << y);
+        }),
+        ">>": (function(x, y) {
+            return (x >> y);
+        }),
+        ">>>": (function(x, y) {
+            return (x >>> y);
+        }),
+        "<": (function(x, y) {
+            return (x < y);
+        }),
+        ">": (function(x, y) {
+            return (x > y);
+        }),
+        "<=": (function(x, y) {
+            return (x <= y);
+        }),
+        ">=": (function(x, y) {
+            return (x >= y);
+        }),
+        "||": (function(x, y) {
+            return (x || y);
+        }),
+        "&&": (function(x, y) {
+            return (x && y);
+        })
     });
 addPeephole(["BinaryExpression", "LogicalExpression"], true, (function(__o) {
     var operator = __o["operator"],
@@ -148,11 +118,21 @@ addPeephole(["BinaryExpression", "LogicalExpression"], true, (function(__o) {
     return ast_value.Literal.create(null, (typeof value), value);
 })));
 var arithmetic0 = ({
-    "!": __lnot,
-    "~": __bnot,
-    "typeof": __typeof,
-    "++": __plus,
-    "--": __minus
+    "!": (function(x) {
+        return (!x);
+    }),
+    "~": (function(x) {
+        return (~x);
+    }),
+    "typeof": (function(x) {
+        return (typeof x);
+    }),
+    "++": (function(x) {
+        return (+x);
+    }),
+    "--": (function(x) {
+        return (-x);
+    })
 });
 addPeephole(["UnaryExpression"], true, (function(__o) {
     var operator = __o["operator"],
@@ -191,12 +171,13 @@ addPeephole(["VariableDeclarator"], true, (function(node) {
     return addBinding(getUid(node.id), node.init);
 })));
 addPeephole(["Binding"], true, (function(node) {
-    return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern));
+    return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
 }), node.chain((function(node) {
-    return seq(addBinding(getUid(node.pattern.id), node.value), (isPrimitive(node.value) ? set([]) : pass), (
-        (node.value.type === "Identifier") ? getBinding(getUid(node.value))
+    var uid = getUid(node.pattern.id);
+    return (isPrimitive(node.value) ? seq(addBinding(uid, node.value), set([])) : ((node.value.type ===
+            "Identifier") ? getBinding(getUid(node.value))
         .chain((function(binding) {
-            return (binding ? set([]) : pass);
+            return (binding ? seq(addBinding(uid, node.value), set([])) : pass);
         })) : pass));
 })));
 addPeephole(["Identifier"], true, (function(node) {

@@ -198,20 +198,22 @@ addPeephole(['VariableDeclarator'], true,
 addPeephole(['Binding'], true,
     \node ->
         (node.pattern.type === 'IdentifierPattern'
-        && getUid node.pattern),
+        && getUid node.pattern.id),
     
     node.chain \ node ->
-        seq(
-            addBinding(getUid node.pattern.id, node.value),
+        let uid = getUid node.pattern.id in
             ?isPrimitive(node.value)
-                :set([])
-                :pass,
-            ?node.value.type === 'Identifier'
+                :seq(
+                    addBinding(uid, node.value),
+                    set([]))
+            :?node.value.type === 'Identifier'
                 :getBinding(getUid node.value).chain \ binding ->
                     ?binding
-                        :set([])
+                        :seq(
+                            addBinding(uid, node.value),
+                            set([]))
                         :pass
-                :pass));
+                :pass);
 
 /**
  * Substitute bound value for identifies.

@@ -10,10 +10,10 @@ in {
 /**
  * 
  */
-optimize = \input#{ast data} ->
+optimize = \input#{tree data} ->
     setProperty(
         input,
         'ast',
-        khepri_peep.optimize(ast, data));
+        khepri_peep.optimize(tree, data));
 
 }
