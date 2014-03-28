@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/
+define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/clause",
     "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
     "khepri-ast/program", "khepri-ast/statement", "khepri-ast/value", "khepri-ast-zipper", "akh/unique",
@@ -22,7 +23,7 @@
         definitions = __o1["definitions"],
         innerPattern = __o2["innerPattern"],
         unpackParameters = __o2["unpackParameters"],
-        transform, M = ZipperT(StateT(Unique)),
+        transform, x, y, f, g, x0, y0, f0, g0, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
@@ -42,16 +43,12 @@
         [], null
     ], []));
     var extract = M.lift(M.inner.get),
-        setState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, M.inner.put),
-        modifyState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, M.inner.modify),
+        setState = ((x = M.lift), (y = M.inner.put), (f = x), (g = y), (function(x) {
+            return f(g(x));
+        })),
+        modifyState = ((x0 = M.lift), (y0 = M.inner.modify), (f0 = x0), (g0 = y0), (function(x) {
+            return f0(g0(x));
+        })),
         inspectStateWith = M.chain.bind(null, extract),
         globals = extract.map((function(s) {
             return s.globals;

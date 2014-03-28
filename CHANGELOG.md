@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 0.3.5 - March 28, 2014
+* Each Operators converted to functions generate a single definition per file.
+** Inlining can then expand these to be more efficent for calls and curries.
+* Improvements to inlining.
+* Better compose expression code generated.
+
 ## 0.3.4 - March 27, 2014
 * Fixed potentially incorrect inlining of named functions.
 * Better generated code for call of curried expression.
