@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
+*/
+define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/value", "./fun", "./unpack", "./builtin"
 ], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_declaration, ast_statement, ast_expression,
@@ -15,9 +16,7 @@
         unpackParameters = __o2["unpackParameters"],
         builtins = __o3["builtins"],
         definitions = __o3["definitions"],
-        normalize, DOWN = false,
-        UP = true,
-        peepholes = ({}),
+        normalize, peepholes = ({}),
         addPeephole = (function(types, up, condition, f) {
             var entry = ({
                 "condition": condition,
@@ -28,14 +27,14 @@
                 (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
             }));
         });
-    addPeephole(["LetExpression"], UP, (function(_) {
+    addPeephole(["LetExpression"], true, (function(_) {
         return true;
     }), (function(node) {
         return ast_expression.LetExpression.create(node.loc, flattenr(node.bindings.map((function(x) {
             return innerPattern(x.value, x.pattern, x.recursive);
         }))), node.body);
     }));
-    addPeephole(["FunctionExpression"], UP, (function(_) {
+    addPeephole(["FunctionExpression"], true, (function(_) {
         return true;
     }), (function(node) {
         var params = fun.map((function(x) {

@@ -21,7 +21,7 @@
             }), ast_expression.CallExpression.create(null, builtins.require, [ast_value.Literal.create(
                 null, "string", segs[0])]));
     }));
-    (definePackage = (function(loc, exports, imports, targets, body) {
+    (definePackage = (function(loc, exports, imports, targets, globals, body) {
         var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {
             return x.id.name;
         }), exports.exports) : [exports.id.name]),
@@ -44,7 +44,7 @@
             .create(null, map(imports, (function(x) {
                 return ast_declaration.Binding.create(null, x.pattern, importPackage(x.from
                     .value));
-            })), ast_statement.BlockStatement.create(null, concat(exportHeader, body,
+            })), ast_statement.BlockStatement.create(null, concat(globals, exportHeader, body,
                 exportBody)))
         ]);
     }));

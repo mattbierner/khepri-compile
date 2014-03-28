@@ -310,7 +310,7 @@ var curryExpression = \loc, base, args ->
 
 /* Package
  ******************************************************************************/
-var packageBlock = \packageManager, loc, exports, body -> let
+var packageBlock = \packageManager, loc, exports, globals body -> let
     imports = ?body.type === 'WithStatement'
         :fun.filter(\x -> x && x.type === 'ImportPattern', body.bindings)
         :[],
@@ -326,7 +326,12 @@ var packageBlock = \packageManager, loc, exports, body -> let
             body.body)
         :body
 in
-    packageManager.definePackage(loc, exports, imports, targets, fBody);
+    packageManager.definePackage(loc,
+        exports,
+        imports,
+        targets,
+        globals,
+        fBody);
 
 /* Transform
  ******************************************************************************/
@@ -657,11 +662,13 @@ addTransform('Program',
 // Package
 addTransform('Package',
     bind(packageManager, \packageManager ->
+        globals.chain \ globals ->
         modify \ node ->
             packageBlock(
                 packageManager,
                 node.loc,
                 node.exports,
+                globals,
                 node.body)));
 
 // Value

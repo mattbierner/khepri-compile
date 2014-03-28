@@ -194,7 +194,7 @@
             return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(
                 null, base, identifier(null, "bind")), fun.concat(nullLiteral(null), args));
         }),
-        packageBlock = (function(packageManager, loc, exports, body) {
+        packageBlock = (function(packageManager, loc, exports, globals, body) {
             var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
                 return (x && (x.type === "ImportPattern"));
             }), body.bindings) : []),
@@ -206,7 +206,7 @@
                     (function(x) {
                         return (x && (x.type !== "ImportPattern"));
                     }), body.bindings), body.body) : body);
-            return packageManager.definePackage(loc, exports, imports, targets, fBody);
+            return packageManager.definePackage(loc, exports, imports, targets, globals, fBody);
         }),
         transformers = ({}),
         addTransform = (function(type, pre, post) {
@@ -383,8 +383,11 @@
         }));
     })));
     addTransform("Package", bind(packageManager, (function(packageManager) {
-        return modify((function(node) {
-            return packageBlock(packageManager, node.loc, node.exports, node.body);
+        return globals.chain((function(globals) {
+            return modify((function(node) {
+                return packageBlock(packageManager, node.loc, node.exports, globals,
+                    node.body);
+            }));
         }));
     })));
     addTransform("Identifier", null, bind(node, (function(node) {

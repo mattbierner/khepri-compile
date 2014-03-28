@@ -49,7 +49,7 @@ in
 /**
  * 
  */
-definePackage = \loc exports imports targets body -> let
+definePackage = \loc exports imports targets globals body -> let
     exportedNames = ?exports.type === 'PackageExports'
         :fun.map(\x -> x.id.name, exports.exports)
         :[exports.id.name],
@@ -86,8 +86,10 @@ definePackage = \loc exports imports targets body -> let
                     body,
                     exportBody))),
         'prefix',
-         ast_statement.ExpressionStatement.create(null,
-             ast_value.Literal.create(null, 'string', "use strict")))
+         [
+              ast_statement.ExpressionStatement.create(null,
+                 ast_value.Literal.create(null, 'string', "use strict")),
+             globals])
 in
     ast_statement.ExpressionStatement.create(loc,
         ast_expression.CallExpression.create(loc,

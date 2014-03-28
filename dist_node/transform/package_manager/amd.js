@@ -28,7 +28,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
     return ast_expression.CallExpression.create(null, builtins.require, [ast_value.Literal.create(null,
         "string", packagePath)]);
 }));
-(definePackage = (function(loc, exports, imports, targets, body) {
+(definePackage = (function(loc, exports, imports, targets, globals, body) {
     var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {
         return x.id.name;
     }), exports.exports) : [exports.id.name]),
@@ -46,8 +46,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
                 ast_pattern.IdentifierPattern.create(null, builtins.exports), map(imports, (function(x) {
                     return targets[x.from.value];
                 })))), ast_statement.BlockStatement.create(body.loc, concat(exportHeader, body, exportBody))
-        ), "prefix", ast_statement.ExpressionStatement.create(null, ast_value.Literal.create(null, "string",
-            "use strict")));
+        ), "prefix", [ast_statement.ExpressionStatement.create(null, ast_value.Literal.create(null,
+            "string", "use strict")), globals]);
     return ast_statement.ExpressionStatement.create(loc, ast_expression.CallExpression.create(loc, ast_value.Identifier
         .create(null, "define"), [ast_expression.ArrayExpression.create(null, concat(ast_value.Literal.create(
                 null, "string", "require"), ast_value.Literal.create(null, "string", "exports"),

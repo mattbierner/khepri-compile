@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/
+define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "./fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, fun) {
     "use strict";
@@ -29,21 +30,23 @@
                 return [];
         }
     }));
-    (unpackParameters = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(flatten, fun.map.bind(null, (function(x) {
-        switch (x.type) {
-            case "SinkPattern":
-            case "IdentifierPattern":
-                return [];
-            case "AsPattern":
-                return flatten(innerPattern(x.id, x.target));
-            default:
-                return innerPattern(x, x);
-        }
-    }))));
+    var x = flatten,
+        y = fun.map.bind(null, (function(x) {
+            switch (x.type) {
+                case "SinkPattern":
+                case "IdentifierPattern":
+                    return [];
+                case "AsPattern":
+                    return flatten(innerPattern(x.id, x.target));
+                default:
+                    return innerPattern(x, x);
+            }
+        })),
+        f = x,
+        g = y;
+    (unpackParameters = (function(x) {
+        return f(g(x));
+    }));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);
 }));
