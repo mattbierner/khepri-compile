@@ -63,53 +63,56 @@ builtins = {
 
 /* Unary Operators
  ******************************************************************************/
-var unary = \op -> let
-    xArg = identifier(null, 'x', unique())
-in
-    ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg)]),
-        op(xArg));
-
-var unaryOp = \op ->
-    unary\x ->
-        ast_expression.UnaryExpression.create(null, op, x);
-
-[
-    ['typeof', '__typeof'],
-    ['void', '__void'],
-    ['~', '__bnot'],
-    ['!', '__lnot'],
-    ['++', '__plus'],
-    ['--', '__minus']
-].forEach \ [op name] -> {
-    registerAliasedSymbol(op, name,
-        unaryOp(op));
-};
+with
+    unary = \op -> let
+        xArg = identifier(null, 'x', unique())
+    in
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null, xArg)]),
+            op(xArg)),
+    
+    unaryOp = \op ->
+        unary\x ->
+            ast_expression.UnaryExpression.create(null, op, x)
+in {
+    [
+        ['typeof', '__typeof'],
+        ['void', '__void'],
+        ['~', '__bnot'],
+        ['!', '__lnot'],
+        ['++', '__plus'],
+        ['--', '__minus']
+    ].forEach \ [op name] -> {
+        registerAliasedSymbol(op, name, unaryOp(op));
+    };
+}
 
 /* Ternary Operator
  ******************************************************************************/
-var ternaryOperator = let
-    xArg = identifier(null, 'x', unique()),
-    yArg = identifier(null, 'y', unique()),
-    zArg = identifier(null, 'z', unique())
-in
-    ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null,
-                xArg),
-            ast_pattern.IdentifierPattern.create(null,
-                yArg),
+with
+    ternaryOperator = let
+        xArg = identifier(null, 'x', unique()),
+        yArg = identifier(null, 'y', unique()),
+        zArg = identifier(null, 'z', unique())
+    in
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
                 ast_pattern.IdentifierPattern.create(null,
-                zArg)]),
-        ast_expression.ConditionalExpression.create(null,
-            xArg,
-            yArg,
-            zArg));
+                    xArg),
+                ast_pattern.IdentifierPattern.create(null,
+                    yArg),
+                    ast_pattern.IdentifierPattern.create(null,
+                    zArg)]),
+            ast_expression.ConditionalExpression.create(null,
+                xArg,
+                yArg,
+                zArg))
+in {
+    registerAliasedSymbol('?', '__cond',
+        ternaryOperator);
+}
 
-registerAliasedSymbol('?', '__cond',
-    ternaryOperator);
-    
 /* Binary Operators
  ******************************************************************************/
 var binary = \flipped op -> let
@@ -236,7 +239,7 @@ var multiCompose = \f, g ->
                      [ast_value.Literal.create(null, 'null'),
                      identifier(null, 'arguments')])]));
 
-    
+
 var rCompose := binary(false, singleCompose),
     lCompose := binary(true, singleCompose);
 

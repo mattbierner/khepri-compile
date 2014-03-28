@@ -1,5 +1,5 @@
 /**
- * @fileOverview Khepri source optimization compiler stage.
+ * @fileOverview Khepri code inlining compiler stage.
  */
 package optimize
 with

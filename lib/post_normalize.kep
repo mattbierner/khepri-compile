@@ -16,25 +16,32 @@ with
 
     import 'khepri-ast-zipper' {khepriZipper},
     
-    import 'khepri-ast::node' {setData},
-    import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
-    import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
-    import './fun' fun#{flattenr},
-    import './unpack' {innerPattern unpackParameters},
+    import './ast' {
+        isBlockFunction
+    },
+    import './fun' {
+        concat
+        flattenr
+        filter
+        map},
+    import './unpack' {
+        innerPattern
+        unpackParameters},
     import './builtin' {builtins definitions}
 in {
 
-
-/*
- ******************************************************************************/
 var DOWN := false,
     UP := true;
 
+var always := \_ -> true;
+
+/* Transforms
+ ******************************************************************************/
 var peepholes = {};
 
 var addPeephole = \types, up, condition, f -> {
@@ -44,36 +51,40 @@ var addPeephole = \types, up, condition, f -> {
         'up': up
     };
     
-    types.forEach <|\ type -> {
-        peepholes.(type) = ?peepholes.(type)
-            :fun.concat(peepholes.(type), entry)
-            :[entry];
+    types.forEach \ type -> {
+        peepholes.(type) = concat(peepholes.(type) || [], entry);
     };
 };
 
 /* Binding Expansion
  ******************************************************************************/
 /**
- * Expand binding list of let Expression to simple bindings.
+ * Expand potentially complex let expression bindings patterns to a list of simple
+ * identifier bindings.
  */
 addPeephole(['LetExpression'], UP,
-    \_ -> true,
+    always,
     
-    \node ->
-        ast_expression.LetExpression.create(node.loc,
-            flattenr <| node.bindings.map\x -> innerPattern(x.value, x.pattern, x.recursive),
-            node.body));
+    let
+        expandBinding = \binding -> innerPattern(binding.value, binding.pattern, binding.recursive)
+    in
+        \node ->
+            ast_expression.LetExpression.create(node.loc,
+                flattenr <| map(expandBinding, node.bindings),
+                node.body));
 
 /**
- * Expand binding list of let Expression to simple bindings.
+ * Expand potentially complex parameter patterns in a function to simple
+ * identifier patterns for the arguments with a binding body to unpack
+ * complex parameter binding values.
  */
 addPeephole(['FunctionExpression'], UP,
-    \_ -> true,
+    always,
     
     \node -> let
         params = node.params.elements
-            |> (fun.filter @ \x -> x.type !== 'EllipsisPattern')
-            |> (fun.map @ \x -> {
+            |> (filter @ \x -> x.type !== 'EllipsisPattern')
+            |> (map @ \x -> {
                 switch (x.type) {
                 case 'IdentifierPattern':
                     return x;
@@ -85,7 +96,7 @@ addPeephole(['FunctionExpression'], UP,
         
         bindings = unpackParameters(node.params.elements),
         
-        body = ?node.body.type === "BlockStatement"
+        body = ?isBlockFunction node
             :ast_statement.BlockStatement.create(null,
                 [ast_statement.WithStatement.create(null,
                     bindings,
@@ -107,7 +118,7 @@ addPeephole(['FunctionExpression'], UP,
 /**
  * Rewrite left pipe to a call.
  */
-addPeephole(['BinaryExpression'], true,
+addPeephole(['BinaryExpression'], UP,
     \node ->
         (node.operator === '|>'),
     
@@ -119,7 +130,7 @@ addPeephole(['BinaryExpression'], true,
 /**
  * Rewrite right pipe to a call.
  */
-addPeephole(['BinaryExpression'], true,
+addPeephole(['BinaryExpression'], UP,
     \node->
         (node.operator === '<|'),
     
@@ -129,9 +140,11 @@ addPeephole(['BinaryExpression'], true,
             [right]));
 
 /**
- * Rewrite compose.
+ * Rewrite compose to use builtin compose code.
+ * 
+ * TODO: This should sub in the id of the global for compose instead.
  */
-addPeephole(['BinaryExpression'], true,
+addPeephole(['BinaryExpression'], UP,
     \node->
         (  node.operator === '\\>'
         || node.operator === '\\>>'

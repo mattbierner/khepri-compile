@@ -31,7 +31,7 @@ innerPattern = let
                 innerBase,
                 recursive)
 in
-    \base, pattern recursive -> {
+    \base pattern recursive -> {
         switch (pattern.type) {
         case 'IdentifierPattern':
             return [

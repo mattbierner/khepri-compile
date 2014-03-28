@@ -8,7 +8,7 @@ var ast_node = require("khepri-ast")["node"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
-    builtins, definitions, xArg, yArg, zArg, unique = (function() {
+    builtins, definitions, unique = (function() {
         var x = 0;
         return (function() {
             (x = (x + 1));
@@ -57,11 +57,11 @@ var unary = (function(op) {
         name = __o[1];
     registerAliasedSymbol(op, name, unaryOp(op));
 }));
-var ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null, "y", unique())), (zArg =
-    identifier(null, "z", unique())), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-    .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
-        null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
-        null, xArg, yArg, zArg)));
+var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null, "y", unique())), (
+        zArg = identifier(null, "z", unique())), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+        .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+            null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
+            null, xArg, yArg, zArg)));
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(flipped, op) {
     var xArg = identifier(null, "x", unique()),
