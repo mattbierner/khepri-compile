@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.6 - March 28, 2014
+* Fix for inling with too few args crashing.
+* Fixed logical ops not registering alised names.
+
 ## 0.3.5 - March 28, 2014
 * Each Operators converted to functions generate a single definition per file.
 ** Inlining can then expand these to be more efficent for calls and curries.

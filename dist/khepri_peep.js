@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "hashtrie", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
+*/define(["require", "exports", "hashtrie", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration",
     "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
     "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk", "./builtin", "./fun", "./ast"
 ], (function(require, exports, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_pattern,
@@ -19,6 +18,7 @@ define(["require", "exports", "hashtrie", "khepri-ast-zipper", "khepri-ast/node"
         isPrimitive = __o3["isPrimitive"],
         isNumberish = __o3["isNumberish"],
         isTruthy = __o3["isTruthy"],
+        getUid = __o3["getUid"],
         optimize, M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
@@ -156,21 +156,21 @@ define(["require", "exports", "hashtrie", "khepri-ast-zipper", "khepri-ast/node"
     addPeephole(["VariableDeclarator"], true, (function(node) {
         return (node.immutable && node.init);
     }), node.chain((function(node) {
-        return addBinding(node.id.ud.uid, node.init);
+        return addBinding(getUid(node.id), node.init);
     })));
     addPeephole(["Binding"], true, (function(node) {
-        return ((node.pattern.type === "IdentifierPattern") && node.pattern.id.ud);
+        return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern));
     }), node.chain((function(node) {
-        return seq(addBinding(node.pattern.id.ud.uid, node.value), (isPrimitive(node.value) ? set([]) :
-            pass), ((node.value.type === "Identifier") ? getBinding(node.value.ud.uid)
+        return seq(addBinding(getUid(node.pattern.id), node.value), (isPrimitive(node.value) ? set(
+            []) : pass), ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
             .chain((function(binding) {
                 return (binding ? set([]) : pass);
             })) : pass));
     })));
     addPeephole(["Identifier"], true, (function(node) {
-        return (node.ud && node.ud.uid);
+        return getUid(node);
     }), node.chain((function(node) {
-        return getBinding(node.ud.uid)
+        return getBinding(getUid(node))
             .chain((function(binding) {
                 return ((binding && (isPrimitive(binding) || (binding.type === "Identifier"))) ?
                     set(binding) : pass);

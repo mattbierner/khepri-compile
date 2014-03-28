@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -26,9 +25,6 @@ var addSymbol = (function(name, id, def) {
 }),
     registerAliasedSymbol = (function(name, alias, def) {
         addSymbol(name, identifier(null, alias, unique()), def);
-    }),
-    registerSymbol = (function(name, def) {
-        return registerAliasedSymbol(name, name, def);
     });
 (builtins = ({
     "require": setData(new(ast_value.Identifier)(null, "require"), "uid", unique()),
@@ -58,13 +54,11 @@ var unary = (function(op) {
         name = __o[1];
     registerAliasedSymbol(op, name, unaryOp(op));
 }));
-var xArg = identifier(null, "x", unique()),
-    yArg = identifier(null, "y", unique()),
-    zArg = identifier(null, "z", unique()),
-    ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-        null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg),
-            ast_pattern.IdentifierPattern.create(null, zArg)
-        ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg));
+var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier(null, "x", unique())), (yArg = identifier(null, "y", unique())), (
+        zArg = identifier(null, "z", unique())), ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+        .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+            null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
+            null, xArg, yArg, zArg)));
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(flipped, op) {
     var xArg = identifier(null, "x", unique()),
@@ -116,8 +110,8 @@ var binary = (function(flipped, op) {
 ].forEach((function(__o) {
     var op = __o[0],
         name = __o[1];
-    registerSymbol(op, logicalOp(op));
-    registerSymbol(("_" + op), logicalOp(op, true));
+    registerAliasedSymbol(op, name, logicalOp(op));
+    registerAliasedSymbol(("_" + op), (name + "r"), logicalOp(op, true));
 }));
 registerAliasedSymbol("new", "__new", binary(false, (function(x, y) {
     return ast_expression.NewExpression.create(null, x, [y]);

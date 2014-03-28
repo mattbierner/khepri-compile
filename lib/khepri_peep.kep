@@ -28,7 +28,11 @@ with
     
     import './builtin' {builtins},
     import './fun' fun,
-    import './ast' {isPrimitive isNumberish isTruthy}
+    import './ast' {
+        isPrimitive
+        isNumberish
+        isTruthy
+        getUid}
 in {
 
 /* Operations
@@ -184,7 +188,7 @@ addPeephole(['VariableDeclarator'], true,
         && node.init),
     
     node.chain \ node ->
-        addBinding(node.id.ud.uid, node.init));
+        addBinding(getUid node.id, node.init));
 
 /**
  * Register constants bound in bindings.
@@ -194,16 +198,16 @@ addPeephole(['VariableDeclarator'], true,
 addPeephole(['Binding'], true,
     \node ->
         (node.pattern.type === 'IdentifierPattern'
-        && node.pattern.id.ud),
+        && getUid node.pattern),
     
     node.chain \ node ->
         seq(
-            addBinding(node.pattern.id.ud.uid, node.value),
+            addBinding(getUid node.pattern.id, node.value),
             ?isPrimitive(node.value)
                 :set([])
                 :pass,
             ?node.value.type === 'Identifier'
-                :getBinding(node.value.ud.uid).chain \ binding ->
+                :getBinding(getUid node.value).chain \ binding ->
                     ?binding
                         :set([])
                         :pass
@@ -213,10 +217,10 @@ addPeephole(['Binding'], true,
  * Substitute bound value for identifies.
  */
 addPeephole(['Identifier'], true,
-    \node -> node.ud && node.ud.uid,
+    \node -> getUid node,
     
     node.chain \ node ->
-    getBinding(node.ud.uid).chain \ binding ->
+    getBinding(getUid node).chain \ binding ->
         ?binding && (isPrimitive(binding) || binding.type === 'Identifier')
             :set(binding)
             :pass);
@@ -235,7 +239,6 @@ addPeephole(['Binding'], false,
         fun.flatten(
            node.value.bindings.concat(
                ast_declaration.Binding.create(null, node.pattern, node.value.body))));
-
 
 /* Binding Expression Normalization
  ******************************************************************************/

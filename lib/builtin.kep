@@ -39,9 +39,6 @@ var registerAliasedSymbol = \name alias def -> {
         def);
 };
 
-var registerSymbol = \name def ->
-    registerAliasedSymbol(name, name, def);
-
 /* Identifiers
  ******************************************************************************/
 builtins = {
@@ -170,10 +167,10 @@ var logicalOp = \op flipped ->
     ['||', '__or'],
     ['&&', '__and']
 ].forEach \ [op name] -> {
-    registerSymbol(op,
+    registerAliasedSymbol(op, name,
         logicalOp(op));
         
-    registerSymbol('_' + op,
+    registerAliasedSymbol('_' + op, name + 'r',
         logicalOp(op, true));
 };
 

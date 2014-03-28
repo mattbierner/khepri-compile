@@ -11,7 +11,9 @@ package (
     isTruthy
     
     isBlockFunction
-    isLambda)
+    isLambda
+    
+    getUid)
 {
 
 /* Literal
@@ -88,5 +90,12 @@ isLambda = \node ->
     && !node.params.self
     && !node.params.id);
 
+/* UID
+ ******************************************************************************/
+/**
+ * Get the uid of a node or null.
+ */
+getUid = \node ->
+    (node && node.ud && node.ud.uid);
 
 }
