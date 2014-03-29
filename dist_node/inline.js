@@ -162,10 +162,10 @@ addRewrite("Binding", seq(checkChild("pattern"), checkChild("value"), when((func
     return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
 }), node.chain((function(node) {
     var uid = getUid(node.pattern.id);
-    return ((isPrimitive(node.value) || isLambda(node.value)) ? seq(addBinding(uid, node.value),
-        set([])) : ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
+    return ((isPrimitive(node.value) || isLambda(node.value)) ? addBinding(uid, node.value) : ((
+            node.value.type === "Identifier") ? getBinding(getUid(node.value))
         .chain((function(binding) {
-            return (binding ? seq(addBinding(uid, node.value), set([])) : pass);
+            return (binding ? addBinding(uid, node.value) : pass);
         })) : pass));
 })))));
 addRewrite("BlockStatement", checkChild("body"));

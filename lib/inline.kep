@@ -276,15 +276,11 @@ addRewrite@'Binding' <|
             node.chain \ node ->
                 let uid = getUid(node.pattern.id) in
                     ?isPrimitive(node.value) || isLambda(node.value)
-                        :seq(
-                            addBinding(uid, node.value),
-                            set([]))
+                        :addBinding(uid, node.value)
                     :?node.value.type === 'Identifier'
                         :getBinding(getUid node.value).chain \ binding ->
                             ?binding
-                                :seq(
-                                    addBinding(uid, node.value),
-                                    set([]))
+                                :addBinding(uid, node.value)
                                 :pass
                         :pass));
 
