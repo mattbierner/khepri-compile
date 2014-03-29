@@ -75,8 +75,10 @@
         return ast_pattern.AsPattern.create(null, id, setData(ast_pattern.ObjectPattern.create(null,
             node.elements), "id", id));
     }));
-    (normalize = (function(ast) {
-        return rewrite(peepholes, khepriZipper(ast));
-    }));
+    (normalize = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(rewrite.bind(null, peepholes), khepriZipper));
     (exports["normalize"] = normalize);
 }));

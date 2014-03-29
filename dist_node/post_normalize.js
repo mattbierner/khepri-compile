@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     ast_statement = require("khepri-ast")["statement"],
@@ -60,8 +59,8 @@ var expandAssignment = (function(node) {
         node
     ]);
 });
-peepholes.add(["ExpressionStatement"], UP, (function(__o5) {
-    var expression = __o5["expression"];
+peepholes.add(["ExpressionStatement"], UP, (function(__o) {
+    var expression = __o["expression"];
     return (expression.type === "AssignmentExpression");
 }), (function(node) {
     return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(null,
@@ -69,28 +68,30 @@ peepholes.add(["ExpressionStatement"], UP, (function(__o5) {
 }));
 peepholes.add(["BinaryExpression"], UP, (function(node) {
     return (node.operator === "|>");
-}), (function(__o5) {
-    var left = __o5["left"],
-        right = __o5["right"];
+}), (function(__o) {
+    var left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add(["BinaryExpression"], UP, (function(node) {
     return (node.operator === "<|");
-}), (function(__o5) {
-    var left = __o5["left"],
-        right = __o5["right"];
+}), (function(__o) {
+    var left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 peepholes.add(["BinaryExpression"], UP, (function(node) {
     return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) || (node.operator ===
         "<<\\"));
-}), (function(__o5) {
-    var operator = __o5["operator"],
-        left = __o5["left"],
-        right = __o5["right"];
+}), (function(__o) {
+    var operator = __o["operator"],
+        left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
 }));
-(normalize = (function(ast) {
-    return rewrite(peepholes, khepriZipper(ast));
-}));
+(normalize = (function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})(rewrite.bind(null, peepholes), khepriZipper));
 (exports["normalize"] = normalize);

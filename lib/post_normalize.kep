@@ -126,7 +126,6 @@ peepholes.add(['ExpressionStatement'], UP,
                 |> flattenr
                 |> map @ (ast_statement.ExpressionStatement.create@null)));
 
-
 /**
  * Rewrite left pipe to a call.
  */
@@ -153,8 +152,6 @@ peepholes.add(['BinaryExpression'], UP,
 
 /**
  * Rewrite compose to use builtin compose code.
- * 
- * TODO: This should sub in the id of the global for compose instead.
  */
 peepholes.add(['BinaryExpression'], UP,
     \node->
@@ -170,8 +167,6 @@ peepholes.add(['BinaryExpression'], UP,
 
 /* Interface
  ******************************************************************************/
-
-normalize = \ast->
-    rewrite(peepholes, khepriZipper(ast));
+normalize = khepriZipper \> rewrite @ peepholes;
 
 }

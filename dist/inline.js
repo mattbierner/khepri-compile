@@ -27,8 +27,8 @@
         definitions = __o4["definitions"],
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
-        optimize, arithmetic, arithmetic0, _check, State = record.declare(null, ["bindings", "working",
-            "globals", "outer"
+        optimize, x, arithmetic, arithmetic0, _check, State = record.declare(null, ["bindings", "working",
+            "globals", "outer", "ctx"
         ]),
         M = ZipperT(StateT(Unique)),
         run = (function(c, ctx, state, seed) {
@@ -100,15 +100,6 @@
                 return x;
             }), khepriZipper(root)));
         }),
-        UP = true,
-        DOWN = false,
-        peepholes = ({}),
-        addRewrite = (function(type, f) {
-            if (Array.isArray(type)) type.forEach((function(type) {
-                return addRewrite(type, f);
-            }));
-            else(peepholes[type] = f);
-        }),
         checkTop = node.chain((function(x) {
             return _check(x);
         })),
@@ -125,7 +116,43 @@
             }));
         }),
         Expansion = record.declare(null, ["ctx", "id", "target"]);
-    (Expansion.prototype.expand = null);
+    (Expansion.prototype.children = []);
+    var isExpansion = ((x = Expansion), (function(y) {
+        return (y instanceof x);
+    })),
+        getCtx = M.lift(M.inner.get)
+            .map((function(s) {
+                return s.ctx;
+            })),
+        modifyCtx = (function(f) {
+            return M.lift(M.inner.modify((function(s) {
+                return s.setCtx(f(s.ctx));
+            })));
+        }),
+        createExpansion = (function(id, target) {
+            return getCtx.map((function(ctx) {
+                return new(Expansion)(ctx, id, target);
+            }));
+        }),
+        expand = (function(exp, f) {
+            return (isExpansion(exp) ? getCtx.chain((function(ctx) {
+                return (hashtrie.has(getUid(exp.id), ctx) ? f(exp.id) : seq(modifyCtx((function(
+                    ctx) {
+                    return hashtrie.set(getUid(exp.id), ctx);
+                })), f(exp.target), modifyCtx((function(ctx) {
+                    return hashtrie.remove(getUid(exp.id), ctx);
+                }))));
+            })) : f(exp));
+        }),
+        UP = true,
+        DOWN = false,
+        peepholes = ({}),
+        addRewrite = (function(type, f) {
+            if (Array.isArray(type)) type.forEach((function(type) {
+                return addRewrite(type, f);
+            }));
+            else(peepholes[type] = f);
+        });
     addRewrite("UnaryOperatorExpression", seq(node.chain((function(__o) {
         var op = __o["op"];
         return seq(addGlobal(op), set(builtins[op]));
@@ -150,11 +177,14 @@
         return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
     }), node.chain((function(node) {
         var uid = getUid(node.pattern.id);
-        return ((isPrimitive(node.value) || isLambda(node.value)) ? addBinding(uid, node.value) :
-            ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
+        return (isPrimitive(node.value) ? addBinding(uid, node.value) : (isLambda(node.value) ?
+            createExpansion(node.pattern.id, node.value)
+            .chain((function(entry) {
+                return addBinding(uid, entry);
+            })) : ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
                 .chain((function(binding) {
                     return (binding ? addBinding(uid, node.value) : pass);
-                })) : pass));
+                })) : pass)));
     }))), when((function(node) {
         return (node.value.type === "LetExpression");
     }), node.chain((function(node) {
@@ -273,25 +303,46 @@
     }))));
     addRewrite("NewExpression", seq(checkChild("callee"), checkChild("args")));
     addRewrite("CallExpression", seq(checkChild("callee"), checkChild("args"), when((function(node) {
-        return (isLambda(node.callee) || ((node.callee.type === "LetExpression") && isLambda(
-            node.callee.body)));
-    }), seq(unique.chain((function(uid) {
-        return modify((function(node) {
-            var target = ((node.callee.type === "LetExpression") ? node.callee.body :
-                node.callee),
-                map = target.params.elements.map((function(x) {
-                    return getUid(x.id);
-                })),
-                bindings = target.params.elements.map((function(x, i) {
-                    return ast_declaration.Binding.create(null, x, (
-                        node.args[i] ? node.args[i] : ast_value.Identifier
-                        .create(null, "undefined")));
+        return ((isLambda(node.callee) || isExpansion(node.callee)) || ((node.callee.type ===
+            "LetExpression") && isLambda(node.callee.body)));
+    }), node.chain((function(node) {
+        return expand(node.callee, (function(callee) {
+            return seq(unique.chain((function(uid) {
+                return modify((function(node) {
+                    var target, map, bindings;
+                    return ((callee.type === "Identifier") ?
+                        ast_expression.CallExpression.create(
+                            node.loc, callee, node.args) : ((
+                            target = ((callee.type ===
+                                    "LetExpression") ?
+                                callee.body : callee)), (
+                            map = target.params.elements.map(
+                                (function(x) {
+                                    return getUid(x.id);
+                                }))), (bindings = target.params
+                            .elements.map((function(x, i) {
+                                return ast_declaration
+                                    .Binding.create(
+                                        null, x, (
+                                            node.args[
+                                                i] ?
+                                            node.args[
+                                                i] :
+                                            ast_value
+                                            .Identifier
+                                            .create(
+                                                null,
+                                                "undefined"
+                                            )));
+                            }))), rewrite(uid, map,
+                            ast_expression.LetExpression.create(
+                                null, fun.concat((callee.bindings || []),
+                                    bindings), target.body)
+                        )));
                 }));
-            return rewrite(uid, map, ast_expression.LetExpression.create(null,
-                fun.concat((node.callee.bindings || []), bindings), target.body
-            ));
+            })), ((callee.type === "Identifier") ? pass : checkTop));
         }));
-    })), checkTop))));
+    })))));
     addRewrite("CurryExpression", seq(checkChild("base"), checkChild("args"), when((function(node) {
         return (isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(node.base
             .body)));
@@ -339,8 +390,9 @@
     }), node.chain((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding) {
-                return ((binding && ((isPrimitive(binding) || (binding.type ===
-                    "Identifier")) || isLambda(binding))) ? set(binding) : pass);
+                return ((binding && (((isPrimitive(binding) || (binding.type ===
+                    "Identifier")) || isLambda(binding)) || isExpansion(
+                    binding))) ? set(binding) : pass);
             }));
     }))));
     (_check = (function(node) {
@@ -358,7 +410,7 @@
             var id = builtins[name],
                 def = definitions[name];
             return s.setBindings(hashtrie.set(getUid(id), def, s.bindings));
-        }), new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null));
+        }), new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null, hashtrie.empty));
     (optimize = (function(ast, data) {
         return run(next(checkTop, node.chain((function(node) {
             return globals.chain((function(g) {

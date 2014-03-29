@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/rewritter.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/rewritter.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun"], (function(require, exports, zipper,
+*/
+define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun"], (function(require, exports, zipper,
     tree, __o, fun) {
     "use strict";
     var walk = __o["walk"],

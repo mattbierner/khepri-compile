@@ -149,7 +149,6 @@ peepholes.add(['ObjectPattern'], UP,
 
 /* Interface
  ******************************************************************************/
-normalize = \ast->
-    rewrite(peepholes, khepriZipper(ast));
+normalize = khepriZipper \> rewrite @ peepholes;
 
 }

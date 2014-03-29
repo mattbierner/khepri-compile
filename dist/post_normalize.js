@@ -85,8 +85,10 @@
             right = __o["right"];
         return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
     }));
-    (normalize = (function(ast) {
-        return rewrite(peepholes, khepriZipper(ast));
-    }));
+    (normalize = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(rewrite.bind(null, peepholes), khepriZipper));
     (exports["normalize"] = normalize);
 }));

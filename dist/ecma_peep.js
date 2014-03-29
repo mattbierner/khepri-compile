@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "ecma-ast/value", "ecma-ast/declaration",
+*/
+define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "ecma-ast/value", "ecma-ast/declaration",
     "ecma-ast/statement", "ecma-ast/expression", "./fun", "./rewritter"
 ], (function(require, exports, __o, __o0, ast_value, ast_declaration, ast_statement, ast_expression, fun, __o1) {
     "use strict";

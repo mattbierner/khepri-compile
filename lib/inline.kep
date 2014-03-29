@@ -48,7 +48,8 @@ var State := record.declare(null, [
     'bindings',
     'working',
     'globals',
-    'outer']);
+    'outer',
+    'ctx']);
 
 /* Operations
  ******************************************************************************/
@@ -75,7 +76,6 @@ var down = M.down;
 var right = M.right;
 
 var moveChild =  M.child;
-
 
 /*
  ******************************************************************************/
@@ -140,21 +140,6 @@ var rewrite = \base list root ->
         \x -> x,
         khepriZipper(root))
             |> tree.node;
-
-/*
- ******************************************************************************/
-var UP := true,
-    DOWN := false;
-
-var peepholes = {};
-
-var addRewrite = \type f -> {
-    if (Array.isArray type)
-        type.forEach \ type -> addRewrite(type, f);
-    else
-        peepholes.(type) = f;
-};
-
 /*
  ******************************************************************************/
 var checkTop = node.chain \ x -> _check x; // forward
@@ -182,7 +167,41 @@ var Expansion = record.declare(null, [
     'id',
     'target']);
 
-Expansion.prototype.expand = null;
+Expansion.prototype.children = [];
+
+var isExpansion := (_ instanceof, Expansion);
+
+var getCtx = M.lift(M.inner.get).map\s -> s.ctx;
+var modifyCtx = \f -> M.lift(M.inner.modify(\s -> s.setCtx(f(s.ctx))));
+
+var createExpansion = \id, target ->
+    getCtx.map \ ctx ->
+        new Expansion(ctx, id, target);
+
+var expand = \exp f ->
+    ?isExpansion exp
+        :getCtx.chain \ ctx ->
+            ?hashtrie.has(getUid exp.id, ctx)
+                :f(exp.id)
+                :seq(
+                    modifyCtx\ctx -> hashtrie.set(getUid exp.id, ctx),
+                    f(exp.target),
+                    modifyCtx\ctx -> hashtrie.remove(getUid exp.id, ctx))
+        :f(exp);
+
+/*
+ ******************************************************************************/
+var UP := true,
+    DOWN := false;
+
+var peepholes = {};
+
+var addRewrite = \type f -> {
+    if (Array.isArray type)
+        type.forEach \ type -> addRewrite(type, f);
+    else
+        peepholes.(type) = f;
+};
 
 /* Operator To Function
  ******************************************************************************/
@@ -277,14 +296,20 @@ addRewrite@'Binding' <| seq(
         
         node.chain \ node ->
             let uid = getUid(node.pattern.id) in
-                ?isPrimitive(node.value) || isLambda(node.value)
+                ?isPrimitive(node.value)
                     :addBinding(uid, node.value)
+                    
+                :?isLambda(node.value)
+                    :createExpansion(node.pattern.id, node.value).chain\entry ->
+                        addBinding(uid, entry)
+                    
                 :?node.value.type === 'Identifier'
                     :getBinding(getUid node.value).chain \ binding ->
                         ?binding
                             :addBinding(uid, node.value)
                             :pass
-                    :pass),
+                    
+                :pass),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -357,9 +382,6 @@ addRewrite@'FunctionExpression' <|
          checkChild 'params',
          checkChild 'body');
 
-/**
- * Combine simple unary operations on primitive literals
- */
 addRewrite@'UnaryExpression' <| let
     arithmetic = {
         '!': (!),
@@ -368,6 +390,9 @@ addRewrite@'UnaryExpression' <| let
         '++': (++),
         '--': (--)}
 in
+    /**
+     * Combine simple unary operations on primitive literals
+     */
     when(
         \{operator argument} ->
             (  arithmetic.(operator)
@@ -378,18 +403,18 @@ in
         in
             ast_value.Literal.create(null, typeof value, value));
 
-/**
- * Update the working value of a binding.
- */
-addRewrite@'AssignmentExpression' <|
-    seq(
-        checkChild 'right',
-        when(
-            \{left} ->
-                left.type === 'Identifier',
-            
-            node.chain \ node ->
-                addWorking(getUid(node.left), node.right)));
+addRewrite@'AssignmentExpression' <| seq(
+    checkChild 'right',
+    
+    /**
+     * Update the working value of a binding.
+     */
+    when(
+        \{left} ->
+            left.type === 'Identifier',
+        
+        node.chain \ node ->
+            addWorking(getUid(node.left), node.right)));
 
 /**
  * Combine binary arithmetic operations on primitive literals.
@@ -471,29 +496,31 @@ addRewrite@'CallExpression' <| seq(
     when(
         \node ->
             (  isLambda(node.callee)
+            || isExpansion(node.callee)
             || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
         
-        seq(
-            unique.chain \ uid ->
-            modify \ node -> let
-                target = ?node.callee.type === 'LetExpression' : node.callee.body : node.callee,
-                
-                map = target.params.elements.map(\x -> getUid(x.id)),
-                
-                bindings =
-                    target.params.elements.map \ x i ->
-                        ast_declaration.Binding.create(null,
-                            x,
-                            ?node.args.(i)
-                                :node.args.(i)
-                                :ast_value.Identifier.create(null, 'undefined'))
-            in
-                rewrite(uid, map, ast_expression.LetExpression.create(null,
-                    fun.concat(
-                        node.callee.bindings || [],
-                        bindings),
-                    target.body)),
-            checkTop)));
+        (node.chain\node -> expand(node.callee, \ callee ->
+            seq(
+                unique.chain \ uid ->
+                modify \ node -> ?callee.type === 'Identifier': ast_expression.CallExpression.create(node.loc, callee, node.args) : let
+                    target = ?callee.type === 'LetExpression' : callee.body : callee,
+                    
+                    map = target.params.elements.map(\x -> getUid(x.id)),
+                    
+                    bindings =
+                        target.params.elements.map \ x i ->
+                            ast_declaration.Binding.create(null,
+                                x,
+                                ?node.args.(i)
+                                    :node.args.(i)
+                                    :ast_value.Identifier.create(null, 'undefined'))
+                in
+                    rewrite(uid, map, ast_expression.LetExpression.create(null,
+                        fun.concat(
+                            callee.bindings || [],
+                            bindings),
+                        target.body)),
+             ?callee.type === 'Identifier' :pass: checkTop)))));
 
 addRewrite@'CurryExpression' <| seq(
     checkChild 'base',
@@ -598,7 +625,7 @@ addRewrite@'Identifier' <|
         
         node.chain \ node ->
             getBinding(getUid node).chain \ binding ->
-                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding))
+                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding) || isExpansion(binding))
                     :set(binding)
                     :pass);
 
@@ -635,7 +662,8 @@ var initialState = Object.keys(builtins).reduce(
         hashtrie.empty,
         hashtrie.empty,
         hashtrie.empty,
-        null));
+        null,
+        hashtrie.empty));
 
 /**
  * 
