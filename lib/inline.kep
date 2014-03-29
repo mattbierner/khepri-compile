@@ -109,7 +109,14 @@ var push = M.lift <| M.inner.modify(\s ->
 var pop = M.lift <| M.inner.modify(\s ->
     s.outer
         .setBindings(s.bindings)
-        .setGlobals(s.globals));
+        .setGlobals(s.globals)
+        .setWorking(
+            // Delete working bindings modified in inner from outer scope.
+            hashtrie.fold(
+                \p {key} ->
+                    hashtrie.remove(key, p),
+                s.outer.working,
+                s.working)));
 
 /**
  * Create a new lexical block for body.
@@ -311,24 +318,24 @@ addRewrite@'TryStatement' <|
             checkChild 'finalizer'));
 
 addRewrite@'WhileStatement' <|
-    seq(
+    block(
         checkChild 'test',
-        seq(
-            checkChild 'body'));
+        checkChild 'body');
 
 addRewrite@'DoWhileStatement' <|
-    seq(
-        seq(
-            checkChild 'body'),
+    block(
+        checkChild 'body',
         checkChild 'test');
 
+/**
+ * 
+ */
 addRewrite@'ForStatement' <|
-    seq(
+    block(
         checkChild 'init',
         checkChild 'test',
         checkChild 'update',
-        seq(
-            checkChild 'body'));
+        checkChild 'body');
 
 // Expression
 addRewrite@'FunctionExpression' <|

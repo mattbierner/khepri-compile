@@ -79,7 +79,11 @@
         }))),
         pop = M.lift(M.inner.modify((function(s) {
             return s.outer.setBindings(s.bindings)
-                .setGlobals(s.globals);
+                .setGlobals(s.globals)
+                .setWorking(hashtrie.fold((function(p, __o) {
+                    var key = __o["key"];
+                    return hashtrie.remove(key, p);
+                }), s.outer.working, s.working));
         }))),
         block = (function() {
             var body = arguments;
@@ -160,10 +164,10 @@
     addRewrite("SwitchStatement", seq(checkChild("discriminant"), checkChild("cases")));
     addRewrite(["ReturnStatement", "ThrowStatement"], checkChild("argument"));
     addRewrite("TryStatement", seq(checkChild("block"), seq(checkChild("handler")), seq(checkChild("finalizer"))));
-    addRewrite("WhileStatement", seq(checkChild("test"), seq(checkChild("body"))));
-    addRewrite("DoWhileStatement", seq(seq(checkChild("body")), checkChild("test")));
-    addRewrite("ForStatement", seq(checkChild("init"), checkChild("test"), checkChild("update"), seq(checkChild(
-        "body"))));
+    addRewrite("WhileStatement", block(checkChild("test"), checkChild("body")));
+    addRewrite("DoWhileStatement", block(checkChild("body"), checkChild("test")));
+    addRewrite("ForStatement", block(checkChild("init"), checkChild("test"), checkChild("update"), checkChild(
+        "body")));
     addRewrite("FunctionExpression", block(checkChild("id"), checkChild("params"), checkChild("body")));
     addRewrite("UnaryExpression", ((arithmetic = ({
         "!": (function(x) {
