@@ -368,6 +368,7 @@ addCheck@'FunctionExpression' <|
              ?node.id
                  :addImmutableBinding(node.id.name, node.loc)
                  :pass,
+         checkChild 'id',
          checkChild 'params',
          inspect \ node ->
              ?node.body.type === "BlockStatement"

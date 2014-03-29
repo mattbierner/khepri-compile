@@ -200,20 +200,22 @@ var variableDeclarator = ecma_declaration.VariableDeclarator.create;
 /* Unpacks
  ******************************************************************************/
 /**
- * Expand an unpack pattern to a list of variable declarators.
+ * Expand a binding to a list of simple variable declarations.
  */
 var unpack =
-    innerPattern
-    \>> fun.flatten
-    \> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value));
+    (\binding ->
+        innerPattern(binding.value, binding.pattern))
+    \> (fun.map @ \x ->
+        variableDeclarator(null, x.pattern, x.value));
 
 /**
- * Expand an unpack pattern to a list of assignment expressions.
+ * Expand an binding to a list of assignment expressions.
  */
 var unpackAssign =
-    innerPattern
-    \>> fun.flatten
-    \> (fun.map @ \x -> ecma_expression.AssignmentExpression.create(null,'=', x.pattern, x.value));
+    (\binding ->
+        innerPattern(binding.value, binding.pattern))
+    \> (fun.map @ \x ->
+        ecma_expression.AssignmentExpression.create(null, '=', x.pattern, x.value));
 
 /**
  * Expand an arguments pattern to a list of bindings.
@@ -245,9 +247,9 @@ in
  * With statement translation.
  */
 var withStatementNoImport = \loc, bindings, body -> let
-    vars = fun.map(
-        \imp -> unpack(imp.value, imp.pattern),
-        bindings),
+    vars =
+        fun.map(unpack, bindings)
+        |> fun.flatten,
     
     prefix = variableDeclaration(null, vars)
 in
@@ -302,14 +304,10 @@ in
 /**
  * Let expression normalization.
  */
-var letExpression = \loc, bindings, body ->
+var letExpression = \loc bindings body ->
     ecma_expression.SequenceExpression.create(null,
         fun.flatten <| fun.concat(
-            fun.map(\x ->
-                ?x
-                    :unpackAssign(x.value, x.pattern)
-                    :[],
-                bindings),
+            fun.map(unpackAssign, bindings),
             body));
 
 /**

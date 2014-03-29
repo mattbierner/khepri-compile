@@ -204,7 +204,7 @@ addCheck("DoWhileStatement", seq(block(checkChild("body")), checkChild("test")))
 addCheck("ForStatement", block(checkChild("init"), checkChild("test"), checkChild("update"), block(checkChild("body"))));
 addCheck("FunctionExpression", block(inspect((function(node) {
     return (node.id ? addImmutableBinding(node.id.name, node.loc) : pass);
-})), checkChild("params"), inspect((function(node) {
+})), checkChild("id"), checkChild("params"), inspect((function(node) {
     return ((node.body.type === "BlockStatement") ? child("body", checkChild("body")) : checkChild(
         "body"));
 }))));

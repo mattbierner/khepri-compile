@@ -42,13 +42,13 @@ var builtins = [
 /**
  * 
  */
-check = \{options ast data} -> let
+check = \{options tree data} -> let
     {tree data} = lexical.check(
-        ast,
+        tree,
         ((options && options.globals) || builtins),
         data)
 in {
-    'ast': tree,
+    'tree': tree,
     'data': data,
     'options': options
 };

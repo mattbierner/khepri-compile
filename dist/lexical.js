@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun",
     "zipper-m/trans/zipper"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, ErrorT, Unique, scope,
@@ -16,56 +15,75 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         seqa = __o0["sequencea"],
         Scope = scope["Scope"],
         foldl = __o1["foldl"],
-        check, x, y, f, g, x0, y0, f0, g0, x1, y1, f1, g1, x2, y2, f2, g2, x3, y3, f3, g3, x4, y4, f4, g4, x5,
-            y5, f5, g5, x6, y6, f6, g6, x7, y7, f7, g7, _check, Zipper = ZipperT(Unique),
+        check, _check, Zipper = ZipperT(Unique),
         StateM = StateT(Zipper),
         M = ErrorT(StateM),
         run = (function(p, s, ctx, ok, err) {
-            var x, y, f, g, x0, y0, f0, g0;
-            return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, ((x = ok), (y =
-                StateM.of), (f = y), (g = x), (function(x) {
-                return f(g(x));
-            })), ((x0 = err), (y0 = StateM.of), (f0 = y0), (g0 = x0), (function(x) {
-                return f0(g0(x));
-            }))), s), ctx), 1000);
+            return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
+                return (function(x) {
+                    return f(g(x));
+                });
+            })(StateM.of, ok), (function(f, g) {
+                return (function(x) {
+                    return f(g(x));
+                });
+            })(StateM.of, err)), s), ctx), 1000);
         }),
         error = M.fail,
         lift = M.lift,
         unique = lift(StateM.lift(Zipper.lift(Unique.unique))),
         extract = lift(StateM.get),
         examineScope = M.chain.bind(null, extract),
-        modifyScope = ((x = lift), (y = StateM.modify), (f = x), (g = y), (function(x) {
-            return f(g(x));
-        })),
+        modifyScope = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(lift, StateM.modify),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
         inspect = M.chain.bind(null, lift(StateM.lift(Zipper.node))),
         extractNode = lift(StateM.lift(Zipper.node)),
-        move = ((x0 = lift), (y0 = StateM.lift), (f0 = x0), (g0 = y0), (x1 = (function(x) {
-            return f0(g0(x));
-        })), (y1 = Zipper.move), (f1 = x1), (g1 = y1), (function(x) {
-            return f1(g1(x));
-        })),
+        move = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(lift, StateM.lift), Zipper.move),
         up = lift(StateM.lift(Zipper.up)),
         down = lift(StateM.lift(Zipper.down)),
         left = lift(StateM.lift(Zipper.left)),
         right = lift(StateM.lift(Zipper.right)),
         root = lift(StateM.lift(Zipper.root)),
-        moveChild = ((x2 = lift), (y2 = StateM.lift), (f2 = x2), (g2 = y2), (x3 = (function(x) {
-            return f2(g2(x));
-        })), (y3 = Zipper.child), (f3 = x3), (g3 = y3), (function(x) {
-            return f3(g3(x));
-        })),
-        modifyNode = ((x4 = lift), (y4 = StateM.lift), (f4 = x4), (g4 = y4), (x5 = (function(x) {
-            return f4(g4(x));
-        })), (y5 = Zipper.modifyNode), (f5 = x5), (g5 = y5), (function(x) {
-            return f5(g5(x));
-        })),
-        setNode = ((x6 = lift), (y6 = StateM.lift), (f6 = x6), (g6 = y6), (x7 = (function(x) {
-            return f6(g6(x));
-        })), (y7 = Zipper.setNode), (f7 = x7), (g7 = y7), (function(x) {
-            return f7(g7(x));
-        })),
+        moveChild = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(lift, StateM.lift), Zipper.child),
+        modifyNode = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(lift, StateM.lift), Zipper.modifyNode),
+        setNode = (function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })((function(f, g) {
+            return (function(x) {
+                return f(g(x));
+            });
+        })(lift, StateM.lift), Zipper.setNode),
         checkTop = inspect((function(x) {
             return _check(x);
         })),
@@ -183,7 +201,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         checkChild("body"))));
     addCheck("FunctionExpression", block(inspect((function(node) {
         return (node.id ? addImmutableBinding(node.id.name, node.loc) : pass);
-    })), checkChild("params"), inspect((function(node) {
+    })), checkChild("id"), checkChild("params"), inspect((function(node) {
         return ((node.body.type === "BlockStatement") ? child("body", checkChild("body")) :
             checkChild("body"));
     }))));
@@ -238,7 +256,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var g8 = (function(x) {
+    var g = (function(x) {
         return x.concat("require");
     }),
         addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
@@ -260,7 +278,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                     });
                 }));
             }));
-        }))), addBindings(g8((globals || []))), khepriZipper(ast), suc, fail, seed);
+        }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail, seed);
     }));
     (exports["check"] = check);
 }));

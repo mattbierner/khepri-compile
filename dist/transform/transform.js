@@ -150,27 +150,23 @@
         variableDeclaration = khepri_declaration.VariableDeclaration.create,
         variableDeclarator = ecma_declaration.VariableDeclarator.create,
         unpack = (function(f, g) {
-            return (function() {
-                return f(g.apply(null, arguments));
-            });
-        })((function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
         })(fun.map.bind(null, (function(x) {
             return variableDeclarator(null, x.pattern, x.value);
-        })), fun.flatten), innerPattern),
+        })), (function(binding) {
+            return innerPattern(binding.value, binding.pattern);
+        })),
         unpackAssign = (function(f, g) {
-            return (function() {
-                return f(g.apply(null, arguments));
-            });
-        })((function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
         })(fun.map.bind(null, (function(x) {
             return ecma_expression.AssignmentExpression.create(null, "=", x.pattern, x.value);
-        })), fun.flatten), innerPattern),
+        })), (function(binding) {
+            return innerPattern(binding.value, binding.pattern);
+        })),
         unpackArgumentsPattern = (function(parameters) {
             var elementsPrefix = unpackParameters(parameters.elements),
                 selfPrefix = (parameters.self ? innerPattern(ecma_expression.ThisExpression.create(null),
@@ -179,9 +175,7 @@
             return fun.flatten(fun.concat(elementsPrefix, selfPrefix, argumentsPrefix));
         }),
         withStatementNoImport = (function(loc, bindings, body) {
-            var vars = fun.map((function(imp) {
-                return unpack(imp.value, imp.pattern);
-            }), bindings),
+            var vars = fun.flatten(fun.map(unpack, bindings)),
                 prefix = variableDeclaration(null, vars);
             return khepri_statement.BlockStatement.create(loc, fun.concat(prefix, body.body));
         }),
@@ -206,10 +200,8 @@
                     bindings) : []), body.body)));
         }),
         letExpression = (function(loc, bindings, body) {
-            return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map((function(
-                x) {
-                return (x ? unpackAssign(x.value, x.pattern) : []);
-            }), bindings), body)));
+            return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map(
+                unpackAssign, bindings), body)));
         }),
         curryExpression = (function(loc, base, args) {
             return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(

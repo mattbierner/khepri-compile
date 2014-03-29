@@ -11,9 +11,9 @@ in {
 /**
  * 
  */
-normalize = \{options ast} -> ({
+normalize = \{options tree} -> ({
     'options': options,
-    'ast': pre_normalize.normalize(ast)
+    'tree': pre_normalize.normalize(tree)
 });
 
 }

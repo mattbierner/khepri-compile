@@ -115,6 +115,31 @@ addPeephole(['FunctionExpression'], UP,
 
 /* Expression Conversion
  ******************************************************************************/
+var expandAssignment := \node ->
+    ?node.right.type === 'AssignmentExpression'
+        :let right = expandAssignment(node.right) in
+            concat(
+                right,
+                ast_expression.AssignmentExpression.create(null, '=',
+                    node.left,
+                    right.(right.length - 1).left))
+        :[node];
+
+/**
+ * Rewrite a potentially compound assignment expression to a list of single
+ * assignments.
+ */
+addPeephole(['ExpressionStatement'], UP,
+    \{expression} ->
+        (expression.type === 'AssignmentExpression'),
+    
+    \node ->
+        ast_statement.BlockStatement.create(null,
+            expandAssignment(node.expression)
+                |> flattenr
+                |> map @ (ast_statement.ExpressionStatement.create@null)));
+
+
 /**
  * Rewrite left pipe to a call.
  */

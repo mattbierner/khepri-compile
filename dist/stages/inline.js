@@ -6,9 +6,9 @@
     var setProperty = __o["setProperty"],
         optimize;
     (optimize = (function(input) {
-        var ast = input["ast"],
+        var tree = input["tree"],
             data = input["data"],
-            out = inline.optimize(ast, data);
+            out = inline.optimize(tree, data);
         return setProperty(setProperty(input, "tree", out.tree), "data", out.data);
     }));
     return optimize;

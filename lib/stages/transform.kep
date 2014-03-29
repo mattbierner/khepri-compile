@@ -8,12 +8,12 @@ with
 in {
 
 
-transform = \input#{options ast data} ->
+transform = \input#{options tree data} ->
     setProperty(
         input,
         'tree',
         transformer.transform(
-            ast,
+            tree,
             (options.package_manager || 'amd'),
             data));
 

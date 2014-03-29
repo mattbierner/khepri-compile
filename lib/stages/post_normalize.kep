@@ -12,10 +12,10 @@ in {
 /**
  * 
  */
-optimize = \input#{ast data} ->
+optimize = \input#{tree data} ->
     setProperty(
         input,
-        'ast',
-        post_normalize.normalize(ast, data));
+        'tree',
+        post_normalize.normalize(tree, data));
 
 }

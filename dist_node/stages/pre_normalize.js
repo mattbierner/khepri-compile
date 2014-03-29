@@ -1,16 +1,15 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/pre_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var pre_normalize = require("../pre_normalize"),
     normalize;
 (normalize = (function(__o) {
     var options = __o["options"],
-        ast = __o["ast"];
+        tree = __o["tree"];
     return ({
         "options": options,
-        "ast": pre_normalize.normalize(ast)
+        "tree": pre_normalize.normalize(tree)
     });
 }));
 (module.exports = normalize);

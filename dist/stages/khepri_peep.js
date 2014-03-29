@@ -8,7 +8,7 @@
     (optimize = (function(input) {
         var tree = input["tree"],
             data = input["data"];
-        return setProperty(input, "ast", khepri_peep.optimize(tree, data));
+        return setProperty(input, "tree", khepri_peep.optimize(tree, data));
     }));
     return optimize;
 }));

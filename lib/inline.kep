@@ -14,7 +14,7 @@ with
     import 'neith::walk' {'walk': neithWalk},
     import 'neith::tree' tree,
 
-    import 'khepri-ast::node' {Node setUserData setData},
+    import 'khepri-ast::node' ast_node#{Node setUserData setData},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -34,16 +34,21 @@ with
     
     import './ast' {
         getUid
-        isLambda},
+        isLambda
+        isPrimitive
+        isNumberish
+        isTruthy},
     import './builtin' {builtins definitions},
-    import './fun' fun
+    import './fun' fun#{flattenr flatten}
 in {
 
-var visit;
+var _check;
 
 var State := record.declare(null, [
     'bindings',
-    'globals']);
+    'working',
+    'globals',
+    'outer']);
 
 /* Operations
  ******************************************************************************/
@@ -58,21 +63,36 @@ var run = \c ctx state seed ->
 
 var pass = M.of null;
 
+/*
+ ******************************************************************************/
 var node =  M.node;
 
 var modify = M.modifyNode;
 var set = M.setNode;
 
+var up = M.up;
+var down = M.down;
+var right = M.right;
+
+var moveChild =  M.child;
+
+
+/*
+ ******************************************************************************/
 var unique = M.liftInner (Unique.unique);
 
 var addBinding = \uid target ->
     M.lift <| M.inner.modify(\s ->
         s.setBindings(hashtrie.set(uid, target, s.bindings)));
 
+var addWorking = \uid target ->
+    M.lift <| M.inner.modify(\s ->
+        s.setWorking(hashtrie.set(uid, target, s.working)));
+
 var getBinding = \uid ->
     ?uid
-        :M.lift(M.inner.get).map(\{bindings}->
-            hashtrie.get(uid, bindings))
+        :M.lift(M.inner.get).map(\{bindings working}->
+            hashtrie.get(uid, working) || hashtrie.get(uid, bindings))
         :pass;
 
 var addGlobal = \name ->
@@ -84,11 +104,24 @@ var globals = (M.lift M.inner.get).map\s -> s.globals;
 var stack = (M.lift <| M.inner.get).map(\s -> s.stack);
 
 var push = M.lift <| M.inner.modify(\s ->
-    s.setStack(array.push(s.stack, null)));
+    new State(s.bindings, hashtrie.empty, s.globals, s));
 
 var pop = M.lift <| M.inner.modify(\s ->
-    s.setStack(array.pop(s.stack)));
+    s.outer
+        .setBindings(s.bindings)
+        .setGlobals(s.globals));
 
+/**
+ * Create a new lexical block for body.
+ */
+var block = \body(...) ->
+    seq(
+        push,
+        seqa(body),
+        pop);
+
+/*
+ ******************************************************************************/
 var rewrite = \base list root ->
     neithWalk(
         \ctx ->
@@ -108,298 +141,405 @@ var UP := true,
 
 var peepholes = {};
 
-var addPeephole = \types up test f -> {
-    var entry = {
-        'condition': test,
-        'up': up,
-        'map': f
-    };
-    
-    types.forEach \ type -> {
-        peepholes.(type) = ?peepholes.(type)
-            :fun.concat(peepholes.(type), entry)
-            :[entry];
-    };
+var addRewrite = \type f -> {
+    if (Array.isArray type)
+        type.forEach \ type -> addRewrite(type, f);
+    else
+        peepholes.(type) = f;
 };
 
-var always = \_ -> true;
+/*
+ ******************************************************************************/
+var checkTop = node.chain \ x -> _check x; // forward
+
+var child = \args(edge ...) ->
+    seq(
+        moveChild edge,
+        seqa([].slice.call(args, 1)),
+        up);
+
+var checkChild = \edge ->
+    child(edge,
+        checkTop);
+
+var when = \test consequent alternate ->
+    node.chain \ node ->
+        ?test node
+            :consequent
+            :(alternate || pass);
+
+/*
+ ******************************************************************************/
+var Expansion = record.declare(null, [
+    'ctx',
+    'id',
+    'target']);
+
+Expansion.prototype.expand = null;
 
 /* Operator To Function
  ******************************************************************************/
-/**
- * Convert Unary Op Expression to function.
- */
-addPeephole(['UnaryOperatorExpression'], DOWN,
-    always,
-    node.chain \ {op} ->
-        seq(
-            addGlobal(op),
-            set <| builtins.(op)));
+// Program and Packages
+addRewrite@'Program' <|
+    checkChild 'body';
 
-/**
- * Convert binary op expression to function.
- */
-addPeephole(['BinaryOperatorExpression'], DOWN,
-    always,
-    node.chain \ {op flipped} ->
-        let name = ?flipped : '_' + op : op in
-            seq(
-                addGlobal(name),
-                set <| builtins.(name)));
+addRewrite@'Package' <|
+    checkChild 'body';
 
-/**
- * Convert ternary op expression to function.
- */
-addPeephole(['TernaryOperatorExpression'], DOWN,
-    always,
+// Clause
+addRewrite@'SwitchCase' <|
     seq(
-        addGlobal('?'),
-        set <| builtins.('?')));
+        checkChild 'test',
+        checkChild 'consequent');
 
-/* 
- ******************************************************************************/
-/**
- */
-addPeephole(['VariableDeclarator'], UP,
-    \node -> 
-        (  node.immutable
-        && node.init
-        && isLambda(node.init)
-        && false),
-    node.chain \ node ->
-        addBinding(getUid(node.id), node.init));
+addRewrite@'CatchClause' <|
+    seq(
+        checkChild 'param',
+        checkChild 'body');
+
+// Declarations
+addRewrite@['StaticDeclaration', 'VariableDeclaration'] <|
+    checkChild 'declarations';
 
 /**
+ * Register constants bound in immutable variable declarations.
  * 
+ * This also removes the declarations since it will be unused, unless it is the
+ * only declaration of a var bound immutable to itself.
  */
-addPeephole(['Binding'], UP, 
-    \node -> 
-        (  node.pattern.id
-        && node.pattern.id.ud
-        && !node.recursive
-        && isLambda(node.value)),
-    node.chain \ node ->
-        addBinding(getUid(node.pattern.id), node.value));
+addRewrite@'VariableDeclarator' <|
+    seq(
+        checkChild 'init',
+        node.chain \ node ->
+            ?node.init
+                :?node.immutable
+                    :addBinding(getUid(node.id), node.init)
+                    :addWorking(getUid(node.id), node.init)
+            :pass);
 
-/* Inlining
- ******************************************************************************/
-addPeephole(['CallExpression'], UP,
-    \node ->
-        (node.callee.type === 'Identifier' && getUid(node.callee)),
+/**
+ * Register constants bound in immutable variable declarations.
+ * 
+ * This also removes the declarations since it will be unused, unless it is the
+ * only declaration of a var bound immutable to itself.
+ */
+addRewrite@'Binding' <|
+    seq(
+        checkChild 'pattern',
+        checkChild 'value',
+        when(
+            \node ->
+                (  node.pattern.type === 'IdentifierPattern'
+                && getUid node.pattern.id),
+            
+            node.chain \ node ->
+                let uid = getUid(node.pattern.id) in
+                    ?isPrimitive(node.value) || isLambda(node.value)
+                        :seq(
+                            addBinding(uid, node.value),
+                            set([]))
+                    :?node.value.type === 'Identifier'
+                        :getBinding(getUid node.value).chain \ binding ->
+                            ?binding
+                                :seq(
+                                    addBinding(uid, node.value),
+                                    set([]))
+                                :pass
+                        :pass));
 
-    node.chain \ node ->
-        getBinding(getUid(node.callee)).chain \ binding ->
-            ?binding
-                :modify \ node ->
-                    ast_expression.CallExpression.create(null,
-                        binding,
-                        node.args)
-                :pass);
+// Statement
+addRewrite@'BlockStatement' <|
+    checkChild 'body';
 
-addPeephole(['CurryExpression'], UP,
-    \node ->
-        (node.base.type === 'Identifier' && getUid(node.base)),
+addRewrite@'ExpressionStatement' <|
+    checkChild 'expression';
 
-    node.chain \ node ->
-        getBinding(getUid(node.base)).chain \ binding ->
-            ?binding
-                :modify \ node ->
-                    ast_expression.CurryExpression.create(null,
-                        binding,
-                        node.args)
-                :pass);
+addRewrite@'WithStatement' <|
+     seq(
+        checkChild 'bindings',
+        child('body',
+            checkChild 'body'));
 
-/* Inline Expansion
- ******************************************************************************/
+addRewrite@'SwitchStatement' <|
+    seq(
+        checkChild 'discriminant',
+        checkChild 'cases');
+
+addRewrite@['ReturnStatement', 'ThrowStatement'] <|
+    checkChild 'argument';
+
+addRewrite@'TryStatement' <|
+    seq(
+        checkChild 'block',
+        seq(
+            checkChild 'handler'),
+        seq(
+            checkChild 'finalizer'));
+
+addRewrite@'WhileStatement' <|
+    seq(
+        checkChild 'test',
+        seq(
+            checkChild 'body'));
+
+addRewrite@'DoWhileStatement' <|
+    seq(
+        seq(
+            checkChild 'body'),
+        checkChild 'test');
+
+addRewrite@'ForStatement' <|
+    seq(
+        checkChild 'init',
+        checkChild 'test',
+        checkChild 'update',
+        seq(
+            checkChild 'body'));
+
+// Expression
+addRewrite@'FunctionExpression' <|
+    block(
+         checkChild 'id',
+         checkChild 'params',
+         checkChild 'body');
+
+/**
+ * Combine simple unary operations on primitive literals
+ */
+addRewrite@'UnaryExpression' <| let
+    arithmetic = {
+        '!': (!),
+        '~': (~),
+        'typeof': (typeof),
+        '++': (++),
+        '--': (--)}
+in
+    when(
+        \{operator argument} ->
+            (  arithmetic.(operator)
+            && isPrimitive(argument)),
+    
+        modify \ {operator argument} -> let
+            value = arithmetic.(operator)(argument.value)
+        in
+            ast_value.Literal.create(null, typeof value, value));
+
+/**
+ * Update the working value of a binding.
+ */
+addRewrite@'AssignmentExpression' <|
+    seq(
+        checkChild 'right',
+        when(
+            \{left} ->
+                left.type === 'Identifier',
+            
+            node.chain \ node ->
+                addWorking(getUid(node.left), node.right)));
+
+/**
+ * Combine binary arithmetic operations on primitive literals.
+ * 
+ * TODO: Shortcircuit expansion for logical ops.
+ */
+addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
+    arithmetic = {
+        '+': (+),
+        '-': (-),
+        '*': (*),
+        '/': (/),
+        '%': (%),
+        '<<': (<<),
+        '>>': (>>),
+        '>>>': (>>>),
+        '<': (<),
+        '>': (>),
+        '<=': (<=),
+        '>=': (>=),
+        '||': (||),
+        '&&': (&&)}
+in
+    seq(
+        checkChild 'left',
+        checkChild 'right',
+        when(
+            \{operator left right} ->
+                (  arithmetic.(operator)
+                && isPrimitive(left)
+                && isPrimitive(right)),
+            
+            modify \ {operator left right} -> let
+                value = arithmetic.(operator)(left.value, right.value)
+            in
+                ast_value.Literal.create(null, typeof value, value)));
+
+/**
+ * Reduce conditionals with constant test.
+ */
+addRewrite@['ConditionalExpression', 'IfStatement'] <|
+    seq(
+        checkChild 'test',
+        when(
+            \node ->
+                isPrimitive node.test,
+            
+            node.chain \ {test consequent alternate} ->
+                seq(
+                    set ?isTruthy test : consequent : alternate,
+                    checkTop),
+            
+            seq(
+                checkChild 'consequent',
+                checkChild 'alternate')));
+
+addRewrite@'NewExpression' <|
+    seq(
+        checkChild 'callee',
+        checkChild 'args');
+
 /**
  * Inline calls of lambda functions by expanding them to let expressions.
  * 
  * The let expression is then rewritten to ensure the resulting values are unique.
  */
-addPeephole(['CallExpression'], UP,
-    \node ->
-        isLambda(node.callee),
-    (unique.chain \ uid ->
-        modify \ node -> let
-            map = node.callee.params.elements.map(\x -> getUid(x.id)),
+addRewrite@'CallExpression' <|
+    seq(
+        checkChild 'callee',
+        checkChild 'args',
+        when(
+            \node ->
+                (  isLambda(node.callee)
+                || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
             
-            bindings =
-                node.callee.params.elements.map \ x i ->
-                    ast_declaration.Binding.create(null,
-                        x,
-                        ?node.args.(i)
-                            :node.args.(i)
-                            :ast_value.Identifier.create(null, 'undefined'))
-        in
-            rewrite(uid, map, ast_expression.LetExpression.create(null,
-                bindings,
-                node.callee.body))).chain \ -> visit);
+            seq(
+                unique.chain \ uid ->
+                modify \ node -> let
+                    target = ?node.callee.type === 'LetExpression' : node.callee.body : node.callee,
+                    
+                    map = target.params.elements.map(\x -> getUid(x.id)),
+                    
+                    bindings =
+                        target.params.elements.map \ x i ->
+                            ast_declaration.Binding.create(null,
+                                x,
+                                ?node.args.(i)
+                                    :node.args.(i)
+                                    :ast_value.Identifier.create(null, 'undefined'))
+                in
+                    rewrite(uid, map, ast_expression.LetExpression.create(null,
+                        fun.concat(
+                            node.callee.bindings || [],
+                            bindings),
+                        target.body)),
+                checkTop)));
 
-/**
- * 
- */
-addPeephole(['CallExpression'], UP,
-    \node ->
-        (  node.callee.type === 'LetExpression'
-        && isLambda(node.callee.body)),
+addRewrite@'MemberExpression' <|
+    seq(
+        checkChild 'object',
+        node.chain \ node ->
+            ?node.computed
+                :checkChild 'property'
+                :pass);
     
-    (unique.chain \ uid ->
-        modify \ node -> let
-            map = node.callee.body.params.elements.map(\x -> getUid(x.id)),
-    
-            bindings =
-                node.callee.body.params.elements.map \ x i ->
-                    ast_declaration.Binding.create(null,
-                        x,
-                        ?node.args.(i)
-                            :node.args.(i)
-                            :ast_value.Identifier.create(null, 'undefined'))
-        in
-            rewrite(uid, map, ast_expression.LetExpression.create(null,
-                fun.concat(
-                    node.callee.bindings,
-                    bindings),
-                node.callee.body.body))).chain \ -> visit);
+addRewrite@'ArrayExpression' <|
+    checkChild 'elements';
+
+addRewrite@'ObjectExpression' <|
+    checkChild 'properties';
 
 /**
- * Rewrite call of curried expression to a call direct call on curry base.
+ * Flatten let expression bindings.
  */
-addPeephole(['CallExpression'], UP,
-    \{callee} ->
-        callee.type ==='CurryExpression',
-   
-    modify \ node ->
-        ast_expression.CallExpression.create(null,
-            node.callee.base,
-            fun.concat(
-                node.callee.args || [],
-                node.args)));
-
-/**
- * 
- */
-addPeephole(['CallExpression'], UP,
-    \node ->
-        (  node.callee.type === 'LetExpression'
-        && node.callee.body.type === 'CurryExpression'),
-
-    modify \ node -> let
-        first = node.callee.body.params.elements.(0),
-        rest = node.base.body.params.elements.slice(1),
-        
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
-                node.base.body.params.self),
-            node.base.body.body)
-    in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-            :ast_expression.LetExpression.create(null,
-                fun.concat(
-                    node.base.bindings,
-                    ast_declaration.Binding.create(null,
-                        first,
-                        node.args.(0))),
-                body)
-            :ast_expression.LetExpression.create(null,
-                node.base.bindings,
+addRewrite@'LetExpression' <|
+    seq(
+        checkChild 'bindings',
+        checkChild 'body',
+        modify \ {loc bindings body} ->
+            ast_expression.LetExpression.create(loc,
+                flattenr(bindings),
+                body),
+        when(
+            \{bindings} ->
+                !bindings.length,
+            
+            modify \ {body} ->
                 body));
 
-/**
- * Convert curry on function expression to function.
- * 
- * Note that this discards arguments that are not used.
- */
-addPeephole(['CurryExpression'], UP,
-    \node ->
-        isLambda(node.base),
-    
+addRewrite@'CurryExpression' <|
+    seq(
+        checkChild 'base',
+        checkChild 'args');
+
+// Patterns
+addRewrite@'SinkPattern'<|
     unique.chain \ uid ->
     modify \ node ->
-        ?!node.base.params.elements.length
-            :node.base
-            :let
-                first = node.base.params.elements.(0),
-                rest = node.base.params.elements.slice(1),
-                
-                map = [getUid(first.id)],
-                
-                body = ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null,
-                        rest,
-                        node.base.params.self),
-                    rewrite(uid, map, node.base.body))
-            in
-                ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-                    :ast_expression.LetExpression.create(null,
-                        [rewrite(uid, map, ast_declaration.Binding.create(null,
-                            first,
-                            node.args.(0)))],
-                        body)
-                    :body);
+        setData(node, 'id',
+            setData(
+                ast_value.Identifier.create(null, '_'),
+                'uid',
+                uid));
 
-/**
- * Try Convert curry on let with function body to function.
- * 
- * Note that this may discard arguments that are not used.
- */
-addPeephole(['CurryExpression'], UP,
-    \node ->
-        (  node.base.type === 'LetExpression'
-        && isLambda(node.base.body)),
-    
-    unique.chain \ uid -> 
-    modify \ node ->
-        ?!node.base.body.params.elements.length
-            :node.base
-        :let
-            first = node.base.body.params.elements.(0),
-            rest = node.base.body.params.elements.slice(1),
-            
-            map = [getUid(first.id)],
-    
-            body = ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null,
-                    rest,
-                    node.base.body.params.self),
-                rewrite(uid, map, node.base.body.body))
-        in
-            ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-                :ast_expression.LetExpression.create(null,
-                    fun.concat(
-                        node.base.bindings,
-                        rewrite(uid, map, ast_declaration.Binding.create(null,
-                            first,
-                            node.args.(0)))),
-                    body)
-                :ast_expression.LetExpression.create(null,
-                    node.base.bindings,
-                    body));
+addRewrite@'IdentifierPattern' <|
+    checkChild 'id';
+
+addRewrite@'ImportPattern' <|
+    checkChild 'pattern';
+
+addRewrite@'AsPattern' <|
+    seq(
+        checkChild 'id',
+        checkChild 'target');
+
+addRewrite@'ObjectPattern' <|
+    checkChild 'elements';
+
+addRewrite@'ObjectPatternElement' <|
+    seq(
+        checkChild 'target',
+        checkChild 'key');
+
+addRewrite@'ArgumentsPattern' <|
+    seq(
+        checkChild 'id',
+        checkChild 'elements',
+        checkChild 'self');
+
+// Value
+addRewrite@'ObjectValue' <|
+    checkChild 'value';
+
+addRewrite@'Identifier' <|
+    when(
+        \node -> getUid node,
+        
+        node.chain \ node ->
+            getBinding(getUid node).chain \ binding ->
+                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding))
+                    :set(binding)
+                    :pass);
 
 /* Interface
  ******************************************************************************/
-var upTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> x.up && x.condition(node));
-
-var downTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> !x.up && x.condition(node));
-
-var transform = \node transforms ->
-    ?transforms.length
-        :seqa(transforms.map(\x -> x.map))
-        :pass;
-
-var _transform = node.chain \ node -> 
-    transform(node, downTransforms node);
-
-var _transformPost = node.chain \ n -> let
-    t = upTransforms n
-in
-    ?t.length
-        :next(transform(n, [t.(0)]), node).chain\x -> ?x && x !== n : _transformPost : pass
-        :pass;
+_check = \node -> {
+    if (Array.isArray(node)) {
+        if (!node.length)
+            return pass;
+        
+        return seq(
+            down,
+            seqa(node.map(\_ i -> 
+                ?i === node.length - 1
+                    :checkTop
+                    :next(checkTop, right))),
+            up);
+    }
+    
+    if (node instanceof ast_node.Node && peepholes.(node.type))
+        return peepholes.(node.type);
+    
+    return pass;
+};
 
 var initialState = Object.keys(builtins).reduce(
     \s name -> let
@@ -410,19 +550,9 @@ var initialState = Object.keys(builtins).reduce(
             hashtrie.set(id.ud.uid, def, s.bindings)),
     new State(
         hashtrie.empty,
-        hashtrie.empty));
-
-var merge = \ctx o ->
-    ?o
-        :ctx.setLoc(ctx.loc.setFocus(o && o.loc.focus).setDirty(o.loc.dirty))
-        :o;
-
-visit =  walk(M, _transform, _transformPost);/*M.get.chain \ ctx ->
-    seq(
-        M.move detach,
-        walk(M, _transform, _transformPost),
-        M.get.chain \n ->
-            M.put(merge(ctx, n)));*/
+        hashtrie.empty,
+        hashtrie.empty,
+        null));
 
 /**
  * 
@@ -430,7 +560,7 @@ visit =  walk(M, _transform, _transformPost);/*M.get.chain \ ctx ->
 optimize = \ast data ->
     run(
         next(
-            visit,
+            checkTop,
             node.chain \ node ->
             globals.chain \ g ->
             unique.chain \ unique ->

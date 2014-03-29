@@ -86,83 +86,6 @@ var addPeephole = \types, up, condition, f -> {
 /* Constant Folding
  ******************************************************************************/
 /**
- * Combine binary arithmetic operations on primitive literals
- */
-let
-    arithmetic = {
-        '+': (+),
-        '-': (-),
-        '*': (*),
-        '/': (/),
-        '%': (%),
-        '<<': (<<),
-        '>>': (>>),
-        '>>>': (>>>),
-        '<': (<),
-        '>': (>),
-        '<=': (<=),
-        '>=': (>=),
-        '||': (||),
-        '&&': (&&)}
-in
-    addPeephole(['BinaryExpression', 'LogicalExpression'], true,
-        \{operator left right} ->
-            arithmetic.(operator)
-            && isPrimitive(left)
-            && isPrimitive(right),
-        
-        modify \ {operator left right} -> let
-            value = arithmetic.(operator)(left.value, right.value)
-        in
-            ast_value.Literal.create(null, typeof value, value));
-
-/**
- * Combine simple unary operations on primitive literals
- */
-let
-    arithmetic = {
-        '!': (!),
-        '~': (~),
-        'typeof': (typeof),
-        '++': (++),
-        '--': (--)}
-in
-    addPeephole(['UnaryExpression'], true,
-        \{operator argument} ->
-            arithmetic.(operator)
-            && isPrimitive(argument),
-        
-        modify \ {operator argument} -> let
-            value = arithmetic.(operator)(argument.value)
-        in
-            ast_value.Literal.create(null, typeof value, value));
-
-
-/**
- * Reduce if statements with constant test.
- */
-addPeephole(['IfStatement'], true,
-    \node ->
-        isPrimitive node.test,
-    
-    modify \ {test consequent alternate} ->
-        ?isTruthy test
-            :consequent
-            :alternate);
-
-/**
- * Reduce ternary expression with constant test.
- */
-addPeephole(['ConditionalExpression'], true,
-    \node ->
-        isPrimitive node.test,
-    
-    modify \ {test consequent alternate} ->
-        ?isTruthy test
-            :consequent
-            :alternate);
-
-/**
  * Constant index in array expression.
  */
 addPeephole(['MemberExpression'], true,
@@ -173,59 +96,6 @@ addPeephole(['MemberExpression'], true,
     
     modify \ node ->
         node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined'));
-
-/* Constant Binding
- ******************************************************************************/
-/**
- * Register constants bound in immutable variable declarations.
- * 
- * This also removes the declarations since it will be unused, unless it is the
- * only declaration of a var bound immutable to itself.
- */
-addPeephole(['VariableDeclarator'], true,
-    \node ->
-        (  node.immutable
-        && node.init),
-    
-    node.chain \ node ->
-        addBinding(getUid node.id, node.init));
-
-/**
- * Register constants bound in bindings.
- * 
- * This also removes the declarations since it will be unused.
- */
-addPeephole(['Binding'], true,
-    \node ->
-        (node.pattern.type === 'IdentifierPattern'
-        && getUid node.pattern.id),
-    
-    node.chain \ node ->
-        let uid = getUid node.pattern.id in
-            ?isPrimitive(node.value)
-                :seq(
-                    addBinding(uid, node.value),
-                    set([]))
-            :?node.value.type === 'Identifier'
-                :getBinding(getUid node.value).chain \ binding ->
-                    ?binding
-                        :seq(
-                            addBinding(uid, node.value),
-                            set([]))
-                        :pass
-                :pass);
-
-/**
- * Substitute bound value for identifies.
- */
-addPeephole(['Identifier'], true,
-    \node -> getUid node,
-    
-    node.chain \ node ->
-    getBinding(getUid node).chain \ binding ->
-        ?binding && (isPrimitive(binding) || binding.type === 'Identifier')
-            :set(binding)
-            :pass);
 
 /* Binding Simplification
  ******************************************************************************/
@@ -284,7 +154,7 @@ addPeephole(['WithStatement'], true,
                 :ast_statement.WithStatement.create(null, bound, body)
                 :body);
 
-/* Peepholes
+/* Flattening
  ******************************************************************************/
 /**
  * Flatten let with let body.

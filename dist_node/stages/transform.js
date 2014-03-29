@@ -8,8 +8,8 @@ var transformer = require("../transform/transform"),
     transform;
 (transform = (function(input) {
     var options = input["options"],
-        ast = input["ast"],
+        tree = input["tree"],
         data = input["data"];
-    return setProperty(input, "tree", transformer.transform(ast, (options.package_manager || "amd"), data));
+    return setProperty(input, "tree", transformer.transform(tree, (options.package_manager || "amd"), data));
 }));
 (module.exports = transform);

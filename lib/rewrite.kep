@@ -1,0 +1,76 @@
+/**
+ * @fileOverview Khepri peephole optimization.
+ */
+package (
+    UP
+    DOWN
+    Rewriter
+    rewrite)
+with
+    import 'akh::base' {
+        next
+        'sequence': seq
+        'sequencea': seqa},
+    
+    import 'akh::unique' Unique,
+    import 'akh::trans::state' StateT,
+
+    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::walk' walk,
+    
+    import './fun' fun
+in {
+
+UP = true;
+DOWN = false;
+
+/*
+ ******************************************************************************/
+Rewriter = function \ =self-> {
+    self.peepholes = [];
+};
+
+Rewriter.prototype.add = \types, up, condition, f =self-> {
+    var entry = {
+        'condition': condition,
+        'map': f,
+        'up': up
+    };
+    
+    types.forEach \ type -> {
+        self.peepholes.(type) = ?self.peepholes.(type)
+            :fun.concat(self.peepholes.(type), entry)
+            :[entry];
+    };
+};
+
+Rewriter.prototype.upTransforms = \node =self-> 
+    ((node && self.peepholes.(node.type)) || [])
+        .filter(\x -> x.up && x.condition(node));
+
+Rewriter.prototype.downTransforms = \node =self-> 
+    ((node && self.peepholes.(node.type)) || [])
+        .filter(\x -> !x.up && x.condition(node));
+
+var transform = \m node transforms ->
+    ?transforms.length
+        :seqa(transforms.map(\x -> x.map))
+        :m.of null;
+
+Rewriter.prototype.transform = \m =self->
+    m.node.chain \ node -> 
+        transform(m, node, self.downTransforms node);
+
+Rewriter.prototype.transformPost = \m =self->
+    m.node.chain \ node ->
+        transform(m, node, self.upTransforms node);
+
+/* Interface
+ ******************************************************************************/
+rewrite = \m rewitter ->
+    next(
+        walk(m, rewitter.transform(m), rewitter.transformPost(m)),
+        m.node);
+
+
+}

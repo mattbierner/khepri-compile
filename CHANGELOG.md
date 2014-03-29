@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.3.7 - March 29, 2014
+* Fixed function identifier not being renamed correctly.
+
 ## 0.3.7 - March 28, 2014
 * Fixed possibly incorrect translation of names after inlining.
 * Fixed not inlining some constants.

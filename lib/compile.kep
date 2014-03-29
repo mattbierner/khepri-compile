@@ -37,7 +37,7 @@ var extract := \{tree} -> tree;
  */
 compile =
     (\root options -> ({
-        'ast': root,
+        'tree': root,
         'options': options || {}}))
    \>> compiler
    \> extract;
