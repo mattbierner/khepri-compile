@@ -176,7 +176,7 @@ addRewrite(["ReturnStatement", "ThrowStatement"], checkChild("argument"));
 addRewrite("TryStatement", seq(checkChild("block"), seq(checkChild("handler")), seq(checkChild("finalizer"))));
 addRewrite("WhileStatement", block(checkChild("test"), checkChild("body")));
 addRewrite("DoWhileStatement", block(checkChild("body"), checkChild("test")));
-addRewrite("ForStatement", block(checkChild("init"), checkChild("test"), checkChild("update"), checkChild("body")));
+addRewrite("ForStatement", seq(checkChild("init"), block(checkChild("test"), checkChild("update"), checkChild("body"))));
 addRewrite("FunctionExpression", block(checkChild("id"), checkChild("params"), checkChild("body")));
 addRewrite("UnaryExpression", ((arithmetic = ({
     "!": (function(x) {

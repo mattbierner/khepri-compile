@@ -327,11 +327,12 @@ addRewrite@'DoWhileStatement' <|
  * 
  */
 addRewrite@'ForStatement' <|
-    block(
+    seq(
         checkChild 'init',
-        checkChild 'test',
-        checkChild 'update',
-        checkChild 'body');
+        block(
+            checkChild 'test',
+            checkChild 'update',
+            checkChild 'body'));
 
 // Expression
 addRewrite@'FunctionExpression' <|
