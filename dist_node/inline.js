@@ -41,15 +41,44 @@ var record = require("bes")["record"],
     fun = require("./fun"),
     flattenr = fun["flattenr"],
     flatten = fun["flatten"],
+    binding = require("./inline/bindings"),
     optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 2,
     _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
-(State.empty = new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null, hashtrie.empty));
+(State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
+(State.prototype.addBinding = (function(uid, target) {
+    var s = this;
+    return s.setBindings(binding.setBinding(uid, target, s.bindings));
+}));
+(State.prototype.addWorking = (function(uid, target) {
+    var s = this;
+    return s.setWorking(binding.setBinding(uid, target, s.working));
+}));
+(State.prototype.push = (function() {
+    var s = this;
+    return s.setOuter(s)
+        .setWorking(binding.empty);
+}));
+(State.prototype.pop = (function() {
+    var s = this;
+    return s.outer.setBindings(s.bindings)
+        .setGlobals(s.globals)
+        .setWorking(hashtrie.fold((function(p, __o) {
+            var key = __o["key"];
+            return hashtrie.set(key, null, p);
+        }), s.outer.working, s.working));
+}));
 var M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, state, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
     }),
     pass = M.of(null),
     unique = M.liftInner(Unique.unique),
+    getState = M.lift(M.inner.get),
+    modifyState = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(M.lift, M.inner.modify),
     node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
@@ -57,44 +86,37 @@ var M = ZipperT(StateT(Unique)),
     down = M.down,
     right = M.right,
     moveChild = M.child,
-    addBinding = (function(uid, target) {
-        return M.lift(M.inner.modify((function(s) {
-            return s.setBindings(hashtrie.set(uid, target, s.bindings));
-        })));
+    addBinding = (function(uid, value) {
+        return modifyState((function(s) {
+            return s.addBinding(uid, value);
+        }));
     }),
-    addWorking = (function(uid, target) {
-        return M.lift(M.inner.modify((function(s) {
-            return s.setWorking(hashtrie.set(uid, target, s.working));
-        })));
+    addWorking = (function(uid, value) {
+        return modifyState((function(s) {
+            return s.addWorking(uid, value);
+        }));
     }),
     getBinding = (function(uid) {
-        return (uid ? M.lift(M.inner.get)
-            .map((function(__o) {
-                var bindings = __o["bindings"],
-                    working = __o["working"];
-                return (hashtrie.get(uid, working) || hashtrie.get(uid, bindings));
-            })) : pass);
+        return (uid ? getState.map((function(__o) {
+            var bindings = __o["bindings"],
+                working = __o["working"];
+            return (hashtrie.get(uid, working) || hashtrie.get(uid, bindings));
+        })) : pass);
     }),
+    globals = getState.map((function(s) {
+        return s.globals;
+    })),
     addGlobal = (function(name) {
-        return M.lift(M.inner.modify((function(s) {
+        return modifyState((function(s) {
             return s.setGlobals(hashtrie.set(name, name, s.globals));
-        })));
+        }));
     }),
-    globals = M.lift(M.inner.get)
-        .map((function(s) {
-            return s.globals;
-        })),
-    push = M.lift(M.inner.modify((function(s) {
-        return new(State)(s.bindings, hashtrie.empty, s.globals, s);
-    }))),
-    pop = M.lift(M.inner.modify((function(s) {
-        return s.outer.setBindings(s.bindings)
-            .setGlobals(s.globals)
-            .setWorking(hashtrie.fold((function(p, __o) {
-                var key = __o["key"];
-                return hashtrie.set(key, null, p);
-            }), s.outer.working, s.working));
-    }))),
+    push = modifyState((function(s) {
+        return s.push();
+    })),
+    pop = modifyState((function(s) {
+        return s.pop();
+    })),
     block = (function() {
         var body = arguments;
         return seq(push, seqa(body), pop);
@@ -116,14 +138,13 @@ var M = ZipperT(StateT(Unique)),
     isExpansion = (function(node) {
         return ((node.ud && node.ud) && node.ud.expand);
     }),
-    getCtx = M.lift(M.inner.get)
-        .map((function(s) {
-            return s.ctx;
-        })),
+    getCtx = getState.map((function(s) {
+        return s.ctx;
+    })),
     modifyCtx = (function(f) {
-        return M.lift(M.inner.modify((function(s) {
+        return modifyState((function(s) {
             return s.setCtx(f(s.ctx));
-        })));
+        }));
     }),
     expand = (function(exp, f) {
         return (isExpansion(exp) ? getCtx.chain((function(ctx) {
@@ -173,7 +194,7 @@ addRewrite("Program", visitChild("body"));
 addRewrite("Package", visitChild("body"));
 addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
 addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
-addRewrite(["StaticDeclaration", "VariableDeclaration"], visitChild("declarations"));
+addRewrite("VariableDeclaration", visitChild("declarations"));
 addRewrite("VariableDeclarator", seq(visitChild("init"), node.chain((function(node) {
     return (node.init ? (node.immutable ? addBinding(getUid(node.id), node.init) : addWorking(getUid(
         node.id), node.init)) : pass);
@@ -183,10 +204,8 @@ addRewrite("Binding", seq(visitChild("value"), when((function(node) {
 }), node.chain((function(node) {
     var uid = getUid(node.pattern.id);
     return (isPrimitive(node.value) ? addBinding(uid, node.value) : (isLambda(node.value) ?
-        markExpansion(node.pattern.id, node.value)
-        .chain((function(entry) {
-            return addBinding(uid, entry);
-        })) : ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
+        addBinding(uid, markExpansion(node.pattern.id, node.value)) : ((node.value.type ===
+                "Identifier") ? getBinding(getUid(node.value))
             .chain((function(binding) {
                 return (binding ? addBinding(uid, node.value) : pass);
             })) : pass)));

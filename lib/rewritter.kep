@@ -23,7 +23,7 @@ Rewritter = function \ =self-> {
     self.peepholes = [];
 };
 
-Rewritter.prototype.add = \types, up, condition, f =self-> {
+Rewritter.prototype.add = \types up condition, f =self-> {
     var entry = {
         'condition': condition,
         'map': f,

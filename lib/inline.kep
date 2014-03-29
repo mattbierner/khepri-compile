@@ -39,7 +39,8 @@ with
         isNumberish
         isTruthy},
     import './builtin' {builtins definitions},
-    import './fun' fun#{flattenr flatten}
+    import './fun' fun#{flattenr flatten},
+    import './inline/bindings' binding
 in {
 
 /* Config
@@ -60,11 +61,35 @@ var State := record.declare(null, [
     'ctx']);
 
 State.empty = new State(
-    hashtrie.empty,
-    hashtrie.empty,
+    binding.empty,
+    binding.empty,
     hashtrie.empty,
     null,
     hashtrie.empty);
+
+State.prototype.addBinding = \uid target =s->
+    s.setBindings(
+        binding.setBinding(uid, target, s.bindings));
+
+State.prototype.addWorking = \uid target =s->
+    s.setWorking(
+        binding.setBinding(uid, target, s.working));
+
+State.prototype.push = \=s->
+    s.setOuter(s)
+        .setWorking(binding.empty);
+
+State.prototype.pop = \=s ->
+    s.outer
+        .setBindings(s.bindings)
+        .setGlobals(s.globals)
+        .setWorking(
+            // Delete working bindings modified in inner from outer scope.
+            hashtrie.fold(
+                \p {key} ->
+                    hashtrie.set(key, null, p),
+                s.outer.working,
+                s.working));
 
 /* Monad
  ******************************************************************************/
@@ -81,8 +106,14 @@ var pass = M.of null;
 
 var unique = M.liftInner (Unique.unique);
 
-/* Movement
- ******************************************************************************/
+// State Operations
+////////////////////////////////////////
+var getState := M.lift (M.inner.get);
+
+var modifyState := M.lift <\ M.inner.modify;
+
+// Movement
+////////////////////////////////////////
 var node =  M.node;
 
 var modify = M.modifyNode;
@@ -94,45 +125,70 @@ var right = M.right;
 
 var moveChild =  M.child;
 
-/* Binding operations
- ******************************************************************************/
-var addBinding = \uid target ->
-    M.lift <| M.inner.modify(\s ->
-        s.setBindings(hashtrie.set(uid, target, s.bindings)));
-
-var addWorking = \uid target ->
-    M.lift <| M.inner.modify(\s ->
-        s.setWorking(hashtrie.set(uid, target, s.working)));
-
-var getBinding = \uid ->
-    ?uid
-        :M.lift(M.inner.get).map(\{bindings working}->
-            hashtrie.get(uid, working) || hashtrie.get(uid, bindings))
-        :pass;
-
-var addGlobal = \name ->
-    M.lift <| M.inner.modify\s ->
-        s.setGlobals(hashtrie.set(name, name, s.globals));
-
-var globals = (M.lift M.inner.get).map\s -> s.globals;
-
-var push = M.lift <| M.inner.modify(\s ->
-    new State(s.bindings, hashtrie.empty, s.globals, s));
-
-var pop = M.lift <| M.inner.modify\s ->
-    s.outer
-        .setBindings(s.bindings)
-        .setGlobals(s.globals)
-        .setWorking(
-            // Delete working bindings modified in inner from outer scope.
-            hashtrie.fold(
-                \p {key} ->
-                    hashtrie.set(key, null, p),
-                s.outer.working,
-                s.working));
+// Bindings Operations
+////////////////////////////////////////
+/**
+ * Register an immutable binding.
+ * 
+ * Immutable bindings are shared across blocks.
+ * 
+ * @param uid Immutable binding unique id.
+ * @param value Value bound.
+ */
+var addBinding = \uid value ->
+    modifyState \ s ->
+        s.addBinding(uid, value);
 
 /**
- * Create a new lexical block for body.
+ * Set the working value of a binding.
+ * 
+ * The working value is the value of a (perhaps mutable) binding at a point in
+ * execution.
+ * 
+ * @param uid Identifier unique id.
+ * @param value Value bound.
+ */
+var addWorking = \uid value ->
+    modifyState \ s ->
+        s.addWorking(uid, value);
+
+/**
+ * 
+ */
+var getBinding = \uid ->
+    ?uid
+        :getState.map \ {bindings working}->
+            (hashtrie.get(uid, working) || hashtrie.get(uid, bindings))
+        :pass;
+ 
+// Globals Operations
+////////////////////////////////////////
+/**
+ * Get globals.
+ */
+var globals = getState.map \ s -> s.globals;
+
+/**
+ * Add a new global.
+ */
+var addGlobal = \name ->
+    modifyState \ s ->
+        s.setGlobals(hashtrie.set(name, name, s.globals));
+
+// Binding operations
+////////////////////////////////////////
+/**
+ * Enter a new scoping block.
+ */
+var push = modifyState \ s -> s.push();
+
+/**
+ * Exit the current the current scoping block.
+ */
+var pop = modifyState \ s -> s.pop();
+
+/**
+ * Evaluate `body` in a new scoping block.
  */
 var block = \body(...) ->
     seq(
@@ -154,7 +210,7 @@ var rewrite = \base list root ->
         khepriZipper(root))
             |> tree.node;
 
-/*
+/* Expansion
  ******************************************************************************/
 var markExpansion = \id target ->
     setData(
@@ -165,8 +221,11 @@ var markExpansion = \id target ->
 var isExpansion := \node ->
     (node.ud && node.ud && node.ud.expand);
 
-var getCtx = M.lift(M.inner.get).map\s -> s.ctx;
-var modifyCtx = \f -> M.lift(M.inner.modify(\s -> s.setCtx(f(s.ctx))));
+var getCtx = getState.map\s -> s.ctx;
+
+var modifyCtx = \f ->
+    modifyState \ s ->
+        s.setCtx(f(s.ctx));
 
 var expand = \exp f ->
     ?isExpansion exp
@@ -275,7 +334,7 @@ addRewrite@'CatchClause' <|
         visitChild 'body');
 
 // Declarations
-addRewrite@['StaticDeclaration', 'VariableDeclaration'] <|
+addRewrite@'VariableDeclaration' <|
     visitChild 'declarations';
 
 /**
@@ -284,15 +343,14 @@ addRewrite@['StaticDeclaration', 'VariableDeclaration'] <|
  * This also removes the declarations since it will be unused, unless it is the
  * only declaration of a var bound immutable to itself.
  */
-addRewrite@'VariableDeclarator' <|
-    seq(
-        visitChild 'init',
-        node.chain \ node ->
-            ?node.init
-                :?node.immutable
-                    :addBinding(getUid(node.id), node.init)
-                    :addWorking(getUid(node.id), node.init)
-            :pass);
+addRewrite@'VariableDeclarator' <| seq(
+    visitChild 'init',
+    node.chain \ node ->
+        ?node.init
+            :?node.immutable
+                :addBinding(getUid(node.id), node.init)
+                :addWorking(getUid(node.id), node.init)
+        :pass);
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -304,7 +362,7 @@ addRewrite@'Binding' <| seq(
     visitChild 'value',
     
     /**
-     * Register constants bound in immutable variable declarations.
+     * Register bound values.
      */
     when(
         \node ->
@@ -317,8 +375,7 @@ addRewrite@'Binding' <| seq(
                     :addBinding(uid, node.value)
                     
                 :?isLambda(node.value)
-                    :markExpansion(node.pattern.id, node.value).chain\entry ->
-                        addBinding(uid, entry)
+                    :addBinding(uid, markExpansion(node.pattern.id, node.value))
                     
                 :?node.value.type === 'Identifier'
                     :getBinding(getUid node.value).chain \ binding ->

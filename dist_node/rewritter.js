@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/rewritter.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/rewritter.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var zipper = require("neith")["zipper"],
     tree = require("neith")["tree"],
     __o = require("neith")["walk"],

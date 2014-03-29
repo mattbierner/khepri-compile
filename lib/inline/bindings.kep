@@ -1,0 +1,24 @@
+package (
+    empty
+    
+    setBinding
+    getBinding
+    )
+with
+    import 'hashtrie' hashtrie
+in {
+
+empty = hashtrie.empty;
+
+/**
+ * 
+ */
+setBinding = hashtrie.set;
+
+/**
+ * 
+ */
+getBinding = hashtrie.get;
+
+
+}
