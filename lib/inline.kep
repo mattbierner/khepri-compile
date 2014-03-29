@@ -264,25 +264,47 @@ addRewrite@'VariableDeclarator' <|
  * This also removes the declarations since it will be unused, unless it is the
  * only declaration of a var bound immutable to itself.
  */
-addRewrite@'Binding' <|
-    seq(
-        checkChild 'pattern',
-        checkChild 'value',
-        when(
-            \node ->
-                (  node.pattern.type === 'IdentifierPattern'
-                && getUid node.pattern.id),
-            
-            node.chain \ node ->
-                let uid = getUid(node.pattern.id) in
-                    ?isPrimitive(node.value) || isLambda(node.value)
-                        :addBinding(uid, node.value)
-                    :?node.value.type === 'Identifier'
-                        :getBinding(getUid node.value).chain \ binding ->
-                            ?binding
-                                :addBinding(uid, node.value)
-                                :pass
-                        :pass));
+addRewrite@'Binding' <| seq(
+    checkChild 'value',
+    
+    /**
+     * Register constants bound in immutable variable declarations.
+     */
+    when(
+        \node ->
+            (  node.pattern.type === 'IdentifierPattern'
+            && getUid node.pattern.id),
+        
+        node.chain \ node ->
+            let uid = getUid(node.pattern.id) in
+                ?isPrimitive(node.value) || isLambda(node.value)
+                    :addBinding(uid, node.value)
+                :?node.value.type === 'Identifier'
+                    :getBinding(getUid node.value).chain \ binding ->
+                        ?binding
+                            :addBinding(uid, node.value)
+                            :pass
+                    :pass),
+    
+    /**
+     * Expand a binding of a let expression to a set of bindings, with the top level
+     * binding to the let body last.
+     */
+    when(
+        \node ->
+            (node.value.type === 'LetExpression'),
+        
+        node.chain \ node -> let
+            bindings =
+                fun.flatten <| fun.concat(
+                   node.value.bindings,
+                   ast_declaration.Binding.create(null,
+                       node.pattern,
+                       node.value.body))
+       in
+           seq(
+               set bindings,
+               checkChild(bindings.length - 1))));
 
 // Statement
 addRewrite@'BlockStatement' <|
@@ -294,8 +316,7 @@ addRewrite@'ExpressionStatement' <|
 addRewrite@'WithStatement' <|
      seq(
         checkChild 'bindings',
-        child('body',
-            checkChild 'body'));
+        checkChild 'body');
 
 addRewrite@'SwitchStatement' <|
     seq(
@@ -308,10 +329,8 @@ addRewrite@['ReturnStatement', 'ThrowStatement'] <|
 addRewrite@'TryStatement' <|
     seq(
         checkChild 'block',
-        seq(
-            checkChild 'handler'),
-        seq(
-            checkChild 'finalizer'));
+        checkChild 'handler',
+        checkChild 'finalizer');
 
 addRewrite@'WhileStatement' <|
     block(
@@ -323,9 +342,6 @@ addRewrite@'DoWhileStatement' <|
         checkChild 'body',
         checkChild 'test');
 
-/**
- * 
- */
 addRewrite@'ForStatement' <|
     seq(
         checkChild 'init',
@@ -430,47 +446,6 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <|
                 checkChild 'consequent',
                 checkChild 'alternate')));
 
-addRewrite@'NewExpression' <|
-    seq(
-        checkChild 'callee',
-        checkChild 'args');
-
-/**
- * Inline calls of lambda functions by expanding them to let expressions.
- * 
- * The let expression is then rewritten to ensure the resulting values are unique.
- */
-addRewrite@'CallExpression' <|
-    seq(
-        checkChild 'callee',
-        checkChild 'args',
-        when(
-            \node ->
-                (  isLambda(node.callee)
-                || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
-            
-            seq(
-                unique.chain \ uid ->
-                modify \ node -> let
-                    target = ?node.callee.type === 'LetExpression' : node.callee.body : node.callee,
-                    
-                    map = target.params.elements.map(\x -> getUid(x.id)),
-                    
-                    bindings =
-                        target.params.elements.map \ x i ->
-                            ast_declaration.Binding.create(null,
-                                x,
-                                ?node.args.(i)
-                                    :node.args.(i)
-                                    :ast_value.Identifier.create(null, 'undefined'))
-                in
-                    rewrite(uid, map, ast_expression.LetExpression.create(null,
-                        fun.concat(
-                            node.callee.bindings || [],
-                            bindings),
-                        target.body)),
-                checkTop)));
-
 addRewrite@'MemberExpression' <|
     seq(
         checkChild 'object',
@@ -478,7 +453,92 @@ addRewrite@'MemberExpression' <|
             ?node.computed
                 :checkChild 'property'
                 :pass);
+
+addRewrite@'NewExpression' <|
+    seq(
+        checkChild 'callee',
+        checkChild 'args');
+
+addRewrite@'CallExpression' <| seq(
+    checkChild 'callee',
+    checkChild 'args',
     
+    /**
+     * Inline calls of lambda functions by expanding them to let expressions.
+     * 
+     * The let expression is then rewritten to ensure the resulting values are unique.
+     */
+    when(
+        \node ->
+            (  isLambda(node.callee)
+            || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
+        
+        seq(
+            unique.chain \ uid ->
+            modify \ node -> let
+                target = ?node.callee.type === 'LetExpression' : node.callee.body : node.callee,
+                
+                map = target.params.elements.map(\x -> getUid(x.id)),
+                
+                bindings =
+                    target.params.elements.map \ x i ->
+                        ast_declaration.Binding.create(null,
+                            x,
+                            ?node.args.(i)
+                                :node.args.(i)
+                                :ast_value.Identifier.create(null, 'undefined'))
+            in
+                rewrite(uid, map, ast_expression.LetExpression.create(null,
+                    fun.concat(
+                        node.callee.bindings || [],
+                        bindings),
+                    target.body)),
+            checkTop)));
+
+addRewrite@'CurryExpression' <| seq(
+    checkChild 'base',
+    checkChild 'args',
+    
+    /**
+     * Convert curry on function expression to function.
+     * 
+     * Discards arguments that are not used.
+     */
+    when(
+        \node ->
+            (  isLambda(node.base)
+            || (node.base.type === 'LetExpression' && isLambda(node.base.body))),
+
+        seq(
+            unique.chain \ uid ->
+            modify \ node -> let
+                target = ?node.base.type === 'LetExpression' : node.base.body : node.base
+            in
+                ?!target.params.elements.length
+                    :node.base
+                    :let
+                        first = target.params.elements.(0),
+                        rest = target.params.elements.slice(1),
+                        
+                        map = [getUid(first.id)],
+                        
+                        body = ast_expression.FunctionExpression.create(null, null,
+                            ast_pattern.ArgumentsPattern.create(null, null,
+                                rest,
+                                target.params.self),
+                            rewrite(uid, map, target.body))
+                    in
+                        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+                            :ast_expression.LetExpression.create(null,
+                                fun.concat(
+                                    node.base.bindings || [],
+                                    rewrite(uid, map, ast_declaration.Binding.create(null,
+                                        first,
+                                        node.args.(0)))),
+                                body)
+                            :body,
+                checkTop)));
+
 addRewrite@'ArrayExpression' <|
     checkChild 'elements';
 
@@ -503,26 +563,11 @@ addRewrite@'LetExpression' <|
             modify \ {body} ->
                 body));
 
-addRewrite@'CurryExpression' <|
-    seq(
-        checkChild 'base',
-        checkChild 'args');
+
 
 // Patterns
-addRewrite@'SinkPattern'<|
-    unique.chain \ uid ->
-    modify \ node ->
-        setData(node, 'id',
-            setData(
-                ast_value.Identifier.create(null, '_'),
-                'uid',
-                uid));
-
 addRewrite@'IdentifierPattern' <|
     checkChild 'id';
-
-addRewrite@'ImportPattern' <|
-    checkChild 'pattern';
 
 addRewrite@'AsPattern' <|
     seq(

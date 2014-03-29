@@ -146,7 +146,7 @@
         return (node.init ? (node.immutable ? addBinding(getUid(node.id), node.init) :
             addWorking(getUid(node.id), node.init)) : pass);
     }))));
-    addRewrite("Binding", seq(checkChild("pattern"), checkChild("value"), when((function(node) {
+    addRewrite("Binding", seq(checkChild("value"), when((function(node) {
         return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
     }), node.chain((function(node) {
         var uid = getUid(node.pattern.id);
@@ -155,13 +155,19 @@
                 .chain((function(binding) {
                     return (binding ? addBinding(uid, node.value) : pass);
                 })) : pass));
+    }))), when((function(node) {
+        return (node.value.type === "LetExpression");
+    }), node.chain((function(node) {
+        var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(
+            null, node.pattern, node.value.body)));
+        return seq(set(bindings), checkChild((bindings.length - 1)));
     })))));
     addRewrite("BlockStatement", checkChild("body"));
     addRewrite("ExpressionStatement", checkChild("expression"));
-    addRewrite("WithStatement", seq(checkChild("bindings"), child("body", checkChild("body"))));
+    addRewrite("WithStatement", seq(checkChild("bindings"), checkChild("body")));
     addRewrite("SwitchStatement", seq(checkChild("discriminant"), checkChild("cases")));
     addRewrite(["ReturnStatement", "ThrowStatement"], checkChild("argument"));
-    addRewrite("TryStatement", seq(checkChild("block"), seq(checkChild("handler")), seq(checkChild("finalizer"))));
+    addRewrite("TryStatement", seq(checkChild("block"), checkChild("handler"), checkChild("finalizer")));
     addRewrite("WhileStatement", block(checkChild("test"), checkChild("body")));
     addRewrite("DoWhileStatement", block(checkChild("body"), checkChild("test")));
     addRewrite("ForStatement", seq(checkChild("init"), block(checkChild("test"), checkChild("update"),
@@ -262,6 +268,9 @@
             alternate = __o["alternate"];
         return seq(set((isTruthy(test) ? consequent : alternate)), checkTop);
     })), seq(checkChild("consequent"), checkChild("alternate")))));
+    addRewrite("MemberExpression", seq(checkChild("object"), node.chain((function(node) {
+        return (node.computed ? checkChild("property") : pass);
+    }))));
     addRewrite("NewExpression", seq(checkChild("callee"), checkChild("args")));
     addRewrite("CallExpression", seq(checkChild("callee"), checkChild("args"), when((function(node) {
         return (isLambda(node.callee) || ((node.callee.type === "LetExpression") && isLambda(
@@ -283,9 +292,28 @@
             ));
         }));
     })), checkTop))));
-    addRewrite("MemberExpression", seq(checkChild("object"), node.chain((function(node) {
-        return (node.computed ? checkChild("property") : pass);
-    }))));
+    addRewrite("CurryExpression", seq(checkChild("base"), checkChild("args"), when((function(node) {
+        return (isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(node.base
+            .body)));
+    }), seq(unique.chain((function(uid) {
+        return modify((function(node) {
+            var first, rest, map, body, target = ((node.base.type ===
+                    "LetExpression") ? node.base.body : node.base);
+            return ((!target.params.elements.length) ? node.base : ((first =
+                target.params.elements[0]), (rest = target.params.elements
+                .slice(1)), (map = [getUid(first.id)]), (body =
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null,
+                        rest, target.params.self), rewrite(uid, map,
+                        target.body))), ((first && (((first.type ===
+                "IdentifierPattern") || (first.type ===
+                "AsPattern")) || (first.type ===
+                "ObjectPattern"))) ? ast_expression.LetExpression.create(
+                null, fun.concat((node.base.bindings || []),
+                    rewrite(uid, map, ast_declaration.Binding.create(
+                        null, first, node.args[0]))), body) : body)));
+        }));
+    })), checkTop))));
     addRewrite("ArrayExpression", checkChild("elements"));
     addRewrite("ObjectExpression", checkChild("properties"));
     addRewrite("LetExpression", seq(checkChild("bindings"), checkChild("body"), modify((function(__o) {
@@ -300,15 +328,7 @@
         var body = __o["body"];
         return body;
     })))));
-    addRewrite("CurryExpression", seq(checkChild("base"), checkChild("args")));
-    addRewrite("SinkPattern", unique.chain((function(uid) {
-        return modify((function(node) {
-            return setData(node, "id", setData(ast_value.Identifier.create(null, "_"),
-                "uid", uid));
-        }));
-    })));
     addRewrite("IdentifierPattern", checkChild("id"));
-    addRewrite("ImportPattern", checkChild("pattern"));
     addRewrite("AsPattern", seq(checkChild("id"), checkChild("target")));
     addRewrite("ObjectPattern", checkChild("elements"));
     addRewrite("ObjectPatternElement", seq(checkChild("target"), checkChild("key")));

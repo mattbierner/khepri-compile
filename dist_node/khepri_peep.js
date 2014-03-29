@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var hashtrie = require("hashtrie"),
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
@@ -62,101 +61,95 @@ var hashtrie = require("hashtrie"),
             (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
         }));
     });
-addPeephole(["MemberExpression"], true, (function(node0) {
-    return ((node0.computed && (node0.object.type === "ArrayExpression")) && isNumberish(node0.property));
-}), modify((function(node0) {
-    return (node0.object.elements[node0.property.value] || ast_value.Identifier.create(null, "undefined"));
-})));
-addPeephole(["Binding"], false, (function(node0) {
-    return (node0.value.type === "LetExpression");
-}), modify((function(node0) {
-    return fun.flatten(node0.value.bindings.concat(ast_declaration.Binding.create(null, node0.pattern,
-        node0.value.body)));
+addPeephole(["MemberExpression"], true, (function(node) {
+    return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
+}), modify((function(node) {
+    return (node.object.elements[node.property.value] || ast_value.Identifier.create(null, "undefined"));
 })));
 addPeephole(["VariableDeclaration"], true, (function(_) {
     return true;
-}), modify((function(__o4) {
-    var declarations = __o4["declarations"],
+}), modify((function(__o) {
+    var declarations = __o["declarations"],
         bound = fun.flattenr(declarations);
     return (bound.length ? ast_declaration.VariableDeclaration.create(null, bound) : null);
 })));
 addPeephole(["LetExpression"], true, (function(_) {
     return true;
-}), modify((function(__o4) {
-    var bindings = __o4["bindings"],
-        body = __o4["body"],
+}), modify((function(__o) {
+    var bindings = __o["bindings"],
+        body = __o["body"],
         bound = fun.flattenr(bindings);
     return (bound.length ? ast_expression.LetExpression.create(null, bound, body) : body);
 })));
 addPeephole(["WithStatement"], true, (function(_) {
     return true;
-}), modify((function(__o4) {
-    var bindings = __o4["bindings"],
-        body = __o4["body"],
+}), modify((function(__o) {
+    var bindings = __o["bindings"],
+        body = __o["body"],
         bound = fun.flattenr(bindings);
     return (bound.length ? ast_statement.WithStatement.create(null, bound, body) : body);
 })));
-addPeephole(["LetExpression"], true, (function(node0) {
-    return (node0.body.type === "LetExpression");
-}), modify((function(node0) {
-    return ((node0.body.type === "LetExpression") ? ast_expression.LetExpression.create(null, fun.concat(
-        node0.bindings, node0.body.bindings), node0.body.body) : node0);
+addPeephole(["LetExpression"], true, (function(node) {
+    return (node.body.type === "LetExpression");
+}), modify((function(node) {
+    return ((node.body.type === "LetExpression") ? ast_expression.LetExpression.create(null, fun.concat(
+        node.bindings, node.body.bindings), node.body.body) : node);
 })));
-addPeephole(["CurryExpression"], true, (function(node0) {
-    return (node0.base.type === "CurryExpression");
-}), modify((function(node0) {
-    return ast_expression.CurryExpression.create(null, node0.base.base, fun.concat(node0.base.args, node0.args));
+addPeephole(["CurryExpression"], true, (function(node) {
+    return (node.base.type === "CurryExpression");
+}), modify((function(node) {
+    return ast_expression.CurryExpression.create(null, node.base.base, fun.concat(node.base.args, node.args));
 })));
-addPeephole(["ReturnStatement"], false, (function(node0) {
-    return (node0.argument && (node0.argument.type === "LetExpression"));
-}), modify((function(node0) {
-    return ast_statement.WithStatement.create(null, node0.argument.bindings, ast_statement.BlockStatement.create(
-        null, [ast_statement.ReturnStatement.create(node0.loc, node0.argument.body)]));
+addPeephole(["ReturnStatement"], false, (function(node) {
+    return (node.argument && (node.argument.type === "LetExpression"));
+}), modify((function(node) {
+    return ast_statement.WithStatement.create(null, node.argument.bindings, ast_statement.BlockStatement.create(
+        null, [ast_statement.ReturnStatement.create(node.loc, node.argument.body)]));
 })));
-addPeephole(["FunctionExpression"], false, (function(node0) {
-    return (node0.body.type === "LetExpression");
-}), modify((function(node0) {
-    return ast_expression.FunctionExpression.create(null, node0.id, node0.params, ast_statement.BlockStatement
-        .create(null, [ast_statement.WithStatement.create(null, node0.body.bindings, ast_statement.BlockStatement
-            .create(null, [ast_statement.ReturnStatement.create(node0.loc, node0.body.body)]))]));
+addPeephole(["FunctionExpression"], false, (function(node) {
+    return (node.body.type === "LetExpression");
+}), modify((function(node) {
+    return ast_expression.FunctionExpression.create(null, node.id, node.params, ast_statement.BlockStatement
+        .create(null, [ast_statement.WithStatement.create(null, node.body.bindings, ast_statement.BlockStatement
+            .create(null, [ast_statement.ReturnStatement.create(node.loc, node.body.body)]))]));
 })));
-addPeephole(["ExpressionStatement"], true, (function(node0) {
-    return (node0.expression && (node0.expression.type === "LetExpression"));
-}), modify((function(node0) {
-    return ast_statement.WithStatement.create(null, node0.expression.bindings, ast_statement.BlockStatement
-        .create(null, [ast_statement.ExpressionStatement.create(node0.loc, node0.expression.body)]));
+addPeephole(["ExpressionStatement"], true, (function(node) {
+    return (node.expression && (node.expression.type === "LetExpression"));
+}), modify((function(node) {
+    return ast_statement.WithStatement.create(null, node.expression.bindings, ast_statement.BlockStatement.create(
+        null, [ast_statement.ExpressionStatement.create(node.loc, node.expression.body)]));
 })));
-addPeephole(["ExpressionStatement"], true, (function(node0) {
-    return ((node0.expression && (node0.expression.type === "AssignmentExpression")) && (node0.expression.right
-        .type === "LetExpression"));
-}), modify((function(node0) {
-    return ast_statement.WithStatement.create(null, node0.expression.right.bindings, ast_statement.BlockStatement
-        .create(null, [ast_statement.ExpressionStatement.create(node0.loc, ast_expression.AssignmentExpression
-            .create(node0.expression.loc, node0.expression.operator, node0.expression.left, node0.expression
+addPeephole(["ExpressionStatement"], true, (function(node) {
+    return ((node.expression && (node.expression.type === "AssignmentExpression")) && (node.expression.right.type ===
+        "LetExpression"));
+}), modify((function(node) {
+    return ast_statement.WithStatement.create(null, node.expression.right.bindings, ast_statement.BlockStatement
+        .create(null, [ast_statement.ExpressionStatement.create(node.loc, ast_expression.AssignmentExpression
+            .create(node.expression.loc, node.expression.operator, node.expression.left, node.expression
                 .right.body))]));
 })));
-var upTransforms = (function(node0) {
-    return ((node0 && peepholes[node0.type]) || [])
+var upTransforms = (function(node) {
+    return ((node && peepholes[node.type]) || [])
         .filter((function(x) {
-            return (x.up && x.condition(node0));
+            return (x.up && x.condition(node));
         }));
 }),
-    downTransforms = (function(node0) {
-        return ((node0 && peepholes[node0.type]) || [])
+    downTransforms = (function(node) {
+        return ((node && peepholes[node.type]) || [])
             .filter((function(x) {
-                return ((!x.up) && x.condition(node0));
+                return ((!x.up) && x.condition(node));
             }));
     }),
-    transform = (function(node0, transforms) {
+    transform = (function(node, transforms) {
         return (transforms.length ? seqa(transforms.map((function(x) {
             return x.map;
         }))) : pass);
     }),
-    _transform = node.chain((function(node0) {
-        return transform(node0, downTransforms(node0));
+    _transform = node.chain((function(node) {
+        return transform(node, downTransforms(node));
     })),
-    _transformPost = node.chain((function(node0) {
-        return transform(node0, upTransforms(node0));
+    _transformPost = node.chain((function(node) {
+        return transform(node, upTransforms(node));
     }));
 (optimize = (function(ast, data) {
     return run(next(walk(M, _transform, _transformPost), node), khepriZipper(ast), data.unique);

@@ -97,24 +97,9 @@ addPeephole(['MemberExpression'], true,
     modify \ node ->
         node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined'));
 
-/* Binding Simplification
- ******************************************************************************/
-/**
- * Expand a binding of a let expression to a set of bindings, with the top level
- * binding to the let body last.
- */
-addPeephole(['Binding'], false,
-    \node ->
-        (node.value.type === 'LetExpression'),
-    
-    modify \ node ->
-        fun.flatten(
-           node.value.bindings.concat(
-               ast_declaration.Binding.create(null, node.pattern, node.value.body))));
-
 /* Binding Expression Normalization
  ******************************************************************************/
-/**
+/**s
  * Flatten variable declaration declaration lists and remove if declaration list
  * is empty.
  */
