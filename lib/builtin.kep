@@ -104,7 +104,7 @@ in {
 
 /* Binary Operators
  ******************************************************************************/
-var binary = \flipped op -> let
+var binary = \op -> let
     xArg = identifier('x', unique()),
     yArg = identifier('y', unique())
 in
@@ -112,16 +112,14 @@ in
         ast_pattern.ArgumentsPattern.create(null, null, [
             ast_pattern.IdentifierPattern.create(null, xArg),
             ast_pattern.IdentifierPattern.create(null, yArg)]),
-        ?flipped
-            :op(yArg, xArg)
-            :op(xArg, yArg));
+        op(xArg, yArg));
 
 var registerBinary = \op name impl -> {
     registerAliasedSymbol(op, name,
-        binary(false, impl));
+        binary(impl));
     
     registerAliasedSymbol('_' + op, name + 'r',
-        binary(true, impl));
+        binary(flip impl));
 };
 
 // Binary Operations
@@ -190,7 +188,7 @@ with
             [arg])
 in {
     registerBinary('<|', '__pipe', pipe);
-    registerBinary('|>', '__pipe', flip pipe);
+    registerBinary('|>', '__rpipe', flip pipe);
 }
 
 // Compose
@@ -221,7 +219,7 @@ var multiCompose = \f, g ->
 
 
 registerBinary('<\\', '__compose', singleCompose);
-registerAliasedSymbol('\\>', '__rcompose',  flip singleCompose);
+registerBinary('\\>', '__rcompose',  flip singleCompose);
 
 registerBinary('<<\\', '__composen', multiCompose);
 registerBinary('\\>>', '__rcomposen', flip multiCompose);

@@ -64,16 +64,16 @@ var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier("x", unique())), (yA
             null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression.create(
             null, xArg, yArg, zArg)));
 registerAliasedSymbol("?", "__cond", ternaryOperator);
-var binary = (function(flipped, op) {
+var binary = (function(op) {
     var xArg = identifier("x", unique()),
         yArg = identifier("y", unique());
     return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
         ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg)
-    ]), (flipped ? op(yArg, xArg) : op(xArg, yArg)));
+    ]), op(xArg, yArg));
 }),
     registerBinary = (function(op, name, impl) {
-        registerAliasedSymbol(op, name, binary(false, impl));
-        registerAliasedSymbol(("_" + op), (name + "r"), binary(true, impl));
+        registerAliasedSymbol(op, name, binary(impl));
+        registerAliasedSymbol(("_" + op), (name + "r"), binary(flip(impl)));
     }),
     binaryOp = (function(op) {
         return (function(x, y) {
@@ -132,7 +132,7 @@ var pipe = (function(callee, arg) {
     return ast_expression.CallExpression.create(null, callee, [arg]);
 });
 registerBinary("<|", "__pipe", pipe);
-registerBinary("|>", "__pipe", flip(pipe));
+registerBinary("|>", "__rpipe", flip(pipe));
 var singleCompose = (function(f, g) {
     var x = identifier("x", unique());
     return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
@@ -146,7 +146,7 @@ var singleCompose = (function(f, g) {
                     null, "null"), identifier("arguments")])]));
     });
 registerBinary("<\\", "__compose", singleCompose);
-registerAliasedSymbol("\\>", "__rcompose", flip(singleCompose));
+registerBinary("\\>", "__rcompose", flip(singleCompose));
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", flip(multiCompose));
 (exports["builtins"] = builtins);

@@ -10,7 +10,6 @@ var record = require("bes")["record"],
     ecma_program = require("ecma-ast")["program"],
     ecma_statement = require("ecma-ast")["statement"],
     ecma_value = require("ecma-ast")["value"],
-    khepri_clause = require("khepri-ast")["clause"],
     khepri_declaration = require("khepri-ast")["declaration"],
     khepri_expression = require("khepri-ast")["expression"],
     khepri_node = require("khepri-ast")["node"],
@@ -73,6 +72,15 @@ var extract = M.lift(M.inner.get),
     globals = extract.map((function(s) {
         return s.globals;
     })),
+    node = M.node,
+    modify = M.modifyNode,
+    set = M.setNode,
+    withNode = node.chain.bind(node),
+    inspectScope = (function(f) {
+        return extract.map((function(s) {
+            return f(s.scope);
+        }));
+    }),
     inspectScopeWith = (function(f) {
         return extract.chain((function(s) {
             return f(s.scope);
@@ -89,6 +97,25 @@ var extract = M.lift(M.inner.get),
     setScope = (function(s) {
         return modifyScope((function() {
             return s;
+        }));
+    }),
+    enterBlock = inspectScopeWith((function(s) {
+        return setScope(scope.Scope.empty.setOuter(s));
+    })),
+    exitBlock = inspectScopeWith((function(s) {
+        return setScope(s.outer);
+    })),
+    getMapping = (function(uid) {
+        return inspectScope((function(s) {
+            return s.getMapping(uid);
+        }));
+    }),
+    addVar = (function(id, uid) {
+        return inspectScopeWith((function(s) {
+            var name;
+            return (s.hasMapping(uid) ? setScope(scope.Scope.addMutableBinding(s, id)) : ((name = s.getUnusedId(
+                id)), setScope(scope.Scope.addMapping(scope.Scope.addMutableBinding(s, name), uid,
+                name))));
         }));
     }),
     setBindings = (function(bindings) {
@@ -109,39 +136,21 @@ var extract = M.lift(M.inner.get),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
-    node = M.node,
-    modify = M.modifyNode,
-    set = M.setNode,
-    withNode = node.chain.bind(node),
-    enterBlock = inspectScopeWith((function(s) {
-        return setScope(scope.Scope.empty.setOuter(s));
-    })),
-    exitBlock = inspectScopeWith((function(s) {
-        return setScope(s.outer);
-    })),
-    addVar = (function(id, uid) {
-        return inspectScopeWith((function(s) {
-            var name;
-            return (s.hasMapping(uid) ? setScope(scope.Scope.addMutableBinding(s, id)) : ((name = s.getUnusedId(
-                id)), setScope(scope.Scope.addMapping(scope.Scope.addMutableBinding(s, name), uid,
-                name))));
-        }));
-    }),
-    getMapping = (function(uid, f) {
-        return inspectScopeWith((function(s) {
-            return f(s.getMapping(uid));
-        }));
-    }),
-    getName = (function(name, uid) {
-        return getMapping(uid, ok);
-    }),
-    getBindings = M.chain.bind(null, inspectStateWith((function(s) {
-        return enumeration(fun.map((function(__o) {
-            var name = __o[0],
-                uid = __o[1];
-            return getName(name, uid);
-        }), s.bindings[0]));
-    }))),
+    getBindings = M.chain.bind(null, inspectStateWith((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(enumeration, fun.map.bind(null, (function(__o) {
+        var name = __o[0],
+            uid = __o[1];
+        return getMapping(uid);
+    }))), (function(s) {
+        return s.bindings[0];
+    })))),
     _trans, _transform = withNode((function(node) {
         return _trans(node);
     })),
@@ -156,16 +165,28 @@ var extract = M.lift(M.inner.get),
     }),
     variableDeclaration = khepri_declaration.VariableDeclaration.create,
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
-    unpack = (function(pattern, value) {
-        return fun.map((function(x) {
-            return variableDeclarator(null, x.pattern, x.value);
-        }), fun.flatten(innerPattern(value, pattern)));
-    }),
-    unpackAssign = (function(pattern, value) {
-        return fun.map((function(x) {
-            return ecma_expression.AssignmentExpression.create(null, "=", x.pattern, x.value);
-        }), fun.flatten(innerPattern(value, pattern)));
-    }),
+    unpack = (function(f, g) {
+        return (function() {
+            return f(g.apply(null, arguments));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(fun.map.bind(null, (function(x) {
+        return variableDeclarator(null, x.pattern, x.value);
+    })), fun.flatten), innerPattern),
+    unpackAssign = (function(f, g) {
+        return (function() {
+            return f(g.apply(null, arguments));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(fun.map.bind(null, (function(x) {
+        return ecma_expression.AssignmentExpression.create(null, "=", x.pattern, x.value);
+    })), fun.flatten), innerPattern),
     unpackArgumentsPattern = (function(parameters) {
         var elementsPrefix = unpackParameters(parameters.elements),
             selfPrefix = (parameters.self ? innerPattern(ecma_expression.ThisExpression.create(null), parameters.self) : []),
@@ -173,9 +194,9 @@ var extract = M.lift(M.inner.get),
         return fun.flatten(fun.concat(elementsPrefix, selfPrefix, argumentsPrefix));
     }),
     withStatementNoImport = (function(loc, bindings, body) {
-        var vars = fun.flatten(fun.map((function(imp) {
-            return (imp && unpack(imp.pattern, imp.value));
-        }), bindings)),
+        var vars = fun.map((function(imp) {
+            return unpack(imp.value, imp.pattern);
+        }), bindings),
             prefix = variableDeclaration(null, vars);
         return khepri_statement.BlockStatement.create(loc, fun.concat(prefix, body.body));
     }),
@@ -201,7 +222,7 @@ var extract = M.lift(M.inner.get),
     }),
     letExpression = (function(loc, bindings, body) {
         return ecma_expression.SequenceExpression.create(null, fun.flatten(fun.concat(fun.map((function(x) {
-            return (x ? unpackAssign(x.pattern, x.value) : []);
+            return (x ? unpackAssign(x.value, x.pattern) : []);
         }), bindings), body)));
     }),
     curryExpression = (function(loc, base, args) {
@@ -355,11 +376,11 @@ addTransform("ObjectExpression", null, modify((function(node) {
 addTransform("ObjectValue", null, modify((function(node) {
     return ecma_value.ObjectValue.create(node.loc, node.key, node.value);
 })));
-addTransform("ArgumentsPattern", null, modify((function(node) {
+addTransform("IdentifierPattern", null, modify((function(node) {
     return node.id;
 })));
-addTransform("IdentifierPattern", withNode((function(node) {
-    return seq((getUid(node.id) ? addVar(node.id.name, getUid(node.id)) : pass), set(node.id));
+addTransform("ArgumentsPattern", null, modify((function(node) {
+    return node.id;
 })));
 addTransform("AsPattern", null, modify((function(node) {
     return node.id;
@@ -397,9 +418,10 @@ addTransform("Package", packageManager.chain((function(packageManager) {
     }));
 })));
 addTransform("Identifier", null, withNode((function(node) {
-    return (getUid(node) ? next(addVar(node.name, getUid(node)), getMapping(getUid(node), (function(name) {
-        return set(identifier(node.loc, name));
-    }))) : set(identifier(node.loc, node.name)));
+    return (getUid(node) ? next(addVar(node.name, getUid(node)), getMapping(getUid(node))
+        .chain((function(name) {
+            return set(identifier(node.loc, name));
+        }))) : set(identifier(node.loc, node.name)));
 })));
 (_trans = (function(node) {
     if ((node && (node instanceof khepri_node.Node))) {

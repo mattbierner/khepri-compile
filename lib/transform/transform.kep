@@ -14,7 +14,6 @@ with
     import 'ecma-ast::statement' ecma_statement,
     import 'ecma-ast::value'ecma_value,
     
-    import 'khepri-ast::clause' khepri_clause,
     import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
     import 'khepri-ast::node' khepri_node#{setData},
@@ -92,8 +91,21 @@ var inspectStateWith = M.chain @ extract;
 
 var globals = extract.map\s -> s.globals;
 
-// Scope Operations
+
+// Zipper Operations
 ////////////////////////////////////////
+var node = M.node;
+
+var modify = M.modifyNode;
+
+var set = M.setNode;
+
+var withNode = node.chain.bind(node);
+
+// Scoping Operations
+////////////////////////////////////////
+var inspectScope = \f -> extract.map\s -> f(s.scope);
+
 var inspectScopeWith = \f -> extract.chain\s -> f(s.scope);
 
 var packageManager = extract.map\s -> s.packageManager;
@@ -104,7 +116,42 @@ var modifyScope = \f ->
 
 var setScope = \s -> modifyScope(\() -> s);
 
-// Binding Operations
+/**
+ * Enter a new real scope.
+ */
+var enterBlock = inspectScopeWith \ s ->
+    setScope(scope.Scope.empty.setOuter(s));
+
+/**
+ * Exit the current real scope.
+ */
+var exitBlock = inspectScopeWith \ s ->
+    setScope(s.outer);
+
+/**
+ * Get the identifier name for `uid`.
+ */
+var getMapping = \uid ->
+    inspectScope \ s ->
+        s.getMapping(uid);
+
+/**
+ * Add an new identifier in the current scope.
+ * 
+ * @param id Source id name.
+ * @param uid Unique id.
+ */
+var addVar = \id uid ->
+    inspectScopeWith \ s ->
+        ?s.hasMapping(uid)
+            :setScope(scope.Scope.addMutableBinding(s, id))
+            :let name = s.getUnusedId(id) in
+                setScope(scope.Scope.addMapping(
+                    scope.Scope.addMutableBinding(s, name),
+                    uid,
+                    name));
+
+// Bindings Operations
 ////////////////////////////////////////
 var setBindings = \bindings ->
     modifyState \ s ->
@@ -119,47 +166,13 @@ var popBindings = modifyState \ s ->
 var addBindings = \bindings ->
     modifyState(\s -> s.setBindings([s.bindings.(0).concat(bindings), s.bindings.(1)]));
 
-// Zipper Operations
-////////////////////////////////////////
-var node = M.node;
-
-var modify = M.modifyNode;
-
-var set = M.setNode;
-
-var withNode = node.chain.bind(node);
-
-// Scoping Operations
-////////////////////////////////////////
-var enterBlock = inspectScopeWith \ s ->
-    setScope(scope.Scope.empty.setOuter(s));
-
-var exitBlock = inspectScopeWith \ s ->
-    setScope(s.outer);
-
-var addVar = \id uid ->
-    inspectScopeWith \ s ->
-        ?s.hasMapping(uid)
-            :setScope(scope.Scope.addMutableBinding(s, id))
-            :let name = s.getUnusedId(id) in
-                setScope(scope.Scope.addMapping(
-                    scope.Scope.addMutableBinding(s, name),
-                    uid,
-                    name));
-
-var getMapping = \uid f ->
-    inspectScopeWith \ s ->
-        f <| s.getMapping(uid);
-
-var getName = \name uid ->
-    getMapping(uid, ok);
-
-var getBindings = M.chain @ inspectStateWith(\s -> 
-    enumeration(
-        fun.map(
-            \[name uid] ->
-                getName(name, uid),
-            s.bindings.(0))));
+/**
+ * Get all bindings in the current scope.
+ */
+var getBindings = M.chain @ inspectStateWith(
+    enumeration
+    <\ (fun.map @ \[name uid] -> getMapping(uid))
+    <\ \s -> s.bindings.(0));
 
 /* Forward
  ******************************************************************************/
@@ -187,23 +200,23 @@ var variableDeclarator = ecma_declaration.VariableDeclarator.create;
 /* Unpacks
  ******************************************************************************/
 /**
- * 
+ * Expand an unpack pattern to a list of variable declarators.
  */
-var unpack = \pattern, value ->
-    innerPattern(value, pattern)
-        |> fun.flatten
-        |> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value));
+var unpack =
+    innerPattern
+    \>> fun.flatten
+    \> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value));
 
 /**
- * 
+ * Expand an unpack pattern to a list of assignment expressions.
  */
-var unpackAssign = \pattern, value ->
-    innerPattern(value, pattern)
-        |> fun.flatten
-        |> (fun.map @ \x -> ecma_expression.AssignmentExpression.create(null,'=', x.pattern, x.value));
+var unpackAssign =
+    innerPattern
+    \>> fun.flatten
+    \> (fun.map @ \x -> ecma_expression.AssignmentExpression.create(null,'=', x.pattern, x.value));
 
 /**
- * 
+ * Expand an arguments pattern to a list of bindings.
  */
 var unpackArgumentsPattern = \parameters -> let
     elementsPrefix = unpackParameters(parameters.elements),
@@ -232,10 +245,9 @@ in
  * With statement translation.
  */
 var withStatementNoImport = \loc, bindings, body -> let
-    vars = bindings
-        |> (fun.map @ \imp ->
-            imp && unpack(imp.pattern, imp.value))
-        |> fun.flatten,
+    vars = fun.map(
+        \imp -> unpack(imp.value, imp.pattern),
+        bindings),
     
     prefix = variableDeclaration(null, vars)
 in
@@ -295,7 +307,7 @@ var letExpression = \loc, bindings, body ->
         fun.flatten <| fun.concat(
             fun.map(\x ->
                 ?x
-                    :unpackAssign(x.pattern, x.value)
+                    :unpackAssign(x.value, x.pattern)
                     :[],
                 bindings),
             body));
@@ -611,18 +623,15 @@ addTransform('ObjectValue',
             node.value));
 
 // Patterns
-addTransform('ArgumentsPattern',
+addTransform('IdentifierPattern',
     null,
     modify \ node ->
         node.id);
 
-addTransform('IdentifierPattern',
-    withNode \ node ->
-        seq(
-            ?getUid(node.id)
-                :addVar(node.id.name, getUid(node.id))
-                :pass,
-            set <| node.id));
+addTransform('ArgumentsPattern',
+    null,
+    modify \ node ->
+        node.id);
 
 addTransform('AsPattern',
     null,
@@ -684,8 +693,8 @@ addTransform('Identifier',
         ?getUid node
             :next(
                 addVar(node.name, getUid(node)),
-                getMapping(getUid node, \name ->
-                    set <| identifier(node.loc, name)))
+                getMapping(getUid node).chain\name ->
+                    set <| identifier(node.loc, name))
             :set <| identifier(node.loc, node.name));
 
 /*
