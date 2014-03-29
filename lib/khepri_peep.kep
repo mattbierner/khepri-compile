@@ -14,54 +14,17 @@ with
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::value' ast_value,
-    
-    import 'akh::base' {
-        next
-        'sequence': seq
-        'sequencea': seqa},
-    
-    import 'akh::unique' Unique,
 
-    import 'zipper-m::trans::zipper' ZipperT,
-    import 'zipper-m::walk' walk,
     
-    import './fun' fun
+    import './fun' fun,
+    import './rewritter' {
+        UP
+        DOWN
+        Rewritter
+        rewrite}
 in {
 
-/* Operations
- ******************************************************************************/
-var M = ZipperT (Unique);
-
-var run = \c ctx seed ->
-    Unique.runUnique(
-        ZipperT.runZipperT(c, ctx),
-        seed);
-
-var pass = M.of null;
-
-var node =  M.node;
-var modify = M.modifyNode;
-var set = M.setNode;
-
-var unique = M.liftInner (Unique.unique);
-
-/*
- ******************************************************************************/
-var peepholes = {};
-
-var addPeephole = \types, up, condition, f -> {
-    var entry = {
-        'condition': condition,
-        'map': f,
-        'up': up
-    };
-    
-    types.forEach \ type -> {
-        peepholes.(type) = ?peepholes.(type)
-            :fun.concat(peepholes.(type), entry)
-            :[entry];
-    };
-};
+var peepholes = new Rewritter();
 
 /* Binding Expression Normalization
  ******************************************************************************/
@@ -69,10 +32,10 @@ var addPeephole = \types, up, condition, f -> {
  * Flatten variable declaration declaration lists and remove if declaration list
  * is empty.
  */
-addPeephole(['VariableDeclaration'], true,
+peepholes.add(['VariableDeclaration'], true,
     \_ -> true,
     
-    modify \ {declarations} ->
+    \{declarations} ->
         let bound = fun.flattenr <| declarations in
             ?bound.length
                 :ast_declaration.VariableDeclaration.create(null, bound)
@@ -82,10 +45,10 @@ addPeephole(['VariableDeclaration'], true,
  * Flatten let expression bindings lists and collapse to body 
  * when binding list is empty
  */
-addPeephole(['LetExpression'], true,
+peepholes.add(['LetExpression'], true,
     \_ -> true,
     
-    modify \ {bindings body} ->
+    \{bindings body} ->
         let bound = fun.flattenr <| bindings in
             ?bound.length
                 :ast_expression.LetExpression.create(null, bound, body)
@@ -95,10 +58,10 @@ addPeephole(['LetExpression'], true,
  * Flatten with statement bindings lists and collapse to body 
  * when binding list is empty.
  */
-addPeephole(['WithStatement'], true,
+peepholes.add(['WithStatement'], true,
     \_ -> true,
     
-    modify \ {bindings body} ->
+    \{bindings body} ->
         let bound = fun.flattenr <| bindings in
             ?bound.length
                 :ast_statement.WithStatement.create(null, bound, body)
@@ -109,10 +72,10 @@ addPeephole(['WithStatement'], true,
 /**
  * Flatten let with let body.
  */
-addPeephole(['LetExpression'], true,
+peepholes.add(['LetExpression'], true,
     \node ->
         node.body.type === 'LetExpression',
-    modify \ node ->
+    \node ->
         ?node.body.type === 'LetExpression'
             :ast_expression.LetExpression.create(null,
                 fun.concat(
@@ -124,10 +87,10 @@ addPeephole(['LetExpression'], true,
 /**
  * Flatten curry of curry.
  */
-addPeephole(['CurryExpression'], true,
+peepholes.add(['CurryExpression'], true,
     \node ->
         node.base.type === 'CurryExpression',
-    modify\node ->
+    \node ->
         ast_expression.CurryExpression.create(null,
             node.base.base,
             fun.concat(
@@ -139,10 +102,10 @@ addPeephole(['CurryExpression'], true,
 /**
  * Rewrite `return let` to a with statement.
  */
-addPeephole(['ReturnStatement'], false,
+peepholes.add(['ReturnStatement'], false,
     \node ->
         (node.argument && node.argument.type === 'LetExpression'),
-    modify\node ->
+    \node ->
         ast_statement.WithStatement.create(null,
             node.argument.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -151,10 +114,10 @@ addPeephole(['ReturnStatement'], false,
 /**
  * Rewrite `\...-> let` to a with statement.
  */
-addPeephole(['FunctionExpression'], false,
+peepholes.add(['FunctionExpression'], false,
     \node ->
         (node.body.type === 'LetExpression'),
-    modify\node ->
+    \node ->
         ast_expression.FunctionExpression.create(null,
             node.id,
             node.params,
@@ -167,10 +130,10 @@ addPeephole(['FunctionExpression'], false,
 /**
  * Rewrite top level let expressions to with statements.
  */
-addPeephole(['ExpressionStatement'], true,
+peepholes.add(['ExpressionStatement'], true,
     \node ->
         (node.expression && node.expression.type === 'LetExpression'),
-    modify\node ->
+    \node ->
         ast_statement.WithStatement.create(null,
             node.expression.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -179,12 +142,12 @@ addPeephole(['ExpressionStatement'], true,
 /**
  * Rewrite top level let expressions to with statements.
  */
-addPeephole(['ExpressionStatement'], true,
+peepholes.add(['ExpressionStatement'], true,
     \node ->
         (  node.expression
         && node.expression.type === 'AssignmentExpression'
         && node.expression.right.type === 'LetExpression'),
-    modify\node ->
+    \node ->
         ast_statement.WithStatement.create(null,
             node.expression.right.bindings,
             ast_statement.BlockStatement.create(null, 
@@ -195,34 +158,10 @@ addPeephole(['ExpressionStatement'], true,
 
 /* Interface
  ******************************************************************************/
-var upTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> x.up && x.condition(node));
-
-var downTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> !x.up && x.condition(node));
-
-var transform = \node transforms ->
-    ?transforms.length
-        :seqa(transforms.map(\x -> x.map))
-        :pass;
-
-var _transform = node.chain \ node -> 
-    transform(node, downTransforms node);
-
-var _transformPost = node.chain \ node ->
-    transform(node, upTransforms node);
-
 /**
  * 
  */
 optimize = \ast data ->
-    run(
-        next(
-            walk(M, _transform, _transformPost),
-            node),
-        khepriZipper(ast),
-        data.unique);
+    rewrite(peepholes, khepriZipper(ast));
 
 }

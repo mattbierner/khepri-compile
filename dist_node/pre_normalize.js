@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
@@ -27,10 +28,10 @@ peepholes.add(["PackageExport"], UP, (function(node) {
 }));
 peepholes.add(["LetExpression"], UP, (function(node) {
     return (node.bindings.length > 1);
-}), (function(__o) {
-    var loc = __o["loc"],
-        bindings = __o["bindings"],
-        body = __o["body"];
+}), (function(__o2) {
+    var loc = __o2["loc"],
+        bindings = __o2["bindings"],
+        body = __o2["body"];
     return fun.foldr((function(p, c) {
         return ast_expression.LetExpression.create(loc, [c], p);
     }), body, bindings);
