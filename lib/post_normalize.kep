@@ -10,10 +10,6 @@
 package (
     normalize)
 with
-    import 'neith::tree' tree,
-    import 'neith::walk' {walk},
-    import 'neith::zipper' zipper,
-
     import 'khepri-ast-zipper' {khepriZipper},
     
     import 'khepri-ast::statement' ast_statement,
@@ -22,8 +18,7 @@ with
     import 'khepri-ast::value' ast_value,
     
     import './ast' {
-        isBlockFunction
-    },
+        isBlockFunction},
     import './fun' {
         concat
         flattenr
@@ -32,29 +27,21 @@ with
     import './unpack' {
         innerPattern
         unpackParameters},
-    import './builtin' {builtins definitions}
+    import './builtin' {
+        builtins
+        definitions},
+    import './rewritter' {
+        UP
+        DOWN
+        Rewritter
+        rewrite}
 in {
-
-var DOWN := false,
-    UP := true;
 
 var always := \_ -> true;
 
 /* Transforms
  ******************************************************************************/
-var peepholes = {};
-
-var addPeephole = \types, up, condition, f -> {
-    var entry = {
-        'condition': condition,
-        'map': f,
-        'up': up
-    };
-    
-    types.forEach \ type -> {
-        peepholes.(type) = concat(peepholes.(type) || [], entry);
-    };
-};
+var peepholes = new Rewritter();
 
 /* Binding Expansion
  ******************************************************************************/
@@ -62,7 +49,7 @@ var addPeephole = \types, up, condition, f -> {
  * Expand potentially complex let expression bindings patterns to a list of simple
  * identifier bindings.
  */
-addPeephole(['LetExpression'], UP,
+peepholes.add(['LetExpression'], UP,
     always,
     
     let
@@ -78,7 +65,7 @@ addPeephole(['LetExpression'], UP,
  * identifier patterns for the arguments with a binding body to unpack
  * complex parameter binding values.
  */
-addPeephole(['FunctionExpression'], UP,
+peepholes.add(['FunctionExpression'], UP,
     always,
     
     \node -> let
@@ -129,7 +116,7 @@ var expandAssignment := \node ->
  * Rewrite a potentially compound assignment expression to a list of single
  * assignments.
  */
-addPeephole(['ExpressionStatement'], UP,
+peepholes.add(['ExpressionStatement'], UP,
     \{expression} ->
         (expression.type === 'AssignmentExpression'),
     
@@ -143,7 +130,7 @@ addPeephole(['ExpressionStatement'], UP,
 /**
  * Rewrite left pipe to a call.
  */
-addPeephole(['BinaryExpression'], UP,
+peepholes.add(['BinaryExpression'], UP,
     \node ->
         (node.operator === '|>'),
     
@@ -155,7 +142,7 @@ addPeephole(['BinaryExpression'], UP,
 /**
  * Rewrite right pipe to a call.
  */
-addPeephole(['BinaryExpression'], UP,
+peepholes.add(['BinaryExpression'], UP,
     \node->
         (node.operator === '<|'),
     
@@ -169,7 +156,7 @@ addPeephole(['BinaryExpression'], UP,
  * 
  * TODO: This should sub in the id of the global for compose instead.
  */
-addPeephole(['BinaryExpression'], UP,
+peepholes.add(['BinaryExpression'], UP,
     \node->
         (  node.operator === '\\>'
         || node.operator === '\\>>'
@@ -183,28 +170,8 @@ addPeephole(['BinaryExpression'], UP,
 
 /* Interface
  ******************************************************************************/
-var upTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> x.up && x.condition(node));
-
-var downTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> !x.up && x.condition(node));
-
-var transform = \ctx transforms ->
-    ?transforms.length
-        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
-        :ctx;
-
-var opt = walk@(
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, downTransforms node),
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, upTransforms node));
 
 normalize = \ast->
-    (opt(khepriZipper(ast))
-        |> zipper.root
-        |> tree.node);
+    rewrite(peepholes, khepriZipper(ast));
 
 }

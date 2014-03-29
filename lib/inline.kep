@@ -106,17 +106,17 @@ var stack = (M.lift <| M.inner.get).map(\s -> s.stack);
 var push = M.lift <| M.inner.modify(\s ->
     new State(s.bindings, hashtrie.empty, s.globals, s));
 
-var pop = M.lift <| M.inner.modify(\s ->
+var pop = M.lift <| M.inner.modify\s ->
     s.outer
         .setBindings(s.bindings)
         .setGlobals(s.globals)
         .setWorking(
             // Delete working bindings modified in inner from outer scope.
             hashtrie.fold(
-                \p {key value} ->
+                \p {key} ->
                     hashtrie.set(key, null, p),
                 s.outer.working,
-                s.working)));
+                s.working));
 
 /**
  * Create a new lexical block for body.

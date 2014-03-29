@@ -1,0 +1,75 @@
+/**
+ * @fileOverview Khepri peephole optimization.
+ */
+package (
+    UP
+    DOWN
+    Rewritter
+    rewrite)
+with
+    import 'neith::zipper' zipper,
+    import 'neith::tree' tree,
+    import 'neith::walk' {walk},
+    
+    import './fun' fun
+in {
+
+UP = true;
+DOWN = false;
+
+/*
+ ******************************************************************************/
+Rewritter = function \ =self-> {
+    self.peepholes = [];
+};
+
+Rewritter.prototype.add = \types, up, condition, f =self-> {
+    var entry = {
+        'condition': condition,
+        'map': f,
+        'up': up
+    };
+    
+    types.forEach \ type -> {
+        self.peepholes.(type) = ?self.peepholes.(type)
+            :fun.concat(self.peepholes.(type), entry)
+            :[entry];
+    };
+};
+
+Rewritter.prototype.upTransforms = \node =self-> 
+    ((node && self.peepholes.(node.type)) || [])
+        .filter(\x -> x.up && x.condition(node));
+
+Rewritter.prototype.downTransforms = \node =self-> 
+    ((node && self.peepholes.(node.type)) || [])
+        .filter(\x -> !x.up && x.condition(node));
+
+var transform = \ctx transforms ->
+    ?transforms.length
+        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
+        :ctx;
+
+Rewritter.prototype.transform = \ctx =self->
+    let node = tree.node ctx in
+        transform(ctx, self.downTransforms node);
+
+Rewritter.prototype.transformPost = \ctx =self->
+    let node = tree.node ctx in
+        transform(ctx, self.upTransforms node);
+
+/* Interface
+ ******************************************************************************/
+var opt = \rewritter ctx  ->
+    walk(
+        rewritter.transform.bind(rewritter),
+        rewritter.transformPost.bind(rewritter),
+        ctx);
+
+rewrite = \rewitter ctx ->
+    opt(rewitter, ctx)
+        |> zipper.root
+        |> tree.node;
+
+
+}

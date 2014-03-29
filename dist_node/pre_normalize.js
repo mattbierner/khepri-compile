@@ -2,14 +2,10 @@
  * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
 */"use strict";
-var tree = require("neith")["tree"],
-    __o = require("neith")["walk"],
-    walk = __o["walk"],
-    zipper = require("neith")["zipper"],
-    __o0 = require("khepri-ast-zipper"),
-    khepriZipper = __o0["khepriZipper"],
-    __o1 = require("khepri-ast")["node"],
-    setData = __o1["setData"],
+var __o = require("khepri-ast-zipper"),
+    khepriZipper = __o["khepriZipper"],
+    __o0 = require("khepri-ast")["node"],
+    setData = __o0["setData"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
@@ -17,26 +13,19 @@ var tree = require("neith")["tree"],
     ast_package = require("khepri-ast")["package"],
     ast_value = require("khepri-ast")["value"],
     fun = require("./fun"),
-    normalize, DOWN = false,
-    UP = true,
-    peepholes = ({}),
-    addPeephole = (function(types, up, condition, f) {
-        var entry = ({
-            "condition": condition,
-            "map": f,
-            "up": up
-        });
-        types.forEach((function(type) {
-            (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
-        }));
-    });
-addPeephole(["PackageExport"], UP, (function(node) {
+    __o1 = require("./rewritter"),
+    UP = __o1["UP"],
+    DOWN = __o1["DOWN"],
+    Rewritter = __o1["Rewritter"],
+    rewrite = __o1["rewrite"],
+    normalize, peepholes = new(Rewritter)();
+peepholes.add(["PackageExport"], UP, (function(node) {
     return (!node.alias);
 }), (function(node) {
     return ast_package.PackageExport.create(node.loc, node.id, ast_value.Literal.create(null, "string", node.id
         .name));
 }));
-addPeephole(["LetExpression"], UP, (function(node) {
+peepholes.add(["LetExpression"], UP, (function(node) {
     return (node.bindings.length > 1);
 }), (function(__o) {
     var loc = __o["loc"],
@@ -46,14 +35,14 @@ addPeephole(["LetExpression"], UP, (function(node) {
         return ast_expression.LetExpression.create(loc, [c], p);
     }), body, bindings);
 }));
-addPeephole(["CurryExpression"], DOWN, (function(node) {
+peepholes.add(["CurryExpression"], DOWN, (function(node) {
     return (node.args.length > 1);
 }), (function(node) {
     return fun.foldl((function(p, arg) {
         return ast_expression.CurryExpression.create(null, p, [arg]);
     }), node.base, node.args);
 }));
-addPeephole(["ArrayPattern"], DOWN, (function(_) {
+peepholes.add(["ArrayPattern"], DOWN, (function(_) {
     return true;
 }), (function(node) {
     var loc = node["loc"],
@@ -63,7 +52,7 @@ addPeephole(["ArrayPattern"], DOWN, (function(_) {
             "number", i), x);
     }), elements));
 }));
-addPeephole(["ObjectPatternElement"], DOWN, (function(node) {
+peepholes.add(["ObjectPatternElement"], DOWN, (function(node) {
     return (!node.target);
 }), (function(node) {
     var loc = node["loc"],
@@ -79,12 +68,12 @@ addPeephole(["ObjectPatternElement"], DOWN, (function(node) {
             return node;
     }
 }));
-addPeephole(["AsPattern"], DOWN, (function(node) {
+peepholes.add(["AsPattern"], DOWN, (function(node) {
     return ((!node.target.ud) || (!node.target.ud.id));
 }), (function(node) {
     return ast_pattern.AsPattern.create(null, node.id, setData(node.target, "id", node.id));
 }));
-addPeephole(["ObjectPattern"], UP, (function(node) {
+peepholes.add(["ObjectPattern"], UP, (function(node) {
     return ((!node.ud) || (!node.ud.id));
 }), (function(node) {
     var id = ast_pattern.IdentifierPattern.create(node.loc, ast_value.Identifier.create(null, "__o"));
@@ -92,33 +81,7 @@ addPeephole(["ObjectPattern"], UP, (function(node) {
     return ast_pattern.AsPattern.create(null, id, setData(ast_pattern.ObjectPattern.create(null, node.elements),
         "id", id));
 }));
-var upTransforms = (function(node) {
-    return ((node && peepholes[node.type]) || [])
-        .filter((function(x) {
-            return (x.up && x.condition(node));
-        }));
-}),
-    downTransforms = (function(node) {
-        return ((node && peepholes[node.type]) || [])
-            .filter((function(x) {
-                return ((!x.up) && x.condition(node));
-            }));
-    }),
-    transform = (function(ctx, transforms) {
-        return (transforms.length ? tree.modifyNode((function(node) {
-            return transforms.reduce((function(p, c) {
-                return c.map(p);
-            }), node);
-        }), ctx) : ctx);
-    }),
-    opt = walk.bind(null, (function(ctx) {
-        var node = tree.node(ctx);
-        return transform(ctx, downTransforms(node));
-    }), (function(ctx) {
-        var node = tree.node(ctx);
-        return transform(ctx, upTransforms(node));
-    }));
 (normalize = (function(ast) {
-    return tree.node(zipper.root(opt(khepriZipper(ast))));
+    return rewrite(peepholes, khepriZipper(ast));
 }));
 (exports["normalize"] = normalize);

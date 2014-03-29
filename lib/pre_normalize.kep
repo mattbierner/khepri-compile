@@ -7,10 +7,6 @@
 package (
     normalize)
 with
-    import 'neith::tree' tree,
-    import 'neith::walk' {walk},
-    import 'neith::zipper' zipper,
-
     import 'khepri-ast-zipper' {khepriZipper},
     
     import 'khepri-ast::node' {setData},
@@ -21,34 +17,22 @@ with
     import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
-    import './fun' fun
+    import './fun' fun,
+    import './rewritter' {
+        UP
+        DOWN
+        Rewritter
+        rewrite}
 in {
 
-var DOWN := false,
-    UP := true;
-
-var peepholes = {};
-
-var addPeephole = \types, up, condition, f -> {
-    var entry = {
-        'condition': condition,
-        'map': f,
-        'up': up
-    };
-    
-    types.forEach <|\ type -> {
-        peepholes.(type) = ?peepholes.(type)
-            :fun.concat(peepholes.(type), entry)
-            :[entry];
-    };
-};
+var peepholes = new Rewritter();
 
 /* Package Normalizations
  ******************************************************************************/
 /**
  * Add aliases to all package exports
  */
-addPeephole(['PackageExport'], UP,
+peepholes.add(['PackageExport'], UP,
     \node ->
         !node.alias,
     \node ->
@@ -61,7 +45,7 @@ addPeephole(['PackageExport'], UP,
 /**
  * Convert multiple binding let expression to nested single binding let expressions
  */
-addPeephole(['LetExpression'], UP,
+peepholes.add(['LetExpression'], UP,
     \node ->
         node.bindings.length > 1,
     
@@ -76,7 +60,7 @@ addPeephole(['LetExpression'], UP,
 /**
  * Expand currying with multiple args to nested single arg curries curries.
  */
-addPeephole(['CurryExpression'], DOWN,
+peepholes.add(['CurryExpression'], DOWN,
     \node ->
         node.args.length > 1,
     
@@ -94,7 +78,7 @@ addPeephole(['CurryExpression'], DOWN,
 /**
  * Convert array patterns to object patterns
  */
-addPeephole(['ArrayPattern'], DOWN,
+peepholes.add(['ArrayPattern'], DOWN,
     \_ -> true,
     \node#{loc elements} ->
         ast_pattern.ObjectPattern.create(loc,
@@ -107,7 +91,7 @@ addPeephole(['ArrayPattern'], DOWN,
 /**
  * Normalize object patterns to ('key': pattern) form.
  */
-addPeephole(['ObjectPatternElement'], DOWN,
+peepholes.add(['ObjectPatternElement'], DOWN,
     \node ->
         !node.target,
     \node#{loc key} -> {
@@ -131,7 +115,7 @@ addPeephole(['ObjectPatternElement'], DOWN,
  * When generating unpacks lists, we want to use the 
  * as pattern name if possible instead of the auto generated name.
  */
-addPeephole(['AsPattern'], DOWN,
+peepholes.add(['AsPattern'], DOWN,
     \node ->
         !node.target.ud || !node.target.ud.id,
     \node ->
@@ -145,7 +129,7 @@ addPeephole(['AsPattern'], DOWN,
 /**
  * Name anon object patterns
  */
-addPeephole(['ObjectPattern'], UP,
+peepholes.add(['ObjectPattern'], UP,
     \node ->
         !node.ud || !node.ud.id,
     \node -> {
@@ -165,28 +149,7 @@ addPeephole(['ObjectPattern'], UP,
 
 /* Interface
  ******************************************************************************/
-var upTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> x.up && x.condition(node));
-
-var downTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> !x.up && x.condition(node));
-
-var transform = \ctx transforms ->
-    ?transforms.length
-        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
-        :ctx;
-
-var opt = walk@(
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, downTransforms node),
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, upTransforms node));
-
 normalize = \ast->
-    (opt(khepriZipper(ast))
-        |> zipper.root
-        |> tree.node);
+    rewrite(peepholes, khepriZipper(ast));
 
 }
