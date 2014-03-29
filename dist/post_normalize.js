@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/statement",
+*/
+define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "khepri-ast-zipper", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/value", "./ast", "./fun", "./unpack", "./builtin"
 ], (function(require, exports, tree, __o, zipper, __o0, ast_statement, ast_expression, ast_pattern, ast_value, __o1,
     __o2, __o3, __o4) {
@@ -33,13 +34,13 @@
                 (peepholes[type] = concat((peepholes[type] || []), entry));
             }));
         });
-    addPeephole(["LetExpression"], UP, always, ((expandBinding = (function(binding) {
+    addPeephole(["LetExpression"], true, always, ((expandBinding = (function(binding) {
         return innerPattern(binding.value, binding.pattern, binding.recursive);
     })), (function(node) {
         return ast_expression.LetExpression.create(node.loc, flattenr(map(expandBinding, node.bindings)),
             node.body);
     })));
-    addPeephole(["FunctionExpression"], UP, always, (function(node) {
+    addPeephole(["FunctionExpression"], true, always, (function(node) {
         var params = map((function(x) {
             switch (x.type) {
                 case "IdentifierPattern":
@@ -64,34 +65,34 @@
             concat(right, ast_expression.AssignmentExpression.create(null, "=", node.left, right[(right
                 .length - 1)].left))) : [node]);
     });
-    addPeephole(["ExpressionStatement"], UP, (function(__o) {
-        var expression = __o["expression"];
+    addPeephole(["ExpressionStatement"], true, (function(__o5) {
+        var expression = __o5["expression"];
         return (expression.type === "AssignmentExpression");
     }), (function(node) {
         return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(
             null, null), flattenr(expandAssignment(node.expression))));
     }));
-    addPeephole(["BinaryExpression"], UP, (function(node) {
+    addPeephole(["BinaryExpression"], true, (function(node) {
         return (node.operator === "|>");
-    }), (function(__o) {
-        var left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, right, [left]);
     }));
-    addPeephole(["BinaryExpression"], UP, (function(node) {
+    addPeephole(["BinaryExpression"], true, (function(node) {
         return (node.operator === "<|");
-    }), (function(__o) {
-        var left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, left, [right]);
     }));
-    addPeephole(["BinaryExpression"], UP, (function(node) {
+    addPeephole(["BinaryExpression"], true, (function(node) {
         return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) ||
             (node.operator === "<<\\"));
-    }), (function(__o) {
-        var operator = __o["operator"],
-            left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var operator = __o5["operator"],
+            left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
     }));
     var upTransforms = (function(node) {

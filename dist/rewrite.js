@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/rewrite.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/rewrite.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
+*/
+define(["require", "exports", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
     "./fun"
 ], (function(require, exports, __o, Unique, StateT, ZipperT, walk, fun) {
     "use strict";

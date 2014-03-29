@@ -179,6 +179,40 @@ Expansion.prototype.expand = null;
 
 /* Operator To Function
  ******************************************************************************/
+/**
+ * Convert Unary Op Expression to function.
+ */
+addRewrite@'UnaryOperatorExpression' <|
+    seq(
+        node.chain \ {op} ->
+            seq(
+                addGlobal(op),
+                set <| builtins.(op)),
+        checkTop);
+
+/**
+ * Convert binary op expression to function.
+ */
+addRewrite@'BinaryOperatorExpression' <|
+    seq(
+        node.chain \ {op flipped} ->
+            let name = ?flipped : '_' + op : op in
+                seq(
+                    addGlobal(name),
+                    set <| builtins.(name)),
+        checkTop);
+
+/**
+ * Convert ternary op expression to function.
+ */
+addRewrite@'TernaryOperatorExpression' <|
+    seq(
+        addGlobal('?'),
+        set <| builtins.('?'),
+        checkTop);
+
+/* 
+ ******************************************************************************/
 // Program and Packages
 addRewrite@'Program' <|
     checkChild 'body';
@@ -547,7 +581,7 @@ var initialState = Object.keys(builtins).reduce(
         def = definitions.(name)
     in
         s.setBindings(
-            hashtrie.set(id.ud.uid, def, s.bindings)),
+            hashtrie.set(getUid id, def, s.bindings)),
     new State(
         hashtrie.empty,
         hashtrie.empty,

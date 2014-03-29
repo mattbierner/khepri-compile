@@ -134,6 +134,17 @@ var record = require("bes")["record"],
     }),
     Expansion = record.declare(null, ["ctx", "id", "target"]);
 (Expansion.prototype.expand = null);
+addRewrite("UnaryOperatorExpression", seq(node.chain((function(__o) {
+    var op = __o["op"];
+    return seq(addGlobal(op), set(builtins[op]));
+})), checkTop));
+addRewrite("BinaryOperatorExpression", seq(node.chain((function(__o) {
+    var op = __o["op"],
+        flipped = __o["flipped"],
+        name = (flipped ? ("_" + op) : op);
+    return seq(addGlobal(name), set(builtins[name]));
+})), checkTop));
+addRewrite("TernaryOperatorExpression", seq(addGlobal("?"), set(builtins["?"]), checkTop));
 addRewrite("Program", checkChild("body"));
 addRewrite("Package", checkChild("body"));
 addRewrite("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
@@ -329,7 +340,7 @@ var initialState = Object.keys(builtins)
     .reduce((function(s, name) {
         var id = builtins[name],
             def = definitions[name];
-        return s.setBindings(hashtrie.set(id.ud.uid, def, s.bindings));
+        return s.setBindings(hashtrie.set(getUid(id), def, s.bindings));
     }), new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null));
 (optimize = (function(ast, data) {
     return run(next(checkTop, node.chain((function(node) {

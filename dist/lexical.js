@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/trans/error", "akh/unique", "./scope", "./fun",
     "zipper-m/trans/zipper"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, ErrorT, Unique, scope,
@@ -15,77 +16,58 @@
         seqa = __o0["sequencea"],
         Scope = scope["Scope"],
         foldl = __o1["foldl"],
-        check, _check, Zipper = ZipperT(Unique),
+        check, x, y, x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6, x7, y7, _check, Zipper = ZipperT(
+            Unique),
         StateM = StateT(Zipper),
         M = ErrorT(StateM),
         run = (function(p, s, ctx, ok, err) {
-            return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
-                return (function(x) {
-                    return f(g(x));
-                });
-            })(StateM.of, ok), (function(f, g) {
-                return (function(x) {
-                    return f(g(x));
-                });
-            })(StateM.of, err)), s), ctx), 1000);
+            var x, y, x0, y0;
+            return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, ((x = ok), (y =
+                StateM.of), (function(x0) {
+                return y(x(x0));
+            })), ((x0 = err), (y0 = StateM.of), (function(x1) {
+                return y0(x0(x1));
+            }))), s), ctx), 1000);
         }),
         error = M.fail,
         lift = M.lift,
         unique = lift(StateM.lift(Zipper.lift(Unique.unique))),
         extract = lift(StateM.get),
         examineScope = M.chain.bind(null, extract),
-        modifyScope = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.modify),
+        modifyScope = ((x = lift), (y = StateM.modify), (function(x0) {
+            return x(y(x0));
+        })),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
         inspect = M.chain.bind(null, lift(StateM.lift(Zipper.node))),
         extractNode = lift(StateM.lift(Zipper.node)),
-        move = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.lift), Zipper.move),
+        move = ((x0 = lift), (y0 = StateM.lift), (x1 = (function(x2) {
+            return x0(y0(x2));
+        })), (y1 = Zipper.move), (function(x2) {
+            return x1(y1(x2));
+        })),
         up = lift(StateM.lift(Zipper.up)),
         down = lift(StateM.lift(Zipper.down)),
         left = lift(StateM.lift(Zipper.left)),
         right = lift(StateM.lift(Zipper.right)),
         root = lift(StateM.lift(Zipper.root)),
-        moveChild = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.lift), Zipper.child),
-        modifyNode = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.lift), Zipper.modifyNode),
-        setNode = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })((function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, StateM.lift), Zipper.setNode),
-        checkTop = inspect((function(x) {
-            return _check(x);
+        moveChild = ((x2 = lift), (y2 = StateM.lift), (x3 = (function(x4) {
+            return x2(y2(x4));
+        })), (y3 = Zipper.child), (function(x4) {
+            return x3(y3(x4));
+        })),
+        modifyNode = ((x4 = lift), (y4 = StateM.lift), (x5 = (function(x6) {
+            return x4(y4(x6));
+        })), (y5 = Zipper.modifyNode), (function(x6) {
+            return x5(y5(x6));
+        })),
+        setNode = ((x6 = lift), (y6 = StateM.lift), (x7 = (function(x8) {
+            return x6(y6(x8));
+        })), (y7 = Zipper.setNode), (function(x8) {
+            return x7(y7(x8));
+        })),
+        checkTop = inspect((function(x8) {
+            return _check(x8);
         })),
         child = (function(edge) {
             var args = arguments;
@@ -153,8 +135,8 @@
         }),
         checks = ({}),
         addCheck = (function(type, check) {
-            if (Array.isArray(type)) type.forEach((function(x) {
-                return addCheck(x, check);
+            if (Array.isArray(type)) type.forEach((function(x8) {
+                return addCheck(x8, check);
             }));
             else(checks[type] = check);
         });
@@ -206,8 +188,9 @@
             checkChild("body"));
     }))));
     addCheck("UnaryExpression", checkChild("argument"));
-    addCheck("AssignmentExpression", seq(child("left", checkTop, inspect((function(left) {
-        return ((left.type === "Identifier") ? checkCanAssign(left.name, left.loc) : pass);
+    addCheck("AssignmentExpression", seq(child("left", checkTop, inspect((function(left0) {
+        return ((left0.type === "Identifier") ? checkCanAssign(left0.name, left0.loc) :
+            pass);
     }))), checkChild("right")));
     addCheck(["LogicalExpression", "BinaryExpression"], seq(checkChild("left"), checkChild("right")));
     addCheck("ConditionalExpression", seq(checkChild("test"), checkChild("consequent"), checkChild("alternate")));
@@ -256,24 +239,24 @@
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var g = (function(x) {
-        return x.concat("require");
+    var g = (function(x8) {
+        return x8.concat("require");
     }),
         addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
-        suc = (function(x, s) {
-            return x;
+        suc = (function(x8, s) {
+            return x8;
         }),
-        fail = (function(x) {
-            throw x;
+        fail = (function(x8) {
+            throw x8;
         });
     (check = (function(ast, globals, seed) {
-        return run(seq(checkTop, root, extractNode.chain((function(x) {
-            return unique.chain((function(unique) {
+        return run(seq(checkTop, root, extractNode.chain((function(x8) {
+            return unique.chain((function(unique0) {
                 return extract.map((function(s) {
                     return ({
-                        "tree": x,
+                        "tree": x8,
                         "data": ({
-                            "unique": unique
+                            "unique": unique0
                         })
                     });
                 }));
