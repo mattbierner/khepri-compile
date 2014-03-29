@@ -41,14 +41,15 @@ var record = require("bes")["record"],
     fun = require("./fun"),
     flattenr = fun["flattenr"],
     flatten = fun["flatten"],
-    optimize, x, arithmetic, arithmetic0, _check, State = record.declare(null, ["bindings", "working", "globals",
-        "outer", "ctx"
-    ]),
-    M = ZipperT(StateT(Unique)),
+    optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 2,
+    _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
+(State.empty = new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null, hashtrie.empty));
+var M = ZipperT(StateT(Unique)),
     run = (function(c, ctx, state, seed) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
     }),
     pass = M.of(null),
+    unique = M.liftInner(Unique.unique),
     node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
@@ -56,7 +57,6 @@ var record = require("bes")["record"],
     down = M.down,
     right = M.right,
     moveChild = M.child,
-    unique = M.liftInner(Unique.unique),
     addBinding = (function(uid, target) {
         return M.lift(M.inner.modify((function(s) {
             return s.setBindings(hashtrie.set(uid, target, s.bindings));
@@ -84,10 +84,6 @@ var record = require("bes")["record"],
         .map((function(s) {
             return s.globals;
         })),
-    stack = M.lift(M.inner.get)
-        .map((function(s) {
-            return s.stack;
-        })),
     push = M.lift(M.inner.modify((function(s) {
         return new(State)(s.bindings, hashtrie.empty, s.globals, s);
     }))),
@@ -114,26 +110,12 @@ var record = require("bes")["record"],
             return x;
         }), khepriZipper(root)));
     }),
-    checkTop = node.chain((function(x) {
-        return _check(x);
-    })),
-    child = (function(edge) {
-        var args = arguments;
-        return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
+    markExpansion = (function(id, target) {
+        return setData(id, "expand", target);
     }),
-    checkChild = (function(edge) {
-        return child(edge, checkTop);
+    isExpansion = (function(node) {
+        return ((node.ud && node.ud) && node.ud.expand);
     }),
-    when = (function(test, consequent, alternate) {
-        return node.chain((function(node) {
-            return (test(node) ? consequent : (alternate || pass));
-        }));
-    }),
-    Expansion = record.declare(null, ["ctx", "id", "target"]);
-(Expansion.prototype.children = []);
-var isExpansion = ((x = Expansion), (function(y) {
-    return (y instanceof x);
-})),
     getCtx = M.lift(M.inner.get)
         .map((function(s) {
             return s.ctx;
@@ -143,19 +125,29 @@ var isExpansion = ((x = Expansion), (function(y) {
             return s.setCtx(f(s.ctx));
         })));
     }),
-    createExpansion = (function(id, target) {
-        return getCtx.map((function(ctx) {
-            return new(Expansion)(ctx, id, target);
-        }));
-    }),
     expand = (function(exp, f) {
         return (isExpansion(exp) ? getCtx.chain((function(ctx) {
-            return (hashtrie.has(getUid(exp.id), ctx) ? f(exp.id) : seq(modifyCtx((function(ctx) {
-                return hashtrie.set(getUid(exp.id), ctx);
-            })), f(exp.target), modifyCtx((function(ctx) {
-                return hashtrie.remove(getUid(exp.id), ctx);
+            return (hashtrie.has(getUid(exp), ctx) ? f(exp) : seq(modifyCtx((function(ctx) {
+                return hashtrie.set(getUid(exp), ctx);
+            })), f(exp.ud.expand), modifyCtx((function(ctx) {
+                return hashtrie.remove(getUid(exp), ctx);
             }))));
         })) : f(exp));
+    }),
+    checkTop = node.chain((function(x) {
+        return _check(x);
+    })),
+    child = (function(edge) {
+        var args = arguments;
+        return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
+    }),
+    visitChild = (function(edge) {
+        return child(edge, checkTop);
+    }),
+    when = (function(test, consequent, alternate) {
+        return node.chain((function(node) {
+            return (test(node) ? consequent : (alternate || pass));
+        }));
     }),
     UP = true,
     DOWN = false,
@@ -177,21 +169,21 @@ addRewrite("BinaryOperatorExpression", seq(node.chain((function(__o) {
     return seq(addGlobal(name), set(builtins[name]));
 })), checkTop));
 addRewrite("TernaryOperatorExpression", seq(addGlobal("?"), set(builtins["?"]), checkTop));
-addRewrite("Program", checkChild("body"));
-addRewrite("Package", checkChild("body"));
-addRewrite("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
-addRewrite("CatchClause", seq(checkChild("param"), checkChild("body")));
-addRewrite(["StaticDeclaration", "VariableDeclaration"], checkChild("declarations"));
-addRewrite("VariableDeclarator", seq(checkChild("init"), node.chain((function(node) {
+addRewrite("Program", visitChild("body"));
+addRewrite("Package", visitChild("body"));
+addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
+addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
+addRewrite(["StaticDeclaration", "VariableDeclaration"], visitChild("declarations"));
+addRewrite("VariableDeclarator", seq(visitChild("init"), node.chain((function(node) {
     return (node.init ? (node.immutable ? addBinding(getUid(node.id), node.init) : addWorking(getUid(
         node.id), node.init)) : pass);
 }))));
-addRewrite("Binding", seq(checkChild("value"), when((function(node) {
+addRewrite("Binding", seq(visitChild("value"), when((function(node) {
     return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
 }), node.chain((function(node) {
     var uid = getUid(node.pattern.id);
     return (isPrimitive(node.value) ? addBinding(uid, node.value) : (isLambda(node.value) ?
-        createExpansion(node.pattern.id, node.value)
+        markExpansion(node.pattern.id, node.value)
         .chain((function(entry) {
             return addBinding(uid, entry);
         })) : ((node.value.type === "Identifier") ? getBinding(getUid(node.value))
@@ -203,18 +195,18 @@ addRewrite("Binding", seq(checkChild("value"), when((function(node) {
 }), node.chain((function(node) {
     var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(null,
         node.pattern, node.value.body)));
-    return seq(set(bindings), checkChild((bindings.length - 1)));
+    return seq(set(bindings), visitChild((bindings.length - 1)));
 })))));
-addRewrite("BlockStatement", checkChild("body"));
-addRewrite("ExpressionStatement", checkChild("expression"));
-addRewrite("WithStatement", seq(checkChild("bindings"), checkChild("body")));
-addRewrite("SwitchStatement", seq(checkChild("discriminant"), checkChild("cases")));
-addRewrite(["ReturnStatement", "ThrowStatement"], checkChild("argument"));
-addRewrite("TryStatement", seq(checkChild("block"), checkChild("handler"), checkChild("finalizer")));
-addRewrite("WhileStatement", block(checkChild("test"), checkChild("body")));
-addRewrite("DoWhileStatement", block(checkChild("body"), checkChild("test")));
-addRewrite("ForStatement", seq(checkChild("init"), block(checkChild("test"), checkChild("update"), checkChild("body"))));
-addRewrite("FunctionExpression", block(checkChild("id"), checkChild("params"), checkChild("body")));
+addRewrite("BlockStatement", visitChild("body"));
+addRewrite("ExpressionStatement", visitChild("expression"));
+addRewrite("WithStatement", seq(visitChild("bindings"), visitChild("body")));
+addRewrite("SwitchStatement", seq(visitChild("discriminant"), visitChild("cases")));
+addRewrite(["ReturnStatement", "ThrowStatement"], visitChild("argument"));
+addRewrite("TryStatement", seq(visitChild("block"), visitChild("handler"), visitChild("finalizer")));
+addRewrite("WhileStatement", block(visitChild("test"), visitChild("body")));
+addRewrite("DoWhileStatement", block(visitChild("body"), visitChild("test")));
+addRewrite("ForStatement", seq(visitChild("init"), block(visitChild("test"), visitChild("update"), visitChild("body"))));
+addRewrite("FunctionExpression", block(visitChild("id"), visitChild("params"), visitChild("body")));
 addRewrite("UnaryExpression", ((arithmetic = ({
     "!": (function(x) {
         return (!x);
@@ -241,7 +233,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
         value = arithmetic[operator](argument.value);
     return ast_value.Literal.create(null, (typeof value), value);
 })))));
-addRewrite("AssignmentExpression", seq(checkChild("right"), when((function(__o) {
+addRewrite("AssignmentExpression", seq(visitChild("right"), when((function(__o) {
     var left = __o["left"];
     return (left.type === "Identifier");
 }), node.chain((function(node) {
@@ -290,7 +282,7 @@ addRewrite(["LogicalExpression", "BinaryExpression"], ((arithmetic0 = ({
     "&&": (function(x, y) {
         return (x && y);
     })
-})), seq(checkChild("left"), checkChild("right"), when((function(__o) {
+})), seq(visitChild("left"), visitChild("right"), when((function(__o) {
     var operator = __o["operator"],
         left = __o["left"],
         right = __o["right"];
@@ -302,19 +294,19 @@ addRewrite(["LogicalExpression", "BinaryExpression"], ((arithmetic0 = ({
         value = arithmetic0[operator](left.value, right.value);
     return ast_value.Literal.create(null, (typeof value), value);
 }))))));
-addRewrite(["ConditionalExpression", "IfStatement"], seq(checkChild("test"), when((function(node) {
+addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), when((function(node) {
     return isPrimitive(node.test);
 }), node.chain((function(__o) {
     var test = __o["test"],
         consequent = __o["consequent"],
         alternate = __o["alternate"];
     return seq(set((isTruthy(test) ? consequent : alternate)), checkTop);
-})), seq(checkChild("consequent"), checkChild("alternate")))));
-addRewrite("MemberExpression", seq(checkChild("object"), node.chain((function(node) {
-    return (node.computed ? checkChild("property") : pass);
+})), seq(visitChild("consequent"), visitChild("alternate")))));
+addRewrite("MemberExpression", seq(visitChild("object"), node.chain((function(node) {
+    return (node.computed ? visitChild("property") : pass);
 }))));
-addRewrite("NewExpression", seq(checkChild("callee"), checkChild("args")));
-addRewrite("CallExpression", seq(checkChild("callee"), checkChild("args"), when((function(node) {
+addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
+addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when((function(node) {
     return ((isLambda(node.callee) || isExpansion(node.callee)) || ((node.callee.type ===
         "LetExpression") && isLambda(node.callee.body)));
 }), node.chain((function(node) {
@@ -343,7 +335,7 @@ addRewrite("CallExpression", seq(checkChild("callee"), checkChild("args"), when(
         })), ((callee.type === "Identifier") ? pass : checkTop));
     }));
 })))));
-addRewrite("CurryExpression", seq(checkChild("base"), checkChild("args"), when((function(node) {
+addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args"), when((function(node) {
     return (isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(node.base.body)));
 }), seq(unique.chain((function(uid) {
     return modify((function(node) {
@@ -361,9 +353,7 @@ addRewrite("CurryExpression", seq(checkChild("base"), checkChild("args"), when((
                     0]))), body) : body)));
     }));
 })), checkTop))));
-addRewrite("ArrayExpression", checkChild("elements"));
-addRewrite("ObjectExpression", checkChild("properties"));
-addRewrite("LetExpression", seq(checkChild("bindings"), checkChild("body"), modify((function(__o) {
+addRewrite("LetExpression", seq(visitChild("bindings"), visitChild("body"), modify((function(__o) {
     var loc = __o["loc"],
         bindings = __o["bindings"],
         body = __o["body"];
@@ -375,19 +365,16 @@ addRewrite("LetExpression", seq(checkChild("bindings"), checkChild("body"), modi
     var body = __o["body"];
     return body;
 })))));
-addRewrite("IdentifierPattern", checkChild("id"));
-addRewrite("AsPattern", seq(checkChild("id"), checkChild("target")));
-addRewrite("ObjectPattern", checkChild("elements"));
-addRewrite("ObjectPatternElement", seq(checkChild("target"), checkChild("key")));
-addRewrite("ArgumentsPattern", seq(checkChild("id"), checkChild("elements"), checkChild("self")));
-addRewrite("ObjectValue", checkChild("value"));
+addRewrite("ArrayExpression", visitChild("elements"));
+addRewrite("ObjectExpression", visitChild("properties"));
+addRewrite("ObjectValue", visitChild("value"));
 addRewrite("Identifier", when((function(node) {
     return getUid(node);
 }), node.chain((function(node) {
     return getBinding(getUid(node))
         .chain((function(binding) {
-            return ((binding && (((isPrimitive(binding) || (binding.type === "Identifier")) ||
-                isLambda(binding)) || isExpansion(binding))) ? set(binding) : pass);
+            return ((binding && ((isPrimitive(binding) || (binding.type === "Identifier")) ||
+                isLambda(binding))) ? set(binding) : pass);
         }));
 }))));
 (_check = (function(node) {
@@ -400,12 +387,11 @@ addRewrite("Identifier", when((function(node) {
     if (((node instanceof ast_node.Node) && peepholes[node.type])) return peepholes[node.type];
     return pass;
 }));
-var initialState = Object.keys(builtins)
-    .reduce((function(s, name) {
-        var id = builtins[name],
-            def = definitions[name];
-        return s.setBindings(hashtrie.set(getUid(id), def, s.bindings));
-    }), new(State)(hashtrie.empty, hashtrie.empty, hashtrie.empty, null, hashtrie.empty));
+var initialState = fun.foldl((function(s, name) {
+    var id = builtins[name],
+        def = definitions[name];
+    return s.setBindings(hashtrie.set(getUid(id), markExpansion(id, def), s.bindings));
+}), State.empty, Object.keys(builtins));
 (optimize = (function(ast, data) {
     return run(next(checkTop, node.chain((function(node) {
         return globals.chain((function(g) {

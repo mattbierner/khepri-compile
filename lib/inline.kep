@@ -42,8 +42,16 @@ with
     import './fun' fun#{flattenr flatten}
 in {
 
+/* Config
+ ******************************************************************************/
+var MAX_EXPANSION_DEPTH := 2;
+
+/* Forward
+ ******************************************************************************/
 var _check;
 
+/* State
+ ******************************************************************************/
 var State := record.declare(null, [
     'bindings',
     'working',
@@ -51,7 +59,14 @@ var State := record.declare(null, [
     'outer',
     'ctx']);
 
-/* Operations
+State.empty = new State(
+    hashtrie.empty,
+    hashtrie.empty,
+    hashtrie.empty,
+    null,
+    hashtrie.empty);
+
+/* Monad
  ******************************************************************************/
 var M = ZipperT (StateT Unique);
 
@@ -64,7 +79,9 @@ var run = \c ctx state seed ->
 
 var pass = M.of null;
 
-/*
+var unique = M.liftInner (Unique.unique);
+
+/* Movement
  ******************************************************************************/
 var node =  M.node;
 
@@ -77,10 +94,8 @@ var right = M.right;
 
 var moveChild =  M.child;
 
-/*
+/* Binding operations
  ******************************************************************************/
-var unique = M.liftInner (Unique.unique);
-
 var addBinding = \uid target ->
     M.lift <| M.inner.modify(\s ->
         s.setBindings(hashtrie.set(uid, target, s.bindings)));
@@ -100,8 +115,6 @@ var addGlobal = \name ->
         s.setGlobals(hashtrie.set(name, name, s.globals));
 
 var globals = (M.lift M.inner.get).map\s -> s.globals;
-
-var stack = (M.lift <| M.inner.get).map(\s -> s.stack);
 
 var push = M.lift <| M.inner.modify(\s ->
     new State(s.bindings, hashtrie.empty, s.globals, s));
@@ -140,6 +153,33 @@ var rewrite = \base list root ->
         \x -> x,
         khepriZipper(root))
             |> tree.node;
+
+/*
+ ******************************************************************************/
+var markExpansion = \id target ->
+    setData(
+        id,
+        'expand',
+        target);
+
+var isExpansion := \node ->
+    (node.ud && node.ud && node.ud.expand);
+
+var getCtx = M.lift(M.inner.get).map\s -> s.ctx;
+var modifyCtx = \f -> M.lift(M.inner.modify(\s -> s.setCtx(f(s.ctx))));
+
+var expand = \exp f ->
+    ?isExpansion exp
+        :getCtx.chain \ ctx ->
+            ?hashtrie.has(getUid exp, ctx)
+                :f(exp)
+                :seq(
+                    modifyCtx\ctx -> hashtrie.set(getUid exp, ctx),
+                    f(exp.ud.expand),
+                    modifyCtx\ctx -> hashtrie.remove(getUid exp, ctx))
+        :f(exp);
+
+
 /*
  ******************************************************************************/
 var checkTop = node.chain \ x -> _check x; // forward
@@ -150,44 +190,21 @@ var child = \args(edge ...) ->
         seqa([].slice.call(args, 1)),
         up);
 
-var checkChild = \edge ->
+/**
+ * 
+ */
+var visitChild = \edge ->
     child(edge,
         checkTop);
 
+/**
+ * 
+ */
 var when = \test consequent alternate ->
     node.chain \ node ->
         ?test node
             :consequent
             :(alternate || pass);
-
-/*
- ******************************************************************************/
-var Expansion = record.declare(null, [
-    'ctx',
-    'id',
-    'target']);
-
-Expansion.prototype.children = [];
-
-var isExpansion := (_ instanceof, Expansion);
-
-var getCtx = M.lift(M.inner.get).map\s -> s.ctx;
-var modifyCtx = \f -> M.lift(M.inner.modify(\s -> s.setCtx(f(s.ctx))));
-
-var createExpansion = \id, target ->
-    getCtx.map \ ctx ->
-        new Expansion(ctx, id, target);
-
-var expand = \exp f ->
-    ?isExpansion exp
-        :getCtx.chain \ ctx ->
-            ?hashtrie.has(getUid exp.id, ctx)
-                :f(exp.id)
-                :seq(
-                    modifyCtx\ctx -> hashtrie.set(getUid exp.id, ctx),
-                    f(exp.target),
-                    modifyCtx\ctx -> hashtrie.remove(getUid exp.id, ctx))
-        :f(exp);
 
 /*
  ******************************************************************************/
@@ -241,25 +258,25 @@ addRewrite@'TernaryOperatorExpression' <|
  ******************************************************************************/
 // Program and Packages
 addRewrite@'Program' <|
-    checkChild 'body';
+    visitChild 'body';
 
 addRewrite@'Package' <|
-    checkChild 'body';
+    visitChild 'body';
 
 // Clause
 addRewrite@'SwitchCase' <|
     seq(
-        checkChild 'test',
-        checkChild 'consequent');
+        visitChild 'test',
+        visitChild 'consequent');
 
 addRewrite@'CatchClause' <|
     seq(
-        checkChild 'param',
-        checkChild 'body');
+        visitChild 'param',
+        visitChild 'body');
 
 // Declarations
 addRewrite@['StaticDeclaration', 'VariableDeclaration'] <|
-    checkChild 'declarations';
+    visitChild 'declarations';
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -269,7 +286,7 @@ addRewrite@['StaticDeclaration', 'VariableDeclaration'] <|
  */
 addRewrite@'VariableDeclarator' <|
     seq(
-        checkChild 'init',
+        visitChild 'init',
         node.chain \ node ->
             ?node.init
                 :?node.immutable
@@ -284,7 +301,7 @@ addRewrite@'VariableDeclarator' <|
  * only declaration of a var bound immutable to itself.
  */
 addRewrite@'Binding' <| seq(
-    checkChild 'value',
+    visitChild 'value',
     
     /**
      * Register constants bound in immutable variable declarations.
@@ -300,7 +317,7 @@ addRewrite@'Binding' <| seq(
                     :addBinding(uid, node.value)
                     
                 :?isLambda(node.value)
-                    :createExpansion(node.pattern.id, node.value).chain\entry ->
+                    :markExpansion(node.pattern.id, node.value).chain\entry ->
                         addBinding(uid, entry)
                     
                 :?node.value.type === 'Identifier'
@@ -329,58 +346,58 @@ addRewrite@'Binding' <| seq(
        in
            seq(
                set bindings,
-               checkChild(bindings.length - 1))));
+               visitChild(bindings.length - 1))));
 
 // Statement
 addRewrite@'BlockStatement' <|
-    checkChild 'body';
+    visitChild 'body';
 
 addRewrite@'ExpressionStatement' <|
-    checkChild 'expression';
+    visitChild 'expression';
 
 addRewrite@'WithStatement' <|
      seq(
-        checkChild 'bindings',
-        checkChild 'body');
+        visitChild 'bindings',
+        visitChild 'body');
 
 addRewrite@'SwitchStatement' <|
     seq(
-        checkChild 'discriminant',
-        checkChild 'cases');
+        visitChild 'discriminant',
+        visitChild 'cases');
 
 addRewrite@['ReturnStatement', 'ThrowStatement'] <|
-    checkChild 'argument';
+    visitChild 'argument';
 
 addRewrite@'TryStatement' <|
     seq(
-        checkChild 'block',
-        checkChild 'handler',
-        checkChild 'finalizer');
+        visitChild 'block',
+        visitChild 'handler',
+        visitChild 'finalizer');
 
 addRewrite@'WhileStatement' <|
     block(
-        checkChild 'test',
-        checkChild 'body');
+        visitChild 'test',
+        visitChild 'body');
 
 addRewrite@'DoWhileStatement' <|
     block(
-        checkChild 'body',
-        checkChild 'test');
+        visitChild 'body',
+        visitChild 'test');
 
 addRewrite@'ForStatement' <|
     seq(
-        checkChild 'init',
+        visitChild 'init',
         block(
-            checkChild 'test',
-            checkChild 'update',
-            checkChild 'body'));
+            visitChild 'test',
+            visitChild 'update',
+            visitChild 'body'));
 
 // Expression
 addRewrite@'FunctionExpression' <|
     block(
-         checkChild 'id',
-         checkChild 'params',
-         checkChild 'body');
+         visitChild 'id',
+         visitChild 'params',
+         visitChild 'body');
 
 addRewrite@'UnaryExpression' <| let
     arithmetic = {
@@ -404,7 +421,7 @@ in
             ast_value.Literal.create(null, typeof value, value));
 
 addRewrite@'AssignmentExpression' <| seq(
-    checkChild 'right',
+    visitChild 'right',
     
     /**
      * Update the working value of a binding.
@@ -439,8 +456,8 @@ addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
         '&&': (&&)}
 in
     seq(
-        checkChild 'left',
-        checkChild 'right',
+        visitChild 'left',
+        visitChild 'right',
         when(
             \{operator left right} ->
                 (  arithmetic.(operator)
@@ -457,7 +474,7 @@ in
  */
 addRewrite@['ConditionalExpression', 'IfStatement'] <|
     seq(
-        checkChild 'test',
+        visitChild 'test',
         when(
             \node ->
                 isPrimitive node.test,
@@ -468,25 +485,25 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <|
                     checkTop),
             
             seq(
-                checkChild 'consequent',
-                checkChild 'alternate')));
+                visitChild 'consequent',
+                visitChild 'alternate')));
 
 addRewrite@'MemberExpression' <|
     seq(
-        checkChild 'object',
+        visitChild 'object',
         node.chain \ node ->
             ?node.computed
-                :checkChild 'property'
+                :visitChild 'property'
                 :pass);
 
 addRewrite@'NewExpression' <|
     seq(
-        checkChild 'callee',
-        checkChild 'args');
+        visitChild 'callee',
+        visitChild 'args');
 
 addRewrite@'CallExpression' <| seq(
-    checkChild 'callee',
-    checkChild 'args',
+    visitChild 'callee',
+    visitChild 'args',
     
     /**
      * Inline calls of lambda functions by expanding them to let expressions.
@@ -523,8 +540,8 @@ addRewrite@'CallExpression' <| seq(
              ?callee.type === 'Identifier' :pass: checkTop)))));
 
 addRewrite@'CurryExpression' <| seq(
-    checkChild 'base',
-    checkChild 'args',
+    visitChild 'base',
+    visitChild 'args',
     
     /**
      * Convert curry on function expression to function.
@@ -566,58 +583,36 @@ addRewrite@'CurryExpression' <| seq(
                             :body,
                 checkTop)));
 
-addRewrite@'ArrayExpression' <|
-    checkChild 'elements';
-
-addRewrite@'ObjectExpression' <|
-    checkChild 'properties';
-
-/**
- * Flatten let expression bindings.
- */
-addRewrite@'LetExpression' <|
-    seq(
-        checkChild 'bindings',
-        checkChild 'body',
-        modify \ {loc bindings body} ->
-            ast_expression.LetExpression.create(loc,
-                flattenr(bindings),
-                body),
-        when(
-            \{bindings} ->
-                !bindings.length,
-            
-            modify \ {body} ->
-                body));
-
-
-
-// Patterns
-addRewrite@'IdentifierPattern' <|
-    checkChild 'id';
-
-addRewrite@'AsPattern' <|
-    seq(
-        checkChild 'id',
-        checkChild 'target');
-
-addRewrite@'ObjectPattern' <|
-    checkChild 'elements';
-
-addRewrite@'ObjectPatternElement' <|
-    seq(
-        checkChild 'target',
-        checkChild 'key');
-
-addRewrite@'ArgumentsPattern' <|
-    seq(
-        checkChild 'id',
-        checkChild 'elements',
-        checkChild 'self');
+addRewrite@'LetExpression' <| seq(
+    visitChild 'bindings',
+    visitChild 'body',
+    
+    /**
+     * Flatten let expression bindings.
+     */
+    modify \ {loc bindings body} ->
+        ast_expression.LetExpression.create(loc,
+            flattenr(bindings),
+            body),
+    /**
+     * Collapse empty let expressions.
+     */
+    when(
+        \{bindings} ->
+            !bindings.length,
+        
+        modify \ {body} ->
+            body));
 
 // Value
+addRewrite@'ArrayExpression' <|
+    visitChild 'elements';
+
+addRewrite@'ObjectExpression' <|
+    visitChild 'properties';
+
 addRewrite@'ObjectValue' <|
-    checkChild 'value';
+    visitChild 'value';
 
 addRewrite@'Identifier' <|
     when(
@@ -625,7 +620,7 @@ addRewrite@'Identifier' <|
         
         node.chain \ node ->
             getBinding(getUid node).chain \ binding ->
-                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding) || isExpansion(binding))
+                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding))
                     :set(binding)
                     :pass);
 
@@ -651,19 +646,18 @@ _check = \node -> {
     return pass;
 };
 
-var initialState = Object.keys(builtins).reduce(
+var initialState = fun.foldl(
     \s name -> let
         id = builtins.(name),
         def = definitions.(name)
     in
         s.setBindings(
-            hashtrie.set(getUid id, def, s.bindings)),
-    new State(
-        hashtrie.empty,
-        hashtrie.empty,
-        hashtrie.empty,
-        null,
-        hashtrie.empty));
+            hashtrie.set(
+                getUid id,
+                markExpansion(id, def),
+                s.bindings)),
+    State.empty,
+    Object.keys(builtins));
 
 /**
  * 

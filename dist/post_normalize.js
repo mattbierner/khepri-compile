@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast-zipper", "khepri-ast/statement", "khepri-ast/expression",
+*/
+define(["require", "exports", "khepri-ast-zipper", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "./ast", "./fun", "./unpack", "./builtin", "./rewritter"
 ], (function(require, exports, __o, ast_statement, ast_expression, ast_pattern, ast_value, __o0, __o1, __o2, __o3,
     __o4) {
@@ -55,8 +56,8 @@
             concat(right, ast_expression.AssignmentExpression.create(null, "=", node.left, right[(right
                 .length - 1)].left))) : [node]);
     });
-    peepholes.add(["ExpressionStatement"], UP, (function(__o) {
-        var expression = __o["expression"];
+    peepholes.add(["ExpressionStatement"], UP, (function(__o5) {
+        var expression = __o5["expression"];
         return (expression.type === "AssignmentExpression");
     }), (function(node) {
         return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(
@@ -64,31 +65,31 @@
     }));
     peepholes.add(["BinaryExpression"], UP, (function(node) {
         return (node.operator === "|>");
-    }), (function(__o) {
-        var left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, right, [left]);
     }));
     peepholes.add(["BinaryExpression"], UP, (function(node) {
         return (node.operator === "<|");
-    }), (function(__o) {
-        var left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, left, [right]);
     }));
     peepholes.add(["BinaryExpression"], UP, (function(node) {
         return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) ||
             (node.operator === "<<\\"));
-    }), (function(__o) {
-        var operator = __o["operator"],
-            left = __o["left"],
-            right = __o["right"];
+    }), (function(__o5) {
+        var operator = __o5["operator"],
+            left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
     }));
-    (normalize = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(rewrite.bind(null, peepholes), khepriZipper));
+    var x = khepriZipper,
+        y = rewrite.bind(null, peepholes);
+    (normalize = (function(x0) {
+        return y(x(x0));
+    }));
     (exports["normalize"] = normalize);
 }));
