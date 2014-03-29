@@ -2,33 +2,22 @@
  * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
 */"use strict";
-var tree = require("neith")["tree"],
-    __o = require("neith")["walk"],
-    walk = __o["walk"],
-    zipper = require("neith")["zipper"],
-    __o0 = require("ecma-ast-zipper"),
-    ecmaZipper = __o0["ecmaZipper"],
-    __o1 = require("ecma-ast")["node"],
-    modify = __o1["modify"],
+var __o = require("ecma-ast-zipper"),
+    ecmaZipper = __o["ecmaZipper"],
+    __o0 = require("ecma-ast")["node"],
+    modify = __o0["modify"],
     ast_value = require("ecma-ast")["value"],
     ast_declaration = require("ecma-ast")["declaration"],
     ast_statement = require("ecma-ast")["statement"],
     ast_expression = require("ecma-ast")["expression"],
-    __o2 = require("./ast"),
-    isPrimitive = __o2["isPrimitive"],
     fun = require("./fun"),
-    optimize, peepholes = ({}),
-    addPeephole = (function(types, up, condition, f) {
-        var entry = ({
-            "condition": condition,
-            "map": f,
-            "up": up
-        });
-        types.forEach((function(type) {
-            (peepholes[type] = (peepholes[type] ? peepholes[type].concat(entry) : [entry]));
-        }));
-    });
-addPeephole(["VariableDeclaration"], false, (function(_) {
+    __o1 = require("./rewritter"),
+    UP = __o1["UP"],
+    DOWN = __o1["DOWN"],
+    Rewritter = __o1["Rewritter"],
+    rewrite = __o1["rewrite"],
+    optimize, peepholes = new(Rewritter)();
+peepholes.add(["VariableDeclaration"], false, (function(_) {
     return true;
 }), (function(node) {
     var declarations = node.declarations.filter((function(x) {
@@ -38,12 +27,12 @@ addPeephole(["VariableDeclaration"], false, (function(_) {
         "declarations": declarations
     }), ({}));
 }));
-addPeephole(["VariableDeclaration"], true, (function(node) {
+peepholes.add(["VariableDeclaration"], true, (function(node) {
     return (!node.declarations.length);
 }), (function(_) {
     return null;
 }));
-addPeephole(["Program", "BlockStatement"], true, (function(_) {
+peepholes.add(["Program", "BlockStatement"], true, (function(_) {
     return true;
 }), (function(node) {
     return modify(node, ({
@@ -52,7 +41,7 @@ addPeephole(["Program", "BlockStatement"], true, (function(_) {
         })))
     }), ({}));
 }));
-addPeephole(["Program", "BlockStatement"], true, (function(_) {
+peepholes.add(["Program", "BlockStatement"], true, (function(_) {
     return true;
 }), (function(node) {
     return modify(node, ({
@@ -64,7 +53,7 @@ addPeephole(["Program", "BlockStatement"], true, (function(_) {
         }), [])
     }), ({}));
 }));
-addPeephole(["Program", "BlockStatement"], true, (function(_) {
+peepholes.add(["Program", "BlockStatement"], true, (function(_) {
     return true;
 }), (function(node) {
     return modify(node, ({
@@ -73,33 +62,7 @@ addPeephole(["Program", "BlockStatement"], true, (function(_) {
         })))
     }), ({}));
 }));
-var upTransforms = (function(node) {
-    return ((node && peepholes[node.type]) || [])
-        .filter((function(x) {
-            return (x.up && x.condition(node));
-        }));
-}),
-    downTransforms = (function(node) {
-        return ((node && peepholes[node.type]) || [])
-            .filter((function(x) {
-                return ((!x.up) && x.condition(node));
-            }));
-    }),
-    transform = (function(ctx, transforms) {
-        return (transforms.length ? tree.modifyNode((function(node) {
-            return transforms.reduce((function(p, c) {
-                return c.map(p);
-            }), node);
-        }), ctx) : ctx);
-    }),
-    opt = walk.bind(null, (function(ctx) {
-        var node = tree.node(ctx);
-        return transform(ctx, downTransforms(node));
-    }), (function(ctx) {
-        var node = tree.node(ctx);
-        return transform(ctx, upTransforms(node));
-    }));
 (optimize = (function(ast) {
-    return tree.node(zipper.root(opt(ecmaZipper(ast))));
+    return rewrite(peepholes, ecmaZipper(ast));
 }));
 (exports["optimize"] = optimize);

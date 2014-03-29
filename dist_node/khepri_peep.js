@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
@@ -21,24 +22,24 @@ var __o = require("khepri-ast-zipper"),
     optimize, peepholes = new(Rewritter)();
 peepholes.add(["VariableDeclaration"], true, (function(_) {
     return true;
-}), (function(__o) {
-    var declarations = __o["declarations"],
+}), (function(__o2) {
+    var declarations = __o2["declarations"],
         bound = fun.flattenr(declarations);
     return (bound.length ? ast_declaration.VariableDeclaration.create(null, bound) : null);
 }));
 peepholes.add(["LetExpression"], true, (function(_) {
     return true;
-}), (function(__o) {
-    var bindings = __o["bindings"],
-        body = __o["body"],
+}), (function(__o2) {
+    var bindings = __o2["bindings"],
+        body = __o2["body"],
         bound = fun.flattenr(bindings);
     return (bound.length ? ast_expression.LetExpression.create(null, bound, body) : body);
 }));
 peepholes.add(["WithStatement"], true, (function(_) {
     return true;
-}), (function(__o) {
-    var bindings = __o["bindings"],
-        body = __o["body"],
+}), (function(__o2) {
+    var bindings = __o2["bindings"],
+        body = __o2["body"],
         bound = fun.flattenr(bindings);
     return (bound.length ? ast_statement.WithStatement.create(null, bound, body) : body);
 }));

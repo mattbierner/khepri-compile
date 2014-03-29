@@ -4,10 +4,6 @@
 package (
     optimize)
 with
-    import 'neith::tree' tree,
-    import 'neith::walk' {walk},
-    import 'neith::zipper' zipper,
-
     import 'ecma-ast-zipper' {ecmaZipper},
     
     import 'ecma-ast::node' {modify},
@@ -16,34 +12,22 @@ with
     import 'ecma-ast::statement' ast_statement,
     import 'ecma-ast::expression' ast_expression,
     
-    import './ast' {isPrimitive},
-    import './fun' fun
+    import './fun' fun,
+    import './rewritter' {
+        UP
+        DOWN
+        Rewritter
+        rewrite}
 in {
 
-/* Transforms
- ******************************************************************************/
-var peepholes = {};
-
-var addPeephole = \types, up, condition, f -> {
-    var entry = {
-        'condition': condition,
-        'map': f,
-        'up': up
-    };
-    
-    types.forEach <|\ type -> {
-        peepholes.(type) = ?peepholes.(type)
-            :peepholes.(type).concat(entry)
-            :[entry];
-    };
-};
+var peepholes = new Rewritter();
 
 /* Peepholes
  ******************************************************************************/
 /**
  * Filter out empty variable declarators.
  */
-addPeephole(['VariableDeclaration'], false,
+peepholes.add(['VariableDeclaration'], false,
     \_ -> true, 
     \node -> let
         declarations = node.declarations.filter(\x -> !!x)
@@ -55,14 +39,14 @@ addPeephole(['VariableDeclaration'], false,
 /**
  * Remove empty Variable declarations.
  */
-addPeephole(['VariableDeclaration'], true,
+peepholes.add(['VariableDeclaration'], true,
     \node -> !node.declarations.length,
     \_ -> null);
 
 /**
  * Reduce block statements
  */
-addPeephole(['Program', 'BlockStatement'], true,
+peepholes.add(['Program', 'BlockStatement'], true,
     \_ -> true,
     \node ->
         modify(node, {
@@ -73,7 +57,7 @@ addPeephole(['Program', 'BlockStatement'], true,
 /**
  * Merge var declarations
  */
-addPeephole(['Program', 'BlockStatement'], true,
+peepholes.add(['Program', 'BlockStatement'], true,
     \_ -> true,
     \node ->
         modify(node, {
@@ -89,7 +73,7 @@ addPeephole(['Program', 'BlockStatement'], true,
 /**
  * Remove top level empty statements
  */
-addPeephole(['Program', 'BlockStatement'], true,
+peepholes.add(['Program', 'BlockStatement'], true,
     \_ -> true,
     \node ->
         modify(node, {
@@ -100,28 +84,7 @@ addPeephole(['Program', 'BlockStatement'], true,
 
 /* Interface
  ******************************************************************************/
-var upTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> x.up && x.condition(node));
-
-var downTransforms = \node -> 
-    ((node && peepholes.(node.type)) || [])
-        .filter(\x -> !x.up && x.condition(node));
-
-var transform = \ctx transforms ->
-    ?transforms.length
-        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
-        :ctx;
-
-var opt = walk@(
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, downTransforms node),
-    \ctx -> let node = tree.node ctx in
-        transform(ctx, upTransforms node));
-
 optimize = \ast -> 
-    (opt(ecmaZipper(ast))
-        |> zipper.root
-        |> tree.node);
+    rewrite(peepholes, ecmaZipper(ast));
 
 }

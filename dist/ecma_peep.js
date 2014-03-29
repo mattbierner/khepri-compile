@@ -1,28 +1,18 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-ast-zipper", "ecma-ast/node",
-    "ecma-ast/value", "ecma-ast/declaration", "ecma-ast/statement", "ecma-ast/expression", "./ast", "./fun"
-], (function(require, exports, tree, __o, zipper, __o0, __o1, ast_value, ast_declaration, ast_statement,
-    ast_expression, __o2, fun) {
+*/define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "ecma-ast/value", "ecma-ast/declaration",
+    "ecma-ast/statement", "ecma-ast/expression", "./fun", "./rewritter"
+], (function(require, exports, __o, __o0, ast_value, ast_declaration, ast_statement, ast_expression, fun, __o1) {
     "use strict";
-    var walk = __o["walk"],
-        ecmaZipper = __o0["ecmaZipper"],
-        modify = __o1["modify"],
-        isPrimitive = __o2["isPrimitive"],
-        optimize, peepholes = ({}),
-        addPeephole = (function(types, up, condition, f) {
-            var entry = ({
-                "condition": condition,
-                "map": f,
-                "up": up
-            });
-            types.forEach((function(type) {
-                (peepholes[type] = (peepholes[type] ? peepholes[type].concat(entry) : [entry]));
-            }));
-        });
-    addPeephole(["VariableDeclaration"], false, (function(_) {
+    var ecmaZipper = __o["ecmaZipper"],
+        modify = __o0["modify"],
+        UP = __o1["UP"],
+        DOWN = __o1["DOWN"],
+        Rewritter = __o1["Rewritter"],
+        rewrite = __o1["rewrite"],
+        optimize, peepholes = new(Rewritter)();
+    peepholes.add(["VariableDeclaration"], false, (function(_) {
         return true;
     }), (function(node) {
         var declarations = node.declarations.filter((function(x) {
@@ -32,12 +22,12 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-
             "declarations": declarations
         }), ({}));
     }));
-    addPeephole(["VariableDeclaration"], true, (function(node) {
+    peepholes.add(["VariableDeclaration"], true, (function(node) {
         return (!node.declarations.length);
     }), (function(_) {
         return null;
     }));
-    addPeephole(["Program", "BlockStatement"], true, (function(_) {
+    peepholes.add(["Program", "BlockStatement"], true, (function(_) {
         return true;
     }), (function(node) {
         return modify(node, ({
@@ -46,7 +36,7 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-
             })))
         }), ({}));
     }));
-    addPeephole(["Program", "BlockStatement"], true, (function(_) {
+    peepholes.add(["Program", "BlockStatement"], true, (function(_) {
         return true;
     }), (function(node) {
         return modify(node, ({
@@ -59,7 +49,7 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-
             }), [])
         }), ({}));
     }));
-    addPeephole(["Program", "BlockStatement"], true, (function(_) {
+    peepholes.add(["Program", "BlockStatement"], true, (function(_) {
         return true;
     }), (function(node) {
         return modify(node, ({
@@ -68,34 +58,8 @@ define(["require", "exports", "neith/tree", "neith/walk", "neith/zipper", "ecma-
             })))
         }), ({}));
     }));
-    var upTransforms = (function(node) {
-        return ((node && peepholes[node.type]) || [])
-            .filter((function(x) {
-                return (x.up && x.condition(node));
-            }));
-    }),
-        downTransforms = (function(node) {
-            return ((node && peepholes[node.type]) || [])
-                .filter((function(x) {
-                    return ((!x.up) && x.condition(node));
-                }));
-        }),
-        transform = (function(ctx, transforms) {
-            return (transforms.length ? tree.modifyNode((function(node) {
-                return transforms.reduce((function(p, c) {
-                    return c.map(p);
-                }), node);
-            }), ctx) : ctx);
-        }),
-        opt = walk.bind(null, (function(ctx) {
-            var node = tree.node(ctx);
-            return transform(ctx, downTransforms(node));
-        }), (function(ctx) {
-            var node = tree.node(ctx);
-            return transform(ctx, upTransforms(node));
-        }));
     (optimize = (function(ast) {
-        return tree.node(zipper.root(opt(ecmaZipper(ast))));
+        return rewrite(peepholes, ecmaZipper(ast));
     }));
     (exports["optimize"] = optimize);
 }));
