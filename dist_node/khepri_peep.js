@@ -2,8 +2,7 @@
  * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
 */"use strict";
-var hashtrie = require("hashtrie"),
-    __o = require("khepri-ast-zipper"),
+var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
     Node = __o0["Node"],
@@ -12,44 +11,27 @@ var hashtrie = require("hashtrie"),
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
-    ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o1 = require("akh")["base"],
     next = __o1["next"],
     seq = __o1["sequence"],
     seqa = __o1["sequencea"],
     Unique = require("akh")["unique"],
-    StateT = require("akh")["trans"]["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    __o2 = require("./builtin"),
-    builtins = __o2["builtins"],
     fun = require("./fun"),
-    __o3 = require("./ast"),
-    isPrimitive = __o3["isPrimitive"],
-    isNumberish = __o3["isNumberish"],
-    isTruthy = __o3["isTruthy"],
-    getUid = __o3["getUid"],
-    optimize, M = ZipperT(StateT(Unique)),
+    __o2 = require("./ast"),
+    isNumberish = __o2["isNumberish"],
+    getUid = __o2["getUid"],
+    optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), hashtrie.empty), seed);
+        return Unique.runUnique(ZipperT.runZipperT(c, ctx), seed);
     }),
     pass = M.of(null),
     node = M.node,
     modify = M.modifyNode,
     set = M.setNode,
     unique = M.liftInner(Unique.unique),
-    getBinding = (function(uid) {
-        return (uid ? M.lift(M.inner.get)
-            .map((function(bindings) {
-                return hashtrie.get(uid, bindings);
-            })) : pass);
-    }),
-    addBinding = (function(uid, target) {
-        return M.lift(M.inner.modify((function(bindings) {
-            return hashtrie.set(uid, target, bindings);
-        })));
-    }),
     peepholes = ({}),
     addPeephole = (function(types, up, condition, f) {
         var entry = ({
@@ -61,11 +43,6 @@ var hashtrie = require("hashtrie"),
             (peepholes[type] = (peepholes[type] ? fun.concat(peepholes[type], entry) : [entry]));
         }));
     });
-addPeephole(["MemberExpression"], true, (function(node) {
-    return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
-}), modify((function(node) {
-    return (node.object.elements[node.property.value] || ast_value.Identifier.create(null, "undefined"));
-})));
 addPeephole(["VariableDeclaration"], true, (function(_) {
     return true;
 }), modify((function(__o) {

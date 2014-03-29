@@ -4,15 +4,12 @@
 package (
     optimize)
 with
-    import 'hashtrie' hashtrie,
-    
     import 'khepri-ast-zipper' {khepriZipper},
 
     import 'khepri-ast::node' {Node setUserData setData},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
     import 'akh::base' {
@@ -21,49 +18,32 @@ with
         'sequencea': seqa},
     
     import 'akh::unique' Unique,
-    import 'akh::trans::state' StateT,
 
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
     
-    import './builtin' {builtins},
     import './fun' fun,
     import './ast' {
-        isPrimitive
         isNumberish
-        isTruthy
         getUid}
 in {
 
 /* Operations
  ******************************************************************************/
-var M = ZipperT (StateT Unique);
+var M = ZipperT (Unique);
 
 var run = \c ctx seed ->
     Unique.runUnique(
-        StateT.evalStateT(
-            ZipperT.runZipperT(c, ctx),
-            hashtrie.empty),
+        ZipperT.runZipperT(c, ctx),
         seed);
 
 var pass = M.of null;
 
 var node =  M.node;
-
 var modify = M.modifyNode;
 var set = M.setNode;
 
 var unique = M.liftInner (Unique.unique);
-
-var getBinding = \uid ->
-    ?uid
-        :M.lift(M.inner.get).map(\bindings ->
-            hashtrie.get(uid, bindings))
-        :pass;
-
-var addBinding = \uid target ->
-    M.lift <| M.inner.modify(\bindings ->
-        hashtrie.set(uid, target, bindings));
 
 /*
  ******************************************************************************/
@@ -83,20 +63,6 @@ var addPeephole = \types, up, condition, f -> {
     };
 };
 
-/* Constant Folding
- ******************************************************************************/
-/**
- * Constant index in array expression.
- */
-addPeephole(['MemberExpression'], true,
-    \node ->
-        (  node.computed
-        && node.object.type === 'ArrayExpression'
-        && isNumberish node.property),
-    
-    modify \ node ->
-        node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined'));
-
 /* Binding Expression Normalization
  ******************************************************************************/
 /**s
@@ -111,7 +77,6 @@ addPeephole(['VariableDeclaration'], true,
             ?bound.length
                 :ast_declaration.VariableDeclaration.create(null, bound)
                 :null);
-
 
 /**
  * Flatten let expression bindings lists and collapse to body 
