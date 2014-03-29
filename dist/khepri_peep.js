@@ -3,9 +3,9 @@
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/value", "akh/base", "akh/unique", "zipper-m/trans/zipper", "zipper-m/walk",
-    "./fun", "./ast"
+    "./fun"
 ], (function(require, exports, __o, __o0, ast_declaration, ast_statement, ast_expression, ast_value, __o1, Unique,
-    ZipperT, walk, fun, __o2) {
+    ZipperT, walk, fun) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
@@ -14,8 +14,6 @@
         next = __o1["next"],
         seq = __o1["sequence"],
         seqa = __o1["sequencea"],
-        isNumberish = __o2["isNumberish"],
-        getUid = __o2["getUid"],
         optimize, M = ZipperT(Unique),
         run = (function(c, ctx, seed) {
             return Unique.runUnique(ZipperT.runZipperT(c, ctx), seed);

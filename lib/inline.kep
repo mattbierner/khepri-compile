@@ -113,8 +113,8 @@ var pop = M.lift <| M.inner.modify(\s ->
         .setWorking(
             // Delete working bindings modified in inner from outer scope.
             hashtrie.fold(
-                \p {key} ->
-                    hashtrie.remove(key, p),
+                \p {key value} ->
+                    hashtrie.set(key, null, p),
                 s.outer.working,
                 s.working)));
 

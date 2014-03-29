@@ -1,5 +1,8 @@
 /**
  * @fileOverview Khepri peephole optimization.
+ * 
+ * Rewrites Khepri to forms that can be more transformed into more efficient
+ * Javascript.
  */
 package (
     optimize)
@@ -22,10 +25,7 @@ with
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
     
-    import './fun' fun,
-    import './ast' {
-        isNumberish
-        getUid}
+    import './fun' fun
 in {
 
 /* Operations

@@ -20,9 +20,6 @@ var __o = require("khepri-ast-zipper"),
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
     fun = require("./fun"),
-    __o2 = require("./ast"),
-    isNumberish = __o2["isNumberish"],
-    getUid = __o2["getUid"],
     optimize, M = ZipperT(Unique),
     run = (function(c, ctx, seed) {
         return Unique.runUnique(ZipperT.runZipperT(c, ctx), seed);

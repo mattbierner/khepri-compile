@@ -94,7 +94,7 @@ var record = require("bes")["record"],
             .setGlobals(s.globals)
             .setWorking(hashtrie.fold((function(p, __o) {
                 var key = __o["key"];
-                return hashtrie.remove(key, p);
+                return hashtrie.set(key, null, p);
             }), s.outer.working, s.working));
     }))),
     block = (function() {
