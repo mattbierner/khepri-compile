@@ -1,0 +1,34 @@
+package rename
+with
+    import 'khepri-ast-zipper' {khepriZipper},
+    import 'neith::walk' {preWalk},
+    import 'neith::tree' tree,
+    
+    import 'khepri-ast::node' {setData},
+    
+    import '../ast' {getUid}
+in {
+
+
+/**
+ * Rename all identifier instances in an AST.
+ * 
+ * @param prefix
+ * @param list
+ * @param root
+ */
+rename = \prefix list root ->
+    preWalk(
+        \ctx -> let
+            node = tree.node(ctx),
+            uid = getUid(node)
+        in
+            ?list.indexOf(uid) >= 0
+                :tree.setNode(
+                    setData(node, 'uid', prefix + '-' + uid),
+                    ctx)
+                :ctx,
+        khepriZipper(root))
+            |> tree.node;
+
+}

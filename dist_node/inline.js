@@ -3,45 +3,39 @@
  * DO NOT EDIT
 */"use strict";
 var record = require("bes")["record"],
-    array = require("bes")["array"],
     hashtrie = require("hashtrie"),
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
-    __o0 = require("neith")["zipper"],
-    detach = __o0["detach"],
-    __o1 = require("neith")["walk"],
-    neithWalk = __o1["walk"],
-    tree = require("neith")["tree"],
-    ast_node = require("khepri-ast")["node"],
-    Node = ast_node["Node"],
-    setUserData = ast_node["setUserData"],
-    setData = ast_node["setData"],
+    __o0 = require("khepri-ast")["node"],
+    Node = __o0["Node"],
+    setData = __o0["setData"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o2 = require("akh")["base"],
-    next = __o2["next"],
-    seq = __o2["sequence"],
-    seqa = __o2["sequencea"],
+    __o1 = require("akh")["base"],
+    next = __o1["next"],
+    seq = __o1["sequence"],
+    seqa = __o1["sequencea"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    __o3 = require("./ast"),
-    getUid = __o3["getUid"],
-    isLambda = __o3["isLambda"],
-    isPrimitive = __o3["isPrimitive"],
-    isNumberish = __o3["isNumberish"],
-    isTruthy = __o3["isTruthy"],
-    __o4 = require("./builtin"),
-    builtins = __o4["builtins"],
-    definitions = __o4["definitions"],
+    __o2 = require("./ast"),
+    getUid = __o2["getUid"],
+    isLambda = __o2["isLambda"],
+    isPrimitive = __o2["isPrimitive"],
+    isNumberish = __o2["isNumberish"],
+    isTruthy = __o2["isTruthy"],
+    __o3 = require("./builtin"),
+    builtins = __o3["builtins"],
+    definitions = __o3["definitions"],
     fun = require("./fun"),
     flattenr = fun["flattenr"],
     flatten = fun["flatten"],
     binding = require("./inline/bindings"),
+    rename = require("./inline/rename"),
     optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 2,
     _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
 (State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
@@ -100,16 +94,8 @@ var M = ZipperT(StateT(Unique)),
         return (uid ? getState.map((function(__o) {
             var bindings = __o["bindings"],
                 working = __o["working"];
-            return (hashtrie.get(uid, working) || hashtrie.get(uid, bindings));
+            return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
         })) : pass);
-    }),
-    globals = getState.map((function(s) {
-        return s.globals;
-    })),
-    addGlobal = (function(name) {
-        return modifyState((function(s) {
-            return s.setGlobals(hashtrie.set(name, name, s.globals));
-        }));
     }),
     push = modifyState((function(s) {
         return s.push();
@@ -121,16 +107,13 @@ var M = ZipperT(StateT(Unique)),
         var body = arguments;
         return seq(push, seqa(body), pop);
     }),
-    rewrite = (function(base, list, root) {
-        return tree.node(neithWalk((function(ctx) {
-            var node = tree.node(ctx),
-                uid = getUid(node);
-            return ((list.indexOf(uid) >= 0) ? tree.modifyNode((function(node) {
-                return setData(node, "uid", ((base + "-") + uid));
-            }), ctx) : ctx);
-        }), (function(x) {
-            return x;
-        }), khepriZipper(root)));
+    globals = getState.map((function(s) {
+        return s.globals;
+    })),
+    addGlobal = (function(name) {
+        return modifyState((function(s) {
+            return s.setGlobals(hashtrie.set(name, name, s.globals));
+        }));
     }),
     markExpansion = (function(id, target) {
         return setData(id, "expand", target);
@@ -347,7 +330,7 @@ addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when(
                                     ast_value.Identifier.create(
                                         null, "undefined"))
                             );
-                        }))), rewrite(uid, map, ast_expression.LetExpression
+                        }))), rename(uid, map, ast_expression.LetExpression
                         .create(null, fun.concat((callee.bindings || []),
                             bindings), target.body))));
             }));
@@ -364,10 +347,10 @@ addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args"), when((
             0]), (rest = target.params.elements.slice(1)), (map = [getUid(first
             .id)]), (body = ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, rest, target.params
-                .self), rewrite(uid, map, target.body))), ((first && (((first.type ===
+                .self), rename(uid, map, target.body))), ((first && (((first.type ===
                     "IdentifierPattern") || (first.type === "AsPattern")) ||
                 (first.type === "ObjectPattern"))) ? ast_expression.LetExpression
-            .create(null, fun.concat((node.base.bindings || []), rewrite(uid,
+            .create(null, fun.concat((node.base.bindings || []), rename(uid,
                 map, ast_declaration.Binding.create(null, first, node.args[
                     0]))), body) : body)));
     }));
@@ -403,7 +386,7 @@ addRewrite("Identifier", when((function(node) {
             return ((i === (node.length - 1)) ? checkTop : next(checkTop, right));
         }))), up);
     }
-    if (((node instanceof ast_node.Node) && peepholes[node.type])) return peepholes[node.type];
+    if (((node instanceof Node) && peepholes[node.type])) return peepholes[node.type];
     return pass;
 }));
 var initialState = fun.foldl((function(s, name) {

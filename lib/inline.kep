@@ -5,16 +5,12 @@ package (
     optimize)
 with
     import 'bes::record' record,
-    import 'bes::array' array,
 
     import 'hashtrie' hashtrie,
     
     import 'khepri-ast-zipper' {khepriZipper},
-    import 'neith::zipper' {detach},
-    import 'neith::walk' {'walk': neithWalk},
-    import 'neith::tree' tree,
 
-    import 'khepri-ast::node' ast_node#{Node setUserData setData},
+    import 'khepri-ast::node' {Node setData},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -40,7 +36,8 @@ with
         isTruthy},
     import './builtin' {builtins definitions},
     import './fun' fun#{flattenr flatten},
-    import './inline/bindings' binding
+    import './inline/bindings' binding,
+    import './inline/rename' rename
 in {
 
 /* Config
@@ -158,24 +155,10 @@ var addWorking = \uid value ->
 var getBinding = \uid ->
     ?uid
         :getState.map \ {bindings working}->
-            (hashtrie.get(uid, working) || hashtrie.get(uid, bindings))
+            (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
         :pass;
- 
-// Globals Operations
-////////////////////////////////////////
-/**
- * Get globals.
- */
-var globals = getState.map \ s -> s.globals;
 
-/**
- * Add a new global.
- */
-var addGlobal = \name ->
-    modifyState \ s ->
-        s.setGlobals(hashtrie.set(name, name, s.globals));
-
-// Binding operations
+// Scoping operations
 ////////////////////////////////////////
 /**
  * Enter a new scoping block.
@@ -196,19 +179,20 @@ var block = \body(...) ->
         seqa(body),
         pop);
 
-/*
- ******************************************************************************/
-var rewrite = \base list root ->
-    neithWalk(
-        \ctx ->
-            let node = tree.node(ctx), uid = getUid(node) in
-            ?list.indexOf(uid) >= 0
-                :tree.modifyNode(\node ->
-                    setData(node, 'uid', base + '-' + uid), ctx)
-                :ctx,
-        \x -> x,
-        khepriZipper(root))
-            |> tree.node;
+// Globals Operations
+////////////////////////////////////////
+/**
+ * Get globals.
+ */
+var globals = getState.map \ s -> s.globals;
+
+/**
+ * Add a new global.
+ */
+var addGlobal = \name ->
+    modifyState \ s ->
+        s.setGlobals(hashtrie.set(name, name, s.globals));
+
 
 /* Expansion
  ******************************************************************************/
@@ -589,7 +573,7 @@ addRewrite@'CallExpression' <| seq(
                                     :node.args.(i)
                                     :ast_value.Identifier.create(null, 'undefined'))
                 in
-                    rewrite(uid, map, ast_expression.LetExpression.create(null,
+                    rename(uid, map, ast_expression.LetExpression.create(null,
                         fun.concat(
                             callee.bindings || [],
                             bindings),
@@ -627,13 +611,13 @@ addRewrite@'CurryExpression' <| seq(
                             ast_pattern.ArgumentsPattern.create(null, null,
                                 rest,
                                 target.params.self),
-                            rewrite(uid, map, target.body))
+                            rename(uid, map, target.body))
                     in
                         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
                             :ast_expression.LetExpression.create(null,
                                 fun.concat(
                                     node.base.bindings || [],
-                                    rewrite(uid, map, ast_declaration.Binding.create(null,
+                                    rename(uid, map, ast_declaration.Binding.create(null,
                                         first,
                                         node.args.(0)))),
                                 body)
@@ -697,7 +681,7 @@ _check = \node -> {
             up);
     }
     
-    if (node instanceof ast_node.Node && peepholes.(node.type))
+    if (node instanceof Node && peepholes.(node.type))
         return peepholes.(node.type);
     
     return pass;

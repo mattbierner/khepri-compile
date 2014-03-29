@@ -1,30 +1,26 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "bes/array", "hashtrie", "khepri-ast-zipper", "neith/zipper", "neith/walk",
-    "neith/tree", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
-    "khepri-ast/pattern", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper",
-    "zipper-m/walk", "./ast", "./builtin", "./fun", "./inline/bindings"
-], (function(require, exports, record, array, hashtrie, __o, __o0, __o1, tree, ast_node, ast_declaration,
-    ast_statement, ast_expression, ast_pattern, ast_value, __o2, Unique, StateT, ZipperT, walk, __o3, __o4, fun,
-    binding) {
+*/define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
+    "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
+    "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
+    "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/rename"
+], (function(require, exports, record, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression,
+    ast_pattern, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun, binding, rename) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
-        detach = __o0["detach"],
-        neithWalk = __o1["walk"],
-        Node = ast_node["Node"],
-        setUserData = ast_node["setUserData"],
-        setData = ast_node["setData"],
-        next = __o2["next"],
-        seq = __o2["sequence"],
-        seqa = __o2["sequencea"],
-        getUid = __o3["getUid"],
-        isLambda = __o3["isLambda"],
-        isPrimitive = __o3["isPrimitive"],
-        isNumberish = __o3["isNumberish"],
-        isTruthy = __o3["isTruthy"],
-        builtins = __o4["builtins"],
-        definitions = __o4["definitions"],
+        Node = __o0["Node"],
+        setData = __o0["setData"],
+        next = __o1["next"],
+        seq = __o1["sequence"],
+        seqa = __o1["sequencea"],
+        getUid = __o2["getUid"],
+        isLambda = __o2["isLambda"],
+        isPrimitive = __o2["isPrimitive"],
+        isNumberish = __o2["isNumberish"],
+        isTruthy = __o2["isTruthy"],
+        builtins = __o3["builtins"],
+        definitions = __o3["definitions"],
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
         optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 2,
@@ -85,16 +81,8 @@
             return (uid ? getState.map((function(__o) {
                 var bindings = __o["bindings"],
                     working = __o["working"];
-                return (hashtrie.get(uid, working) || hashtrie.get(uid, bindings));
+                return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
             })) : pass);
-        }),
-        globals = getState.map((function(s) {
-            return s.globals;
-        })),
-        addGlobal = (function(name) {
-            return modifyState((function(s) {
-                return s.setGlobals(hashtrie.set(name, name, s.globals));
-            }));
         }),
         push = modifyState((function(s) {
             return s.push();
@@ -106,16 +94,13 @@
             var body = arguments;
             return seq(push, seqa(body), pop);
         }),
-        rewrite = (function(base, list, root) {
-            return tree.node(neithWalk((function(ctx) {
-                var node = tree.node(ctx),
-                    uid = getUid(node);
-                return ((list.indexOf(uid) >= 0) ? tree.modifyNode((function(node) {
-                    return setData(node, "uid", ((base + "-") + uid));
-                }), ctx) : ctx);
-            }), (function(x) {
-                return x;
-            }), khepriZipper(root)));
+        globals = getState.map((function(s) {
+            return s.globals;
+        })),
+        addGlobal = (function(name) {
+            return modifyState((function(s) {
+                return s.setGlobals(hashtrie.set(name, name, s.globals));
+            }));
         }),
         markExpansion = (function(id, target) {
             return setData(id, "expand", target);
@@ -343,7 +328,7 @@
                                                 null,
                                                 "undefined"
                                             )));
-                            }))), rewrite(uid, map,
+                            }))), rename(uid, map,
                             ast_expression.LetExpression.create(
                                 null, fun.concat((callee.bindings || []),
                                     bindings), target.body)
@@ -364,13 +349,13 @@
                 .slice(1)), (map = [getUid(first.id)]), (body =
                 ast_expression.FunctionExpression.create(null, null,
                     ast_pattern.ArgumentsPattern.create(null, null,
-                        rest, target.params.self), rewrite(uid, map,
+                        rest, target.params.self), rename(uid, map,
                         target.body))), ((first && (((first.type ===
                 "IdentifierPattern") || (first.type ===
                 "AsPattern")) || (first.type ===
                 "ObjectPattern"))) ? ast_expression.LetExpression.create(
-                null, fun.concat((node.base.bindings || []),
-                    rewrite(uid, map, ast_declaration.Binding.create(
+                null, fun.concat((node.base.bindings || []), rename(
+                    uid, map, ast_declaration.Binding.create(
                         null, first, node.args[0]))), body) : body)));
         }));
     })), checkTop))));
@@ -405,7 +390,7 @@
                 return ((i === (node.length - 1)) ? checkTop : next(checkTop, right));
             }))), up);
         }
-        if (((node instanceof ast_node.Node) && peepholes[node.type])) return peepholes[node.type];
+        if (((node instanceof Node) && peepholes[node.type])) return peepholes[node.type];
         return pass;
     }));
     var initialState = fun.foldl((function(s, name) {

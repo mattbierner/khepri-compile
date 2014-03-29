@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/bindings.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/bindings.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "hashtrie"], (function(require, exports, hashtrie) {
+*/
+define(["require", "exports", "hashtrie"], (function(require, exports, hashtrie) {
     "use strict";
     var empty, setBinding, getBinding;
     (empty = hashtrie.empty);
