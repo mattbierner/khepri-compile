@@ -258,7 +258,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
     "--": (function(x) {
         return (-x);
     })
-})), when((function(__o) {
+})), seq(visitChild("argument"), when((function(__o) {
     var operator = __o["operator"],
         argument = __o["argument"];
     return (arithmetic[operator] && isPrimitive(argument));
@@ -267,7 +267,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
         argument = __o["argument"],
         value = arithmetic[operator](argument.value);
     return ast_value.Literal.create(null, (typeof value), value);
-})))));
+}))))));
 addRewrite("AssignmentExpression", seq(visitChild("right"), when((function(__o) {
     var left = __o["left"];
     return (left.type === "Identifier");

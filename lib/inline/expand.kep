@@ -66,7 +66,7 @@ in
         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,
                 concat(
-                    base.bindings || [],
+                    ?base.bindings : rename(uid, map, base.bindings) : [],
                     ast_declaration.Binding.create(null,
                         rename(uid, map, first),
                         args.(0))),
