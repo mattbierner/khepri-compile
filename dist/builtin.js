@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
     function(require, exports, ast_node, ast_pattern, ast_expression, ast_value) {
         "use strict";
         var setData = ast_node["setData"],
@@ -39,9 +40,13 @@
                 null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), op(xArg));
         }),
             unaryOp = (function(op) {
-                return unary((function(x) {
+                var op0 = (function(x) {
                     return ast_expression.UnaryExpression.create(null, op, x);
-                }));
+                }),
+                    x, xArg = identifier("x", unique());
+                return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), ((x = xArg),
+                    ast_expression.UnaryExpression.create(null, op, x)));
             });
         [
             ["typeof", "__typeof"],
@@ -51,24 +56,30 @@
             ["++", "__plus"],
             ["--", "__minus"]
         ].forEach((function(__o) {
-            var op = __o[0],
+            var op0, op1, xArg, x, op = __o[0],
                 name = __o[1];
-            registerAliasedSymbol(op, name, unaryOp(op));
+            registerAliasedSymbol(op, name, ((op0 = op), (op1 = (function(x) {
+                return ast_expression.UnaryExpression.create(null, op0, x);
+            })), (xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(null,
+                null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
+                    .create(null, xArg)
+                ]), ((x = xArg), ast_expression.UnaryExpression.create(null, op0, x)))));
         }));
-        var xArg, yArg, zArg, ternaryOperator = ((xArg = identifier("x", unique())), (yArg = identifier("y", unique())), (
-                zArg = identifier("z", unique())), ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
-                        xArg), ast_pattern.IdentifierPattern.create(null, yArg), ast_pattern.IdentifierPattern
-                    .create(null, zArg)
-                ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)));
+        var xArg = identifier("x", unique()),
+            yArg = identifier("y", unique()),
+            zArg = identifier("z", unique()),
+            ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+                        null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression
+                .create(null, xArg, yArg, zArg));
         registerAliasedSymbol("?", "__cond", ternaryOperator);
         var binary = (function(op) {
-            var xArg = identifier("x", unique()),
-                yArg = identifier("y", unique());
+            var xArg0 = identifier("x", unique()),
+                yArg0 = identifier("y", unique());
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern
-                    .create(null, yArg)
-                ]), op(xArg, yArg));
+                null, null, [ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern
+                    .create(null, yArg0)
+                ]), op(xArg0, yArg0));
         }),
             registerBinary = (function(op, name, impl) {
                 registerAliasedSymbol(op, name, binary(impl));
@@ -114,9 +125,11 @@
             ["||", "__or"],
             ["&&", "__and"]
         ].forEach((function(__o) {
-            var op = __o[0],
+            var op0, op = __o[0],
                 name = __o[1];
-            registerBinary(op, name, logicalOp(op));
+            registerBinary(op, name, ((op0 = op), (function(x, y) {
+                return ast_expression.LogicalExpression.create(null, op0, x, y);
+            })));
         }));
         registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);

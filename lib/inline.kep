@@ -276,7 +276,7 @@ var addBindingForNode = \id value ->
         :?isLambda value
             :addBinding(uid, markExpansion(id, value))
         
-        :?node.value.type === 'Identifier'
+        :?value.type === 'Identifier'
             :getBinding(getUid value).chain \ binding ->
                 ?binding
                     :addBinding(uid, binding)
@@ -551,13 +551,23 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <|
                 visitChild 'consequent',
                 visitChild 'alternate')));
 
-addRewrite@'MemberExpression' <|
-    seq(
-        visitChild 'object',
-        node.chain \ node ->
-            ?node.computed
-                :visitChild 'property'
-                :pass);
+addRewrite@'MemberExpression' <| seq(
+    visitChild 'object',
+    node.chain \ node ->
+        ?node.computed
+            :visitChild 'property'
+            :pass,
+    /**
+     * Constant index in array expression.
+     */
+    when(
+        \node ->
+            (  node.computed
+            && node.object.type === 'ArrayExpression'
+            && isNumberish node.property),
+    
+        modify \ node ->
+            node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined')));
 
 addRewrite@'NewExpression' <|
     seq(

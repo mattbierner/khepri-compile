@@ -173,7 +173,7 @@ var M = ZipperT(StateT(Unique)),
     addBindingForNode = (function(id, value) {
         var uid = getUid(id);
         return (isPrimitive(value) ? addBinding(uid, value) : (isLambda(value) ? addBinding(uid, markExpansion(id,
-            value)) : ((node.value.type === "Identifier") ? getBinding(getUid(value))
+            value)) : ((value.type === "Identifier") ? getBinding(getUid(value))
             .chain((function(binding) {
                 return (binding ? addBinding(uid, binding) : pass);
             })) : pass)));
@@ -325,7 +325,12 @@ addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), whe
 })), seq(visitChild("consequent"), visitChild("alternate")))));
 addRewrite("MemberExpression", seq(visitChild("object"), node.chain((function(node) {
     return (node.computed ? visitChild("property") : pass);
-}))));
+})), when((function(node) {
+    return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
+}), modify((function(node) {
+    return (node.object.elements[node.property.value] || ast_value.Identifier.create(null,
+        "undefined"));
+})))));
 addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
 addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when((function(node) {
     return ((isLambda(node.callee) || isExpansion(node.callee)) || ((node.callee.type ===
