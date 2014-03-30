@@ -4,15 +4,13 @@
 */"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
-    __o0 = require("khepri-ast")["node"],
-    Node = __o0["Node"],
-    setUserData = __o0["setUserData"],
-    setData = __o0["setData"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
-    fun = require("./fun"),
+    __o0 = require("./fun"),
+    concat = __o0["concat"],
+    flattenr = __o0["flattenr"],
     __o1 = require("./rewritter"),
     UP = __o1["UP"],
     DOWN = __o1["DOWN"],
@@ -25,33 +23,32 @@ var __o = require("khepri-ast-zipper"),
 peepholes.add(["VariableDeclaration"], UP, always, (function(__o) {
     var loc = __o["loc"],
         declarations = __o["declarations"],
-        bound = fun.flattenr(declarations);
+        bound = flattenr(declarations);
     return (bound.length ? ast_declaration.VariableDeclaration.create(loc, bound) : null);
 }));
 peepholes.add(["LetExpression"], UP, always, (function(__o) {
     var loc = __o["loc"],
         bindings = __o["bindings"],
         body = __o["body"],
-        bound = fun.flattenr(bindings);
+        bound = flattenr(bindings);
     return (bound.length ? ast_expression.LetExpression.create(loc, bound, body) : body);
 }));
 peepholes.add(["WithStatement"], UP, always, (function(__o) {
     var loc = __o["loc"],
         bindings = __o["bindings"],
         body = __o["body"],
-        bound = fun.flattenr(bindings);
+        bound = flattenr(bindings);
     return (bound.length ? ast_statement.WithStatement.create(loc, bound, body) : body);
 }));
 peepholes.add(["LetExpression"], UP, (function(node) {
     return (node.body.type === "LetExpression");
 }), (function(node) {
-    return ast_expression.LetExpression.create(node.loc, fun.concat(node.bindings, node.body.bindings), node.body
-        .body);
+    return ast_expression.LetExpression.create(node.loc, concat(node.bindings, node.body.bindings), node.body.body);
 }));
 peepholes.add(["CurryExpression"], UP, (function(node) {
     return (node.base.type === "CurryExpression");
 }), (function(node) {
-    return ast_expression.CurryExpression.create(node.loc, node.base.base, fun.concat(node.base.args, node.args));
+    return ast_expression.CurryExpression.create(node.loc, node.base.base, concat(node.base.args, node.args));
 }));
 peepholes.add(["ReturnStatement"], false, (function(node) {
     return (node.argument && (node.argument.type === "LetExpression"));
