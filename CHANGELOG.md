@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 0.3.8 - March 29, 2014
+* Improvements to inlining and constant folding.
+* Allow recursive bindings to be inlined.
+** Recursive inline expansion fix (instead of just disallowing) to a fixed depth.
+
 ## 0.3.7 - March 29, 2014
 * Fixed function identifier not being renamed correctly.
 
