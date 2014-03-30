@@ -125,6 +125,7 @@ var down = M.down;
 var right = M.right;
 
 var moveChild =  M.child;
+var getChild =  M.childNode;
 
 // Bindings Operations
 ////////////////////////////////////////
@@ -248,8 +249,9 @@ var expand = \exp f ->
 
 /*
  ******************************************************************************/
-var checkTop = node.chain \ x -> _check x; // forward
-
+/**
+ * Move to a child along `edge` and perform a list of operations. Return to parent.
+ */
 var child = \args(edge ...) ->
     seq(
         moveChild edge,
@@ -257,7 +259,12 @@ var child = \args(edge ...) ->
         up);
 
 /**
- * 
+ * Rewrite the current node.
+ */
+var checkTop = node.chain \ x -> _check x; // forward
+
+/**
+ * Rewrite a child node.
  */
 var visitChild = \edge ->
     child(edge,
@@ -275,6 +282,9 @@ var when = \test consequent alternate ->
 
 /*
  ******************************************************************************/
+/**
+ * Register an immutable binding of `id` to `value`.
+ */
 var addBindingForNode = \id value ->
     let uid = getUid id in
         ?isPrimitive value
@@ -293,9 +303,6 @@ var addBindingForNode = \id value ->
 
 /*
  ******************************************************************************/
-var UP := true,
-    DOWN := false;
-
 var peepholes = {};
 
 var addRewrite = \type f -> {

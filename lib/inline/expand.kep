@@ -44,7 +44,7 @@ in
             target.body));
 
 /**
- * Expand a curry of a lambda expression of let expression with lambda body
+ * Expand a curry of a lambda expression of let expression with curry body
  * to a let expression.
  */
 expandCurry = \uid base args -> let

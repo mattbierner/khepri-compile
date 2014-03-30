@@ -84,6 +84,7 @@ var M = ZipperT(StateT(Unique)),
     down = M.down,
     right = M.right,
     moveChild = M.child,
+    getChild = M.childNode,
     addBinding = (function(uid, value) {
         return modifyState((function(s) {
             return s.addBinding(uid, value);
@@ -164,13 +165,13 @@ var M = ZipperT(StateT(Unique)),
             return expandNode(node, f);
         }));
     }),
-    checkTop = node.chain((function(x) {
-        return _check(x);
-    })),
     child = (function(edge) {
         var args = arguments;
         return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
     }),
+    checkTop = node.chain((function(x) {
+        return _check(x);
+    })),
     visitChild = (function(edge) {
         return child(edge, checkTop);
     }),
@@ -187,8 +188,6 @@ var M = ZipperT(StateT(Unique)),
                 return (binding ? addBinding(uid, binding) : pass);
             })) : pass)));
     }),
-    UP = true,
-    DOWN = false,
     peepholes = ({}),
     addRewrite = (function(type, f) {
         if (Array.isArray(type)) type.forEach((function(type) {
