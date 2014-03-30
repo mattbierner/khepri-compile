@@ -26,45 +26,47 @@ in {
 
 var peepholes = new Rewritter();
 
+var always := \_ -> true;
+
 /* Binding Expression Normalization
  ******************************************************************************/
 /**s
  * Flatten variable declaration declaration lists and remove if declaration list
  * is empty.
  */
-peepholes.add(['VariableDeclaration'], true,
-    \_ -> true,
+peepholes.add(['VariableDeclaration'], UP,
+    always,
     
-    \{declarations} ->
+    \{loc declarations} ->
         let bound = fun.flattenr <| declarations in
             ?bound.length
-                :ast_declaration.VariableDeclaration.create(null, bound)
+                :ast_declaration.VariableDeclaration.create(loc, bound)
                 :null);
 
 /**
  * Flatten let expression bindings lists and collapse to body 
  * when binding list is empty
  */
-peepholes.add(['LetExpression'], true,
-    \_ -> true,
+peepholes.add(['LetExpression'], UP,
+    always,
     
-    \{bindings body} ->
+    \{loc bindings body} ->
         let bound = fun.flattenr <| bindings in
             ?bound.length
-                :ast_expression.LetExpression.create(null, bound, body)
+                :ast_expression.LetExpression.create(loc, bound, body)
                 :body);
 
 /**
  * Flatten with statement bindings lists and collapse to body 
  * when binding list is empty.
  */
-peepholes.add(['WithStatement'], true,
-    \_ -> true,
+peepholes.add(['WithStatement'], UP,
+    always,
     
-    \{bindings body} ->
+    \{loc bindings body} ->
         let bound = fun.flattenr <| bindings in
             ?bound.length
-                :ast_statement.WithStatement.create(null, bound, body)
+                :ast_statement.WithStatement.create(loc, bound, body)
                 :body);
 
 /* Flattening
@@ -72,26 +74,26 @@ peepholes.add(['WithStatement'], true,
 /**
  * Flatten let with let body.
  */
-peepholes.add(['LetExpression'], true,
+peepholes.add(['LetExpression'], UP,
     \node ->
-        node.body.type === 'LetExpression',
+        (node.body.type === 'LetExpression'),
+    
     \node ->
-        ?node.body.type === 'LetExpression'
-            :ast_expression.LetExpression.create(null,
-                fun.concat(
-                    node.bindings,
-                    node.body.bindings),
-                node.body.body)
-            :node);
+        ast_expression.LetExpression.create(node.loc,
+            fun.concat(
+                node.bindings,
+                node.body.bindings),
+            node.body.body));
 
 /**
  * Flatten curry of curry.
  */
-peepholes.add(['CurryExpression'], true,
+peepholes.add(['CurryExpression'], UP,
     \node ->
-        node.base.type === 'CurryExpression',
+        (node.base.type === 'CurryExpression'),
+    
     \node ->
-        ast_expression.CurryExpression.create(null,
+        ast_expression.CurryExpression.create(node.loc,
             node.base.base,
             fun.concat(
                 node.base.args,
@@ -105,18 +107,20 @@ peepholes.add(['CurryExpression'], true,
 peepholes.add(['ReturnStatement'], false,
     \node ->
         (node.argument && node.argument.type === 'LetExpression'),
+    
     \node ->
         ast_statement.WithStatement.create(null,
             node.argument.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ReturnStatement.create(node.loc, node.argument.body)])));
+            ast_statement.BlockStatement.create(null, [
+                ast_statement.ReturnStatement.create(node.loc, node.argument.body)])));
 
 /**
  * Rewrite `\...-> let` to a with statement.
  */
-peepholes.add(['FunctionExpression'], false,
+peepholes.add(['FunctionExpression'], DOWN,
     \node ->
         (node.body.type === 'LetExpression'),
+    
     \node ->
         ast_expression.FunctionExpression.create(null,
             node.id,
@@ -124,34 +128,36 @@ peepholes.add(['FunctionExpression'], false,
             ast_statement.BlockStatement.create(null, [
                 ast_statement.WithStatement.create(null,
                     node.body.bindings,
-                    ast_statement.BlockStatement.create(null, 
-                        [ast_statement.ReturnStatement.create(node.loc, node.body.body)]))])));
+                    ast_statement.BlockStatement.create(null, [
+                        ast_statement.ReturnStatement.create(node.loc, node.body.body)]))])));
 
 /**
  * Rewrite top level let expressions to with statements.
  */
-peepholes.add(['ExpressionStatement'], true,
+peepholes.add(['ExpressionStatement'], UP,
     \node ->
         (node.expression && node.expression.type === 'LetExpression'),
+    
     \node ->
         ast_statement.WithStatement.create(null,
             node.expression.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ExpressionStatement.create(node.loc, node.expression.body)])));
+            ast_statement.BlockStatement.create(null, [
+                ast_statement.ExpressionStatement.create(node.loc, node.expression.body)])));
 
 /**
- * Rewrite top level let expressions to with statements.
+ * Rewrite top level assign to let expressions to with statements.
  */
-peepholes.add(['ExpressionStatement'], true,
+peepholes.add(['ExpressionStatement'], UP,
     \node ->
         (  node.expression
         && node.expression.type === 'AssignmentExpression'
         && node.expression.right.type === 'LetExpression'),
+    
     \node ->
         ast_statement.WithStatement.create(null,
             node.expression.right.bindings,
-            ast_statement.BlockStatement.create(null, 
-                [ast_statement.ExpressionStatement.create(node.loc,
+            ast_statement.BlockStatement.create(null, [
+                ast_statement.ExpressionStatement.create(node.loc,
                     ast_expression.AssignmentExpression.create(node.expression.loc, node.expression.operator,
                         node.expression.left,
                         node.expression.right.body))])));
@@ -161,7 +167,6 @@ peepholes.add(['ExpressionStatement'], true,
 /**
  * 
  */
-optimize = \ast data ->
-    rewrite(peepholes, khepriZipper(ast));
+optimize = khepriZipper \> rewrite@peepholes;
 
 }
