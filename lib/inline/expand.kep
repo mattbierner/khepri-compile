@@ -17,11 +17,11 @@ in{
 
 var getParmeterIds := map  @\x -> getUid(x.id);
 
-var argsToBindings := \parameters args ->
+var argsToBindings := \uid names parameters args ->
     map(
         \x i ->
             ast_declaration.Binding.create(null,
-                x,
+                rename(uid, names, x),
                 (args.(i) || ast_value.Identifier.create(null, 'undefined'))),
         parameters.elements);
 
@@ -32,16 +32,15 @@ var argsToBindings := \parameters args ->
 expandCallee = \uid callee args -> let
     target = ?callee.type === 'LetExpression' : callee.body : callee,
     
-    bindings = argsToBindings(target.params, args)
+    ids = getParmeterIds(target.params.elements),
+    
+    bindings = argsToBindings(uid, ids, target.params, args)
 in
-    rename(
-        uid,
-        getParmeterIds(target.params.elements),
-        ast_expression.LetExpression.create(null,
-            concat(
-                callee.bindings || [],
-                bindings),
-            target.body));
+    ast_expression.LetExpression.create(null,
+        concat(
+            callee.bindings || [],
+            bindings),
+        rename(uid, ids, target.body));
 
 /**
  * Expand a curry of a lambda expression of let expression with curry body
@@ -62,15 +61,16 @@ in
             ast_pattern.ArgumentsPattern.create(null, null,
                 rest,
                 target.params.self),
-            target.body)
+            rename(uid, map, target.body))
     in
-        rename(uid, map,
-            ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-                :ast_expression.LetExpression.create(null,
-                    concat(
-                        base.bindings || [],
-                        ast_declaration.Binding.create(null, first, args.(0))),
-                    body)
-                :body);
+        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+            :ast_expression.LetExpression.create(null,
+                concat(
+                    base.bindings || [],
+                    ast_declaration.Binding.create(null,
+                        rename(uid, map, first),
+                        args.(0))),
+                body)
+            :body;
 
 }

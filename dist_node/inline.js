@@ -102,6 +102,9 @@ var M = ZipperT(StateT(Unique)),
             return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
         })) : pass);
     }),
+    canPruneBinding = (function(binding) {
+        return (binding && isPrimitive(binding));
+    }),
     push = modifyState((function(s) {
         return s.push();
     })),
@@ -211,16 +214,19 @@ addRewrite("Package", visitChild("body"));
 addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
 addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
 addRewrite("VariableDeclaration", visitChild("declarations"));
-addRewrite("VariableDeclarator", seq(visitChild("init"), node.chain((function(node) {
-    return (node.init ? (node.immutable ? addBindingForNode(node.id, node.init) : addWorking(getUid(
-        node.id), node.init)) : pass);
-}))));
+addRewrite("VariableDeclarator", seq(visitChild("init"), when((function(node) {
+    return node.init;
+}), node.chain((function(node) {
+    return (node.immutable ? seq(addBindingForNode(node.id, node.init), (canPruneBinding(node.init) ?
+        set([]) : pass)) : addWorking(getUid(node.id), node.init));
+})))));
 addRewrite("Binding", seq(visitChild("value"), when((function(node) {
     return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
 }), node.chain((function(node) {
-    return addBindingForNode(node.pattern.id, node.value);
+    return seq(addBindingForNode(node.pattern.id, node.value), (canPruneBinding(node.value) ? set([]) :
+        pass));
 }))), when((function(node) {
-    return (node.value.type === "LetExpression");
+    return ((node && (node.type === "Binding")) && (node.value.type === "LetExpression"));
 }), node.chain((function(node) {
     var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(null,
         node.pattern, node.value.body)));

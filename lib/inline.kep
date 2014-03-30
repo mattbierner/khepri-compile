@@ -162,6 +162,12 @@ var getBinding = \uid ->
         :getState.map \ {bindings working}->
             (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
         :pass;
+/**
+ * 
+ */
+var canPruneBinding = \binding ->
+    binding &&
+        (isPrimitive binding);
 
 // Scoping operations
 ////////////////////////////////////////
@@ -378,12 +384,18 @@ addRewrite@'VariableDeclaration' <|
  */
 addRewrite@'VariableDeclarator' <| seq(
     visitChild 'init',
-    node.chain \ node ->
-        ?node.init
-            :?node.immutable
-                :addBindingForNode(node.id, node.init)
-                :addWorking(getUid(node.id), node.init)
-        :pass);
+    
+    when(
+        \node -> node.init,
+        
+        node.chain \ node ->
+            ?node.immutable
+                :seq(
+                    addBindingForNode(node.id, node.init),
+                    ?canPruneBinding(node.init) : set [] : pass)
+                :addWorking(
+                    getUid(node.id),
+                    node.init)));
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -403,7 +415,11 @@ addRewrite@'Binding' <| seq(
             && getUid node.pattern.id),
         
         node.chain \ node ->
-            addBindingForNode(node.pattern.id, node.value)),
+            seq(
+                addBindingForNode(node.pattern.id, node.value),
+                ?canPruneBinding(node.value)
+                    :set []
+                    :pass)),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -411,7 +427,7 @@ addRewrite@'Binding' <| seq(
      */
     when(
         \node ->
-            (node.value.type === 'LetExpression'),
+            (node && node.type === 'Binding' && node.value.type === 'LetExpression'),
         
         node.chain \ node -> let
             bindings =
