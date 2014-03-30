@@ -4,9 +4,9 @@
 */define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
-    "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/rename"
+    "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand", "./inline/rename"
 ], (function(require, exports, record, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun, binding, rename) {
+    ast_pattern, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun, binding, __o4, rename) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
@@ -24,6 +24,8 @@
         definitions = __o3["definitions"],
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
+        expandCallee = __o4["expandCallee"],
+        expandCurry = __o4["expandCurry"],
         optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 4,
         _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
     (State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
@@ -135,12 +137,18 @@
                 }), ctx);
             }));
         }),
-        expand = (function(exp, f) {
+        expandNode = (function(exp, f) {
             var uid;
             return (isExpansion(exp) ? ((uid = getUid(exp)), canExpand(uid)
                 .chain((function(can) {
-                    return (can ? seq(pushCtx(uid), f(getExpansion(exp)), popCtx(uid)) : f(exp));
+                    return (can ? seq(pushCtx(uid), f(getExpansion(exp)), popCtx(uid)) : f(
+                        setData(exp, "expansion", null)));
                 }))) : f(exp));
+        }),
+        expand = (function(exp, f) {
+            return exp.chain((function(node) {
+                return expandNode(node, f);
+            }));
         }),
         checkTop = node.chain((function(x) {
             return _check(x);
@@ -323,68 +331,31 @@
     })))));
     addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
     addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when((function(node) {
-        return ((isLambda(node.callee) || isExpansion(node.callee)) || ((node.callee.type ===
+        return ((isExpansion(node.callee) || isLambda(node.callee)) || ((node.callee.type ===
             "LetExpression") && isLambda(node.callee.body)));
-    }), node.chain((function(node) {
-        return expand(node.callee, (function(callee) {
-            return seq(unique.chain((function(uid) {
+    }), expand(node.map((function(node) {
+        return node.callee;
+    })), (function(callee) {
+        return ((isLambda(callee) || ((callee.type === "LetExpression") && isLambda(callee.body))) ?
+            seq(unique.chain((function(uid) {
                 return modify((function(node) {
-                    var target, map, bindings;
-                    return ((callee.type === "Identifier") ?
-                        ast_expression.CallExpression.create(
-                            node.loc, callee, node.args) : ((
-                            target = ((callee.type ===
-                                    "LetExpression") ?
-                                callee.body : callee)), (
-                            map = target.params.elements.map(
-                                (function(x) {
-                                    return getUid(x.id);
-                                }))), (bindings = target.params
-                            .elements.map((function(x, i) {
-                                return ast_declaration
-                                    .Binding.create(
-                                        null, x, (
-                                            node.args[
-                                                i] ?
-                                            node.args[
-                                                i] :
-                                            ast_value
-                                            .Identifier
-                                            .create(
-                                                null,
-                                                "undefined"
-                                            )));
-                            }))), rename(uid, map,
-                            ast_expression.LetExpression.create(
-                                null, fun.concat((callee.bindings || []),
-                                    bindings), target.body)
-                        )));
+                    return expandCallee(uid, callee, node.args);
                 }));
-            })), ((callee.type === "Identifier") ? pass : checkTop));
-        }));
+            })), checkTop) : pass);
     })))));
     addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args"), when((function(node) {
-        return (isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(node.base
-            .body)));
-    }), seq(unique.chain((function(uid) {
-        return modify((function(node) {
-            var first, rest, map, body, target = ((node.base.type ===
-                    "LetExpression") ? node.base.body : node.base);
-            return ((!target.params.elements.length) ? node.base : ((first =
-                target.params.elements[0]), (rest = target.params.elements
-                .slice(1)), (map = [getUid(first.id)]), (body =
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null,
-                        rest, target.params.self), rename(uid, map,
-                        target.body))), ((first && (((first.type ===
-                "IdentifierPattern") || (first.type ===
-                "AsPattern")) || (first.type ===
-                "ObjectPattern"))) ? ast_expression.LetExpression.create(
-                null, fun.concat((node.base.bindings || []), rename(
-                    uid, map, ast_declaration.Binding.create(
-                        null, first, node.args[0]))), body) : body)));
-        }));
-    })), checkTop))));
+        return ((isExpansion(node.base) || isLambda(node.base)) || ((node.base.type ===
+            "LetExpression") && isLambda(node.base.body)));
+    }), expand(node.map((function(node) {
+        return node.base;
+    })), (function(base) {
+        return ((isLambda(base) || ((base.type === "LetExpression") && isLambda(base.body))) ?
+            seq(unique.chain((function(uid) {
+                return modify((function(node) {
+                    return expandCurry(uid, base, node.args);
+                }));
+            })), checkTop) : pass);
+    })))));
     addRewrite("LetExpression", seq(visitChild("bindings"), visitChild("body"), modify((function(__o) {
         var loc = __o["loc"],
             bindings = __o["bindings"],

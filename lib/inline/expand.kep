@@ -1,0 +1,76 @@
+package (
+    expandCallee
+    expandCurry)
+with
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::value' ast_value,
+
+    import '../ast' {
+        getUid},
+    import '../fun' {
+        concat
+        map},
+    import './rename' rename
+in{
+
+var getParmeterIds := map  @\x -> getUid(x.id);
+
+var argsToBindings := \parameters args ->
+    map(
+        \x i ->
+            ast_declaration.Binding.create(null,
+                x,
+                (args.(i) || ast_value.Identifier.create(null, 'undefined'))),
+        parameters.elements);
+
+/**
+ * Expand a call of a lambda expression of let expression with lambda body
+ * to a let expression.
+ */
+expandCallee = \uid callee args -> let
+    target = ?callee.type === 'LetExpression' : callee.body : callee,
+    
+    bindings = argsToBindings(target.params, args)
+in
+    rename(
+        uid,
+        getParmeterIds(target.params.elements),
+        ast_expression.LetExpression.create(null,
+            concat(
+                callee.bindings || [],
+                bindings),
+            target.body));
+
+/**
+ * Expand a curry of a lambda expression of let expression with lambda body
+ * to a let expression.
+ */
+expandCurry = \uid base args -> let
+    target = ?base.type === 'LetExpression' : base.body : base
+in
+    ?!target.params.elements.length
+        :base
+    :let
+        first = target.params.elements.(0),
+        rest = target.params.elements.slice(1),
+        
+        map = [getUid(first.id)],
+        
+        body = ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null,
+                rest,
+                target.params.self),
+            target.body)
+    in
+        rename(uid, map,
+            ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+                :ast_expression.LetExpression.create(null,
+                    concat(
+                        base.bindings || [],
+                        ast_declaration.Binding.create(null, first, args.(0))),
+                    body)
+                :body);
+
+}

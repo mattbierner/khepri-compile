@@ -38,6 +38,9 @@ with
     import './builtin' {builtins definitions},
     import './fun' fun#{flattenr flatten},
     import './inline/bindings' binding,
+    import './inline/expand' {
+        expandCallee
+        expandCurry},
     import './inline/rename' rename
 in {
 
@@ -227,7 +230,7 @@ var popCtx := \uid ->
 /**
  * 
  */
-var expand = \exp f ->
+var expandNode = \exp f ->
     ?isExpansion exp
         :let uid = getUid exp in
             canExpand(uid).chain \ can -> ?can
@@ -235,9 +238,13 @@ var expand = \exp f ->
                     pushCtx uid,
                     f (getExpansion exp),
                     popCtx uid)
-                :f(exp)
+                :f(setData(exp, 'expansion', null))
         :f(exp);
-
+/**
+ * 
+ */
+var expand = \exp f ->
+    exp.chain \ node -> expandNode(node, f);
 
 /*
  ******************************************************************************/
@@ -532,24 +539,24 @@ in
             in
                 ast_value.Literal.create(null, typeof value, value)));
 
-/**
- * Reduce conditionals with constant test.
- */
-addRewrite@['ConditionalExpression', 'IfStatement'] <|
-    seq(
-        visitChild 'test',
-        when(
-            \node ->
-                isPrimitive node.test,
-            
-            node.chain \ {test consequent alternate} ->
-                seq(
-                    set ?isTruthy test : consequent : alternate,
-                    checkTop),
-            
+addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
+    visitChild 'test',
+    
+    /**
+     * Reduce conditionals with constant test.
+     */
+    when(
+        \node ->
+            isPrimitive node.test,
+        
+        node.chain \ {test consequent alternate} ->
             seq(
-                visitChild 'consequent',
-                visitChild 'alternate')));
+                set ?isTruthy test : consequent : alternate,
+                checkTop),
+        
+        seq(
+            visitChild 'consequent',
+            visitChild 'alternate')));
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
@@ -585,32 +592,20 @@ addRewrite@'CallExpression' <| seq(
      */
     when(
         \node ->
-            (  isLambda(node.callee)
-            || isExpansion(node.callee)
+            (  isExpansion(node.callee)
+            || isLambda(node.callee)
             || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
         
-        (node.chain\node -> expand(node.callee, \ callee ->
-            seq(
-                unique.chain \ uid ->
-                modify \ node -> ?callee.type === 'Identifier': ast_expression.CallExpression.create(node.loc, callee, node.args) : let
-                    target = ?callee.type === 'LetExpression' : callee.body : callee,
-                    
-                    map = target.params.elements.map(\x -> getUid(x.id)),
-                    
-                    bindings =
-                        target.params.elements.map \ x i ->
-                            ast_declaration.Binding.create(null,
-                                x,
-                                ?node.args.(i)
-                                    :node.args.(i)
-                                    :ast_value.Identifier.create(null, 'undefined'))
-                in
-                    rename(uid, map, ast_expression.LetExpression.create(null,
-                        fun.concat(
-                            callee.bindings || [],
-                            bindings),
-                        target.body)),
-             ?callee.type === 'Identifier' :pass: checkTop)))));
+        expand(
+            node.map \ node -> node.callee,
+            \callee ->
+                ?isLambda(callee) || (callee.type === 'LetExpression' && isLambda(callee.body))
+                    :seq(
+                        unique.chain \ uid ->
+                        modify \ node ->
+                            expandCallee(uid, callee, node.args),
+                        checkTop)
+                    :pass)));
 
 addRewrite@'CurryExpression' <| seq(
     visitChild 'base',
@@ -623,38 +618,20 @@ addRewrite@'CurryExpression' <| seq(
      */
     when(
         \node ->
-            (  isLambda(node.base)
+            (  isExpansion(node.base)
+            || isLambda(node.base)
             || (node.base.type === 'LetExpression' && isLambda(node.base.body))),
-
-        seq(
-            unique.chain \ uid ->
-            modify \ node -> let
-                target = ?node.base.type === 'LetExpression' : node.base.body : node.base
-            in
-                ?!target.params.elements.length
-                    :node.base
-                    :let
-                        first = target.params.elements.(0),
-                        rest = target.params.elements.slice(1),
-                        
-                        map = [getUid(first.id)],
-                        
-                        body = ast_expression.FunctionExpression.create(null, null,
-                            ast_pattern.ArgumentsPattern.create(null, null,
-                                rest,
-                                target.params.self),
-                            rename(uid, map, target.body))
-                    in
-                        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
-                            :ast_expression.LetExpression.create(null,
-                                fun.concat(
-                                    node.base.bindings || [],
-                                    rename(uid, map, ast_declaration.Binding.create(null,
-                                        first,
-                                        node.args.(0)))),
-                                body)
-                            :body,
-                checkTop)));
+        
+        expand(
+            node.map \ node -> node.base,
+            \base ->
+                ?isLambda(base) || (base.type === 'LetExpression' && isLambda(base.body))
+                    :seq(
+                        unique.chain \ uid ->
+                        modify \ node ->
+                            expandCurry(uid, base, node.args),
+                        checkTop)
+                    :pass)));
 
 addRewrite@'LetExpression' <| seq(
     visitChild 'bindings',
