@@ -138,15 +138,15 @@ var singleCompose = (function(f, g) {
     return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
         ast_pattern.IdentifierPattern.create(null, x)
     ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, g, [x])]));
-}),
-    multiCompose = (function(f, g) {
-        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
-            ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null,
-                ast_expression.MemberExpression.create(null, g, identifier("apply")), [ast_value.Literal.create(
-                    null, "null"), identifier("arguments")])]));
-    });
+});
 registerBinary("<\\", "__compose", singleCompose);
 registerBinary("\\>", "__rcompose", flip(singleCompose));
+var multiCompose = (function(f, g) {
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
+        ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression
+            .create(null, g, identifier("apply")), [ast_value.Literal.create(null, "null"), identifier(
+                "arguments")])]));
+});
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", flip(multiCompose));
 (exports["builtins"] = builtins);

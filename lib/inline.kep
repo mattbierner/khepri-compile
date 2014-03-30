@@ -29,6 +29,7 @@ with
     import 'zipper-m::walk' walk,
     
     import './ast' {
+        getUd
         getUid
         isLambda
         isPrimitive
@@ -42,7 +43,7 @@ in {
 
 /* Config
  ******************************************************************************/
-var MAX_EXPANSION_DEPTH := 2;
+var MAX_EXPANSION_DEPTH := 4;
 
 /* Forward
  ******************************************************************************/
@@ -193,7 +194,6 @@ var addGlobal = \name ->
     modifyState \ s ->
         s.setGlobals(hashtrie.set(name, name, s.globals));
 
-
 /* Expansion
  ******************************************************************************/
 var markExpansion = \id target ->
@@ -202,24 +202,40 @@ var markExpansion = \id target ->
         'expand',
         target);
 
-var isExpansion := \node ->
-    (node.ud && node.ud && node.ud.expand);
+var getExpansion := getUd @ 'expand';
 
-var getCtx = getState.map\s -> s.ctx;
+var isExpansion := getExpansion;
+
+var getCtx = getState.map \ s -> s.ctx;
 
 var modifyCtx = \f ->
     modifyState \ s ->
         s.setCtx(f(s.ctx));
 
+var canExpand := \uid -> 
+    getCtx.map \ ctx ->
+        hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH;
+
+var pushCtx := \uid ->
+    modifyCtx \ ctx ->
+        hashtrie.modify(uid, \x -> (x + 1 || 1), ctx);
+
+var popCtx := \uid ->
+    modifyCtx \ ctx ->
+        hashtrie.modify(uid, \x -> (x - 1 || 0), ctx);
+
+/**
+ * 
+ */
 var expand = \exp f ->
     ?isExpansion exp
-        :getCtx.chain \ ctx ->
-            ?hashtrie.has(getUid exp, ctx)
-                :f(exp)
+        :let uid = getUid exp in
+            canExpand(uid).chain \ can -> ?can
                 :seq(
-                    modifyCtx\ctx -> hashtrie.set(getUid exp, ctx),
-                    f(exp.ud.expand),
-                    modifyCtx\ctx -> hashtrie.remove(getUid exp, ctx))
+                    pushCtx uid,
+                    f (getExpansion exp),
+                    popCtx uid)
+                :f(exp)
         :f(exp);
 
 
@@ -241,13 +257,32 @@ var visitChild = \edge ->
         checkTop);
 
 /**
- * 
+ * When `test` is true for current node, evaluate consequent. Otherwise evalaute
+ * alternate.
  */
 var when = \test consequent alternate ->
     node.chain \ node ->
         ?test node
             :consequent
             :(alternate || pass);
+
+/*
+ ******************************************************************************/
+var addBindingForNode = \id value ->
+    let uid = getUid id in
+        ?isPrimitive value
+            :addBinding(uid, value)
+        
+        :?isLambda value
+            :addBinding(uid, markExpansion(id, value))
+        
+        :?node.value.type === 'Identifier'
+            :getBinding(getUid value).chain \ binding ->
+                ?binding
+                    :addBinding(uid, binding)
+                    :pass
+        
+        :pass;
 
 /*
  ******************************************************************************/
@@ -332,7 +367,7 @@ addRewrite@'VariableDeclarator' <| seq(
     node.chain \ node ->
         ?node.init
             :?node.immutable
-                :addBinding(getUid(node.id), node.init)
+                :addBindingForNode(node.id, node.init)
                 :addWorking(getUid(node.id), node.init)
         :pass);
 
@@ -354,20 +389,7 @@ addRewrite@'Binding' <| seq(
             && getUid node.pattern.id),
         
         node.chain \ node ->
-            let uid = getUid(node.pattern.id) in
-                ?isPrimitive(node.value)
-                    :addBinding(uid, node.value)
-                    
-                :?isLambda(node.value)
-                    :addBinding(uid, markExpansion(node.pattern.id, node.value))
-                    
-                :?node.value.type === 'Identifier'
-                    :getBinding(getUid node.value).chain \ binding ->
-                        ?binding
-                            :addBinding(uid, node.value)
-                            :pass
-                    
-                :pass),
+            addBindingForNode(node.pattern.id, node.value)),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level

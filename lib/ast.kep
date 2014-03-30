@@ -13,6 +13,7 @@ package (
     isBlockFunction
     isLambda
     
+    getUd
     getUid)
 {
 
@@ -93,9 +94,14 @@ isLambda = \node ->
 /* UID
  ******************************************************************************/
 /**
+ * Get some user data or return null.
+ */
+getUd = \name node ->
+    (node && node.ud && node.ud.(name));
+
+/**
  * Get the uid of a node or null.
  */
-getUid = \node ->
-    (node && node.ud && node.ud.uid);
+getUid = getUd @ 'uid';
 
 }

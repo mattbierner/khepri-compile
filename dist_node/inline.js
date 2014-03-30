@@ -23,6 +23,7 @@ var record = require("bes")["record"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
     __o2 = require("./ast"),
+    getUd = __o2["getUd"],
     getUid = __o2["getUid"],
     isLambda = __o2["isLambda"],
     isPrimitive = __o2["isPrimitive"],
@@ -36,7 +37,7 @@ var record = require("bes")["record"],
     flatten = fun["flatten"],
     binding = require("./inline/bindings"),
     rename = require("./inline/rename"),
-    optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 2,
+    optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 4,
     _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
 (State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
 (State.prototype.addBinding = (function(uid, target) {
@@ -118,9 +119,8 @@ var M = ZipperT(StateT(Unique)),
     markExpansion = (function(id, target) {
         return setData(id, "expand", target);
     }),
-    isExpansion = (function(node) {
-        return ((node.ud && node.ud) && node.ud.expand);
-    }),
+    getExpansion = getUd.bind(null, "expand"),
+    isExpansion = getExpansion,
     getCtx = getState.map((function(s) {
         return s.ctx;
     })),
@@ -129,14 +129,31 @@ var M = ZipperT(StateT(Unique)),
             return s.setCtx(f(s.ctx));
         }));
     }),
+    canExpand = (function(uid) {
+        return getCtx.map((function(ctx) {
+            return (hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH);
+        }));
+    }),
+    pushCtx = (function(uid) {
+        return modifyCtx((function(ctx) {
+            return hashtrie.modify(uid, (function(x) {
+                return ((x + 1) || 1);
+            }), ctx);
+        }));
+    }),
+    popCtx = (function(uid) {
+        return modifyCtx((function(ctx) {
+            return hashtrie.modify(uid, (function(x) {
+                return ((x - 1) || 0);
+            }), ctx);
+        }));
+    }),
     expand = (function(exp, f) {
-        return (isExpansion(exp) ? getCtx.chain((function(ctx) {
-            return (hashtrie.has(getUid(exp), ctx) ? f(exp) : seq(modifyCtx((function(ctx) {
-                return hashtrie.set(getUid(exp), ctx);
-            })), f(exp.ud.expand), modifyCtx((function(ctx) {
-                return hashtrie.remove(getUid(exp), ctx);
-            }))));
-        })) : f(exp));
+        var uid;
+        return (isExpansion(exp) ? ((uid = getUid(exp)), canExpand(uid)
+            .chain((function(can) {
+                return (can ? seq(pushCtx(uid), f(getExpansion(exp)), popCtx(uid)) : f(exp));
+            }))) : f(exp));
     }),
     checkTop = node.chain((function(x) {
         return _check(x);
@@ -152,6 +169,14 @@ var M = ZipperT(StateT(Unique)),
         return node.chain((function(node) {
             return (test(node) ? consequent : (alternate || pass));
         }));
+    }),
+    addBindingForNode = (function(id, value) {
+        var uid = getUid(id);
+        return (isPrimitive(value) ? addBinding(uid, value) : (isLambda(value) ? addBinding(uid, markExpansion(id,
+            value)) : ((node.value.type === "Identifier") ? getBinding(getUid(value))
+            .chain((function(binding) {
+                return (binding ? addBinding(uid, binding) : pass);
+            })) : pass)));
     }),
     UP = true,
     DOWN = false,
@@ -179,19 +204,13 @@ addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
 addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
 addRewrite("VariableDeclaration", visitChild("declarations"));
 addRewrite("VariableDeclarator", seq(visitChild("init"), node.chain((function(node) {
-    return (node.init ? (node.immutable ? addBinding(getUid(node.id), node.init) : addWorking(getUid(
+    return (node.init ? (node.immutable ? addBindingForNode(node.id, node.init) : addWorking(getUid(
         node.id), node.init)) : pass);
 }))));
 addRewrite("Binding", seq(visitChild("value"), when((function(node) {
     return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
 }), node.chain((function(node) {
-    var uid = getUid(node.pattern.id);
-    return (isPrimitive(node.value) ? addBinding(uid, node.value) : (isLambda(node.value) ?
-        addBinding(uid, markExpansion(node.pattern.id, node.value)) : ((node.value.type ===
-                "Identifier") ? getBinding(getUid(node.value))
-            .chain((function(binding) {
-                return (binding ? addBinding(uid, node.value) : pass);
-            })) : pass)));
+    return addBindingForNode(node.pattern.id, node.value);
 }))), when((function(node) {
     return (node.value.type === "LetExpression");
 }), node.chain((function(node) {
