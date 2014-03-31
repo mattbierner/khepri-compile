@@ -47,7 +47,7 @@ in
         
         case 'ObjectPattern':
             return pattern.elements
-                |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id, target, key, recursive))
+                |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id.id, target, key, recursive))
                 |> flatten;
         
         default:

@@ -337,13 +337,21 @@ addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), whe
         alternate = __o["alternate"];
     return seq(set((isTruthy(test) ? consequent : alternate)), checkTop);
 })), seq(visitChild("consequent"), visitChild("alternate")))));
-addRewrite("MemberExpression", seq(visitChild("object"), node.chain((function(node) {
-    return (node.computed ? visitChild("property") : pass);
-})), when((function(node) {
+addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
+    return node.computed;
+}), visitChild("property")), when((function(node) {
     return ((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property));
 }), modify((function(node) {
     return (node.object.elements[node.property.value] || ast_value.Identifier.create(null,
         "undefined"));
+}))), when((function(node) {
+    return ((node.computed && ((node.object.type === "Literal") && (node.object.kind === "string"))) &&
+        isNumberish(node.property));
+}), modify((function(node) {
+    var str = node.object.value,
+        idx = node.property.value;
+    return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : ast_value.Identifier
+        .create(null, "undefined"));
 })))));
 addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
 addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when((function(node) {

@@ -32,9 +32,8 @@
                 null, null, rest, target.params.self), rename(uid, map, target.body))), ((first &&
             (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (
                 first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(
-            null, concat((base.bindings ? rename(uid, map, base.bindings) : []),
-                ast_declaration.Binding.create(null, rename(uid, map, first), args[0])),
-            body) : body)));
+            null, concat((base.bindings || []), ast_declaration.Binding.create(null, rename(
+                uid, map, first), args[0])), body) : body)));
     }));
     (exports["expandCallee"] = expandCallee);
     (exports["expandCurry"] = expandCurry);

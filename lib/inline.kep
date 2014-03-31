@@ -585,10 +585,11 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
-    node.chain \ node ->
-        ?node.computed
-            :visitChild 'property'
-            :pass,
+    when(
+        \node ->
+            node.computed,
+        visitChild 'property'),
+    
     /**
      * Constant index in array expression.
      */
@@ -599,7 +600,24 @@ addRewrite@'MemberExpression' <| seq(
             && isNumberish node.property),
     
         modify \ node ->
-            node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined')));
+            node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined')),
+            
+    /**
+     * Constant index in string expression.
+     */
+    when(
+        \node ->
+            (  node.computed
+            && (node.object.type === 'Literal' && node.object.kind === 'string')
+            && isNumberish node.property),
+    
+        modify \ node -> let
+            str = node.object.value,
+            idx = node.property.value
+        in
+            ?idx < str.length
+                :ast_value.Literal.create(null, 'string', str.(idx))
+                :ast_value.Identifier.create(null, 'undefined')));
 
 addRewrite@'NewExpression' <|
     seq(
