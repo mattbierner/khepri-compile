@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.9 - March 29, 2014
+* Better generated bindings when working with numbers.
+* Const string member access inline.
+
 ## 0.3.8 - March 29, 2014
 * Improvements to inlining and constant folding.
 * Allow recursive bindings to be inlined.
