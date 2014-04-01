@@ -11,7 +11,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
     __o0 = require("../fun"),
     concat = __o0["concat"],
     map = __o0["map"],
-    rename = require("./rename"),
+    __o1 = require("./rename"),
+    rename = __o1["rename"],
     expandCallee, expandCurry, getParmeterIds = map.bind(null, (function(x) {
         return getUid(x.id);
     })),

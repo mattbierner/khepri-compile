@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     ast_declaration = require("khepri-ast")["declaration"],

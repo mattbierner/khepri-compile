@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.3.10 - March 29, 2014
+* Fixed inlining of recursive curry with multiple args.
+
 ## 0.3.9 - March 29, 2014
 * Better generated bindings when working with numbers.
 * Const string member access inline.

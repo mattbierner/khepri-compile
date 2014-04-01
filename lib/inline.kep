@@ -41,12 +41,12 @@ with
     import './inline/expand' {
         expandCallee
         expandCurry},
-    import './inline/rename' rename
+    import './inline/rename' {rename incCount}
 in {
 
 /* Config
  ******************************************************************************/
-var MAX_EXPANSION_DEPTH := 4;
+var MAX_EXPANSION_DEPTH := 1;
 
 /* Forward
  ******************************************************************************/
@@ -84,6 +84,7 @@ State.prototype.pop = \=s ->
     s.outer
         .setBindings(s.bindings)
         .setGlobals(s.globals)
+        .setCtx(s.ctx)
         .setWorking(
             // Delete working bindings modified in inner from outer scope.
             hashtrie.fold(
@@ -162,6 +163,7 @@ var getBinding = \uid ->
         :getState.map \ {bindings working}->
             (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
         :pass;
+
 /**
  * 
  */
@@ -206,11 +208,11 @@ var addGlobal = \name ->
 
 /* Expansion
  ******************************************************************************/
-var markExpansion = \id target ->
+var markExpansion = \id count target ->
     setData(
         id,
         'expand',
-        target);
+        {'count': count, 'value': target});
 
 var getExpansion := getUd @ 'expand';
 
@@ -222,9 +224,9 @@ var modifyCtx = \f ->
     modifyState \ s ->
         s.setCtx(f(s.ctx));
 
-var canExpand := \uid -> 
+var canExpand := \exp uid -> 
     getCtx.map \ ctx ->
-        hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH;
+        exp.count < MAX_EXPANSION_DEPTH && hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH;
 
 var pushCtx := \uid ->
     modifyCtx \ ctx ->
@@ -237,16 +239,14 @@ var popCtx := \uid ->
 /**
  * 
  */
-var expandNode = \exp f ->
-    ?isExpansion exp
-        :let uid = getUid exp in
-            canExpand(uid).chain \ can -> ?can
-                :seq(
-                    pushCtx uid,
-                    f (getExpansion exp),
-                    popCtx uid)
-                :f(setData(exp, 'expansion', null))
-        :f(exp);
+var expandNode = \node f ->
+    ?isExpansion node
+        :let uid = getUid node, exp = getExpansion node in
+            canExpand(exp, uid).chain \ can -> ?can
+                :f <| exp.value
+                :f <| setData(node, 'expand', null)
+        :f(node);
+
 /**
  * 
  */
@@ -297,7 +297,7 @@ var addBindingForNode = \id value ->
             :addBinding(uid, value)
         
         :?isLambda value
-            :addBinding(uid, markExpansion(id, value))
+            :addBinding(uid, markExpansion(id, 0, value))
         
         :?value.type === 'Identifier'
             :getBinding(getUid value).chain \ binding ->
@@ -629,52 +629,78 @@ addRewrite@'CallExpression' <| seq(
     visitChild 'args',
     
     /**
+     * Expand callee.
+     */
+    when(
+        \node ->
+            isExpansion(node.callee),
+        
+        expand(
+            node.map \ node -> node.callee,
+            \callee ->
+                modify \ node ->
+                    incCount(
+                        getUid(node.callee),
+                        getExpansion(node.callee).count || 1,
+                        getExpansion(node.callee).countvalue,
+                        ast_expression.CallExpression.create(node.loc,
+                            callee,
+                            node.args)))),
+
+    /**
      * Inline calls of lambda functions by expanding them to let expressions.
      * 
      * The let expression is then rewritten to ensure the resulting values are unique.
      */
     when(
         \node ->
-            (  isExpansion(node.callee)
-            || isLambda(node.callee)
+            (  isLambda(node.callee)
             || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
         
-        expand(
-            node.map \ node -> node.callee,
-            \callee ->
-                ?isLambda(callee) || (callee.type === 'LetExpression' && isLambda(callee.body))
-                    :seq(
-                        unique.chain \ uid ->
-                        modify \ node ->
-                            expandCallee(uid, callee, node.args),
-                        checkTop)
-                    :pass)));
+            seq(
+                unique.chain \ uid ->
+                modify \ node ->
+                    expandCallee(uid, node.callee, node.args),
+                checkTop)));
 
 addRewrite@'CurryExpression' <| seq(
     visitChild 'base',
     visitChild 'args',
     
     /**
-     * Convert curry on function expression to function.
+     * Expand Curry Base
+     */
+    when(
+        \node ->
+            (isExpansion(node.base)),
+        
+        expand(
+            node.map \ node -> node.base,
+            \base ->
+                modify \ node ->
+                    incCount(
+                        getUid(node.base),
+                        getExpansion(node.base),
+                        getExpansion(node.base).value,
+                        ast_expression.CurryExpression.create(node.loc,
+                            base,
+                            node.args)))),
+    
+    /**
+     * Convert curry on function to let binding of curried args with function body.
      * 
      * Discards arguments that are not used.
      */
     when(
         \node ->
-            (  isExpansion(node.base)
-            || isLambda(node.base)
+            (  isLambda(node.base)
             || (node.base.type === 'LetExpression' && isLambda(node.base.body))),
         
-        expand(
-            node.map \ node -> node.base,
-            \base ->
-                ?isLambda(base) || (base.type === 'LetExpression' && isLambda(base.body))
-                    :seq(
-                        unique.chain \ uid ->
-                        modify \ node ->
-                            expandCurry(uid, base, node.args),
-                        checkTop)
-                    :pass)));
+        seq(
+            unique.chain \ uid ->
+            modify \ node ->
+                expandCurry(uid, node.base, node.args),
+            checkTop)));
 
 addRewrite@'LetExpression' <| seq(
     visitChild 'bindings',
@@ -709,7 +735,9 @@ addRewrite@'ObjectValue' <|
 
 addRewrite@'Identifier' <|
     when(
-        \node -> getUid node,
+        \node ->
+            (  getUid node
+            && !isExpansion node),
         
         node.chain \ node ->
             getBinding(getUid node).chain \ binding ->
@@ -747,7 +775,7 @@ var initialState = fun.foldl(
         s.setBindings(
             hashtrie.set(
                 getUid id,
-                markExpansion(id, def),
+                markExpansion(id, 0, def),
                 s.bindings)),
     State.empty,
     Object.keys(builtins));

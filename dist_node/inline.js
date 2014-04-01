@@ -39,8 +39,10 @@ var record = require("bes")["record"],
     __o4 = require("./inline/expand"),
     expandCallee = __o4["expandCallee"],
     expandCurry = __o4["expandCurry"],
-    rename = require("./inline/rename"),
-    optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 4,
+    __o5 = require("./inline/rename"),
+    rename = __o5["rename"],
+    incCount = __o5["incCount"],
+    optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 1,
     _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
 (State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
 (State.prototype.addBinding = (function(uid, target) {
@@ -60,6 +62,7 @@ var record = require("bes")["record"],
     var s = this;
     return s.outer.setBindings(s.bindings)
         .setGlobals(s.globals)
+        .setCtx(s.ctx)
         .setWorking(hashtrie.fold((function(p, __o) {
             var key = __o["key"];
             return hashtrie.set(key, null, p);
@@ -123,8 +126,11 @@ var M = ZipperT(StateT(Unique)),
             return s.setGlobals(hashtrie.set(name, name, s.globals));
         }));
     }),
-    markExpansion = (function(id, target) {
-        return setData(id, "expand", target);
+    markExpansion = (function(id, count, target) {
+        return setData(id, "expand", ({
+            "count": count,
+            "value": target
+        }));
     }),
     getExpansion = getUd.bind(null, "expand"),
     isExpansion = getExpansion,
@@ -136,9 +142,9 @@ var M = ZipperT(StateT(Unique)),
             return s.setCtx(f(s.ctx));
         }));
     }),
-    canExpand = (function(uid) {
+    canExpand = (function(exp, uid) {
         return getCtx.map((function(ctx) {
-            return (hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH);
+            return ((exp.count < MAX_EXPANSION_DEPTH) && (hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH));
         }));
     }),
     pushCtx = (function(uid) {
@@ -155,13 +161,12 @@ var M = ZipperT(StateT(Unique)),
             }), ctx);
         }));
     }),
-    expandNode = (function(exp, f) {
-        var uid;
-        return (isExpansion(exp) ? ((uid = getUid(exp)), canExpand(uid)
+    expandNode = (function(node, f) {
+        var uid, exp;
+        return (isExpansion(node) ? ((uid = getUid(node)), (exp = getExpansion(node)), canExpand(exp, uid)
             .chain((function(can) {
-                return (can ? seq(pushCtx(uid), f(getExpansion(exp)), popCtx(uid)) : f(setData(exp,
-                    "expansion", null)));
-            }))) : f(exp));
+                return (can ? f(exp.value) : f(setData(node, "expand", null)));
+            }))) : f(node));
     }),
     expand = (function(exp, f) {
         return exp.chain((function(node) {
@@ -186,7 +191,7 @@ var M = ZipperT(StateT(Unique)),
     addBindingForNode = (function(id, value) {
         var uid = getUid(id);
         return (isPrimitive(value) ? addBinding(uid, value) : (isLambda(value) ? addBinding(uid, markExpansion(id,
-            value)) : ((value.type === "Identifier") ? getBinding(getUid(value))
+            0, value)) : ((value.type === "Identifier") ? getBinding(getUid(value))
             .chain((function(binding) {
                 return (binding ? addBinding(uid, binding) : pass);
             })) : pass)));
@@ -355,31 +360,38 @@ addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
 })))));
 addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
 addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args"), when((function(node) {
-    return ((isExpansion(node.callee) || isLambda(node.callee)) || ((node.callee.type ===
-        "LetExpression") && isLambda(node.callee.body)));
+    return isExpansion(node.callee);
 }), expand(node.map((function(node) {
     return node.callee;
 })), (function(callee) {
-    return ((isLambda(callee) || ((callee.type === "LetExpression") && isLambda(callee.body))) ?
-        seq(unique.chain((function(uid) {
-            return modify((function(node) {
-                return expandCallee(uid, callee, node.args);
-            }));
-        })), checkTop) : pass);
-})))));
+    return modify((function(node) {
+        return incCount(getUid(node.callee), (getExpansion(node.callee)
+                .count || 1), getExpansion(node.callee)
+            .countvalue, ast_expression.CallExpression.create(node.loc, callee, node.args));
+    }));
+}))), when((function(node) {
+    return (isLambda(node.callee) || ((node.callee.type === "LetExpression") && isLambda(node.callee.body)));
+}), seq(unique.chain((function(uid) {
+    return modify((function(node) {
+        return expandCallee(uid, node.callee, node.args);
+    }));
+})), checkTop))));
 addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args"), when((function(node) {
-    return ((isExpansion(node.base) || isLambda(node.base)) || ((node.base.type === "LetExpression") &&
-        isLambda(node.base.body)));
+    return isExpansion(node.base);
 }), expand(node.map((function(node) {
     return node.base;
 })), (function(base) {
-    return ((isLambda(base) || ((base.type === "LetExpression") && isLambda(base.body))) ? seq(
-        unique.chain((function(uid) {
-            return modify((function(node) {
-                return expandCurry(uid, base, node.args);
-            }));
-        })), checkTop) : pass);
-})))));
+    return modify((function(node) {
+        return incCount(getUid(node.base), getExpansion(node.base), getExpansion(node.base)
+            .value, ast_expression.CurryExpression.create(node.loc, base, node.args));
+    }));
+}))), when((function(node) {
+    return (isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(node.base.body)));
+}), seq(unique.chain((function(uid) {
+    return modify((function(node) {
+        return expandCurry(uid, node.base, node.args);
+    }));
+})), checkTop))));
 addRewrite("LetExpression", seq(visitChild("bindings"), visitChild("body"), modify((function(__o) {
     var loc = __o["loc"],
         bindings = __o["bindings"],
@@ -396,7 +408,7 @@ addRewrite("ArrayExpression", visitChild("elements"));
 addRewrite("ObjectExpression", visitChild("properties"));
 addRewrite("ObjectValue", visitChild("value"));
 addRewrite("Identifier", when((function(node) {
-    return getUid(node);
+    return (getUid(node) && (!isExpansion(node)));
 }), node.chain((function(node) {
     return getBinding(getUid(node))
         .chain((function(binding) {
@@ -417,7 +429,7 @@ addRewrite("Identifier", when((function(node) {
 var initialState = fun.foldl((function(s, name) {
     var id = builtins[name],
         def = definitions[name];
-    return s.setBindings(hashtrie.set(getUid(id), markExpansion(id, def), s.bindings));
+    return s.setBindings(hashtrie.set(getUid(id), markExpansion(id, 0, def), s.bindings));
 }), State.empty, Object.keys(builtins));
 (optimize = (function(ast, data) {
     return run(next(checkTop, node.chain((function(node) {

@@ -11,7 +11,7 @@ var __o = require("khepri-ast-zipper"),
     setData = __o1["setData"],
     __o2 = require("../ast"),
     getUid = __o2["getUid"],
-    rename;
+    rename, incCount;
 (rename = (function(prefix, list, root) {
     return tree.node(preWalk((function(ctx) {
         var node = tree.node(ctx),
@@ -20,4 +20,19 @@ var __o = require("khepri-ast-zipper"),
             ctx) : ctx);
     }), khepriZipper(root)));
 }));
-(module.exports = rename);
+(incCount = (function(target, count, value, root) {
+    return tree.node(preWalk((function(ctx) {
+        var node = tree.node(ctx),
+            uid = getUid(node),
+            exp = ((node && node.ud) && node.ud.expand);
+        if (((target && node) && (target === uid))) {
+            return tree.setNode(setData(node, "expand", ({
+                "count": (((exp && exp.count) || count) + 1),
+                "value": value
+            })), ctx);
+        }
+        return ctx;
+    }), khepriZipper(root)));
+}));
+(exports["rename"] = rename);
+(exports["incCount"] = incCount);

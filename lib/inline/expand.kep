@@ -12,7 +12,7 @@ with
     import '../fun' {
         concat
         map},
-    import './rename' rename
+    import './rename' {rename}
 in{
 
 var getParmeterIds := map  @\x -> getUid(x.id);

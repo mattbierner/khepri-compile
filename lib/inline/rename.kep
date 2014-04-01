@@ -1,4 +1,6 @@
-package rename
+package (
+    rename
+    incCount)
 with
     import 'khepri-ast-zipper' {khepriZipper},
     import 'neith::walk' {preWalk},
@@ -28,6 +30,29 @@ rename = \prefix list root ->
                     setData(node, 'uid', prefix + '-' + uid),
                     ctx)
                 :ctx,
+        khepriZipper(root));
+
+/**
+ * Rename all identifier instances in an AST.
+ * 
+ * @param prefix Unique id to prefix to all renamed identifiers.
+ * @param list List of identifier uids to rename. All others will be ignored
+ * @param root Root node of tree to traverse.
+ */
+incCount = \target count value root ->
+    tree.node <| preWalk(
+        \ctx -> {with
+            node = tree.node(ctx),
+            uid = getUid(node),
+            exp = node && node.ud && node.ud.expand
+        in {
+            if (target && node && target === uid) {
+                return tree.setNode(
+                    setData(node, 'expand', {'count': ((exp && exp.count) || count) + 1, 'value': value}),
+                    ctx);
+            }
+            return ctx;
+        }},
         khepriZipper(root));
 
 }
