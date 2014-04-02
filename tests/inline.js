@@ -6,6 +6,7 @@ var unparse_print = require('ecma-unparse').print;
 
 var compile = require('../index').compile;
 
+
 var testParser = function(input) {
     return unparse_print.print(unparse.unparse(compile(parser.parseStream(lexer.lex(input)))));
 };
@@ -27,4 +28,5 @@ exports.recursive_curry = function(test) {
     testParser("let f := \\x y -> f @ (x + 1, y + 1) in f(0, 0);");
     test.ok(true);
     test.done();
+    
 };

@@ -33,26 +33,26 @@
     "dependencies": {
         "bes": "3.1.x",
         
-        "neith": "1.5.x",
-        "nu-stream": ">=3.1.0",
+        "neith": "1.6.x",
+        "nu-stream": ">=3.2.0",
         
-        "ecma-ast": "2.4.x",
+        "ecma-ast": "2.5.x",
         "ecma-ast-zipper": "1.0.x",
         
-        "khepri-ast": "3.7.x",
+        "khepri-ast": "3.8.x",
         "khepri-ast-zipper": "1.1.x",
         
         "hashtrie": "0.2.x",
         
-        "akh": "0.8.x",
-        "zipper-m": "0.0.x",
+        "akh": "1.0.x",
+        "zipper-m": "0.1.x",
         
         "require-directory": "1.2.x"
     },
     "devDependencies": {
         "nodeunit": "0.8.x",
         
-        "khepri-parse": "0.9.x",
+        "khepri-parse": "0.10.x",
         "ecma-unparse": "3.2.x"
     },
     
