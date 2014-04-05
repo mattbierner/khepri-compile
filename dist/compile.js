@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "akh/base", "./stages/pre_normalize", "./stages/lexical",
+*/define(["require", "exports", "akh/error", "akh/base", "./stages/pre_normalize", "./stages/lexical",
     "./stages/post_normalize", "./stages/inline", "./stages/khepri_peep", "./stages/transform",
     "./stages/ecma_peep"
 ], (function(require, exports, Error, __o, pre_normalize, lexical, post_normalize, inline, khepri_peep, transform,
@@ -16,53 +15,27 @@ define(["require", "exports", "akh/error", "akh/base", "./stages/pre_normalize",
                 .chain(inline)
                 .chain(khepri_peep)
                 .chain(transform)
-                .chain(ecma_peep), (function(x0) {
-                    console.log(x0);
-                    throw x0;
+                .chain(ecma_peep), (function(x) {
+                    throw x;
                 }));
         }),
-        extract = (function(__o0) {
-            var tree = __o0["tree"];
-            return tree;
-        }),
-        x = (function(root, options) {
-            return ({
-                "tree": root,
-                "options": (options || ({}))
-            });
-        }),
-        x0 = compiler,
-        y = extract,
-        y0 = (function(x1) {
-            var x2 = x1,
-                __o0 = Error.tryError(pre_normalize(x2)
-                    .chain(lexical)
-                    .chain(post_normalize)
-                    .chain(inline)
-                    .chain(khepri_peep)
-                    .chain(transform)
-                    .chain(ecma_peep), (function(x3) {
-                        console.log(x3);
-                        throw x3;
-                    })),
-                tree = __o0["tree"];
+        extract = (function(__o) {
+            var tree = __o["tree"];
             return tree;
         });
-    (compile = (function() {
-        var x1 = x.apply(null, arguments),
-            x2 = x1,
-            __o0 = Error.tryError(pre_normalize(x2)
-                .chain(lexical)
-                .chain(post_normalize)
-                .chain(inline)
-                .chain(khepri_peep)
-                .chain(transform)
-                .chain(ecma_peep), (function(x3) {
-                    console.log(x3);
-                    throw x3;
-                })),
-            tree = __o0["tree"];
-        return tree;
-    }));
+    (compile = (function(f, g) {
+        return (function() {
+            return f(g.apply(null, arguments));
+        });
+    })((function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(extract, compiler), (function(root, options) {
+        return ({
+            "tree": root,
+            "options": (options || ({}))
+        });
+    })));
     return compile;
 }));

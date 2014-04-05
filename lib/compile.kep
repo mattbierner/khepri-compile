@@ -29,7 +29,7 @@ var compiler := \x ->
             .chain(khepri_peep)
             .chain(transform)
             .chain(ecma_peep),
-        \x -> { static console; console.log(x); throw x; });
+        \x -> { throw x; });
 
 var extract := \{tree} -> tree;
 
