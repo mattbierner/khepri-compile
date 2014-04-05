@@ -27,6 +27,9 @@ with
     import 'zipper-m::trans::zipper' ZipperT
 in {
 
+var reserved = \node ->
+    (node && node.ud && node.ud.reserved);
+
 /* Forward declarations
  ******************************************************************************/
 var _check;
@@ -239,9 +242,6 @@ addCheck@'PackageExport' <|
 
 addCheck@'Package' <|
     block(
-       // addImmutableBindingChecked('require', null),
-        addImmutableBindingChecked('exports', null),
-        addImmutableBindingChecked('module', null),
         checkChild 'exports',
         // Evaluate body in same scope
         child('body',
@@ -440,7 +440,7 @@ addCheck@'SinkPattern'<|
 addCheck@'IdentifierPattern' <|
     seq(
         inspect \ node ->
-            ?node.reserved
+            ?reserved node
                 :addImmutableBinding(node.id.name, node.loc)
                 :addImmutableBindingChecked(node.id.name, node.loc),
         checkChild 'id');
@@ -506,7 +506,7 @@ _check = \node -> {
     return pass;
 };
 
-var g = \x -> x.concat('require');
+var g = \x -> x.concat('require', 'module', 'exports');
 
 var addBindings = foldl@(Scope.addImmutableBinding, Scope.empty);
 

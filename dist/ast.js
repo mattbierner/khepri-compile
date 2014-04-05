@@ -42,9 +42,7 @@ define(["require", "exports"], (function(require, exports) {
     (getUd = (function(name, node) {
         return ((node && node.ud) && node.ud[name]);
     }));
-    (getUid = (function(node) {
-        return ((node && node.ud) && node.ud["uid"]);
-    }));
+    (getUid = getUd.bind(null, "uid"));
     (exports["isIdentifier"] = isIdentifier);
     (exports["isLiteral"] = isLiteral);
     (exports["isNumberish"] = isNumberish);

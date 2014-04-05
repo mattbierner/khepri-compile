@@ -46,10 +46,10 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 var op0 = (function(x) {
                     return ast_expression.UnaryExpression.create(null, op, x);
                 }),
-                    x, xArg = identifier("x", unique());
+                    xArg = identifier("x", unique());
                 return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), ((x = xArg),
-                    ast_expression.UnaryExpression.create(null, op, x)));
+                        null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), ast_expression.UnaryExpression
+                    .create(null, op, xArg));
             });
         [
             ["typeof", "__typeof"],
@@ -59,14 +59,14 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             ["++", "__plus"],
             ["--", "__minus"]
         ].forEach((function(__o) {
-            var op0, op1, xArg, x, op = __o[0],
+            var op0, xArg, op = __o[0],
                 name = __o[1];
-            registerAliasedSymbol(op, name, ((op0 = op), (op1 = (function(x) {
-                return ast_expression.UnaryExpression.create(null, op0, x);
+            registerAliasedSymbol(op, name, ((op0 = (function(x) {
+                return ast_expression.UnaryExpression.create(null, op, x);
             })), (xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(null,
                 null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
                     .create(null, xArg)
-                ]), ((x = xArg), ast_expression.UnaryExpression.create(null, op0, x)))));
+                ]), ast_expression.UnaryExpression.create(null, op, xArg))));
         }));
         var uid2 = unique(),
             xArg = setData(ast_value.Identifier.create(null, "x"), "uid", uid2),
@@ -134,11 +134,11 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             ["||", "__or"],
             ["&&", "__and"]
         ].forEach((function(__o) {
-            var op0, op = __o[0],
+            var op = __o[0],
                 name = __o[1];
-            registerBinary(op, name, ((op0 = op), (function(x, y) {
-                return ast_expression.LogicalExpression.create(null, op0, x, y);
-            })));
+            registerBinary(op, name, (function(x, y) {
+                return ast_expression.LogicalExpression.create(null, op, x, y);
+            }));
         }));
         registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);

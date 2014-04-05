@@ -23,7 +23,10 @@ var ast_node = require("khepri-ast")["node"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
-    check, _check, M = ErrorT(ZipperT(StateT(Unique))),
+    check, reserved = (function(node) {
+        return ((node && node.ud) && node.ud.reserved);
+    }),
+    _check, M = ErrorT(ZipperT(StateT(Unique))),
     run = (function(p, s, ctx, ok, err) {
         return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(ErrorT.runErrorT(p, (function(f, g) {
             return (function(x) {
@@ -152,11 +155,10 @@ addCheck("PackageExports", checkChild("exports"));
 addCheck("PackageExport", inspect((function(node) {
     return addMutableBindingChecked(node.id.name, node.loc);
 })));
-addCheck("Package", block(addImmutableBindingChecked("exports", null), addImmutableBindingChecked("module", null),
-    checkChild("exports"), child("body", inspect((function(node) {
-        return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body", checkChild(
-            "body"))) : checkChild("body"));
-    })))));
+addCheck("Package", block(checkChild("exports"), child("body", inspect((function(node) {
+    return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body", checkChild(
+        "body"))) : checkChild("body"));
+})))));
 addCheck("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
 addCheck("CatchClause", block(inspect((function(node) {
     return addImmutableBindingChecked(node.param.name, node.param.loc);
@@ -211,7 +213,7 @@ addCheck("SinkPattern", unique.chain((function(uid) {
     }));
 })));
 addCheck("IdentifierPattern", seq(inspect((function(node) {
-    return (node.reserved ? addImmutableBinding(node.id.name, node.loc) : addImmutableBindingChecked(
+    return (reserved(node) ? addImmutableBinding(node.id.name, node.loc) : addImmutableBindingChecked(
         node.id.name, node.loc));
 })), checkChild("id")));
 addCheck("ImportPattern", checkChild("pattern"));
@@ -242,7 +244,7 @@ addCheck("Identifier", inspect((function(node) {
     return pass;
 }));
 var g = (function(x) {
-    return x.concat("require");
+    return x.concat("require", "module", "exports");
 }),
     addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty);
 (check = (function(ast, globals, seed) {

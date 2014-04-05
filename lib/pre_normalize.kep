@@ -10,20 +10,24 @@ with
     import 'khepri-ast-zipper' {khepriZipper},
     
     import 'khepri-ast::node' {setData},
-    import 'khepri-ast::declaration' ast_declaration,
-    import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
-    import './fun' fun,
+    import './fun' {
+        map
+        foldl
+        foldr},
     import './rewritter' {
         UP
         DOWN
         Rewritter
         rewrite}
 in {
+
+var string = ast_value.Literal.create @ (null, 'string');
+
 
 var peepholes = new Rewritter();
 
@@ -32,40 +36,40 @@ var peepholes = new Rewritter();
 /**
  * Add aliases to all package exports
  */
-peepholes.add(['PackageExport'], UP,
+peepholes.add('PackageExport', UP,
     \node ->
         !node.alias,
+    
     \node ->
         ast_package.PackageExport.create(node.loc,
             node.id,
-            ast_value.Literal.create(null, 'string', node.id.name)));
+            string(node.id.name)));
 
 /* Expression Expansions
  ******************************************************************************/
 /**
  * Convert multiple binding let expression to nested single binding let expressions
  */
-peepholes.add(['LetExpression'], UP,
+peepholes.add('LetExpression', UP,
     \node ->
         node.bindings.length > 1,
     
     \{loc bindings body} ->
-        fun.foldr(\p c ->
-            ast_expression.LetExpression.create(loc,
-                [c],
-                p),
+        foldr(
+            \p c ->
+                ast_expression.LetExpression.create(loc, [c], p),
             body,
             bindings));
 
 /**
  * Expand currying with multiple args to nested single arg curries curries.
  */
-peepholes.add(['CurryExpression'], DOWN,
+peepholes.add('CurryExpression', DOWN,
     \node ->
         node.args.length > 1,
     
     \node ->
-        fun.foldl(
+        foldl(
             \p arg -> 
                 ast_expression.CurryExpression.create(null,
                     p,
@@ -78,32 +82,34 @@ peepholes.add(['CurryExpression'], DOWN,
 /**
  * Convert array patterns to object patterns
  */
-peepholes.add(['ArrayPattern'], DOWN,
+peepholes.add('ArrayPattern', DOWN,
     \_ -> true,
     \node#{loc elements} ->
         ast_pattern.ObjectPattern.create(loc,
-            fun.map(\x i ->
-                ast_pattern.ObjectPatternElement.create(null,
-                    ast_value.Literal.create(null, 'number', i),
-                    x),
+            map(
+                \x i ->
+                    ast_pattern.ObjectPatternElement.create(null,
+                        string(i + ''),
+                        x),
                 elements)));
 
 /**
  * Normalize object patterns to ('key': pattern) form.
  */
-peepholes.add(['ObjectPatternElement'], DOWN,
+peepholes.add('ObjectPatternElement', DOWN,
     \node ->
         !node.target,
-    \node#{loc key} -> {
+    
+    \node#{key} -> {
         switch(key.type) {
         case 'IdentifierPattern':
-            return ast_pattern.ObjectPatternElement.create(null,
-                ast_value.Literal.create(null, 'string', key.id.name),
+            return ast_pattern.ObjectPatternElement.create(node.loc,
+                string(key.id.name),
                 key);
         
         case 'AsPattern':
-            return ast_pattern.ObjectPatternElement.create(null,
-                ast_value.Literal.create(null, 'string', key.id.id.name),
+            return ast_pattern.ObjectPatternElement.create(node.loc,
+                string(key.id.id.name),
                 key);
         
         default:
@@ -115,37 +121,32 @@ peepholes.add(['ObjectPatternElement'], DOWN,
  * When generating unpacks lists, we want to use the 
  * as pattern name if possible instead of the auto generated name.
  */
-peepholes.add(['AsPattern'], DOWN,
+peepholes.add('AsPattern', DOWN,
     \node ->
         !node.target.ud || !node.target.ud.id,
+    
     \node ->
-        ast_pattern.AsPattern.create(null,
+        ast_pattern.AsPattern.create(node.loc,
             node.id,
-            setData(
-                node.target,
-                'id',
-                node.id)));
+            setData(node.target, 'id', node.id)));
 
 /**
  * Name anon object patterns
  */
-peepholes.add(['ObjectPattern'], UP,
+peepholes.add('ObjectPattern', UP,
     \node ->
         !node.ud || !node.ud.id,
-    \node -> {
-        var id = ast_pattern.IdentifierPattern.create(node.loc,
-            ast_value.Identifier.create(null, '__o'));
-        
-        // HACK: tells lexical that this id is autogen.
-        id.reserved = true;
-        
-        return ast_pattern.AsPattern.create(null,
+    
+    \node -> let
+        id = setData(
+            ast_pattern.IdentifierPattern.create(null,
+                ast_value.Identifier.create(null, '__o')),
+            'reserved',
+            true)
+    in
+        ast_pattern.AsPattern.create(null,
             id,
-            setData(
-                ast_pattern.ObjectPattern.create(null, node.elements),
-                'id',
-                id));
-    });
+            setData(node, 'id', id)));
 
 /* Interface
  ******************************************************************************/

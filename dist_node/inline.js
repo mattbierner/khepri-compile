@@ -203,8 +203,8 @@ var M = ZipperT(StateT(Unique)),
         return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
             markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
             .chain((function(binding) {
-                return ((binding && binding.immutable) ? (binding.simple ? addBinding(uid, binding.value,
-                    binding.simple) : addBinding(uid, value, true)) : addBinding(uid, value,
+                return (binding ? ((binding.simple && binding.immutable) ? addBinding(uid, binding.value,
+                    binding.simple) : addBinding(uid, value, false)) : addBinding(uid, value,
                     false));
             })) : addBinding(uid, value, false))));
     }),
@@ -279,11 +279,11 @@ addRewrite("UnaryExpression", ((arithmetic = ({
     var operator = __o["operator"],
         argument = __o["argument"];
     return (arithmetic[operator] && isPrimitive(argument));
-}), modify((function(__o) {
-    var operator = __o["operator"],
-        argument = __o["argument"],
+}), modify((function(node) {
+    var operator = node["operator"],
+        argument = node["argument"],
         value = arithmetic[operator](argument.value);
-    return ast_value.Literal.create(null, (typeof value), value);
+    return ast_value.Literal.create(node.loc, (typeof value), value);
 }))))));
 addRewrite("AssignmentExpression", seq(visitChild("right"), when((function(__o) {
     var left = __o["left"];

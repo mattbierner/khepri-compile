@@ -315,10 +315,10 @@ var addBindingForNode = \id value ->
         
         :?isIdentifier value
             :getBinding(getUid value).chain \ binding ->
-                ?binding && binding.immutable
-                    :?binding.simple
+                ?binding
+                    :?binding.simple && binding.immutable
                         :addBinding(uid, binding.value, binding.simple)
-                        :addBinding(uid, value, true)
+                        :addBinding(uid, value, false)
                     :addBinding(uid, value, false)
         
         :addBinding(uid, value, false);
@@ -503,9 +503,9 @@ addRewrite@'ForStatement' <|
 // Expression
 addRewrite@'FunctionExpression' <|
     block(
-         visitChild 'id',
-         visitChild 'params',
-         visitChild 'body');
+        visitChild 'id',
+        visitChild 'params',
+        visitChild 'body');
 
 addRewrite@'UnaryExpression' <| let
     arithmetic = {
@@ -525,10 +525,10 @@ in seq(
             (  arithmetic.(operator)
             && isPrimitive(argument)),
     
-        modify \ {operator argument} -> let
+        modify \ node#{operator argument} -> let
             value = arithmetic.(operator)(argument.value)
         in
-            ast_value.Literal.create(null, typeof value, value)));
+            ast_value.Literal.create(node.loc, typeof value, value)));
 
 addRewrite@'AssignmentExpression' <| seq(
     visitChild 'right',

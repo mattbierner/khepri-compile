@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/rewritter.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/rewritter.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun"], (function(require, exports, zipper,
+*/define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun"], (function(require, exports, zipper,
     tree, __o, fun) {
     "use strict";
     var walk = __o["walk"],
@@ -13,17 +12,19 @@ define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun
         var self = this;
         (self.peepholes = []);
     }));
-    (Rewritter.prototype.add = (function(types, up, condition, f) {
-        var self = this,
-            entry = ({
-                "condition": condition,
-                "map": f,
-                "up": up
-            });
-        types.forEach((function(type) {
-            (self.peepholes[type] = (self.peepholes[type] ? fun.concat(self.peepholes[type],
-                entry) : [entry]));
+    (Rewritter.prototype.add = (function(type, up, condition, f) {
+        var self = this;
+        if (Array.isArray(type)) return type.map((function(x) {
+            return self.add(x, up, condition, f);
         }));
+        var entry = ({
+            "condition": condition,
+            "map": f,
+            "up": up
+        });
+        (self.peepholes[type] = (self.peepholes[type] ? fun.concat(self.peepholes[type], entry) : [
+            entry
+        ]));
     }));
     (Rewritter.prototype.upTransforms = (function(node) {
         var self = this;

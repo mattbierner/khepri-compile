@@ -23,18 +23,19 @@ Rewritter = function \ =self-> {
     self.peepholes = [];
 };
 
-Rewritter.prototype.add = \types up condition, f =self-> {
+Rewritter.prototype.add = \type up condition f =self-> {
+    if (Array.isArray type)
+        return type.map \ x -> self.add(x, up, condition, f);
+    
     var entry = {
         'condition': condition,
         'map': f,
         'up': up
     };
     
-    types.forEach \ type -> {
-        self.peepholes.(type) = ?self.peepholes.(type)
-            :fun.concat(self.peepholes.(type), entry)
-            :[entry];
-    };
+    self.peepholes.(type) = ?self.peepholes.(type)
+        :fun.concat(self.peepholes.(type), entry)
+        :[entry];
 };
 
 Rewritter.prototype.upTransforms = \node =self-> 

@@ -14,18 +14,17 @@ var zipper = require("neith")["zipper"],
     var self = this;
     (self.peepholes = []);
 }));
-(Rewritter.prototype.add = (function(types, up, condition, f) {
-    var self = this,
-        entry = ({
-            "condition": condition,
-            "map": f,
-            "up": up
-        });
-    types.forEach((function(type) {
-        (self.peepholes[type] = (self.peepholes[type] ? fun.concat(self.peepholes[type], entry) : [
-            entry
-        ]));
+(Rewritter.prototype.add = (function(type, up, condition, f) {
+    var self = this;
+    if (Array.isArray(type)) return type.map((function(x) {
+        return self.add(x, up, condition, f);
     }));
+    var entry = ({
+        "condition": condition,
+        "map": f,
+        "up": up
+    });
+    (self.peepholes[type] = (self.peepholes[type] ? fun.concat(self.peepholes[type], entry) : [entry]));
 }));
 (Rewritter.prototype.upTransforms = (function(node) {
     var self = this;
