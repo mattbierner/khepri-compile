@@ -1,6 +1,6 @@
 {
     "name": "khepri-compile",
-    "version": "0.3.11",
+    "version": "0.3.12",
     "description": "Compiler for the Khepri programming language",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -44,7 +44,7 @@
         
         "hashtrie": "0.2.x",
         
-        "akh": "1.0.x",
+        "akh": "1.1.x",
         "zipper-m": "0.1.x",
         
         "require-directory": "1.2.x"

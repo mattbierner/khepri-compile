@@ -1,6 +1,9 @@
 # ChangeLog #
 
-## 0.3.11 - March 29, 2014
+## 0.3.12 - April 5, 2014
+* Restored builtin inlining.
+
+## 0.3.11 - April 5, 2014
 * Improvements to inlining.
 * Restored zero overhead for call of curry.
 

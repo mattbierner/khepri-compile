@@ -440,7 +440,7 @@ addRewrite("Identifier", when((function(node) {
 var initialState = fun.foldl((function(s, name) {
     var id = builtins[name],
         def = definitions[name];
-    return s.setBindings(hashtrie.set(getUid(id), markExpansion(id, 0, def), s.bindings));
+    return s.addBinding(getUid(id), markExpansion(id, 0, def), true);
 }), State.empty, Object.keys(builtins));
 (optimize = (function(ast, data) {
     return run(next(checkTop, node.chain((function(node) {

@@ -787,11 +787,7 @@ var initialState = fun.foldl(
         id = builtins.(name),
         def = definitions.(name)
     in
-        s.setBindings(
-            hashtrie.set(
-                getUid id,
-                markExpansion(id, 0, def),
-                s.bindings)),
+        s.addBinding(getUid id, markExpansion(id, 0, def), true),
     State.empty,
     Object.keys(builtins));
 
