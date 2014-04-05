@@ -1,0 +1,87 @@
+/**
+ * @fileOverview Collection for tree rewritting using a zipper.
+ */
+package (
+    UP
+    DOWN
+    Rewriter
+    rewrite)
+with
+    import 'neith::zipper' zipper,
+    import 'neith::tree' tree,
+    import 'neith::walk' {walk},
+    
+    import './fun' {concat}
+in {
+
+UP = true;
+DOWN = false;
+
+/* Rewriter
+ ******************************************************************************/
+var transform = \ctx transforms ->
+    ?transforms.length
+        :tree.modifyNode(\node -> transforms.reduce(\p c -> c.map(p), node), ctx)
+        :ctx;
+
+/**
+ * Set of AST tree rewrites grouped by node type.
+ */
+Rewriter = function \ =self-> {
+    self.peepholes = [];
+};
+
+/**
+ * Add a new conditional rewrite for `type`.
+ * 
+ * @param type Node type or array of node types being targeted.
+ * @param up Should the rewrite be performed after or before children have been rewritten.
+ * @param condition Predicate taking current node that determines if it should be rewritten.
+ * @param f Rewrite function. Maps current node to new node.
+ */
+Rewriter.prototype.add = \type up condition f =self-> {
+    if (Array.isArray type)
+        return type.map \ x -> self.add(x, up, condition, f);
+    
+    self.peepholes.(type) = concat(
+        (self.peepholes.(type) || []), {
+            'condition': condition,
+            'map': f,
+            'up': up
+        });
+};
+
+Rewriter.prototype.rewriters = \node =self-> 
+    ((node && self.peepholes.(node.type)) || []);
+
+Rewriter.prototype.upTransforms = \node =self-> 
+    self.rewriters(node).filter(\x -> x.up && x.condition(node));
+
+Rewriter.prototype.downTransforms = \node =self-> 
+    self.rewriters(node).filter(\x -> !x.up && x.condition(node));
+
+Rewriter.prototype.transform = \ctx =self->
+    let node = tree.node ctx in
+        transform(ctx, self.downTransforms node);
+
+Rewriter.prototype.transformPost = \ctx =self->
+    let node = tree.node ctx in
+        transform(ctx, self.upTransforms node);
+
+/* Interface
+ ******************************************************************************/
+var opt = \rewritter ctx  ->
+    walk(
+        rewritter.transform.bind(rewritter),
+        rewritter.transformPost.bind(rewritter),
+        ctx);
+
+/**
+ * Rewrite a tree.
+ * 
+ * @param rewritter Rewitter collection.
+ * @param ctx Zipper of tree to rewrite.
+ */
+rewrite = opt \>> zipper.root \> tree.node;
+
+}

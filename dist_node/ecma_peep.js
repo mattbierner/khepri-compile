@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
     __o0 = require("ecma-ast")["node"],
@@ -12,12 +11,12 @@ var __o = require("ecma-ast-zipper"),
     ast_statement = require("ecma-ast")["statement"],
     ast_expression = require("ecma-ast")["expression"],
     fun = require("./fun"),
-    __o1 = require("./rewritter"),
+    __o1 = require("./rewriter"),
     UP = __o1["UP"],
     DOWN = __o1["DOWN"],
-    Rewritter = __o1["Rewritter"],
+    Rewriter = __o1["Rewriter"],
     rewrite = __o1["rewrite"],
-    optimize, peepholes = new(Rewritter)();
+    optimize, peepholes = new(Rewriter)();
 peepholes.add(["VariableDeclaration"], false, (function(_) {
     return true;
 }), (function(node) {

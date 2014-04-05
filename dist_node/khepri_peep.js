@@ -11,12 +11,12 @@ var __o = require("khepri-ast-zipper"),
     __o0 = require("./fun"),
     concat = __o0["concat"],
     flattenr = __o0["flattenr"],
-    __o1 = require("./rewritter"),
+    __o1 = require("./rewriter"),
     UP = __o1["UP"],
     DOWN = __o1["DOWN"],
-    Rewritter = __o1["Rewritter"],
+    Rewriter = __o1["Rewriter"],
     rewrite = __o1["rewrite"],
-    optimize, peepholes = new(Rewritter)(),
+    optimize, peepholes = new(Rewriter)(),
     always = (function(_) {
         return true;
     });

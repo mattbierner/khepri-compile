@@ -19,17 +19,17 @@ with
         map
         foldl
         foldr},
-    import './rewritter' {
+    import './rewriter' {
         UP
         DOWN
-        Rewritter
+        Rewriter
         rewrite}
 in {
 
 var string = ast_value.Literal.create @ (null, 'string');
 
 
-var peepholes = new Rewritter();
+var peepholes = new Rewriter();
 
 /* Package Normalizations
  ******************************************************************************/
@@ -54,10 +54,10 @@ peepholes.add('LetExpression', UP,
     \node ->
         node.bindings.length > 1,
     
-    \{loc bindings body} ->
+    \{bindings body} ->
         foldr(
             \p c ->
-                ast_expression.LetExpression.create(loc, [c], p),
+                ast_expression.LetExpression.create(null, [c], p),
             body,
             bindings));
 
@@ -71,9 +71,7 @@ peepholes.add('CurryExpression', DOWN,
     \node ->
         foldl(
             \p arg -> 
-                ast_expression.CurryExpression.create(null,
-                    p,
-                    [arg]),
+                ast_expression.CurryExpression.create(null, p, [arg]),
             node.base,
             node.args));
 
@@ -131,7 +129,10 @@ peepholes.add('AsPattern', DOWN,
             setData(node.target, 'id', node.id)));
 
 /**
- * Name anon object patterns
+ * Name anon object patterns.
+ * 
+ * This uses the identifier `__o`, which is marked reserved so the lexical check
+ * does not complain if it is not unique.
  */
 peepholes.add('ObjectPattern', UP,
     \node ->

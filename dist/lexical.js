@@ -2,10 +2,10 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
-    "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique", "./scope", "./fun",
-    "zipper-m/trans/zipper"
+    "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique",
+    "zipper-m/trans/zipper", "./scope", "./fun"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, Error, ErrorT, Unique,
-    scope, __o1, ZipperT) {
+    ZipperT, scope, __o1) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],

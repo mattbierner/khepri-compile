@@ -2,7 +2,7 @@
  * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/package", "khepri-ast/value", "./fun", "./rewritter"
+    "khepri-ast/package", "khepri-ast/value", "./fun", "./rewriter"
 ], (function(require, exports, __o, __o0, ast_expression, ast_pattern, ast_package, ast_value, __o1, __o2) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
@@ -12,10 +12,10 @@
         foldr = __o1["foldr"],
         UP = __o2["UP"],
         DOWN = __o2["DOWN"],
-        Rewritter = __o2["Rewritter"],
+        Rewriter = __o2["Rewriter"],
         rewrite = __o2["rewrite"],
         normalize, string = ast_value.Literal.create.bind(null, null, "string"),
-        peepholes = new(Rewritter)();
+        peepholes = new(Rewriter)();
     peepholes.add("PackageExport", UP, (function(node) {
         return (!node.alias);
     }), (function(node) {
@@ -24,11 +24,10 @@
     peepholes.add("LetExpression", UP, (function(node) {
         return (node.bindings.length > 1);
     }), (function(__o) {
-        var loc = __o["loc"],
-            bindings = __o["bindings"],
+        var bindings = __o["bindings"],
             body = __o["body"];
         return foldr((function(p, c) {
-            return ast_expression.LetExpression.create(loc, [c], p);
+            return ast_expression.LetExpression.create(null, [c], p);
         }), body, bindings);
     }));
     peepholes.add("CurryExpression", DOWN, (function(node) {

@@ -20,11 +20,11 @@ with
     import 'akh::error' Error,
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
-
-    import './scope' scope#{Scope},
-    import './fun' {foldl},
     
-    import 'zipper-m::trans::zipper' ZipperT
+    import 'zipper-m::trans::zipper' ZipperT,
+    
+    import './scope' scope#{Scope},
+    import './fun' {foldl}
 in {
 
 var reserved = \node ->

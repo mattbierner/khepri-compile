@@ -21,15 +21,15 @@ var __o = require("khepri-ast-zipper"),
     __o3 = require("./builtin"),
     builtins = __o3["builtins"],
     definitions = __o3["definitions"],
-    __o4 = require("./rewritter"),
+    __o4 = require("./rewriter"),
     UP = __o4["UP"],
     DOWN = __o4["DOWN"],
-    Rewritter = __o4["Rewritter"],
+    Rewriter = __o4["Rewriter"],
     rewrite = __o4["rewrite"],
     normalize, expandBinding, always = (function(_) {
         return true;
     }),
-    peepholes = new(Rewritter)();
+    peepholes = new(Rewriter)();
 peepholes.add(["LetExpression"], UP, always, ((expandBinding = (function(binding) {
     return innerPattern(binding.value, binding.pattern, binding.recursive);
 })), (function(node) {

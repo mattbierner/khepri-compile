@@ -1,9 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast-zipper", "khepri-ast/declaration", "khepri-ast/statement",
-    "khepri-ast/expression", "khepri-ast/value", "./fun", "./rewritter"
+*/define(["require", "exports", "khepri-ast-zipper", "khepri-ast/declaration", "khepri-ast/statement",
+    "khepri-ast/expression", "khepri-ast/value", "./fun", "./rewriter"
 ], (function(require, exports, __o, ast_declaration, ast_statement, ast_expression, ast_value, __o0, __o1) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
@@ -11,29 +10,29 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/declaration", "kh
         flattenr = __o0["flattenr"],
         UP = __o1["UP"],
         DOWN = __o1["DOWN"],
-        Rewritter = __o1["Rewritter"],
+        Rewriter = __o1["Rewriter"],
         rewrite = __o1["rewrite"],
-        optimize, peepholes = new(Rewritter)(),
+        optimize, peepholes = new(Rewriter)(),
         always = (function(_) {
             return true;
         });
-    peepholes.add(["VariableDeclaration"], UP, always, (function(__o2) {
-        var loc = __o2["loc"],
-            declarations = __o2["declarations"],
+    peepholes.add(["VariableDeclaration"], UP, always, (function(__o) {
+        var loc = __o["loc"],
+            declarations = __o["declarations"],
             bound = flattenr(declarations);
         return (bound.length ? ast_declaration.VariableDeclaration.create(loc, bound) : null);
     }));
-    peepholes.add(["LetExpression"], UP, always, (function(__o2) {
-        var loc = __o2["loc"],
-            bindings = __o2["bindings"],
-            body = __o2["body"],
+    peepholes.add(["LetExpression"], UP, always, (function(__o) {
+        var loc = __o["loc"],
+            bindings = __o["bindings"],
+            body = __o["body"],
             bound = flattenr(bindings);
         return (bound.length ? ast_expression.LetExpression.create(loc, bound, body) : body);
     }));
-    peepholes.add(["WithStatement"], UP, always, (function(__o2) {
-        var loc = __o2["loc"],
-            bindings = __o2["bindings"],
-            body = __o2["body"],
+    peepholes.add(["WithStatement"], UP, always, (function(__o) {
+        var loc = __o["loc"],
+            bindings = __o["bindings"],
+            body = __o["body"],
             bound = flattenr(bindings);
         return (bound.length ? ast_statement.WithStatement.create(loc, bound, body) : body);
     }));
@@ -84,10 +83,10 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/declaration", "kh
                 .create(node.expression.loc, node.expression.operator, node.expression.left,
                     node.expression.right.body))]));
     }));
-    var x = khepriZipper,
-        y = rewrite.bind(null, peepholes);
-    (optimize = (function(x0) {
-        return y(x(x0));
-    }));
+    (optimize = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(rewrite.bind(null, peepholes), khepriZipper));
     (exports["optimize"] = optimize);
 }));

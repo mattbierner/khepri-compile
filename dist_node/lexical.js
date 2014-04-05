@@ -18,11 +18,11 @@ var ast_node = require("khepri-ast")["node"],
     Error = require("akh")["error"],
     ErrorT = require("akh")["trans"]["error"],
     Unique = require("akh")["unique"],
+    ZipperT = require("zipper-m")["trans"]["zipper"],
     scope = require("./scope"),
     Scope = scope["Scope"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
-    ZipperT = require("zipper-m")["trans"]["zipper"],
     check, reserved = (function(node) {
         return ((node && node.ud) && node.ud.reserved);
     }),

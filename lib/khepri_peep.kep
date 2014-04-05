@@ -17,14 +17,14 @@ with
     import './fun' {
         concat
         flattenr},
-    import './rewritter' {
+    import './rewriter' {
         UP
         DOWN
-        Rewritter
+        Rewriter
         rewrite}
 in {
 
-var peepholes = new Rewritter();
+var peepholes = new Rewriter();
 
 var always := \_ -> true;
 

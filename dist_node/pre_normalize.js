@@ -14,13 +14,13 @@ var __o = require("khepri-ast-zipper"),
     map = __o1["map"],
     foldl = __o1["foldl"],
     foldr = __o1["foldr"],
-    __o2 = require("./rewritter"),
+    __o2 = require("./rewriter"),
     UP = __o2["UP"],
     DOWN = __o2["DOWN"],
-    Rewritter = __o2["Rewritter"],
+    Rewriter = __o2["Rewriter"],
     rewrite = __o2["rewrite"],
     normalize, string = ast_value.Literal.create.bind(null, null, "string"),
-    peepholes = new(Rewritter)();
+    peepholes = new(Rewriter)();
 peepholes.add("PackageExport", UP, (function(node) {
     return (!node.alias);
 }), (function(node) {
@@ -29,11 +29,10 @@ peepholes.add("PackageExport", UP, (function(node) {
 peepholes.add("LetExpression", UP, (function(node) {
     return (node.bindings.length > 1);
 }), (function(__o) {
-    var loc = __o["loc"],
-        bindings = __o["bindings"],
+    var bindings = __o["bindings"],
         body = __o["body"];
     return foldr((function(p, c) {
-        return ast_expression.LetExpression.create(loc, [c], p);
+        return ast_expression.LetExpression.create(null, [c], p);
     }), body, bindings);
 }));
 peepholes.add("CurryExpression", DOWN, (function(node) {
