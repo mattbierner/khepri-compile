@@ -42,7 +42,7 @@ var run = \p s ctx ok err->
                 ErrorT.runErrorT(
                     p,
                     ok \> M.inner.of,
-                    err \> M.inner.of),
+                    ok \> M.inner.of),
             ctx),
             s),
         1000);
@@ -513,22 +513,19 @@ var addBindings = foldl@(Scope.addImmutableBinding, Scope.empty);
 /**
  * 
  */
-check = let
-    suc = \x,s -> x,
-    fail = \x -> { throw x; }
-in
-    \ast globals seed ->
-        run(
-            seq(
-                checkTop,
-                root,
-                extractNode.chain \ x ->
-                unique.chain \ unique ->
-                extract.map \ s ->
-                    ({'tree': x , 'data': {'unique': unique}})),
-            addBindings(g(globals || [])),
-            khepriZipper(ast),
-            Error.of,
-            fail,
-            seed);
+check = \ast globals seed ->
+    run(
+        seq(
+            checkTop,
+            root,
+            extractNode.chain \ x ->
+            unique.chain \ unique ->
+            extract.map \ s ->
+                ({'tree': x , 'data': {'unique': unique}})),
+        addBindings(g(globals || [])),
+        khepriZipper(ast),
+        Error.of,
+        Error.fail,
+        seed);
+
 }

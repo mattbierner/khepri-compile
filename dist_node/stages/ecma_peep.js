@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/ecma_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Error = require("akh")["error"],
     ecma_peep = require("../ecma_peep"),
     optimize;

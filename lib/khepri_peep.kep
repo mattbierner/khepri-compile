@@ -99,6 +99,20 @@ peepholes.add(['CurryExpression'], UP,
                 node.base.args,
                 node.args)));
 
+/**
+ * Flatten call of curry to call.
+ */
+peepholes.add(['CallExpression'], UP,
+    \node ->
+        (node.callee.type === 'CurryExpression'),
+    
+    \node ->
+        ast_expression.CallExpression.create(node.loc,
+            node.callee.base,
+            concat(
+                node.callee.args,
+                node.args)));
+
 /* Let to With Statement Rewrites
  ******************************************************************************/
 /**

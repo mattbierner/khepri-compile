@@ -32,7 +32,7 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/statement", "khep
             node.body);
     })));
     peepholes.add(["FunctionExpression"], UP, always, (function(node) {
-        var params = map((function(x) {
+        var params = map.bind(null, (function(x) {
             switch (x.type) {
                 case "IdentifierPattern":
                     return x;
@@ -40,9 +40,9 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/statement", "khep
                     return ast_pattern.IdentifierPattern.create(null, ((x.id && x.id.id) || x.ud
                         .id));
             }
-        }), filter((function(x) {
+        }))(filter.bind(null, (function(x) {
             return (x.type !== "EllipsisPattern");
-        }), node.params.elements)),
+        }))(node.params.elements)),
             bindings = unpackParameters(node.params.elements),
             body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement
                 .create(null, bindings, node.body)
@@ -60,8 +60,12 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/statement", "khep
         var expression = __o5["expression"];
         return (expression.type === "AssignmentExpression");
     }), (function(node) {
-        return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(
-            null, null), flattenr(expandAssignment(node.expression))));
+        var node0, right;
+        return ast_statement.BlockStatement.create(null, map.bind(null, ast_statement.ExpressionStatement
+            .create.bind(null, null))(flattenr(((node0 = node.expression), ((node0.right.type ===
+            "AssignmentExpression") ? ((right = expandAssignment(node0.right)),
+            concat(right, ast_expression.AssignmentExpression.create(null, "=",
+                node0.left, right[(right.length - 1)].left))) : [node0])))));
     }));
     peepholes.add(["BinaryExpression"], UP, (function(node) {
         return (node.operator === "|>");

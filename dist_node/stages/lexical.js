@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/lexical.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Error = require("akh")["error"],
     lexical = require("../lexical"),
     check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
@@ -14,12 +15,12 @@ var Error = require("akh")["error"],
         tree = __o["tree"],
         data = __o["data"];
     return lexical.check(tree, ((options && options.globals) || builtins), data)
-        .map((function(__o) {
-            var tree = __o["tree"],
-                data = __o["data"];
+        .map((function(__o0) {
+            var tree0 = __o0["tree"],
+                data0 = __o0["data"];
             return ({
-                "tree": tree,
-                "data": data,
+                "tree": tree0,
+                "data": data0,
                 "options": options
             });
         }));

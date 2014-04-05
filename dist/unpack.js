@@ -21,7 +21,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                 return fun.concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id,
                     pattern.target, recursive)));
             case "ObjectPattern":
-                return flatten(fun.map((function(__o) {
+                return flatten(fun.map.bind(null, (function(__o) {
                     var target = __o["target"],
                         key = __o["key"],
                         base0 = pattern.ud.id.id,
@@ -34,7 +34,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                         ast_declaration.Binding.create(null, ast_pattern.IdentifierPattern.create(
                                 null, ast_value.Identifier.create(null, key0.value)),
                             innerBase, recursive0));
-                }), pattern.elements));
+                }))(pattern.elements));
             default:
                 return [];
         }

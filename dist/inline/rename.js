@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/rename.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/rename.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "khepri-ast/node", "../ast"], (function(
+*/
+define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "khepri-ast/node", "../ast"], (function(
     require, exports, __o, __o0, tree, __o1, __o2) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],

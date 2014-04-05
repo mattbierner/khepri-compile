@@ -15,7 +15,7 @@ with
     import './rename' {rename}
 in{
 
-var getParmeterIds := map  @\x -> getUid(x.id);
+var getParmeterIds := map  @ \x -> getUid(x.id);
 
 var argsToBindings := \uid names parameters args ->
     map(

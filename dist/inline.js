@@ -14,6 +14,7 @@
         next = __o1["next"],
         seq = __o1["sequence"],
         seqa = __o1["sequencea"],
+        isIdentifier = __o2["isIdentifier"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
         isLambda = __o2["isLambda"],
@@ -29,15 +30,18 @@
         rename = __o5["rename"],
         incCount = __o5["incCount"],
         optimize, arithmetic, arithmetic0, MAX_EXPANSION_DEPTH = 1,
-        _check, State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
+        _check, Binding = record.declare(null, ["value", "immutable", "simple"]),
+        IMMUTABLE = true,
+        MUTABLE = false,
+        State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
     (State.empty = new(State)(binding.empty, binding.empty, hashtrie.empty, null, hashtrie.empty));
-    (State.prototype.addBinding = (function(uid, target) {
+    (State.prototype.addBinding = (function(uid, target, simple) {
         var s = this;
-        return s.setBindings(binding.setBinding(uid, target, s.bindings));
+        return s.setBindings(binding.setBinding(uid, Binding.create(target, IMMUTABLE, simple), s.bindings));
     }));
-    (State.prototype.addWorking = (function(uid, target) {
+    (State.prototype.addWorking = (function(uid, target, simple) {
         var s = this;
-        return s.setWorking(binding.setBinding(uid, target, s.working));
+        return s.setWorking(binding.setBinding(uid, Binding.create(target, MUTABLE, simple), s.working));
     }));
     (State.prototype.push = (function() {
         var s = this;
@@ -74,44 +78,6 @@
         right = M.right,
         moveChild = M.child,
         getChild = M.childNode,
-        addBinding = (function(uid, value) {
-            return modifyState((function(s) {
-                return s.addBinding(uid, value);
-            }));
-        }),
-        addWorking = (function(uid, value) {
-            return modifyState((function(s) {
-                return s.addWorking(uid, value);
-            }));
-        }),
-        getBinding = (function(uid) {
-            return (uid ? getState.map((function(__o) {
-                var bindings = __o["bindings"],
-                    working = __o["working"];
-                return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
-            })) : pass);
-        }),
-        canPruneBinding = (function(binding) {
-            return (binding && isPrimitive(binding));
-        }),
-        push = modifyState((function(s) {
-            return s.push();
-        })),
-        pop = modifyState((function(s) {
-            return s.pop();
-        })),
-        block = (function() {
-            var body = arguments;
-            return seq(push, seqa(body), pop);
-        }),
-        globals = getState.map((function(s) {
-            return s.globals;
-        })),
-        addGlobal = (function(name) {
-            return modifyState((function(s) {
-                return s.setGlobals(hashtrie.set(name, name, s.globals));
-            }));
-        }),
         markExpansion = (function(id, count, target) {
             return setData(id, "expand", ({
                 "count": count,
@@ -161,6 +127,50 @@
                 return expandNode(node, f);
             }));
         }),
+        addBinding = (function(uid, value, simple) {
+            return modifyState((function(s) {
+                return s.addBinding(uid, value, simple);
+            }));
+        }),
+        addWorking = (function(uid, value, simple) {
+            return modifyState((function(s) {
+                return s.addWorking(uid, value, simple);
+            }));
+        }),
+        getBinding = (function(uid) {
+            return (uid ? getState.map((function(__o) {
+                var bindings = __o["bindings"],
+                    working = __o["working"];
+                return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
+            })) : pass);
+        }),
+        tryPrune = (function(id) {
+            var uid = getUid(id);
+            return getBinding(uid)
+                .chain((function(binding) {
+                    return ((((binding && binding.simple) && (!isExpansion(binding.value))) && (
+                        isPrimitive(binding.value) || (binding.immutable && isIdentifier(
+                            binding.value)))) ? set([]) : pass);
+                }));
+        }),
+        push = modifyState((function(s) {
+            return s.push();
+        })),
+        pop = modifyState((function(s) {
+            return s.pop();
+        })),
+        block = (function() {
+            var body = arguments;
+            return seq(push, seqa(body), pop);
+        }),
+        globals = getState.map((function(s) {
+            return s.globals;
+        })),
+        addGlobal = (function(name) {
+            return modifyState((function(s) {
+                return s.setGlobals(hashtrie.set(name, name, s.globals));
+            }));
+        }),
         child = (function(edge) {
             var args = arguments;
             return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
@@ -178,12 +188,13 @@
         }),
         addBindingForNode = (function(id, value) {
             var uid = getUid(id);
-            return (isPrimitive(value) ? addBinding(uid, value) : (isLambda(value) ? addBinding(uid,
-                markExpansion(id, 0, value)) : ((value.type === "Identifier") ? getBinding(getUid(
-                    value))
+            return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
+                markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
                 .chain((function(binding) {
-                    return (binding ? addBinding(uid, binding) : pass);
-                })) : pass)));
+                    return ((binding && binding.immutable) ? (binding.simple ? addBinding(
+                        uid, binding.value, binding.simple) : addBinding(uid, value,
+                        true)) : addBinding(uid, value, false));
+                })) : addBinding(uid, value, false))));
         }),
         peepholes = ({}),
         addRewrite = (function(type, f) {
@@ -211,15 +222,14 @@
     addRewrite("VariableDeclarator", seq(visitChild("init"), when((function(node) {
         return node.init;
     }), node.chain((function(node) {
-        return (node.immutable ? seq(addBindingForNode(node.id, node.init), (
-            canPruneBinding(node.init) ? set([]) : pass)) : addWorking(getUid(node.id),
-            node.init));
+        return (node.immutable ? seq(addBindingForNode(node.id, node.init), tryPrune(node.id)) :
+            addWorking(getUid(node.id), node.init, ((isPrimitive(node.init) || isIdentifier(
+                node.init)) || isLambda(node.init))));
     })))));
     addRewrite("Binding", seq(visitChild("value"), when((function(node) {
         return ((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id));
     }), node.chain((function(node) {
-        return seq(addBindingForNode(node.pattern.id, node.value), (canPruneBinding(node.value) ?
-            set([]) : pass));
+        return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern.id));
     }))), when((function(node) {
         return ((node && (node.type === "Binding")) && (node.value.type === "LetExpression"));
     }), node.chain((function(node) {
@@ -409,8 +419,7 @@
     }), node.chain((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding) {
-                return ((binding && ((isPrimitive(binding) || (binding.type ===
-                    "Identifier")) || isLambda(binding))) ? set(binding) : pass);
+                return ((binding && binding.simple) ? set(binding.value) : pass);
             }));
     }))));
     (_check = (function(node) {

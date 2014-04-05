@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     ast_declaration = require("khepri-ast")["declaration"],
@@ -50,6 +49,11 @@ peepholes.add(["CurryExpression"], UP, (function(node) {
     return (node.base.type === "CurryExpression");
 }), (function(node) {
     return ast_expression.CurryExpression.create(node.loc, node.base.base, concat(node.base.args, node.args));
+}));
+peepholes.add(["CallExpression"], UP, (function(node) {
+    return (node.callee.type === "CurryExpression");
+}), (function(node) {
+    return ast_expression.CallExpression.create(node.loc, node.callee.base, concat(node.callee.args, node.args));
 }));
 peepholes.add(["ReturnStatement"], false, (function(node) {
     return (node.argument && (node.argument.type === "LetExpression"));

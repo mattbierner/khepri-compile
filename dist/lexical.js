@@ -25,7 +25,7 @@
                 return (function(x) {
                     return f(g(x));
                 });
-            })(M.inner.of, err)), ctx), s), 1000);
+            })(M.inner.of, ok)), ctx), s), 1000);
         }),
         error = M.fail,
         lift = M.lift,
@@ -241,13 +241,7 @@
     var g = (function(x) {
         return x.concat("require");
     }),
-        addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty),
-        suc = (function(x, s) {
-            return x;
-        }),
-        fail = (function(x) {
-            throw x;
-        });
+        addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {
         return run(seq(checkTop, root, extractNode.chain((function(x) {
             return unique.chain((function(unique) {
@@ -260,7 +254,7 @@
                     });
                 }));
             }));
-        }))), addBindings(g((globals || []))), khepriZipper(ast), Error.of, fail, seed);
+        }))), addBindings(g((globals || []))), khepriZipper(ast), Error.of, Error.fail, seed);
     }));
     (exports["check"] = check);
 }));

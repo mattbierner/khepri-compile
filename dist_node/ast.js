@@ -2,7 +2,11 @@
  * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
  * DO NOT EDIT
 */"use strict";
-var isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda, getUd, getUid;
+var isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda, getUd,
+        getUid;
+(isIdentifier = (function(node) {
+    return (node.type === "Identifier");
+}));
 (isLiteral = (function(node) {
     return (node.type === "Literal");
 }));
@@ -36,6 +40,7 @@ var isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunct
     return ((node && node.ud) && node.ud[name]);
 }));
 (getUid = getUd.bind(null, "uid"));
+(exports["isIdentifier"] = isIdentifier);
 (exports["isLiteral"] = isLiteral);
 (exports["isNumberish"] = isNumberish);
 (exports["isPrimitive"] = isPrimitive);

@@ -2,6 +2,8 @@
  * @fileOverview Khepri AST nodes predicates.
  */
 package (
+    isIdentifier
+    
     isLiteral
     isNumberish
     isPrimitive
@@ -16,6 +18,13 @@ package (
     getUd
     getUid)
 {
+/* Identifier
+ ******************************************************************************/
+/**
+ * Is a node an identifier?
+ */
+isIdentifier = \node ->
+    (node.type === 'Identifier');
 
 /* Literal
  ******************************************************************************/

@@ -29,6 +29,7 @@ with
     import 'zipper-m::walk' walk,
     
     import './ast' {
+        isIdentifier
         getUd
         getUid
         isLambda
@@ -52,6 +53,16 @@ var MAX_EXPANSION_DEPTH := 1;
  ******************************************************************************/
 var _check;
 
+/* Binding
+ ******************************************************************************/
+var Binding = record.declare(null, [
+    'value',
+    'immutable',
+    'simple']);
+
+var IMMUTABLE := true,
+    MUTABLE := false;
+
 /* State
  ******************************************************************************/
 var State := record.declare(null, [
@@ -68,13 +79,13 @@ State.empty = new State(
     null,
     hashtrie.empty);
 
-State.prototype.addBinding = \uid target =s->
+State.prototype.addBinding = \uid target simple =s->
     s.setBindings(
-        binding.setBinding(uid, target, s.bindings));
+        binding.setBinding(uid, Binding.create(target, IMMUTABLE, simple), s.bindings));
 
-State.prototype.addWorking = \uid target =s->
+State.prototype.addWorking = \uid target simple =s->
     s.setWorking(
-        binding.setBinding(uid, target, s.working));
+        binding.setBinding(uid, Binding.create(target, MUTABLE, simple), s.working));
 
 State.prototype.push = \=s->
     s.setOuter(s)
@@ -128,84 +139,6 @@ var right = M.right;
 var moveChild =  M.child;
 var getChild =  M.childNode;
 
-// Bindings Operations
-////////////////////////////////////////
-/**
- * Register an immutable binding.
- * 
- * Immutable bindings are shared across blocks.
- * 
- * @param uid Immutable binding unique id.
- * @param value Value bound.
- */
-var addBinding = \uid value ->
-    modifyState \ s ->
-        s.addBinding(uid, value);
-
-/**
- * Set the working value of a binding.
- * 
- * The working value is the value of a (perhaps mutable) binding at a point in
- * execution.
- * 
- * @param uid Identifier unique id.
- * @param value Value bound.
- */
-var addWorking = \uid value ->
-    modifyState \ s ->
-        s.addWorking(uid, value);
-
-/**
- * 
- */
-var getBinding = \uid ->
-    ?uid
-        :getState.map \ {bindings working}->
-            (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
-        :pass;
-
-/**
- * 
- */
-var canPruneBinding = \binding ->
-    binding &&
-        (isPrimitive binding);
-
-// Scoping operations
-////////////////////////////////////////
-/**
- * Enter a new scoping block.
- */
-var push = modifyState \ s -> s.push();
-
-/**
- * Exit the current the current scoping block.
- */
-var pop = modifyState \ s -> s.pop();
-
-/**
- * Evaluate `body` in a new scoping block.
- */
-var block = \body(...) ->
-    seq(
-        push,
-        seqa(body),
-        pop);
-
-// Globals Operations
-////////////////////////////////////////
-/**
- * Get globals.
- */
-var globals = getState.map \ s -> s.globals;
-
-/**
- * Add a new global.
- */
-var addGlobal = \name ->
-    modifyState \ s ->
-        s.setGlobals(hashtrie.set(name, name, s.globals));
-
 /* Expansion
  ******************************************************************************/
 var markExpansion = \id count target ->
@@ -253,6 +186,87 @@ var expandNode = \node f ->
 var expand = \exp f ->
     exp.chain \ node -> expandNode(node, f);
 
+// Bindings Operations
+////////////////////////////////////////
+/**
+ * Register an immutable binding.
+ * 
+ * Immutable bindings are shared across blocks.
+ * 
+ * @param uid Immutable binding unique id.
+ * @param value Value bound.
+ */
+var addBinding = \uid value simple ->
+    modifyState \ s ->
+        s.addBinding(uid, value, simple);
+
+/**
+ * Set the working value of a binding.
+ * 
+ * The working value is the value of a (perhaps mutable) binding at a point in
+ * execution.
+ * 
+ * @param uid Identifier unique id.
+ * @param value Value bound.
+ */
+var addWorking = \uid value simple ->
+    modifyState \ s ->
+        s.addWorking(uid, value, simple);
+
+/**
+ * 
+ */
+var getBinding = \uid ->
+    ?uid
+        :getState.map \ {bindings working}->
+            (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
+        :pass;
+
+/**
+ * 
+ */
+var tryPrune = \id ->
+    let uid = getUid id in
+        getBinding(uid).chain \ binding ->
+            ?binding && binding.simple && !isExpansion binding.value && (isPrimitive binding.value || (binding.immutable && isIdentifier binding.value))
+                :set []
+                :pass;
+
+// Scoping operations
+////////////////////////////////////////
+/**
+ * Enter a new scoping block.
+ */
+var push = modifyState \ s -> s.push();
+
+/**
+ * Exit the current the current scoping block.
+ */
+var pop = modifyState \ s -> s.pop();
+
+/**
+ * Evaluate `body` in a new scoping block.
+ */
+var block = \body(...) ->
+    seq(
+        push,
+        seqa(body),
+        pop);
+
+// Globals Operations
+////////////////////////////////////////
+/**
+ * Get globals.
+ */
+var globals = getState.map \ s -> s.globals;
+
+/**
+ * Add a new global.
+ */
+var addGlobal = \name ->
+    modifyState \ s ->
+        s.setGlobals(hashtrie.set(name, name, s.globals));
+    
 /*
  ******************************************************************************/
 /**
@@ -294,18 +308,20 @@ var when = \test consequent alternate ->
 var addBindingForNode = \id value ->
     let uid = getUid id in
         ?isPrimitive value
-            :addBinding(uid, value)
+            :addBinding(uid, value, true)
         
         :?isLambda value
-            :addBinding(uid, markExpansion(id, 0, value))
+            :addBinding(uid, markExpansion(id, 0, value), true)
         
-        :?value.type === 'Identifier'
+        :?isIdentifier value
             :getBinding(getUid value).chain \ binding ->
-                ?binding
-                    :addBinding(uid, binding)
-                    :pass
+                ?binding && binding.immutable
+                    :?binding.simple
+                        :addBinding(uid, binding.value, binding.simple)
+                        :addBinding(uid, value, true)
+                    :addBinding(uid, value, false)
         
-        :pass;
+        :addBinding(uid, value, false);
 
 /*
  ******************************************************************************/
@@ -392,10 +408,11 @@ addRewrite@'VariableDeclarator' <| seq(
             ?node.immutable
                 :seq(
                     addBindingForNode(node.id, node.init),
-                    ?canPruneBinding(node.init) : set [] : pass)
+                    tryPrune(node.id))
                 :addWorking(
                     getUid(node.id),
-                    node.init)));
+                    node.init,
+                    (isPrimitive node.init || isIdentifier node.init || isLambda node.init))));
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -417,9 +434,7 @@ addRewrite@'Binding' <| seq(
         node.chain \ node ->
             seq(
                 addBindingForNode(node.pattern.id, node.value),
-                ?canPruneBinding(node.value)
-                    :set []
-                    :pass)),
+                tryPrune(node.pattern.id))),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -741,8 +756,8 @@ addRewrite@'Identifier' <|
         
         node.chain \ node ->
             getBinding(getUid node).chain \ binding ->
-                ?binding && (isPrimitive(binding) || binding.type === 'Identifier' || isLambda(binding))
-                    :set(binding)
+                ?binding && binding.simple
+                    :set(binding.value)
                     :pass);
 
 /* Interface

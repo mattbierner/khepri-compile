@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/error", "bes/object", "../transform/transform"], (function(require, exports, Error,
+*/
+define(["require", "exports", "akh/error", "bes/object", "../transform/transform"], (function(require, exports, Error,
     __o, transformer) {
     "use strict";
     var setProperty = __o["setProperty"],

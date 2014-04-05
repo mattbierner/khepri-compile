@@ -24,7 +24,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         definitions = __o2["definitions"],
         innerPattern = __o3["innerPattern"],
         unpackParameters = __o3["unpackParameters"],
-        transform, x, y, x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, M = ZipperT(StateT(Unique)),
+        transform, x, y, x0, y0, f, f0, x1, y1, x2, y2, x3, y3, x4, y4, M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
         }),
@@ -37,7 +37,13 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
                 }));
             }));
         }),
-        enumeration = fun.foldr.bind(null, flip(cons), ok([])),
+        enumeration = fun.foldr.bind(null, flip((function(a, b) {
+            return a.chain((function(x) {
+                return b.map((function(y) {
+                    return [x].concat(y);
+                }));
+            }));
+        })), ok([])),
         State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
     (State.empty = State.create(scope.Scope.empty, null, [
         [], null
@@ -80,12 +86,18 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
                 return s;
             }));
         }),
-        enterBlock = inspectScopeWith((function(s) {
+        enterBlock = ((f = (function(s) {
             return setScope(scope.Scope.empty.setOuter(s));
-        })),
-        exitBlock = inspectScopeWith((function(s) {
+        })), extract.chain((function(s) {
+            var s0 = s.scope;
+            return setScope(scope.Scope.empty.setOuter(s0));
+        }))),
+        exitBlock = ((f0 = (function(s) {
             return setScope(s.outer);
-        })),
+        })), extract.chain((function(s) {
+            var s0 = s.scope;
+            return setScope(s0.outer);
+        }))),
         getMapping = (function(uid) {
             return inspectScope((function(s) {
                 return s.getMapping(uid);
@@ -127,8 +139,9 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         })), (y2 = (function(s) {
             return s.bindings[0];
         })), (function(x3) {
-            var s;
-            return x2(((s = x3), s.bindings[0]));
+            var s = x3,
+                x4 = s.bindings[0];
+            return x1(y1(x4));
         })))),
         _trans, _transform = withNode((function(node0) {
             return _trans(node0);
@@ -180,12 +193,12 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             return withStatementNoImport(loc, fun.map(flattenImport, bindings), body);
         }),
         functionExpression = (function(loc, id, parameters, functionBody, prefix) {
-            var params = fun.filter((function(x5) {
+            var params = fun.filter.bind(null, (function(x5) {
                 return (x5.type !== "EllipsisPattern");
-            }), parameters.elements),
-                bindings = fun.map((function(x5) {
+            }))(parameters.elements),
+                bindings = fun.map.bind(null, (function(x5) {
                     return variableDeclarator(null, x5.pattern, x5.value);
-                }), unpackArgumentsPattern(parameters)),
+                }))(unpackArgumentsPattern(parameters)),
                 body = ((functionBody.type === "BlockStatement") ? functionBody : khepri_statement.BlockStatement
                     .create(null, khepri_statement.ReturnStatement.create(null, functionBody)));
             return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement
@@ -297,13 +310,17 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         var op = node0.operator;
         switch (op) {
             case "++":
-                (op = "+");
+                {
+                    (op = "+");
+                }
                 break;
             case "--":
-                (op = "-");
+                {
+                    (op = "-");
+                }
                 break;
         }
-        return ecma_expression.UnaryExpression.create(node0.loc, op, node0.argument);
+        return ecma_expression.UnaryExpression.create(node0.loc, "-", node0.argument);
     })));
     addTransform("BinaryExpression", null, modify((function(node0) {
         return ecma_expression.BinaryExpression.create(node0.loc, node0.operator, node0.left, node0
@@ -424,10 +441,12 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
         var amd_manager = require("./package_manager/amd"),
             node_manager = require("./package_manager/node"),
             packageManager0 = amd_manager;
-        if ((manager === "node"))(packageManager0 = node_manager);
+        if ((manager === "node")) {
+            (packageManager0 = node_manager);
+        }
         var globals0 = data.globals,
             s = State.empty.setScope(scope.Scope.empty)
-                .setPackageManager(packageManager0)
+                .setPackageManager(node_manager)
                 .setGlobals((data.globals ? khepri_declaration.VariableDeclaration.create(null, data.globals
                     .map((function(x5) {
                         return khepri_declaration.VariableDeclarator.create(null,
