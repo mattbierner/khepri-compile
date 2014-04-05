@@ -17,6 +17,7 @@ with
         'sequencea': seqa},
     import 'akh::trans::state' StateT,
     import 'akh::identity' Identity,
+    import 'akh::error' Error,
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
 
@@ -32,59 +33,56 @@ var _check;
 
 /* Monad
  ******************************************************************************/
-var Zipper = ZipperT(Unique); 
-var StateM = StateT(Zipper); // TODO: should probably be reversed.
-
-var M = ErrorT(StateM);
+var M = ErrorT (ZipperT (StateT (Unique)));
 
 var run = \p s ctx ok err->
     Unique.runUnique(
-        ZipperT.runZipperT(
-            StateT.evalStateT(
+        StateT.evalStateT(
+            ZipperT.runZipperT(
                 ErrorT.runErrorT(
                     p,
-                    ok \> StateM.of,
-                    err \> StateM.of),
-                s),
+                    ok \> M.inner.of,
+                    err \> M.inner.of),
             ctx),
+            s),
         1000);
 
 var error = M.fail;
 
 var lift = M.lift;
 
-var unique = lift <| StateM.lift <| Zipper.lift <| Unique.unique;
+var unique = M.liftInner.liftInner (Unique.unique);
 
 // Scope Operations
 ////////////////////////////////////////
-var extract = lift (StateM.get);
+var extract = M.liftInner (M.inner.inner.get);
 
 var examineScope = M.chain @ extract;
 
-var modifyScope = lift <\ StateM.modify;;
+var modifyScope = M.liftInner <\ M.inner.inner.modify;
 
 var push = modifyScope scope.push;
 var pop = modifyScope scope.pop;
 
 // Movement Operations
 ////////////////////////////////////////
-var inspect = M.chain @ lift(StateM.lift(Zipper.node));
+var inspect = M.chain @ lift(M.inner.node);
 
-var extractNode = lift <| StateM.lift <| Zipper.node;
+var extractNode = lift <| M.inner.node;
 
-var move = lift <\ StateM.lift <\ Zipper.move;
+var move = lift <\ M.inner.move;
 
-var up = lift (StateM.lift Zipper.up);
-var down = lift (StateM.lift Zipper.down);
-var left = lift (StateM.lift Zipper.left);
-var right = lift (StateM.lift Zipper.right);
+var up = lift (M.inner.up);
+var down = lift (M.inner.down);
+var left = lift (M.inner.left);
+var right = lift (M.inner.right);
 
-var root = lift (StateM.lift Zipper.root);
+var root = lift (M.inner.root);
 
-var moveChild =  lift <\ StateM.lift <\ Zipper.child;
+var moveChild =  lift <\ M.inner.child;
 
-var modifyNode = lift <\ StateM.lift <\ Zipper.modifyNode;
-var setNode = lift <\ StateM.lift <\ Zipper.setNode;
+var modifyNode = lift <\ M.inner.modifyNode;
+var setNode = lift <\ M.inner.setNode;
 
 var checkTop = inspect \ x -> _check x; // forward
 
@@ -530,7 +528,7 @@ in
                     ({'tree': x , 'data': {'unique': unique}})),
             addBindings(g(globals || [])),
             khepriZipper(ast),
-            suc,
+            Error.of,
             fail,
             seed);
 }

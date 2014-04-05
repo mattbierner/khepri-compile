@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "../inline", "bes/object"], (function(require, exports, inline, __o) {
+*/define(["require", "exports", "bes/object", "akh/error", "../inline"], (function(require, exports, __o, Error, inline) {
     "use strict";
     var setProperty = __o["setProperty"],
         optimize;
@@ -10,7 +9,7 @@ define(["require", "exports", "../inline", "bes/object"], (function(require, exp
         var tree = input["tree"],
             data = input["data"],
             out = inline.optimize(tree, data);
-        return setProperty(setProperty(input, "tree", out.tree), "data", out.data);
+        return Error.of(setProperty(setProperty(input, "tree", out.tree), "data", out.data));
     }));
     return optimize;
 }));

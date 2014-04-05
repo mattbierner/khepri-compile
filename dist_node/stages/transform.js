@@ -2,14 +2,16 @@
  * THIS FILE IS AUTO GENERATED from 'lib/stages/transform.kep'
  * DO NOT EDIT
 */"use strict";
-var transformer = require("../transform/transform"),
+var Error = require("akh")["error"],
     __o = require("bes")["object"],
     setProperty = __o["setProperty"],
+    transformer = require("../transform/transform"),
     transform;
 (transform = (function(input) {
     var options = input["options"],
         tree = input["tree"],
         data = input["data"];
-    return setProperty(input, "tree", transformer.transform(tree, (options.package_manager || "amd"), data));
+    return Error.of(setProperty(input, "tree", transformer.transform(tree, (options.package_manager || "amd"),
+        data)));
 }));
 (module.exports = transform);

@@ -8,6 +8,9 @@
  */
 package compile
 with
+    import 'akh::error' Error,
+    import 'akh::base' {sequence},
+
     import './stages/pre_normalize' pre_normalize,
     import './stages/lexical' lexical,
     import './stages/post_normalize' post_normalize,
@@ -17,14 +20,16 @@ with
     import './stages/ecma_peep' ecma_peep
 in {
 
-var compiler :=
-       pre_normalize
-    \> lexical
-    \> post_normalize
-    \> inline
-    \> khepri_peep
-    \> transform
-    \> ecma_peep;
+var compiler := \x ->
+    Error.tryError(
+        pre_normalize(x)
+            .chain(lexical)
+            .chain(post_normalize)
+            .chain(inline)
+            .chain(khepri_peep)
+            .chain(transform)
+            .chain(ecma_peep),
+        \x -> {throw x; });
 
 var extract := \{tree} -> tree;
 

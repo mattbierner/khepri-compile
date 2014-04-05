@@ -3,15 +3,18 @@
  */
 package optimize
 with
+    import 'akh::error' Error,
+    
     import '../ecma_peep' ecma_peep
 in {
 
 /**
  * 
  */
-optimize = \{options tree} -> ({
-    'options': options,
-    'tree': ecma_peep.optimize(tree)
-});
+optimize = \{options tree} ->
+    Error.of {
+        'options': options,
+        'tree': ecma_peep.optimize(tree)
+    };
 
 }

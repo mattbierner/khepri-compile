@@ -3,15 +3,18 @@
  */
 package optimize
 with
-    import '../khepri_peep' khepri_peep,
-    import 'bes::object' {setProperty}
+    import 'akh::error' Error,
+    
+    import 'bes::object' {setProperty},
+    
+    import '../khepri_peep' khepri_peep
 in {
 
 /**
  * 
  */
 optimize = \input#{tree data} ->
-    setProperty(
+    Error.of <| setProperty(
         input,
         'tree',
         khepri_peep.optimize(tree, data));

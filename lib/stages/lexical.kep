@@ -3,6 +3,8 @@
  */
 package check
 with
+    import 'akh::error' Error,
+
     import '../lexical' lexical
 in {
 
@@ -42,15 +44,15 @@ var builtins = [
 /**
  * 
  */
-check = \{options tree data} -> let
-    {tree data} = lexical.check(
+check = \{options tree data} ->
+    lexical.check(
         tree,
         ((options && options.globals) || builtins),
         data)
-in {
-    'tree': tree,
-    'data': data,
-    'options': options
-};
+    .map \{tree data} -> ({
+        'tree': tree,
+        'data': data,
+        'options': options
+    });
 
 }

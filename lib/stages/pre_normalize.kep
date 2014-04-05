@@ -5,15 +5,18 @@
  */
 package normalize
 with
+    import 'akh::error' Error,
+    
     import '../pre_normalize' pre_normalize
 in {
 
 /**
  * 
  */
-normalize = \{options tree} -> ({
-    'options': options,
-    'tree': pre_normalize.normalize(tree)
-});
+normalize = \{options tree} ->
+    Error.of {
+        'options': options,
+        'tree': pre_normalize.normalize(tree)
+    };
 
 }

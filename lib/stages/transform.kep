@@ -3,13 +3,16 @@
  */
 package transform
 with 
-    import '../transform/transform' transformer,
-    import 'bes::object' {setProperty}
+    import 'akh::error' Error,
+    
+    import 'bes::object' {setProperty},
+
+    import '../transform/transform' transformer
 in {
 
 
 transform = \input#{options tree data} ->
-    setProperty(
+    Error.of <| setProperty(
         input,
         'tree',
         transformer.transform(

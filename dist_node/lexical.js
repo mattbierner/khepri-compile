@@ -15,6 +15,7 @@ var ast_node = require("khepri-ast")["node"],
     seqa = __o0["sequencea"],
     StateT = require("akh")["trans"]["state"],
     Identity = require("akh")["identity"],
+    Error = require("akh")["error"],
     ErrorT = require("akh")["trans"]["error"],
     Unique = require("akh")["unique"],
     scope = require("./scope"),
@@ -22,75 +23,57 @@ var ast_node = require("khepri-ast")["node"],
     __o1 = require("./fun"),
     foldl = __o1["foldl"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
-    check, _check, Zipper = ZipperT(Unique),
-    StateM = StateT(Zipper),
-    M = ErrorT(StateM),
+    check, _check, M = ErrorT(ZipperT(StateT(Unique))),
     run = (function(p, s, ctx, ok, err) {
-        return Unique.runUnique(ZipperT.runZipperT(StateT.evalStateT(ErrorT.runErrorT(p, (function(f, g) {
+        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(ErrorT.runErrorT(p, (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
-        })(StateM.of, ok), (function(f, g) {
+        })(M.inner.of, ok), (function(f, g) {
             return (function(x) {
                 return f(g(x));
             });
-        })(StateM.of, err)), s), ctx), 1000);
+        })(M.inner.of, err)), ctx), s), 1000);
     }),
     error = M.fail,
     lift = M.lift,
-    unique = lift(StateM.lift(Zipper.lift(Unique.unique))),
-    extract = lift(StateM.get),
+    unique = M.liftInner.liftInner(Unique.unique),
+    extract = M.liftInner(M.inner.inner.get),
     examineScope = M.chain.bind(null, extract),
     modifyScope = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(lift, StateM.modify),
+    })(M.liftInner, M.inner.inner.modify),
     push = modifyScope(scope.push),
     pop = modifyScope(scope.pop),
-    inspect = M.chain.bind(null, lift(StateM.lift(Zipper.node))),
-    extractNode = lift(StateM.lift(Zipper.node)),
+    inspect = M.chain.bind(null, lift(M.inner.node)),
+    extractNode = lift(M.inner.node),
     move = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })((function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(lift, StateM.lift), Zipper.move),
-    up = lift(StateM.lift(Zipper.up)),
-    down = lift(StateM.lift(Zipper.down)),
-    left = lift(StateM.lift(Zipper.left)),
-    right = lift(StateM.lift(Zipper.right)),
-    root = lift(StateM.lift(Zipper.root)),
+    })(lift, M.inner.move),
+    up = lift(M.inner.up),
+    down = lift(M.inner.down),
+    left = lift(M.inner.left),
+    right = lift(M.inner.right),
+    root = lift(M.inner.root),
     moveChild = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })((function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(lift, StateM.lift), Zipper.child),
+    })(lift, M.inner.child),
     modifyNode = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })((function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(lift, StateM.lift), Zipper.modifyNode),
+    })(lift, M.inner.modifyNode),
     setNode = (function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })((function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(lift, StateM.lift), Zipper.setNode),
+    })(lift, M.inner.setNode),
     checkTop = inspect((function(x) {
         return _check(x);
     })),
@@ -280,6 +263,6 @@ var g = (function(x) {
                 });
             }));
         }));
-    }))), addBindings(g((globals || []))), khepriZipper(ast), suc, fail, seed);
+    }))), addBindings(g((globals || []))), khepriZipper(ast), Error.of, fail, seed);
 }));
 (exports["check"] = check);

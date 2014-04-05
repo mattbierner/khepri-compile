@@ -1,8 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "../transform/transform", "bes/object"], (function(require, exports, transformer, __o) {
+*/define(["require", "exports", "akh/error", "bes/object", "../transform/transform"], (function(require, exports, Error,
+    __o, transformer) {
     "use strict";
     var setProperty = __o["setProperty"],
         transform;
@@ -10,8 +10,8 @@ define(["require", "exports", "../transform/transform", "bes/object"], (function
         var options = input["options"],
             tree = input["tree"],
             data = input["data"];
-        return setProperty(input, "tree", transformer.transform(tree, (options.package_manager || "amd"),
-            data));
+        return Error.of(setProperty(input, "tree", transformer.transform(tree, (options.package_manager ||
+            "amd"), data)));
     }));
     return transform;
 }));

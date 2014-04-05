@@ -5,15 +5,18 @@
  */
 package optimize
 with
-    import '../post_normalize' post_normalize,
-    import 'bes::object' {setProperty}
+    import 'bes::object' {setProperty},
+
+    import 'akh::error' Error,
+
+    import '../post_normalize' post_normalize
 in {
 
 /**
  * 
  */
 optimize = \input#{tree data} ->
-    setProperty(
+    Error.of <| setProperty(
         input,
         'tree',
         post_normalize.normalize(tree, data));

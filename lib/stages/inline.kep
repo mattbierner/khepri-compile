@@ -1,12 +1,13 @@
 /**
  * @fileOverview Khepri code inlining compiler stage.
- * 
- * 
  */
 package optimize
 with
-    import '../inline' inline,
-    import 'bes::object' {setProperty}
+    import 'bes::object' {setProperty},
+    
+    import 'akh::error' Error,
+    
+    import '../inline' inline
 in {
 
 /**
@@ -15,7 +16,7 @@ in {
 optimize = \input#{tree data} -> let
     out = inline.optimize(tree, data)
 in
-    setProperty(
+    Error.of <| setProperty(
         setProperty(input, 'tree', out.tree),
         'data',
         out.data);
