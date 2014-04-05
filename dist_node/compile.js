@@ -20,6 +20,7 @@ var Error = require("akh")["error"],
             .chain(khepri_peep)
             .chain(transform)
             .chain(ecma_peep), (function(x) {
+                console.log(x);
                 throw x;
             }));
     }),

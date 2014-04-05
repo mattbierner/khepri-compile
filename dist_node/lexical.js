@@ -33,7 +33,7 @@ var ast_node = require("khepri-ast")["node"],
             return (function(x) {
                 return f(g(x));
             });
-        })(M.inner.of, ok)), ctx), s), 1000);
+        })(M.inner.of, err)), ctx), s), 1000);
     }),
     error = M.fail,
     lift = M.lift,

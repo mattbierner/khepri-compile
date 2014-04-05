@@ -42,7 +42,7 @@ var run = \p s ctx ok err->
                 ErrorT.runErrorT(
                     p,
                     ok \> M.inner.of,
-                    ok \> M.inner.of),
+                    err \> M.inner.of),
             ctx),
             s),
         1000);

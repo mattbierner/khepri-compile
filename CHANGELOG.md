@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.3.11 - March 29, 2014
+* Improvements to inlining.
+* Restored zero overhead for call of curry.
+
 ## 0.3.10 - March 29, 2014
 * Fixed inlining of recursive curry with multiple args.
 
