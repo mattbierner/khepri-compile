@@ -1,5 +1,5 @@
 /**
- * @fileOverview ECMAScript AST peephole optimization pass.
+ * @fileOverview ECMAScript AST peephole rewrite pass.
  */
 package (
     optimize)
@@ -7,12 +7,11 @@ with
     import 'ecma-ast-zipper' {ecmaZipper},
     
     import 'ecma-ast::node' {modify},
-    import 'ecma-ast::value' ast_value,
-    import 'ecma-ast::declaration' ast_declaration,
     import 'ecma-ast::statement' ast_statement,
     import 'ecma-ast::expression' ast_expression,
     
-    import './fun' fun,
+    import './ast' {type},
+    import './fun' {concat flatten map foldr},
     import './rewriter' {
         UP
         DOWN
@@ -20,15 +19,47 @@ with
         rewrite}
 in {
 
+/**
+ * Flatten the body of a block statement.
+ */
+var flattenBlockBody :=
+    map @ (\x ->
+        ?!x || type x === 'EmptyStatement'
+            :[]
+        :?type x === 'BlockStatement'
+            :x.body
+        :x)
+    \> flatten;
+
+/**
+ * Merge neighboring variable declarations in a block of code.
+ */
+var mergeBlockDeclarations :=
+    foldr @ (
+        \p c ->
+            ?(type c === 'VariableDeclaration' && type p.(0) === 'VariableDeclaration')
+                :concat(
+                    modify(c, {
+                        'declarations': concat(c.declarations, p.(0).declarations)
+                    }, {}),
+                    p.slice(1))
+                :concat(c, p),
+        []);
+
+/* Transforms
+ ******************************************************************************/
 var peepholes = new Rewriter();
 
-/* Peepholes
+var always := \_ -> true;
+
+/* Declarations
  ******************************************************************************/
 /**
  * Filter out empty variable declarators.
  */
-peepholes.add(['VariableDeclaration'], false,
-    \_ -> true, 
+peepholes.add('VariableDeclaration', DOWN,
+    always,
+    
     \node -> let
         declarations = node.declarations.filter(\x -> !!x)
     in
@@ -39,52 +70,37 @@ peepholes.add(['VariableDeclaration'], false,
 /**
  * Remove empty Variable declarations.
  */
-peepholes.add(['VariableDeclaration'], true,
-    \node -> !node.declarations.length,
+peepholes.add('VariableDeclaration', UP,
+    \node ->
+        !node.declarations.length,
+    
     \_ -> null);
 
 /**
- * Reduce block statements
+ * Reduce block statements.
+ * 
+ * Removes top level empty statements and also merges child blocks into parent
  */
-peepholes.add(['Program', 'BlockStatement'], true,
-    \_ -> true,
+peepholes.add(['Program', 'BlockStatement'], UP,
+    always,
+    
     \node ->
         modify(node, {
-            'body': fun.flatten(node.body.map(\x ->
-                ?x && x.type === 'BlockStatement' :x.body :x))
+            'body': flattenBlockBody(node.body)
         }, {}));
 
 /**
- * Merge var declarations
+ * Merge var neighboring declarations
  */
-peepholes.add(['Program', 'BlockStatement'], true,
-    \_ -> true,
+peepholes.add(['Program', 'BlockStatement'], UP,
+    always,
     \node ->
         modify(node, {
-            'body': node.body.reduceRight(\p c ->
-                ?(c && c.type === 'VariableDeclaration' && p.length && p.(0) && p.(0).type === 'VariableDeclaration')
-                    :fun.concat(modify(c, {
-                        'declarations': fun.concat(c.declarations, p.(0).declarations)
-                    }, {}), p.slice(1))
-                    :fun.concat(c, p),
-                [])
+            'body': mergeBlockDeclarations(node.body)
             }, {}));
-
-/**
- * Remove top level empty statements
- */
-peepholes.add(['Program', 'BlockStatement'], true,
-    \_ -> true,
-    \node ->
-        modify(node, {
-            'body': fun.flatten(node.body.map(\x ->
-                ?!x || x.type === 'EmptyStatement' :[] :x))
-            }, {}));
-
 
 /* Interface
  ******************************************************************************/
-optimize = \ast -> 
-    rewrite(peepholes, ecmaZipper(ast));
+optimize = ecmaZipper \> rewrite @ peepholes;
 
 }

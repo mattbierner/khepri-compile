@@ -2,6 +2,8 @@
  * @fileOverview Khepri AST nodes predicates.
  */
 package (
+    type
+        
     isIdentifier
     
     isLiteral
@@ -18,6 +20,13 @@ package (
     getUd
     getUid)
 {
+
+/**
+ * Safe node type getter
+ */
+type = \node ->
+    (node && node.type);
+
 /* Identifier
  ******************************************************************************/
 /**

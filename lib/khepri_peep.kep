@@ -30,11 +30,11 @@ var always := \_ -> true;
 
 /* Binding Expression Normalization
  ******************************************************************************/
-/**s
+/**
  * Flatten variable declaration declaration lists and remove if declaration list
  * is empty.
  */
-peepholes.add(['VariableDeclaration'], UP,
+peepholes.add('VariableDeclaration', UP,
     always,
     
     \{loc declarations} ->
@@ -47,7 +47,7 @@ peepholes.add(['VariableDeclaration'], UP,
  * Flatten let expression bindings lists and collapse to body 
  * when binding list is empty
  */
-peepholes.add(['LetExpression'], UP,
+peepholes.add('LetExpression', UP,
     always,
     
     \{loc bindings body} ->
@@ -60,7 +60,7 @@ peepholes.add(['LetExpression'], UP,
  * Flatten with statement bindings lists and collapse to body 
  * when binding list is empty.
  */
-peepholes.add(['WithStatement'], UP,
+peepholes.add('WithStatement', UP,
     always,
     
     \{loc bindings body} ->
@@ -74,7 +74,7 @@ peepholes.add(['WithStatement'], UP,
 /**
  * Flatten let with let body.
  */
-peepholes.add(['LetExpression'], UP,
+peepholes.add('LetExpression', UP,
     \node ->
         (node.body.type === 'LetExpression'),
     
@@ -88,7 +88,7 @@ peepholes.add(['LetExpression'], UP,
 /**
  * Flatten curry of curry.
  */
-peepholes.add(['CurryExpression'], UP,
+peepholes.add('CurryExpression', UP,
     \node ->
         (node.base.type === 'CurryExpression'),
     
@@ -102,7 +102,7 @@ peepholes.add(['CurryExpression'], UP,
 /**
  * Flatten call of curry to call.
  */
-peepholes.add(['CallExpression'], UP,
+peepholes.add('CallExpression', UP,
     \node ->
         (node.callee.type === 'CurryExpression'),
     
@@ -118,7 +118,7 @@ peepholes.add(['CallExpression'], UP,
 /**
  * Rewrite `return let` to a with statement.
  */
-peepholes.add(['ReturnStatement'], false,
+peepholes.add('ReturnStatement', false,
     \node ->
         (node.argument && node.argument.type === 'LetExpression'),
     
@@ -131,7 +131,7 @@ peepholes.add(['ReturnStatement'], false,
 /**
  * Rewrite `\...-> let` to a with statement.
  */
-peepholes.add(['FunctionExpression'], DOWN,
+peepholes.add('FunctionExpression', DOWN,
     \node ->
         (node.body.type === 'LetExpression'),
     
@@ -148,7 +148,7 @@ peepholes.add(['FunctionExpression'], DOWN,
 /**
  * Rewrite top level let expressions to with statements.
  */
-peepholes.add(['ExpressionStatement'], UP,
+peepholes.add('ExpressionStatement', UP,
     \node ->
         (node.expression && node.expression.type === 'LetExpression'),
     
@@ -161,7 +161,7 @@ peepholes.add(['ExpressionStatement'], UP,
 /**
  * Rewrite top level assign to let expressions to with statements.
  */
-peepholes.add(['ExpressionStatement'], UP,
+peepholes.add('ExpressionStatement', UP,
     \node ->
         (  node.expression
         && node.expression.type === 'AssignmentExpression'

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern",
+*/
+define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/value", "./fun", "./rewriter"
 ], (function(require, exports, __o, __o0, ast_expression, ast_pattern, ast_package, ast_value, __o1, __o2) {
     "use strict";
@@ -23,18 +24,18 @@
     }));
     peepholes.add("LetExpression", UP, (function(node) {
         return (node.bindings.length > 1);
-    }), (function(__o) {
-        var bindings = __o["bindings"],
-            body = __o["body"];
+    }), (function(__o3) {
+        var bindings = __o3["bindings"],
+            body = __o3["body"];
         return foldr((function(p, c) {
             return ast_expression.LetExpression.create(null, [c], p);
         }), body, bindings);
     }));
     peepholes.add("CurryExpression", DOWN, (function(node) {
         return (node.args.length > 1);
-    }), (function(__o) {
-        var base = __o["base"],
-            args = __o["args"];
+    }), (function(__o3) {
+        var base = __o3["base"],
+            args = __o3["args"];
         return foldl((function(p, arg) {
             return ast_expression.CurryExpression.create(null, p, [arg]);
         }), base, args);
@@ -73,10 +74,10 @@
             "__o")), "reserved", true);
         return ast_pattern.AsPattern.create(null, id, setData(node, "id", id));
     }));
-    (normalize = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(rewrite.bind(null, peepholes), khepriZipper));
+    var x = khepriZipper,
+        y = rewrite.bind(null, peepholes);
+    (normalize = (function(x0) {
+        return y(x(x0));
+    }));
     (exports["normalize"] = normalize);
 }));
