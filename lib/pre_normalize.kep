@@ -68,12 +68,12 @@ peepholes.add('CurryExpression', DOWN,
     \node ->
         node.args.length > 1,
     
-    \node ->
+    \{base args} ->
         foldl(
             \p arg -> 
                 ast_expression.CurryExpression.create(null, p, [arg]),
-            node.base,
-            node.args));
+            base,
+            args));
 
 /* Pattern Normalizations
  ******************************************************************************/
@@ -82,6 +82,7 @@ peepholes.add('CurryExpression', DOWN,
  */
 peepholes.add('ArrayPattern', DOWN,
     \_ -> true,
+    
     \node#{loc elements} ->
         ast_pattern.ObjectPattern.create(loc,
             map(

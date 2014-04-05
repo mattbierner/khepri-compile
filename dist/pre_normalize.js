@@ -32,10 +32,12 @@
     }));
     peepholes.add("CurryExpression", DOWN, (function(node) {
         return (node.args.length > 1);
-    }), (function(node) {
+    }), (function(__o) {
+        var base = __o["base"],
+            args = __o["args"];
         return foldl((function(p, arg) {
             return ast_expression.CurryExpression.create(null, p, [arg]);
-        }), node.base, node.args);
+        }), base, args);
     }));
     peepholes.add("ArrayPattern", DOWN, (function(_) {
         return true;

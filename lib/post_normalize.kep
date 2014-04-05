@@ -49,7 +49,7 @@ var peepholes = new Rewriter();
  * Expand potentially complex let expression bindings patterns to a list of simple
  * identifier bindings.
  */
-peepholes.add(['LetExpression'], UP,
+peepholes.add('LetExpression', UP,
     always,
     
     let
@@ -65,7 +65,7 @@ peepholes.add(['LetExpression'], UP,
  * identifier patterns for the arguments with a binding body to unpack
  * complex parameter binding values.
  */
-peepholes.add(['FunctionExpression'], UP,
+peepholes.add('FunctionExpression', UP,
     always,
     
     \node -> let
@@ -73,11 +73,9 @@ peepholes.add(['FunctionExpression'], UP,
             |> (filter @ \x -> x.type !== 'EllipsisPattern')
             |> (map @ \x -> {
                 switch (x.type) {
-                case 'IdentifierPattern':
-                    return x;
-                default:
-                    return ast_pattern.IdentifierPattern.create(null,
-                        (x.id && x.id.id) || x.ud.id);
+                case 'IdentifierPattern': return x;
+                case 'AsPattern': return x.id;
+                default: return x.ud.id;
                 }
             }),
         
@@ -92,7 +90,7 @@ peepholes.add(['FunctionExpression'], UP,
                 bindings,
                 node.body)
     in
-        ast_expression.FunctionExpression.create(null,
+        ast_expression.FunctionExpression.create(node.loc,
             node.id,
             ast_pattern.ArgumentsPattern.create(null,
                 node.params.id,
@@ -116,7 +114,7 @@ var expandAssignment := \node ->
  * Rewrite a potentially compound assignment expression to a list of single
  * assignments.
  */
-peepholes.add(['ExpressionStatement'], UP,
+peepholes.add('ExpressionStatement', UP,
     \{expression} ->
         (expression.type === 'AssignmentExpression'),
     
@@ -129,7 +127,7 @@ peepholes.add(['ExpressionStatement'], UP,
 /**
  * Rewrite left pipe to a call.
  */
-peepholes.add(['BinaryExpression'], UP,
+peepholes.add('BinaryExpression', UP,
     \node ->
         (node.operator === '|>'),
     
@@ -141,7 +139,7 @@ peepholes.add(['BinaryExpression'], UP,
 /**
  * Rewrite right pipe to a call.
  */
-peepholes.add(['BinaryExpression'], UP,
+peepholes.add('BinaryExpression', UP,
     \node->
         (node.operator === '<|'),
     
@@ -153,7 +151,7 @@ peepholes.add(['BinaryExpression'], UP,
 /**
  * Rewrite compose to use builtin compose code.
  */
-peepholes.add(['BinaryExpression'], UP,
+peepholes.add('BinaryExpression', UP,
     \node->
         (  node.operator === '\\>'
         || node.operator === '\\>>'

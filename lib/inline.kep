@@ -266,7 +266,7 @@ var globals = getState.map \ s -> s.globals;
 var addGlobal = \name ->
     modifyState \ s ->
         s.setGlobals(hashtrie.set(name, name, s.globals));
-    
+
 /*
  ******************************************************************************/
 /**
@@ -316,9 +316,9 @@ var addBindingForNode = \id value ->
         :?isIdentifier value
             :getBinding(getUid value).chain \ binding ->
                 ?binding
-                    :?binding.simple && binding.immutable
+                    :?binding.simple && binding.immutable && binding.value
                         :addBinding(uid, binding.value, binding.simple)
-                        :addBinding(uid, value, false)
+                        :addBinding(uid, value, binding.simple)
                     :addBinding(uid, value, false)
         
         :addBinding(uid, value, false);
@@ -738,6 +738,16 @@ addRewrite@'LetExpression' <| seq(
         modify \ {body} ->
             body));
 
+// Pattern
+addRewrite@'ArgumentsPattern' <| seq(
+    visitChild 'id',
+    visitChild 'elements',
+    visitChild 'self');
+
+addRewrite@'IdentifierPattern' <|
+    node.chain \ node ->
+        addBinding(getUid node.id, null, true);
+
 // Value
 addRewrite@'ArrayExpression' <|
     visitChild 'elements';
@@ -756,7 +766,7 @@ addRewrite@'Identifier' <|
         
         node.chain \ node ->
             getBinding(getUid node).chain \ binding ->
-                ?binding && binding.simple
+                ?binding && binding.value && binding.simple
                     :set(binding.value)
                     :pass);
 

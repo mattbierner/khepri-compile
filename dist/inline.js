@@ -191,9 +191,9 @@
             return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
                 markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
                 .chain((function(binding) {
-                    return (binding ? ((binding.simple && binding.immutable) ? addBinding(
-                        uid, binding.value, binding.simple) : addBinding(uid, value,
-                        false)) : addBinding(uid, value, false));
+                    return (binding ? (((binding.simple && binding.immutable) && binding.value) ?
+                        addBinding(uid, binding.value, binding.simple) : addBinding(uid,
+                            value, binding.simple)) : addBinding(uid, value, false));
                 })) : addBinding(uid, value, false))));
         }),
         peepholes = ({}),
@@ -411,6 +411,10 @@
         var body = __o["body"];
         return body;
     })))));
+    addRewrite("ArgumentsPattern", seq(visitChild("id"), visitChild("elements"), visitChild("self")));
+    addRewrite("IdentifierPattern", node.chain((function(node) {
+        return addBinding(getUid(node.id), null, true);
+    })));
     addRewrite("ArrayExpression", visitChild("elements"));
     addRewrite("ObjectExpression", visitChild("properties"));
     addRewrite("ObjectValue", visitChild("value"));
@@ -419,7 +423,8 @@
     }), node.chain((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding) {
-                return ((binding && binding.simple) ? set(binding.value) : pass);
+                return (((binding && binding.value) && binding.simple) ? set(binding.value) :
+                    pass);
             }));
     }))));
     (_check = (function(node) {
