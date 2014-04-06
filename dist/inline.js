@@ -86,46 +86,20 @@
         }),
         getExpansion = getUd.bind(null, "expand"),
         isExpansion = getExpansion,
-        getCtx = getState.map((function(s) {
-            return s.ctx;
-        })),
-        modifyCtx = (function(f) {
-            return modifyState((function(s) {
-                return s.setCtx(f(s.ctx));
-            }));
+        canExpand = (function(exp) {
+            return (exp.count < MAX_EXPANSION_DEPTH);
         }),
-        canExpand = (function(exp, uid) {
-            return getCtx.map((function(ctx) {
-                return ((exp.count < MAX_EXPANSION_DEPTH) && (hashtrie.get(uid, ctx) <
-                    MAX_EXPANSION_DEPTH));
-            }));
-        }),
-        pushCtx = (function(uid) {
-            return modifyCtx((function(ctx) {
-                return hashtrie.modify(uid, (function(x) {
-                    return ((x + 1) || 1);
-                }), ctx);
-            }));
-        }),
-        popCtx = (function(uid) {
-            return modifyCtx((function(ctx) {
-                return hashtrie.modify(uid, (function(x) {
-                    return ((x - 1) || 0);
-                }), ctx);
-            }));
-        }),
-        expandNode = (function(node, f) {
+        expandNode = (function(node) {
             var uid, exp;
-            return (isExpansion(node) ? ((uid = getUid(node)), (exp = getExpansion(node)), canExpand(exp,
-                    uid)
-                .chain((function(can) {
-                    return (can ? f(exp.value) : f(setData(node, "expand", null)));
-                }))) : f(node));
+            return (isExpansion(node) ? ((uid = getUid(node)), (exp = getExpansion(node)), (canExpand(exp) ?
+                exp.value : setData(node, "expand", null))) : node);
         }),
         expand = (function(exp, f) {
-            return exp.chain((function(node) {
-                return expandNode(node, f);
-            }));
+            return exp.chain((function(f, g) {
+                return (function(x) {
+                    return f(g(x));
+                });
+            })(f, expandNode));
         }),
         addBinding = (function(uid, value, simple) {
             return modifyState((function(s) {

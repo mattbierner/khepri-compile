@@ -151,40 +151,25 @@ var getExpansion := getUd @ 'expand';
 
 var isExpansion := getExpansion;
 
-var getCtx = getState.map \ s -> s.ctx;
-
-var modifyCtx = \f ->
-    modifyState \ s ->
-        s.setCtx(f(s.ctx));
-
-var canExpand := \exp uid -> 
-    getCtx.map \ ctx ->
-        exp.count < MAX_EXPANSION_DEPTH && hashtrie.get(uid, ctx) < MAX_EXPANSION_DEPTH;
-
-var pushCtx := \uid ->
-    modifyCtx \ ctx ->
-        hashtrie.modify(uid, \x -> (x + 1 || 1), ctx);
-
-var popCtx := \uid ->
-    modifyCtx \ ctx ->
-        hashtrie.modify(uid, \x -> (x - 1 || 0), ctx);
+var canExpand := \exp -> 
+    exp.count < MAX_EXPANSION_DEPTH;
 
 /**
- * 
+ * Try to expand `node`.
  */
-var expandNode = \node f ->
+var expandNode = \node ->
     ?isExpansion node
         :let uid = getUid node, exp = getExpansion node in
-            canExpand(exp, uid).chain \ can -> ?can
-                :f <| exp.value
-                :f <| setData(node, 'expand', null)
-        :f(node);
+            ?canExpand exp
+                :exp.value
+                :setData(node, 'expand', null)
+        :node;
 
 /**
- * 
+ * Expand the value from `exp`, passing result to `f`.
  */
 var expand = \exp f ->
-    exp.chain \ node -> expandNode(node, f);
+    exp.chain(expandNode \> f);
 
 // Bindings Operations
 ////////////////////////////////////////
@@ -214,11 +199,15 @@ var addWorking = \uid value simple ->
         s.addWorking(uid, value, simple);
 
 /**
+ * Get the value of the current binding for `uid`.
  * 
+ * Prefers working bindings over immutable bindings.
+ * 
+ * @param uid Identifier unique id.
  */
 var getBinding = \uid ->
     ?uid
-        :getState.map \ {bindings working}->
+        :getState.map \ {bindings working} ->
             (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
         :pass;
 
