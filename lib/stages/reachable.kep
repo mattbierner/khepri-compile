@@ -1,0 +1,20 @@
+/**
+ */
+package optimize
+with
+    import 'bes::object' {setProperty},
+    
+    import 'akh::error' Error,
+    
+    import '../reachable' reachable
+in {
+
+/**
+ * 
+ */
+optimize = \input#{tree data} -> let
+    out = reachable.optimize(tree, data)
+in
+    Error.of <| setProperty(input, 'tree', out.tree);
+
+}

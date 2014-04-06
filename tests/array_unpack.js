@@ -8,7 +8,8 @@ var compile = require('../index').compile;
 
 
 var testParser = function(input) {
-    return eval(unparse_print.print(unparse.unparse(compile(parser.parseStream(lexer.lex(input))))));
+    var r = unparse_print.print(unparse.unparse(compile(parser.parseStream(lexer.lex(input)))));
+    return eval(r);
 };
   
 

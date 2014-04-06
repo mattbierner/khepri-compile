@@ -54,7 +54,7 @@ var error = M.fail;
 
 var lift = M.lift;
 
-var unique = M.liftInner.liftInner (Unique.unique);
+var unique = M.chain @ (M.liftInner.liftInner (Unique.unique));
 
 // Scope Operations
 ////////////////////////////////////////
@@ -154,7 +154,7 @@ var checkCanAssign = \id, loc ->
  * Define a new identifier and create a uid entry for it.
  */
 var addUid = \id ->
-    unique.chain \ uid ->
+    unique \ uid ->
         modifyScope(\s -> Scope.addUid(s, id, uid));
 
 /**
@@ -429,9 +429,9 @@ addCheck@'CurryExpression' <|
 
 // Patterns
 addCheck@'SinkPattern'<|
-    unique.chain \ uid ->
+    unique \ uid ->
     modifyNode \ node ->
-        setData(node, 'id',
+        ast_pattern.IdentifierPattern.create(node.loc,
             setData(
                 ast_value.Identifier.create(null, '_'),
                 'uid',
@@ -519,7 +519,7 @@ check = \ast globals seed ->
             checkTop,
             root,
             extractNode.chain \ x ->
-            unique.chain \ unique ->
+            unique \ unique ->
             extract.map \ s ->
                 ({'tree': x , 'data': {'unique': unique}})),
         addBindings(g(globals || [])),

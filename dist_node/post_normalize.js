@@ -4,36 +4,40 @@
 */"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
+    __o0 = require("khepri-ast")["node"],
+    modify = __o0["modify"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o0 = require("./ast"),
-    isBlockFunction = __o0["isBlockFunction"],
-    __o1 = require("./fun"),
-    concat = __o1["concat"],
-    flattenr = __o1["flattenr"],
-    filter = __o1["filter"],
-    map = __o1["map"],
-    __o2 = require("./unpack"),
-    innerPattern = __o2["innerPattern"],
-    unpackParameters = __o2["unpackParameters"],
-    __o3 = require("./builtin"),
-    builtins = __o3["builtins"],
-    definitions = __o3["definitions"],
-    __o4 = require("./rewriter"),
-    UP = __o4["UP"],
-    DOWN = __o4["DOWN"],
-    Rewriter = __o4["Rewriter"],
-    rewrite = __o4["rewrite"],
+    __o1 = require("./ast"),
+    isBlockFunction = __o1["isBlockFunction"],
+    __o2 = require("./fun"),
+    concat = __o2["concat"],
+    flattenr = __o2["flattenr"],
+    filter = __o2["filter"],
+    map = __o2["map"],
+    __o3 = require("./unpack"),
+    innerPattern = __o3["innerPattern"],
+    unpackParameters = __o3["unpackParameters"],
+    __o4 = require("./builtin"),
+    builtins = __o4["builtins"],
+    definitions = __o4["definitions"],
+    __o5 = require("./rewriter"),
+    UP = __o5["UP"],
+    DOWN = __o5["DOWN"],
+    Rewriter = __o5["Rewriter"],
+    rewrite = __o5["rewrite"],
     normalize, expandBinding, always = (function(_) {
         return true;
     }),
     peepholes = new(Rewriter)();
-peepholes.add("LetExpression", UP, always, ((expandBinding = (function(binding) {
+peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
     return innerPattern(binding.value, binding.pattern, binding.recursive);
 })), (function(node) {
-    return ast_expression.LetExpression.create(node.loc, flattenr(map(expandBinding, node.bindings)), node.body);
+    return modify(node, ({
+        "bindings": flattenr(map(expandBinding, node.bindings))
+    }), ({}));
 })));
 peepholes.add("FunctionExpression", UP, always, (function(node) {
     var params = map((function(x) {

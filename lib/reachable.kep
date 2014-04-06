@@ -1,0 +1,318 @@
+/**
+ * @fileOverview Khepri peephole optimization.
+ */
+package (
+    optimize)
+with
+    import 'bes::record' record,
+
+    import 'hashtrie' hashtrie,
+    
+    import 'neith::zipper' zipper,
+    
+    import 'khepri-ast-zipper' {khepriZipper},
+
+    import 'khepri-ast::node' {Node setData},
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::statement' ast_statement,
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::value' ast_value,
+    
+    import 'akh::base' {
+        next
+        'sequence': seq
+        'sequencea': seqa},
+    
+    import 'akh::state' StateM,
+
+    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::walk' walk,
+    
+    import './ast' {
+        getUd
+        getUid}
+in {
+
+/* State
+ ******************************************************************************/
+var State = record.declare(null, [
+    'bindings',
+    'scope']);
+
+State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]);
+
+State.prototype.addReference = \uid ={bindings scope}->
+    State.create(
+        hashtrie.set(uid, null, bindings),
+        [hashtrie.set(uid, null, scope.(0)), scope.(1)]);
+
+State.prototype.isReachable = \uid ={bindings scope}->
+    hashtrie.has(uid, bindings);
+
+/* Forward
+ ******************************************************************************/
+var _check;
+
+var M = ZipperT (StateM);
+
+var run = \c ctx ->
+    StateM.evalState(
+        ZipperT.runZipperT(c, ctx),
+        State.empty);
+
+var pass = M.of null;
+
+// State Operations
+////////////////////////////////////////
+var getState := M.lift (M.inner.get);
+
+var modifyState := M.lift <\ M.inner.modify;
+
+// Bindings Operations
+////////////////////////////////////////
+var addReference = \uid ->
+    modifyState \ s ->  
+        s.addReference(uid);
+
+var isReachable = \uid ->
+    getState.map \ s ->  
+        s.isReachable(uid);
+        
+// Movement
+////////////////////////////////////////
+var extract = M.chain @ M.node;
+
+var modify = M.modifyNode;
+var set = M.setNode;
+
+var up = M.up;
+var down = M.down;
+var left = M.left;
+
+var rightmost = M.move zipper.rightmost;
+
+
+var moveChild =  M.child;
+
+/**
+ * When `test` is true for current node, evaluate consequent. Otherwise evalaute
+ * alternate.
+ */
+var when = \test consequent alternate ->
+    extract \ node ->
+        ?test node
+            :consequent
+            :(alternate || pass);
+
+/*
+ ******************************************************************************/
+/**
+ * Move to a child along `edge` and perform a list of operations. Return to parent.
+ */
+var child = \args(edge ...) ->
+    seq(
+        moveChild edge,
+        seqa([].slice.call(args, 1)),
+        up);
+
+/**
+ * Rewrite the current node.
+ */
+var checkTop = extract \ x -> _check x; // forward
+
+/**
+ * Rewrite a child node.
+ */
+var visitChild = \edge ->
+    child(edge,
+        checkTop);
+
+/*
+ ******************************************************************************/
+var peepholes = {};
+
+var addRewrite = \type f -> {
+    if (Array.isArray type)
+        type.forEach \ type -> addRewrite(type, f);
+    else
+        peepholes.(type) = f;
+};
+/* 
+ ******************************************************************************/
+// Program and Packages
+addRewrite@'Program' <|
+    visitChild 'body';
+
+addRewrite@'Package' <|
+    visitChild 'body';
+
+// Clause
+addRewrite@'SwitchCase' <|
+    seq(
+        visitChild 'test',
+        visitChild 'consequent');
+
+addRewrite@'CatchClause' <|
+    seq(
+        visitChild 'param',
+        visitChild 'body');
+
+// Declarations
+addRewrite@'VariableDeclaration' <|
+    visitChild 'declarations';
+
+addRewrite@'VariableDeclarator' <| seq(
+    visitChild 'id',
+    
+    when(
+        \node -> node.init,
+        extract \ node ->
+            isReachable(getUid node.id).chain \ reachable ->
+                ?reachable
+                    :visitChild 'init'
+                    :set []));
+
+addRewrite@'Binding' <| seq(
+    visitChild 'pattern',
+    
+    extract \ node ->
+        isReachable(getUid node.pattern.id).chain \ reachable ->
+            ?reachable
+                :visitChild 'value'
+                :set []);
+
+// Statement
+addRewrite@'BlockStatement' <|
+    visitChild 'body';
+
+addRewrite@'ExpressionStatement' <|
+    visitChild 'expression';
+
+addRewrite@'WithStatement' <| seq(
+    visitChild 'body',
+    visitChild 'bindings');
+
+addRewrite@'SwitchStatement' <| seq(
+    visitChild 'discriminant',
+    visitChild 'cases');
+
+addRewrite@['ReturnStatement', 'ThrowStatement'] <|
+    visitChild 'argument';
+
+addRewrite@'TryStatement' <| seq(
+    visitChild 'block',
+    visitChild 'handler',
+    visitChild 'finalizer');
+
+addRewrite@'WhileStatement' <| seq(
+    visitChild 'test',
+    visitChild 'body');
+
+addRewrite@'DoWhileStatement' <| seq(
+    visitChild 'body',
+    visitChild 'test');
+
+addRewrite@'ForStatement' <| seq(
+    visitChild 'init',
+    visitChild 'test',
+    visitChild 'update',
+    visitChild 'body');
+
+// Expression
+addRewrite@'FunctionExpression' <| seq(
+    visitChild 'id',
+    visitChild 'params',
+    visitChild 'body');
+
+addRewrite@'UnaryExpression' <|
+    visitChild 'argument';
+
+addRewrite@['AssignmentExpression', 'LogicalExpression', 'BinaryExpression'] <| seq(
+    visitChild 'left',
+    visitChild 'right');
+
+addRewrite@'MemberExpression' <| seq(
+    visitChild 'object',
+    when(
+        \node ->
+            node.computed,
+        visitChild 'property'));
+
+addRewrite@'NewExpression' <| seq(
+    visitChild 'callee',
+    visitChild 'args');
+
+addRewrite@'CallExpression' <| seq(
+    visitChild 'callee',
+    visitChild 'args');
+
+addRewrite@'CurryExpression' <| seq(
+    visitChild 'base',
+    visitChild 'args');
+
+addRewrite@'LetExpression' <| seq(
+    visitChild 'body',
+    visitChild 'bindings');
+
+// Pattern
+addRewrite@'ArgumentsPattern' <| seq(
+    visitChild 'id',
+    visitChild 'elements',
+    visitChild 'self');
+
+// Value
+addRewrite@'ArrayExpression' <|
+    visitChild 'elements';
+
+addRewrite@'ObjectExpression' <|
+    visitChild 'properties';
+
+addRewrite@'ObjectValue' <|
+    visitChild 'value';
+
+addRewrite@'Identifier' <|
+    extract \ node ->
+        addReference(getUid node);
+
+/* Interface
+ ******************************************************************************/
+_check = \node -> {
+    if (Array.isArray(node)) {
+        if (!node.length)
+            return pass;
+        
+        // Visit all elements of array in reverse order, from right to left.
+        return seq(
+            down,
+            rightmost,
+            node.reduceRight(\p c i ->
+                next(
+                    p,
+                    ?i
+                        :next(checkTop, left)
+                        :checkTop),
+                pass),
+            up);
+    }
+    
+    if (node instanceof Node && peepholes.(node.type))
+        return peepholes.(node.type);
+    
+    return pass;
+};
+
+/**
+ * 
+ */
+optimize = \ast data ->
+    run(
+        next(
+            checkTop,
+            extract \ node ->
+                M.of({
+                    'tree': node
+                })),
+        khepriZipper(ast));
+
+}
