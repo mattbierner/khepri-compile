@@ -9,7 +9,6 @@
 package compile
 with
     import 'akh::error' Error,
-    import 'akh::base' {sequence},
 
     import './stages/pre_normalize' pre_normalize,
     import './stages/lexical' lexical,
@@ -21,30 +20,31 @@ with
 in {
 
 var compiler := \x ->
-    Error.tryError(
-        pre_normalize(x)
-            .chain(lexical)
-            .chain(post_normalize)
-            .chain(inline)
-            .chain(khepri_peep)
-            .chain(transform)
-            .chain(ecma_peep),
-        \x -> { throw x; });
-
-var extract := \{tree} -> tree;
-
+    pre_normalize(x)
+        .chain(lexical)
+        .chain(post_normalize)
+        .chain(inline)
+        .chain(khepri_peep)
+        .chain(transform)
+        .chain(ecma_peep);
 
 /**
  * Translate a Khepri AST to an ECMAScript AST.
  * 
  * @param root Khepri ast.
- * @param [options] Map of options sepecifying behavior of compiler.
+ * @param [options] Map of options specifying behavior of compiler.
+ * @param [err] Error callback.
  */
-compile =
-    (\root options -> ({
-        'tree': root,
-        'options': options || {}}))
-   \>> compiler
-   \> extract;
+compile = let
+    extract = \{tree} -> tree,
+    thr = \x -> { throw x; }
+in
+    \root options err ->
+        Error.runError(
+            compiler{
+                'tree': root,
+                'options': (options || {}) },
+            extract,
+            err || thr);
 
 }

@@ -7,8 +7,6 @@ with
     import 'ecma-ast-zipper' {ecmaZipper},
     
     import 'ecma-ast::node' {modify},
-    import 'ecma-ast::statement' ast_statement,
-    import 'ecma-ast::expression' ast_expression,
     
     import './ast' {type},
     import './fun' {concat flatten map foldr},
@@ -40,7 +38,9 @@ var mergeBlockDeclarations :=
             ?(type c === 'VariableDeclaration' && type p.(0) === 'VariableDeclaration')
                 :concat(
                     modify(c, {
-                        'declarations': concat(c.declarations, p.(0).declarations)
+                        'declarations': concat(
+                            c.declarations,
+                            p.(0).declarations)
                     }, {}),
                     p.slice(1))
                 :concat(c, p),
@@ -90,7 +90,7 @@ peepholes.add(['Program', 'BlockStatement'], UP,
         }, {}));
 
 /**
- * Merge var neighboring declarations
+ * Merge neighboring var  declarations
  */
 peepholes.add(['Program', 'BlockStatement'], UP,
     always,

@@ -1,17 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "../ecma_peep"], (function(require, exports, Error, ecma_peep) {
+*/define(["require", "exports", "akh/error", "bes/object", "../ecma_peep"], (function(require, exports, Error, __o,
+    ecma_peep) {
     "use strict";
-    var optimize;
-    (optimize = (function(__o) {
-        var options = __o["options"],
-            tree = __o["tree"];
-        return Error.of(({
-            "options": options,
-            "tree": ecma_peep.optimize(tree)
-        }));
+    var setProperty = __o["setProperty"],
+        optimize;
+    (optimize = (function(data) {
+        var tree = data["tree"];
+        return Error.of(setProperty(data, "tree", ecma_peep.optimize(tree)));
     }));
     return optimize;
 }));

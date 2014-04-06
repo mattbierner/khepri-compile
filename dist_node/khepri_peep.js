@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     ast_declaration = require("khepri-ast")["declaration"],
@@ -20,23 +21,23 @@ var __o = require("khepri-ast-zipper"),
     always = (function(_) {
         return true;
     });
-peepholes.add("VariableDeclaration", UP, always, (function(__o) {
-    var loc = __o["loc"],
-        declarations = __o["declarations"],
+peepholes.add("VariableDeclaration", UP, always, (function(__o2) {
+    var loc = __o2["loc"],
+        declarations = __o2["declarations"],
         bound = flattenr(declarations);
     return (bound.length ? ast_declaration.VariableDeclaration.create(loc, bound) : null);
 }));
-peepholes.add("LetExpression", UP, always, (function(__o) {
-    var loc = __o["loc"],
-        bindings = __o["bindings"],
-        body = __o["body"],
+peepholes.add("LetExpression", UP, always, (function(__o2) {
+    var loc = __o2["loc"],
+        bindings = __o2["bindings"],
+        body = __o2["body"],
         bound = flattenr(bindings);
     return (bound.length ? ast_expression.LetExpression.create(loc, bound, body) : body);
 }));
-peepholes.add("WithStatement", UP, always, (function(__o) {
-    var loc = __o["loc"],
-        bindings = __o["bindings"],
-        body = __o["body"],
+peepholes.add("WithStatement", UP, always, (function(__o2) {
+    var loc = __o2["loc"],
+        bindings = __o2["bindings"],
+        body = __o2["body"],
         bound = flattenr(bindings);
     return (bound.length ? ast_statement.WithStatement.create(loc, bound, body) : body);
 }));
@@ -83,9 +84,9 @@ peepholes.add("ExpressionStatement", UP, (function(node) {
             node.expression.loc, node.expression.operator, node.expression.left, node.expression.right
             .body))]));
 }));
-(optimize = (function(f, g) {
-    return (function(x) {
-        return f(g(x));
-    });
-})(rewrite.bind(null, peepholes), khepriZipper));
+var x = khepriZipper,
+    y = rewrite.bind(null, peepholes);
+(optimize = (function(x0) {
+    return y(x(x0));
+}));
 (exports["optimize"] = optimize);
