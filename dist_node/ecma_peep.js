@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
     __o0 = require("ecma-ast")["node"],
@@ -18,14 +19,12 @@ var __o = require("ecma-ast-zipper"),
     DOWN = __o3["DOWN"],
     Rewriter = __o3["Rewriter"],
     rewrite = __o3["rewrite"],
-    optimize, flattenBlockBody = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(flatten, map.bind(null, (function(x) {
-        return (((!x) || (type(x) === "EmptyStatement")) ? [] : ((type(x) === "BlockStatement") ? x.body :
-            x));
-    }))),
+    optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
+        return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) === "BlockStatement") ? x0
+            .body : x0));
+    }))), (y = flatten), (function(x0) {
+        return y(x(x0));
+    })),
     mergeBlockDeclarations = foldr.bind(null, (function(p, c) {
         return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ? concat(modify(
             c, ({
@@ -37,8 +36,8 @@ var __o = require("ecma-ast-zipper"),
         return true;
     });
 peepholes.add("VariableDeclaration", DOWN, always, (function(node) {
-    var declarations = node.declarations.filter((function(x) {
-        return (!(!x));
+    var declarations = node.declarations.filter((function(x0) {
+        return (!(!x0));
     }));
     return modify(node, ({
         "declarations": declarations
@@ -59,9 +58,9 @@ peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
         "body": mergeBlockDeclarations(node.body)
     }), ({}));
 }));
-(optimize = (function(f, g) {
-    return (function(x) {
-        return f(g(x));
-    });
-})(rewrite.bind(null, peepholes), ecmaZipper));
+var x0 = ecmaZipper,
+    y0 = rewrite.bind(null, peepholes);
+(optimize = (function(x1) {
+    return y0(x0(x1));
+}));
 (exports["optimize"] = optimize);

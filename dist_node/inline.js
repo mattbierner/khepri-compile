@@ -203,9 +203,9 @@ var M = ZipperT(StateT(Unique)),
         return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
             markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
             .chain((function(binding) {
-                return (binding ? (((binding.simple && binding.immutable) && binding.value) ?
-                    addBinding(uid, binding.value, binding.simple) : addBinding(uid, value,
-                        binding.simple)) : addBinding(uid, value, false));
+                return ((binding && binding.immutable) ? addBinding(uid, ((binding.simple &&
+                    binding.value) ? binding.value : value), true) : addBinding(uid, value,
+                    false));
             })) : addBinding(uid, value, false))));
     }),
     peepholes = ({}),
