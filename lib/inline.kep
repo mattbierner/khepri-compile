@@ -91,7 +91,7 @@ State.prototype.push = \=s->
     s.setOuter(s)
         .setWorking(binding.empty);
 
-State.prototype.pop = \=s ->
+State.prototype.pop = \=s->
     s.outer
         .setBindings(s.bindings)
         .setGlobals(s.globals)
@@ -103,42 +103,7 @@ State.prototype.pop = \=s ->
                     hashtrie.set(key, null, p),
                 s.outer.working,
                 s.working));
-
-/* Monad
- ******************************************************************************/
-var M = ZipperT (StateT Unique);
-
-var run = \c ctx state seed ->
-    Unique.runUnique(
-        StateT.evalStateT(
-            ZipperT.runZipperT(c, ctx),
-            state),
-        seed);
-
-var pass = M.of null;
-
-var unique = M.liftInner (Unique.unique);
-
-// State Operations
-////////////////////////////////////////
-var getState := M.lift (M.inner.get);
-
-var modifyState := M.lift <\ M.inner.modify;
-
-// Movement
-////////////////////////////////////////
-var node =  M.node;
-
-var modify = M.modifyNode;
-var set = M.setNode;
-
-var up = M.up;
-var down = M.down;
-var right = M.right;
-
-var moveChild =  M.child;
-var getChild =  M.childNode;
-
+ 
 /* Expansion
  ******************************************************************************/
 var markExpansion = \id count target ->
@@ -165,6 +130,42 @@ var expandNode = \node ->
                 :setData(node, 'expand', null)
         :node;
 
+/* Monad
+ ******************************************************************************/
+var M = ZipperT (StateT Unique);
+
+var run = \c ctx state seed ->
+    Unique.runUnique(
+        StateT.evalStateT(
+            ZipperT.runZipperT(c, ctx),
+            state),
+        seed);
+
+var pass = M.of null;
+
+var unique = M.chain @ (M.liftInner (Unique.unique));
+
+// State Operations
+////////////////////////////////////////
+var getState := M.lift (M.inner.get);
+
+var modifyState := M.lift <\ M.inner.modify;
+
+// Movement
+////////////////////////////////////////
+var extract = M.chain @ M.node;
+
+var modify = M.modifyNode;
+var set = M.setNode;
+
+var up = M.up;
+var down = M.down;
+var right = M.right;
+
+var moveChild =  M.child;
+
+// Expansion
+////////////////////////////////////////
 /**
  * Expand the value from `exp`, passing result to `f`.
  */
@@ -247,7 +248,7 @@ var block = \body(...) ->
 /**
  * Get globals.
  */
-var globals = getState.map \ s -> s.globals;
+var globals = M.chain @ (getState.map \ s -> s.globals);
 
 /**
  * Add a new global.
@@ -270,7 +271,7 @@ var child = \args(edge ...) ->
 /**
  * Rewrite the current node.
  */
-var checkTop = node.chain \ x -> _check x; // forward
+var checkTop = extract \ x -> _check x; // forward
 
 /**
  * Rewrite a child node.
@@ -284,7 +285,7 @@ var visitChild = \edge ->
  * alternate.
  */
 var when = \test consequent alternate ->
-    node.chain \ node ->
+    extract \ node ->
         ?test node
             :consequent
             :(alternate || pass);
@@ -332,7 +333,7 @@ var addRewrite = \type f -> {
  */
 addRewrite@'UnaryOperatorExpression' <|
     seq(
-        node.chain \ {op} ->
+        extract \ {op} ->
             seq(
                 addGlobal(op),
                 set <| builtins.(op)),
@@ -343,7 +344,7 @@ addRewrite@'UnaryOperatorExpression' <|
  */
 addRewrite@'BinaryOperatorExpression' <|
     seq(
-        node.chain \ {op flipped} ->
+        extract \ {op flipped} ->
             let name = ?flipped : '_' + op : op in
                 seq(
                     addGlobal(name),
@@ -395,7 +396,7 @@ addRewrite@'VariableDeclarator' <| seq(
     when(
         \node -> node.init,
         
-        node.chain \ node ->
+        extract \ node ->
             ?node.immutable
                 :seq(
                     addBindingForNode(node.id, node.init),
@@ -422,7 +423,7 @@ addRewrite@'Binding' <| seq(
             (  node.pattern.type === 'IdentifierPattern'
             && getUid node.pattern.id),
         
-        node.chain \ node ->
+        extract \ node ->
             seq(
                 addBindingForNode(node.pattern.id, node.value),
                 tryPrune(node.pattern.id))),
@@ -435,7 +436,7 @@ addRewrite@'Binding' <| seq(
         \node ->
             (node && node.type === 'Binding' && node.value.type === 'LetExpression'),
         
-        node.chain \ node -> let
+        extract \ node -> let
             bindings =
                 fun.flatten <| fun.concat(
                    node.value.bindings,
@@ -531,7 +532,7 @@ addRewrite@'AssignmentExpression' <| seq(
         \{left} ->
             left.type === 'Identifier',
         
-        node.chain \ node ->
+        extract \ node ->
             addWorking(getUid(node.left), node.right)));
 
 /**
@@ -580,7 +581,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
         \node ->
             isPrimitive node.test,
         
-        node.chain \ {test consequent alternate} ->
+        extract \ {test consequent alternate} ->
             seq(
                 set ?isTruthy test : consequent : alternate,
                 checkTop),
@@ -642,7 +643,7 @@ addRewrite@'CallExpression' <| seq(
             isExpansion(node.callee),
         
         expand(
-            node.map \ node -> node.callee,
+            M.node.map \ node -> node.callee,
             \callee ->
                 modify \ node ->
                     incCount(
@@ -664,7 +665,7 @@ addRewrite@'CallExpression' <| seq(
             || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
         
             seq(
-                unique.chain \ uid ->
+                unique \ uid ->
                 modify \ node ->
                     expandCallee(uid, node.callee, node.args),
                 checkTop)));
@@ -681,7 +682,7 @@ addRewrite@'CurryExpression' <| seq(
             (isExpansion(node.base)),
         
         expand(
-            node.map \ node -> node.base,
+            M.node.map \ node -> node.base,
             \base ->
                 modify \ node ->
                     incCount(
@@ -703,7 +704,7 @@ addRewrite@'CurryExpression' <| seq(
             || (node.base.type === 'LetExpression' && isLambda(node.base.body))),
         
         seq(
-            unique.chain \ uid ->
+            unique \ uid ->
             modify \ node ->
                 expandCurry(uid, node.base, node.args),
             checkTop)));
@@ -736,7 +737,7 @@ addRewrite@'ArgumentsPattern' <| seq(
     visitChild 'self');
 
 addRewrite@'IdentifierPattern' <|
-    node.chain \ node ->
+    extract \ node ->
         addBinding(getUid node.id, null, true);
 
 // Value
@@ -755,7 +756,10 @@ addRewrite@'Identifier' <|
             (  getUid node
             && !isExpansion node),
         
-        node.chain \ node ->
+        /**
+         * Replace identifier with simple values.
+         */
+        extract \ node ->
             getBinding(getUid node).chain \ binding ->
                 ?binding && binding.value && binding.simple
                     :set(binding.value)
@@ -799,9 +803,9 @@ optimize = \ast data ->
     run(
         next(
             checkTop,
-            node.chain \ node ->
-            globals.chain \ g ->
-            unique.chain \ unique ->
+            extract \ node ->
+            globals \ g ->
+            unique \ unique ->
                 M.of({
                     'tree': node,
                     'data': {'globals': hashtrie.keys(g), 'unique': unique}

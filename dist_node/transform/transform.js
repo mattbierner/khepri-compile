@@ -23,15 +23,16 @@ var record = require("bes")["record"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
     __o0 = require("akh")["base"],
+    liftM2 = __o0["liftM2"],
     next = __o0["next"],
     seq = __o0["sequence"],
-    seqa = __o0["sequencea"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
     __o1 = require("../ast"),
     getUid = __o1["getUid"],
     scope = require("../scope"),
     fun = require("../fun"),
+    concat = fun["concat"],
     flip = fun["flip"],
     __o2 = require("../builtin"),
     builtins = __o2["builtins"],
@@ -39,25 +40,18 @@ var record = require("bes")["record"],
     __o3 = require("../unpack"),
     innerPattern = __o3["innerPattern"],
     unpackParameters = __o3["unpackParameters"],
-    transform, M = ZipperT(StateT(Unique)),
-    run = (function(m, s, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
-    }),
-    ok = M.of,
-    pass = ok(null),
-    cons = (function(a, b) {
-        return a.chain((function(x) {
-            return b.map((function(y) {
-                return [x].concat(y);
-            }));
-        }));
-    }),
-    enumeration = fun.foldr.bind(null, flip(cons), ok([])),
-    State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
+    transform, State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
 (State.empty = State.create(scope.Scope.empty, null, [
     [], null
 ], []));
-var extract = M.lift(M.inner.get),
+var M = ZipperT(StateT(Unique)),
+    run = (function(m, s, ctx, seed) {
+        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
+    }),
+    pass = M.of(null),
+    cons = liftM2.bind(null, concat),
+    enumeration = fun.foldr.bind(null, flip(cons), M.of([])),
+    extract = M.lift(M.inner.get),
     setState = (function(f, g) {
         return (function(x) {
             return f(g(x));
@@ -73,9 +67,9 @@ var extract = M.lift(M.inner.get),
         return s.globals;
     })),
     node = M.node,
+    withNode = M.chain.bind(null, node),
     modify = M.modifyNode,
     set = M.setNode,
-    withNode = node.chain.bind(node),
     inspectScope = (function(f) {
         return extract.map((function(s) {
             return f(s.scope);
@@ -157,9 +151,6 @@ var extract = M.lift(M.inner.get),
     identifier = (function(loc, name) {
         return ecma_value.Identifier.create(loc, name);
     }),
-    stringLiteral = (function(loc, value) {
-        return ecma_value.Literal.create(loc, "string", value);
-    }),
     nullLiteral = (function(loc) {
         return ecma_value.Literal.create(loc, "null", null);
     }),
@@ -219,8 +210,8 @@ var extract = M.lift(M.inner.get),
             bindings), body)));
     }),
     curryExpression = (function(loc, base, args) {
-        return khepri_expression.CallExpression.create(null, khepri_expression.MemberExpression.create(null, base,
-            identifier(null, "bind")), fun.concat(nullLiteral(null), args));
+        return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(null, base,
+            identifier(null, "bind")), concat(nullLiteral(null), args));
     }),
     packageBlock = (function(packageManager, loc, exports, globals, body) {
         var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
@@ -238,6 +229,9 @@ var extract = M.lift(M.inner.get),
     }),
     transformers = ({}),
     addTransform = (function(type, pre, post) {
+        if (Array.isArray(type)) return type.map((function(x) {
+            return addTransform(x, pre, post);
+        }));
         var entry = ({
             "pre": pre,
             "post": post
@@ -369,22 +363,10 @@ addTransform("ObjectExpression", null, modify((function(node) {
 addTransform("ObjectValue", null, modify((function(node) {
     return ecma_value.ObjectValue.create(node.loc, node.key, node.value);
 })));
-addTransform("IdentifierPattern", null, modify((function(node) {
+addTransform(["IdentifierPattern", "AsPattern", "ArgumentsPattern"], null, modify((function(node) {
     return node.id;
 })));
-addTransform("ArgumentsPattern", null, modify((function(node) {
-    return node.id;
-})));
-addTransform("AsPattern", null, modify((function(node) {
-    return node.id;
-})));
-addTransform("ObjectPattern", null, modify((function(node) {
-    return node.ud.id;
-})));
-addTransform("EllipsisPattern", modify((function(node) {
-    return (node.ud && node.ud.id);
-})));
-addTransform("SinkPattern", modify((function(node) {
+addTransform(["ObjectPattern", "EllipsisPattern", "SinkPattern"], null, modify((function(node) {
     return (node.ud && node.ud.id);
 })));
 addTransform("Program", seq(pushBindings, globals.chain((function(globals) {

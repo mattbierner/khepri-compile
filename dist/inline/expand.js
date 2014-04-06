@@ -23,11 +23,10 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
         var target = ((callee.type === "LetExpression") ? callee.body : callee),
             ids = getParmeterIds(target.params.elements),
             uid0 = uid,
-            names = ids,
             parameters = target.params,
             args0 = args,
             bindings = map((function(x, i) {
-                return ast_declaration.Binding.create(null, rename(uid0, names, x), (args0[i] ||
+                return ast_declaration.Binding.create(null, rename(uid0, ids, x), (args0[i] ||
                     ast_value.Identifier.create(null, "undefined")));
             }), parameters.elements);
         return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings),

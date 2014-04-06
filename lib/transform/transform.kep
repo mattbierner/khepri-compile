@@ -27,9 +27,9 @@ with
     import 'akh::unique' Unique,
     import 'akh::trans::state' StateT,
     import 'akh::base' {
+        liftM2
         next
-        'sequence': seq
-        'sequencea': seqa},
+        'sequence': seq},
     
     import 'zipper-m::trans::zipper' ZipperT,
     import 'zipper-m::walk' walk,
@@ -37,13 +37,29 @@ with
     import '../ast' {getUid},
 
     import '../scope' scope,
-    import '../fun' fun#{flip},
+    import '../fun' fun#{
+        concat
+        flip},
     import '../builtin' {builtins definitions},
     import '../unpack' {innerPattern unpackParameters},
     
     import './package_manager::amd' _,
     import './package_manager::node' _
 in {
+
+/* State
+ ******************************************************************************/
+var State = record.declare(null, [
+    'scope',
+    'packageManager',
+    'bindings',
+    'globals']);
+
+State.empty = State.create(
+    scope.Scope.empty,
+    null,
+    [[], null],
+    []);
 
 /* Monad
  ******************************************************************************/
@@ -56,26 +72,12 @@ var run = \m s ctx seed ->
             s),
         seed);
 
-var ok = M.of;
+var pass = M.of null;
 
-var pass = ok null;
+var cons = liftM2 @ concat;
 
-var cons = \a b ->
-    a.chain \ x ->
-    b.map \ y ->
-        [x].concat(y);
+var enumeration = fun.foldr@(flip cons, M.of []);
 
-var enumeration = fun.foldr@(flip cons, ok []);
-
-/* State
- ******************************************************************************/
-var State = record.declare(null, [
-    'scope',
-    'packageManager',
-    'bindings',
-    'globals']);
-
-State.empty = State.create(scope.Scope.empty, null, [[], null], []);
 
 /* Operations
  ******************************************************************************/
@@ -89,18 +91,16 @@ var modifyState = M.lift <\ M.inner.modify;
 
 var inspectStateWith = M.chain @ extract;
 
-var globals = extract.map\s -> s.globals;
-
+var globals = extract.map \ s -> s.globals;
 
 // Zipper Operations
 ////////////////////////////////////////
 var node = M.node;
 
+var withNode = M.chain @ node;
+
 var modify = M.modifyNode;
-
 var set = M.setNode;
-
-var withNode = node.chain.bind(node);
 
 // Scoping Operations
 ////////////////////////////////////////
@@ -144,12 +144,15 @@ var getMapping = \uid ->
 var addVar = \id uid ->
     inspectScopeWith \ s ->
         ?s.hasMapping(uid)
-            :setScope(scope.Scope.addMutableBinding(s, id))
+            :setScope(
+                scope.Scope.addMutableBinding(s, id))
+            
             :let name = s.getUnusedId(id) in
-                setScope(scope.Scope.addMapping(
-                    scope.Scope.addMutableBinding(s, name),
-                    uid,
-                    name));
+                setScope(
+                    scope.Scope.addMapping(
+                        scope.Scope.addMutableBinding(s, name),
+                        uid,
+                        name));
 
 // Bindings Operations
 ////////////////////////////////////////
@@ -184,9 +187,6 @@ var _transform = withNode \node -> _trans(node); // Late
  ******************************************************************************/
 var identifier = \loc, name ->
     ecma_value.Identifier.create(loc, name);
-
-var stringLiteral = \loc, value ->
-    ecma_value.Literal.create(loc, 'string', value);
 
 var nullLiteral = \loc ->
     ecma_value.Literal.create(loc, 'null', null);
@@ -313,12 +313,12 @@ var letExpression = \loc bindings body ->
 /**
  * Curry expression translation.
  */
-var curryExpression = \loc, base, args ->
-    khepri_expression.CallExpression.create(null,
+var curryExpression = \loc base args ->
+    khepri_expression.CallExpression.create(loc,
         khepri_expression.MemberExpression.create(null,
             base,
             identifier(null, 'bind')),
-        fun.concat(
+        concat(
             nullLiteral(null),
             args));
 
@@ -352,6 +352,9 @@ in
 var transformers = {};
 
 var addTransform = \type pre post -> {
+    if (Array.isArray(type))
+        return type.map \ x -> addTransform(x, pre, post);
+    
     var entry = {
         'pre': pre,
         'post': post
@@ -573,6 +576,7 @@ addTransform('LetExpression',
             identifiers = fun.map(\x -> [x.pattern.id.name, getUid(x.pattern.id)], bindings)
         in
             addBindings(identifiers),
+        
         modify \ node ->
             letExpression(node.loc,
                 node.bindings,
@@ -621,31 +625,13 @@ addTransform('ObjectValue',
             node.value));
 
 // Patterns
-addTransform('IdentifierPattern',
+addTransform(['IdentifierPattern', 'AsPattern', 'ArgumentsPattern'],
     null,
     modify \ node ->
         node.id);
 
-addTransform('ArgumentsPattern',
+addTransform(['ObjectPattern', 'EllipsisPattern', 'SinkPattern'],
     null,
-    modify \ node ->
-        node.id);
-
-addTransform('AsPattern',
-    null,
-    modify \ node ->
-        node.id);
-
-addTransform('ObjectPattern',
-    null,
-    modify \ node ->
-        node.ud.id);
-
-addTransform('EllipsisPattern',
-    modify \ node ->
-        (node.ud && node.ud.id));
-
-addTransform('SinkPattern',
     modify \ node ->
         (node.ud && node.ud.id));
 

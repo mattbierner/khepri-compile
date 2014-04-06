@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
  * DO NOT EDIT
-*/define(["require", "exports"], (function(require, exports) {
+*/
+define(["require", "exports"], (function(require, exports) {
     "use strict";
     var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,
             isLambda, getUd, getUid;

@@ -12,6 +12,7 @@ with
 
     import './stages/pre_normalize' pre_normalize,
     import './stages/lexical' lexical,
+    import './stages/reachable' reachable,
     import './stages/post_normalize' post_normalize,
     import './stages/inline' inline,
     import './stages/khepri_peep' khepri_peep,
@@ -24,6 +25,7 @@ var compiler := \x ->
         .chain(lexical)
         .chain(post_normalize)
         .chain(inline)
+        .chain(reachable)
         .chain(khepri_peep)
         .chain(transform)
         .chain(ecma_peep);
