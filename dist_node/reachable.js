@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     hashtrie = require("hashtrie"),
     zipper = require("neith")["zipper"],
@@ -25,18 +26,18 @@ var record = require("bes")["record"],
     __o2 = require("./ast"),
     getUd = __o2["getUd"],
     getUid = __o2["getUid"],
-    optimize, State = record.declare(null, ["bindings", "scope"]);
+    optimize, x, y, consequent, alternate, consequent0, alternate0, State = record.declare(null, ["bindings", "scope"]);
 (State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]));
 (State.prototype.addReference = (function(uid) {
-    var __o = this,
-        bindings = __o["bindings"],
-        scope = __o["scope"];
+    var __o3 = this,
+        bindings = __o3["bindings"],
+        scope = __o3["scope"];
     return State.create(hashtrie.set(uid, null, bindings), [hashtrie.set(uid, null, scope[0]), scope[1]]);
 }));
 (State.prototype.isReachable = (function(uid) {
-    var __o = this,
-        bindings = __o["bindings"],
-        scope = __o["scope"];
+    var __o3 = this,
+        bindings = __o3["bindings"],
+        scope = __o3["scope"];
     return hashtrie.has(uid, bindings);
 }));
 var _check, M = ZipperT(StateM),
@@ -45,11 +46,9 @@ var _check, M = ZipperT(StateM),
     }),
     pass = M.of(null),
     getState = M.lift(M.inner.get),
-    modifyState = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(M.lift, M.inner.modify),
+    modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
+        return x(y(x0));
+    })),
     addReference = (function(uid) {
         return (uid ? modifyState((function(s) {
             return s.addReference(uid);
@@ -77,64 +76,68 @@ var _check, M = ZipperT(StateM),
         var args = arguments;
         return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
     }),
-    checkTop = extract((function(x) {
-        return _check(x);
+    checkTop = extract((function(x0) {
+        return _check(x0);
     })),
     visitChild = (function(edge) {
         return child(edge, checkTop);
     }),
     peepholes = ({}),
     addRewrite = (function(type, f) {
-        if (Array.isArray(type)) type.forEach((function(type) {
-            return addRewrite(type, f);
+        if (Array.isArray(type)) type.forEach((function(type0) {
+            return addRewrite(type0, f);
         }));
-        else(peepholes[type] = f);
+        else {
+            (peepholes[type] = f);
+        }
     });
-addRewrite("Program", visitChild("body"));
-addRewrite("Package", visitChild("body"));
-addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
-addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
-addRewrite("VariableDeclaration", visitChild("declarations"));
-addRewrite("VariableDeclarator", seq(visitChild("id"), when((function(node) {
-    return node.init;
-}), extract((function(node) {
+addRewrite("Program", child("body", checkTop));
+addRewrite("Package", child("body", checkTop));
+addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
+addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
+addRewrite("VariableDeclaration", child("declarations", checkTop));
+addRewrite("VariableDeclarator", seq(child("id", checkTop), ((consequent = extract((function(node) {
     return isReachable(getUid(node.id))
         .chain((function(reachable) {
             return (reachable ? visitChild("init") : set([]));
         }));
+}))), (alternate = undefined), extract((function(node) {
+    return (node.init ? consequent : (alternate || pass));
 })))));
-addRewrite("Binding", seq(visitChild("pattern"), extract((function(node) {
+addRewrite("Binding", seq(child("pattern", checkTop), extract((function(node) {
     return isReachable(getUid(node.pattern.id))
         .chain((function(reachable) {
             return (reachable ? visitChild("value") : set([]));
         }));
 }))));
-addRewrite("BlockStatement", visitChild("body"));
-addRewrite("ExpressionStatement", visitChild("expression"));
-addRewrite("WithStatement", seq(visitChild("body"), visitChild("bindings")));
-addRewrite("SwitchStatement", seq(visitChild("discriminant"), visitChild("cases")));
-addRewrite(["ReturnStatement", "ThrowStatement"], visitChild("argument"));
-addRewrite("TryStatement", seq(visitChild("block"), visitChild("handler"), visitChild("finalizer")));
-addRewrite("WhileStatement", seq(visitChild("test"), visitChild("body")));
-addRewrite("DoWhileStatement", seq(visitChild("body"), visitChild("test")));
-addRewrite("ForStatement", seq(visitChild("init"), visitChild("test"), visitChild("update"), visitChild("body")));
-addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), visitChild("consequent"), visitChild(
-    "alternate")));
-addRewrite("FunctionExpression", seq(visitChild("id"), visitChild("params"), visitChild("body")));
-addRewrite("UnaryExpression", visitChild("argument"));
-addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(visitChild("left"), visitChild(
-    "right")));
-addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
-    return node.computed;
-}), visitChild("property"))));
-addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
-addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args")));
-addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args")));
-addRewrite("LetExpression", seq(visitChild("body"), visitChild("bindings")));
-addRewrite("ArgumentsPattern", seq(visitChild("id"), visitChild("elements"), visitChild("self")));
-addRewrite("ArrayExpression", visitChild("elements"));
-addRewrite("ObjectExpression", visitChild("properties"));
-addRewrite("ObjectValue", visitChild("value"));
+addRewrite("BlockStatement", child("body", checkTop));
+addRewrite("ExpressionStatement", child("expression", checkTop));
+addRewrite("WithStatement", seq(child("body", checkTop), child("bindings", checkTop)));
+addRewrite("SwitchStatement", seq(child("discriminant", checkTop), child("cases", checkTop)));
+addRewrite(["ReturnStatement", "ThrowStatement"], child("argument", checkTop));
+addRewrite("TryStatement", seq(child("block", checkTop), child("handler", checkTop), child("finalizer", checkTop)));
+addRewrite("WhileStatement", seq(child("test", checkTop), child("body", checkTop)));
+addRewrite("DoWhileStatement", seq(child("body", checkTop), child("test", checkTop)));
+addRewrite("ForStatement", seq(child("init", checkTop), child("test", checkTop), child("update", checkTop), child(
+    "body", checkTop)));
+addRewrite(["ConditionalExpression", "IfStatement"], seq(child("test", checkTop), child("consequent", checkTop), child(
+    "alternate", checkTop)));
+addRewrite("FunctionExpression", seq(child("id", checkTop), child("params", checkTop), child("body", checkTop)));
+addRewrite("UnaryExpression", child("argument", checkTop));
+addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child(
+    "right", checkTop)));
+addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent0 = child("property", checkTop)), (alternate0 =
+    undefined), extract((function(node) {
+    return (node.computed ? consequent0 : (alternate0 || pass));
+})))));
+addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
+addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
+addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));
+addRewrite("LetExpression", seq(child("body", checkTop), child("bindings", checkTop)));
+addRewrite("ArgumentsPattern", seq(child("id", checkTop), child("elements", checkTop), child("self", checkTop)));
+addRewrite("ArrayExpression", child("elements", checkTop));
+addRewrite("ObjectExpression", child("properties", checkTop));
+addRewrite("ObjectValue", child("value", checkTop));
 addRewrite("Identifier", extract((function(node) {
     return addReference(getUid(node));
 })));
