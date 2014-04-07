@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("khepri-ast")["node"],
@@ -34,7 +33,8 @@ var __o = require("khepri-ast-zipper"),
     }),
     peepholes = new(Rewriter)();
 peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-    return innerPattern(binding.value, binding.pattern, binding.recursive);
+    return ((binding.type === "ImportPattern") ? binding : innerPattern(binding.value, binding.pattern,
+        binding.recursive));
 })), (function(node) {
     return modify(node, ({
         "bindings": flattenr(map(expandBinding, node.bindings))
@@ -66,42 +66,39 @@ var expandAssignment = (function(node) {
         node
     ]);
 });
-peepholes.add("ExpressionStatement", UP, (function(__o6) {
-    var expression = __o6["expression"];
+peepholes.add("ExpressionStatement", UP, (function(__o) {
+    var expression = __o["expression"];
     return (expression.type === "AssignmentExpression");
 }), (function(node) {
-    var node0, right;
     return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(null,
-        null), flattenr(((node0 = node.expression), ((node0.right.type === "AssignmentExpression") ? ((
-        right = expandAssignment(node0.right)), concat(right, ast_expression.AssignmentExpression
-        .create(null, "=", node0.left, right[(right.length - 1)].left))) : [node0])))));
+        null), flattenr(expandAssignment(node.expression))));
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return (node.operator === "|>");
-}), (function(__o6) {
-    var left = __o6["left"],
-        right = __o6["right"];
+}), (function(__o) {
+    var left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return (node.operator === "<|");
-}), (function(__o6) {
-    var left = __o6["left"],
-        right = __o6["right"];
+}), (function(__o) {
+    var left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) || (node.operator ===
         "<<\\"));
-}), (function(__o6) {
-    var operator = __o6["operator"],
-        left = __o6["left"],
-        right = __o6["right"];
+}), (function(__o) {
+    var operator = __o["operator"],
+        left = __o["left"],
+        right = __o["right"];
     return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
 }));
-var x = khepriZipper,
-    y = rewrite.bind(null, peepholes);
-(normalize = (function(x0) {
-    return y(x(x0));
-}));
+(normalize = (function(f, g) {
+    return (function(x) {
+        return f(g(x));
+    });
+})(rewrite.bind(null, peepholes), khepriZipper));
 (exports["normalize"] = normalize);

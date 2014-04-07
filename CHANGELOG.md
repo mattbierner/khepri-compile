@@ -1,6 +1,9 @@
 # ChangeLog #
 
-## 0.3.13 - April 5, 2014
+## 0.3.14 - April 6, 2014
+* Fixed package with imports.
+
+## 0.3.13 - April 6, 2014
 * Basic unreachable binding pruning.
 ** Compose now should have same overhead as a `compose` function in the worst case,
   but multi composes can be optimized to a single set of potentially inlined function calls.

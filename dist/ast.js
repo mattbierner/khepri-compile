@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports"], (function(require, exports) {
+*/define(["require", "exports"], (function(require, exports) {
     "use strict";
     var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,
             isLambda, getUd, getUid;
@@ -10,10 +9,10 @@ define(["require", "exports"], (function(require, exports) {
         return (node && node.type);
     }));
     (isIdentifier = (function(node) {
-        return (node.type === "Identifier");
+        return (type(node) === "Identifier");
     }));
     (isLiteral = (function(node) {
-        return (node.type === "Literal");
+        return (type(node) === "Literal");
     }));
     (isNumberish = (function(node) {
         return (isPrimitive(node) && (!isNaN(node.value)));
@@ -36,10 +35,10 @@ define(["require", "exports"], (function(require, exports) {
         return (isPrimitive(node) && (!(!node.value)));
     }));
     (isBlockFunction = (function(node) {
-        return ((node.type === "FunctionExpression") && (node.body.type === "BlockStatement"));
+        return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
     }));
     (isLambda = (function(node) {
-        return (((((node.type === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
+        return (((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
             (!node.params.self)) && (!node.params.id));
     }));
     (getUd = (function(name, node) {

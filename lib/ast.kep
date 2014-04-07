@@ -33,7 +33,7 @@ type = \node ->
  * Is a node an identifier?
  */
 isIdentifier = \node ->
-    (node.type === 'Identifier');
+    (type node === 'Identifier');
 
 /* Literal
  ******************************************************************************/
@@ -43,7 +43,7 @@ isIdentifier = \node ->
  * This includes regular expressions.
  */
 isLiteral = \node ->
-    (node.type === 'Literal');
+    (type node === 'Literal');
 
 /**
  * Can a node be treated as a number?
@@ -96,14 +96,14 @@ isTruthy = \node ->
  * Is a node a function with a block body?
  */
 isBlockFunction = \node ->
-    (  node.type === 'FunctionExpression'
-    && node.body.type === 'BlockStatement');
+    (  type node=== 'FunctionExpression'
+    && type node.body === 'BlockStatement');
 
 /**
  * Is a function a lambda function?
  */
 isLambda = \node ->
-    (  node.type === 'FunctionExpression'
+    (  type node === 'FunctionExpression'
     && !node.id
     && !isBlockFunction node
     && !node.params.self

@@ -218,7 +218,7 @@ addRewrite("Binding", seq(visitChild("value"), when((function(node) {
 }), extract((function(node) {
     return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern.id));
 }))), when((function(node) {
-    return ((node && (node.type === "Binding")) && (node.value.type === "LetExpression"));
+    return (((node && (node.type === "Binding")) && node.value) && (node.value.type === "LetExpression"));
 }), extract((function(node) {
     var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(null,
         node.pattern, node.value.body)));

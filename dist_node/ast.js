@@ -1,18 +1,17 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda,
         getUd, getUid;
 (type = (function(node) {
     return (node && node.type);
 }));
 (isIdentifier = (function(node) {
-    return (node.type === "Identifier");
+    return (type(node) === "Identifier");
 }));
 (isLiteral = (function(node) {
-    return (node.type === "Literal");
+    return (type(node) === "Literal");
 }));
 (isNumberish = (function(node) {
     return (isPrimitive(node) && (!isNaN(node.value)));
@@ -34,10 +33,10 @@ var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, is
     return (isPrimitive(node) && (!(!node.value)));
 }));
 (isBlockFunction = (function(node) {
-    return ((node.type === "FunctionExpression") && (node.body.type === "BlockStatement"));
+    return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
 }));
 (isLambda = (function(node) {
-    return (((((node.type === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
+    return (((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
         .self)) && (!node.params.id));
 }));
 (getUd = (function(name, node) {

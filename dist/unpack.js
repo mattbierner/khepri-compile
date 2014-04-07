@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "./fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, fun) {
     "use strict";
@@ -23,35 +22,30 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
             case "ObjectPattern":
                 return flatten(fun.map((function(__o) {
                     var target = __o["target"],
-                        key = __o["key"],
-                        base0 = pattern.ud.id.id,
-                        recursive0 = recursive,
-                        innerBase = ast_expression.MemberExpression.create(null, base0, key,
-                            true);
-                    return (target ? flatten(innerPattern(innerBase, target)) :
-                        ast_declaration.Binding.create(null, ast_pattern.IdentifierPattern.create(
-                                null, ast_value.Identifier.create(null, key.value)),
-                            innerBase, recursive0));
+                        key = __o["key"];
+                    return objectElementUnpack(pattern.ud.id.id, target, key, recursive);
                 }), pattern.elements));
+            case "ImportPattern":
+                return pattern;
             default:
                 return [];
         }
     }));
-    var x = flatten,
-        y = fun.map.bind(null, (function(x0) {
-            switch (x0.type) {
-                case "SinkPattern":
-                case "IdentifierPattern":
-                    return [];
-                case "AsPattern":
-                    return flatten(innerPattern(x0.id, x0.target));
-                default:
-                    return innerPattern(x0, x0);
-            }
-        }));
-    (unpackParameters = (function(x0) {
-        return x(y(x0));
-    }));
+    (unpackParameters = (function(f, g) {
+        return (function(x) {
+            return f(g(x));
+        });
+    })(flatten, fun.map.bind(null, (function(x) {
+        switch (x.type) {
+            case "SinkPattern":
+            case "IdentifierPattern":
+                return [];
+            case "AsPattern":
+                return flatten(innerPattern(x.id, x.target));
+            default:
+                return innerPattern(x, x);
+        }
+    }))));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);
 }));

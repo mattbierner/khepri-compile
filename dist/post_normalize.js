@@ -26,7 +26,8 @@
         }),
         peepholes = new(Rewriter)();
     peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-        return innerPattern(binding.value, binding.pattern, binding.recursive);
+        return ((binding.type === "ImportPattern") ? binding : innerPattern(binding.value,
+            binding.pattern, binding.recursive));
     })), (function(node) {
         return modify(node, ({
             "bindings": flattenr(map(expandBinding, node.bindings))

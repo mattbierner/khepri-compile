@@ -434,7 +434,7 @@ addRewrite@'Binding' <| seq(
      */
     when(
         \node ->
-            (node && node.type === 'Binding' && node.value.type === 'LetExpression'),
+            (node && node.type === 'Binding' && node.value && node.value.type === 'LetExpression'),
         
         extract \ node -> let
             bindings =

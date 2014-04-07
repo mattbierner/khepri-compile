@@ -54,7 +54,10 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
     always,
     
     let
-        expandBinding = \binding -> innerPattern(binding.value, binding.pattern, binding.recursive)
+        expandBinding = \binding ->
+            ?binding.type === 'ImportPattern'
+                :binding
+                :innerPattern(binding.value, binding.pattern, binding.recursive)
     in
         \node ->
             modify(node, {
