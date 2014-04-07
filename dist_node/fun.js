@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/fun.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/fun.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var constant, flip, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten, flattenr;
 (constant = (function(x) {
     return (function() {
@@ -30,7 +29,9 @@ var constant, flip, reduce, reduceRight, foldl, foldr, concat, filter, map, flat
     return Array.prototype.map.call(a, f);
 }));
 (flatten = (function(x) {
-    return (Array.isArray(x) ? Array.prototype.concat.apply([], x) : x);
+    return (Array.isArray(x) ? Array.prototype.concat.apply([], x.filter((function(x) {
+        return (!(!x));
+    }))) : x);
 }));
 (flattenr = (function(x) {
     return (Array.isArray(x) ? flatten(x.map(flattenr)) : x);

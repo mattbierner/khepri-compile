@@ -9,10 +9,13 @@ var record = require("bes")["record"],
     __o0 = require("khepri-ast")["node"],
     Node = __o0["Node"],
     setData = __o0["setData"],
+    modifyNode = __o0["modify"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
+    ast_package = require("khepri-ast")["package"],
+    ast_program = require("khepri-ast")["program"],
     ast_value = require("khepri-ast")["value"],
     __o1 = require("akh")["base"],
     next = __o1["next"],
@@ -36,6 +39,7 @@ var record = require("bes")["record"],
     fun = require("./fun"),
     flattenr = fun["flattenr"],
     flatten = fun["flatten"],
+    concat = fun["concat"],
     binding = require("./inline/bindings"),
     __o4 = require("./inline/expand"),
     expandCallee = __o4["expandCallee"],
@@ -151,12 +155,17 @@ var markExpansion = (function(id, count, target) {
         return seq(push, seqa(body), pop);
     }),
     globals = M.chain.bind(null, getState.map((function(s) {
-        return s.globals;
+        return hashtrie.keys(s.globals);
     }))),
     addGlobal = (function(name) {
         return modifyState((function(s) {
             return s.setGlobals(hashtrie.set(name, name, s.globals));
         }));
+    }),
+    createGlobalDeclarations = (function(g) {
+        return ast_declaration.VariableDeclaration.create(null, g.map((function(x) {
+            return ast_declaration.VariableDeclarator.create(null, builtins[x], definitions[x]);
+        })));
     }),
     child = (function(edge) {
         var args = arguments;
@@ -201,8 +210,21 @@ addRewrite("BinaryOperatorExpression", seq(extract((function(__o) {
     return seq(addGlobal(name), set(builtins[name]));
 })), checkTop));
 addRewrite("TernaryOperatorExpression", seq(addGlobal("?"), set(builtins["?"]), checkTop));
-addRewrite("Program", visitChild("body"));
-addRewrite("Package", visitChild("body"));
+addRewrite("Program", seq(visitChild("body"), when((function(node) {
+    return (node.body.type !== "Package");
+}), globals((function(globals) {
+    return modify((function(node) {
+        return ast_program.Program.create(node.loc, concat(createGlobalDeclarations(globals),
+            node.body));
+    }));
+})))));
+addRewrite("Package", seq(visitChild("body"), globals((function(globals) {
+    return modify((function(node) {
+        return modifyNode(node, ({
+            "body": concat(createGlobalDeclarations(globals), node.body)
+        }), ({}));
+    }));
+}))));
 addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
 addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
 addRewrite("VariableDeclaration", visitChild("declarations"));
@@ -220,7 +242,7 @@ addRewrite("Binding", seq(visitChild("value"), when((function(node) {
 }))), when((function(node) {
     return (((node && (node.type === "Binding")) && node.value) && (node.value.type === "LetExpression"));
 }), extract((function(node) {
-    var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(null,
+    var bindings = fun.flatten(concat(node.value.bindings, ast_declaration.Binding.create(null,
         node.pattern, node.value.body)));
     return seq(set(bindings), visitChild((bindings.length - 1)));
 })))));
@@ -428,7 +450,7 @@ var initialState = fun.foldl((function(s, name) {
                 return M.of(({
                     "tree": node,
                     "data": ({
-                        "globals": hashtrie.keys(g),
+                        "globals": g,
                         "unique": unique
                     })
                 }));

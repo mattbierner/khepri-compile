@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "./fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, fun) {
     "use strict";
@@ -26,8 +25,6 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                         key = __o["key"];
                     return objectElementUnpack(pattern.ud.id.id, target, key, recursive);
                 }), pattern.elements));
-            case "ImportPattern":
-                return pattern;
             default:
                 return [];
         }

@@ -28,46 +28,6 @@ var peepholes = new Rewriter();
 
 var always := \_ -> true;
 
-/* Binding Expression Normalization
- ******************************************************************************/
-/**
- * Flatten variable declaration declaration lists and remove if declaration list
- * is empty.
- */
-peepholes.add('VariableDeclaration', UP,
-    always,
-    
-    \{loc declarations} ->
-        let bound = flattenr <| declarations in
-            ?bound.length
-                :ast_declaration.VariableDeclaration.create(loc, bound)
-                :null);
-
-/**
- * Flatten let expression bindings lists and collapse to body 
- * when binding list is empty
- */
-peepholes.add('LetExpression', UP,
-    always,
-    
-    \{loc bindings body} ->
-        let bound = flattenr <| bindings in
-            ?bound.length
-                :ast_expression.LetExpression.create(loc, bound, body)
-                :body);
-
-/**
- * Flatten with statement bindings lists and collapse to body 
- * when binding list is empty.
- */
-peepholes.add('WithStatement', UP,
-    always,
-    
-    \{loc bindings body} ->
-        let bound = flattenr <| bindings in
-            ?bound.length
-                :ast_statement.WithStatement.create(loc, bound, body)
-                :body);
 
 /* Flattening
  ******************************************************************************/
@@ -112,6 +72,47 @@ peepholes.add('CallExpression', UP,
             concat(
                 node.callee.args,
                 node.args)));
+
+/* Binding Expression Normalization
+ ******************************************************************************/
+/**
+ * Flatten variable declaration declaration lists and remove if declaration list
+ * is empty.
+ */
+peepholes.add('VariableDeclaration', UP,
+    always,
+    
+    \{loc declarations} ->
+        let bound = flattenr <| declarations in
+            ?bound.length
+                :ast_declaration.VariableDeclaration.create(loc, bound)
+                :null);
+
+/**
+ * Flatten let expression bindings lists and collapse to body 
+ * when binding list is empty
+ */
+peepholes.add('LetExpression', UP,
+    always,
+    
+    \{loc bindings body} ->
+        let bound = flattenr bindings in
+            ?bound.length
+                :ast_expression.LetExpression.create(loc, bound, body)
+                :body);
+
+/**
+ * Flatten with statement bindings lists and collapse to body 
+ * when binding list is empty.
+ */
+peepholes.add('WithStatement', UP,
+    always,
+    
+    \{loc bindings body} ->
+        let bound = flattenr bindings in
+            ?bound.length
+                :ast_statement.WithStatement.create(loc, bound, body)
+                :body);
 
 /* Let to With Statement Rewrites
  ******************************************************************************/

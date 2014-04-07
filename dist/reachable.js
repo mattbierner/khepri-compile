@@ -15,15 +15,13 @@
         seqa = __o1["sequencea"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
-        optimize, State = record.declare(null, ["bindings", "scope"]);
-    (State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]));
+        optimize, State = record.declare(null, ["bindings"]);
+    (State.empty = State.create(hashtrie.empty));
     (State.prototype.addReference = (function(uid) {
         var __o = this,
             bindings = __o["bindings"],
             scope = __o["scope"];
-        return State.create(hashtrie.set(uid, null, bindings), [hashtrie.set(uid, null, scope[0]),
-            scope[1]
-        ]);
+        return State.create(hashtrie.set(uid, null, bindings));
     }));
     (State.prototype.isReachable = (function(uid) {
         var __o = this,
@@ -87,15 +85,13 @@
     addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
     addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
     addRewrite("VariableDeclaration", visitChild("declarations"));
-    addRewrite("VariableDeclarator", seq(visitChild("id"), when((function(node) {
-        return node.init;
-    }), extract((function(node) {
+    addRewrite("VariableDeclarator", extract((function(node) {
         return isReachable(getUid(node.id))
             .chain((function(reachable) {
                 return (reachable ? visitChild("init") : set([]));
             }));
-    })))));
-    addRewrite("Binding", seq(visitChild("pattern"), extract((function(node) {
+    })));
+    addRewrite("Binding", seq(extract((function(node) {
         return isReachable(getUid(node.pattern.id))
             .chain((function(reachable) {
                 return (reachable ? visitChild("value") : set([]));
@@ -124,7 +120,6 @@
     addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args")));
     addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args")));
     addRewrite("LetExpression", seq(visitChild("body"), visitChild("bindings")));
-    addRewrite("ArgumentsPattern", seq(visitChild("id"), visitChild("elements"), visitChild("self")));
     addRewrite("ArrayExpression", visitChild("elements"));
     addRewrite("ObjectExpression", visitChild("properties"));
     addRewrite("ObjectValue", visitChild("value"));

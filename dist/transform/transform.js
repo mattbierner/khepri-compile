@@ -24,10 +24,10 @@
         definitions = __o2["definitions"],
         innerPattern = __o3["innerPattern"],
         unpackParameters = __o3["unpackParameters"],
-        transform, State = record.declare(null, ["scope", "packageManager", "bindings", "globals"]);
+        transform, State = record.declare(null, ["scope", "packageManager", "bindings"]);
     (State.empty = State.create(scope.Scope.empty, null, [
         [], null
-    ], []));
+    ]));
     var M = ZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
@@ -47,9 +47,6 @@
             });
         })(M.lift, M.inner.modify),
         inspectStateWith = M.chain.bind(null, extract),
-        globals = extract.map((function(s) {
-            return s.globals;
-        })),
         node = M.node,
         withNode = M.chain.bind(null, node),
         modify = M.modifyNode,
@@ -198,7 +195,7 @@
             return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(
                 null, base, identifier(null, "bind")), concat(nullLiteral(null), args));
         }),
-        packageBlock = (function(packageManager, loc, exports, globals, body) {
+        packageBlock = (function(packageManager, loc, exports, body) {
             var imports = ((body.type === "WithStatement") ? fun.filter((function(x) {
                 return (x && (x.type === "ImportPattern"));
             }), body.bindings) : []),
@@ -210,7 +207,7 @@
                     (function(x) {
                         return (x && (x.type !== "ImportPattern"));
                     }), body.bindings), body.body) : body);
-            return packageManager.definePackage(loc, exports, imports, targets, globals, fBody);
+            return packageManager.definePackage(loc, exports, imports, targets, fBody);
         }),
         transformers = ({}),
         addTransform = (function(type, pre, post) {
@@ -360,13 +357,10 @@
     addTransform(["ObjectPattern", "EllipsisPattern", "SinkPattern"], null, modify((function(node) {
         return (node.ud && node.ud.id);
     })));
-    addTransform("Program", seq(pushBindings, globals.chain((function(globals) {
-        return modify((function(node) {
-            return ((node.body.type === "Package") ? node : setData(khepri_program.Program
-                .create(null, fun.concat(globals, node.body)), "prefix",
-                khepri_statement.ExpressionStatement.create(null, khepri_value.Literal
-                    .create(null, "string", "use strict"))));
-        }));
+    addTransform("Program", seq(pushBindings, modify((function(node) {
+        return ((node.body.type === "Package") ? node : setData(node, "prefix",
+            khepri_statement.ExpressionStatement.create(null, khepri_value.Literal.create(
+                null, "string", "use strict"))));
     }))), getBindings((function(bindings) {
         return modify((function(node) {
             return ecma_program.Program.create(node.loc, fun.concat(((node.ud && node.ud.prefix) ?
@@ -378,11 +372,8 @@
         }));
     })));
     addTransform("Package", packageManager.chain((function(packageManager) {
-        return globals.chain((function(globals) {
-            return modify((function(node) {
-                return packageBlock(packageManager, node.loc, node.exports, globals,
-                    node.body);
-            }));
+        return modify((function(node) {
+            return packageBlock(packageManager, node.loc, node.exports, node.body);
         }));
     })));
     addTransform("Identifier", null, withNode((function(node) {
@@ -411,14 +402,8 @@
             node_manager = require("./package_manager/node"),
             packageManager = amd_manager;
         if ((manager === "node"))(packageManager = node_manager);
-        var globals = data.globals,
-            s = State.empty.setScope(scope.Scope.empty)
-                .setPackageManager(packageManager)
-                .setGlobals((data.globals ? khepri_declaration.VariableDeclaration.create(null, data.globals
-                    .map((function(x) {
-                        return khepri_declaration.VariableDeclarator.create(null,
-                            builtins[x], definitions[x]);
-                    }))) : []));
+        var s = State.empty.setScope(scope.Scope.empty)
+            .setPackageManager(packageManager);
         return run(seq(addVar("require", getUid(builtins.require)), addVar("exports", getUid(builtins.exports)),
             walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
     }));

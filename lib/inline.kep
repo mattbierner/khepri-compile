@@ -10,11 +10,13 @@ with
     
     import 'khepri-ast-zipper' {khepriZipper},
 
-    import 'khepri-ast::node' {Node setData},
+    import 'khepri-ast::node' {Node setData 'modify': modifyNode},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::package' ast_package,
+    import 'khepri-ast::program' ast_program,
     import 'khepri-ast::value' ast_value,
     
     import 'akh::base' {
@@ -37,7 +39,7 @@ with
         isNumberish
         isTruthy},
     import './builtin' {builtins definitions},
-    import './fun' fun#{flattenr flatten},
+    import './fun' fun#{flattenr flatten concat},
     import './inline/bindings' binding,
     import './inline/expand' {
         expandCallee
@@ -248,7 +250,7 @@ var block = \body(...) ->
 /**
  * Get globals.
  */
-var globals = M.chain @ (getState.map \ s -> s.globals);
+var globals = M.chain @ (getState.map \ s -> hashtrie.keys(s.globals));
 
 /**
  * Add a new global.
@@ -257,6 +259,15 @@ var addGlobal = \name ->
     modifyState \ s ->
         s.setGlobals(hashtrie.set(name, name, s.globals));
 
+/**
+ * 
+ */
+var createGlobalDeclarations = \g ->
+    ast_declaration.VariableDeclaration.create(null,
+        g.map \ x ->
+            ast_declaration.VariableDeclarator.create(null,
+                builtins.(x),
+                definitions.(x)));
 /*
  ******************************************************************************/
 /**
@@ -363,22 +374,36 @@ addRewrite@'TernaryOperatorExpression' <|
 /* 
  ******************************************************************************/
 // Program and Packages
-addRewrite@'Program' <|
-    visitChild 'body';
+addRewrite@'Program' <| seq(
+    visitChild 'body',
+    
+    when(
+        \node -> node.body.type !== 'Package',
+        
+        globals \ globals ->
+        modify \ node ->
+            ast_program.Program.create(node.loc,
+                concat(
+                    createGlobalDeclarations(globals),
+                    node.body))));
 
-addRewrite@'Package' <|
-    visitChild 'body';
+addRewrite@'Package' <| seq(
+    visitChild 'body',
+    
+    globals \ globals ->
+    modify \ node ->
+        modifyNode(node, {
+            'body': concat(createGlobalDeclarations(globals), node.body)
+        }, {}));
 
 // Clause
-addRewrite@'SwitchCase' <|
-    seq(
-        visitChild 'test',
-        visitChild 'consequent');
+addRewrite@'SwitchCase' <| seq(
+    visitChild 'test',
+    visitChild 'consequent');
 
-addRewrite@'CatchClause' <|
-    seq(
-        visitChild 'param',
-        visitChild 'body');
+addRewrite@'CatchClause' <| seq(
+    visitChild 'param',
+    visitChild 'body');
 
 // Declarations
 addRewrite@'VariableDeclaration' <|
@@ -438,7 +463,7 @@ addRewrite@'Binding' <| seq(
         
         extract \ node -> let
             bindings =
-                fun.flatten <| fun.concat(
+                fun.flatten <| concat(
                    node.value.bindings,
                    ast_declaration.Binding.create(null,
                        node.pattern,
@@ -808,7 +833,7 @@ optimize = \ast data ->
             unique \ unique ->
                 M.of({
                     'tree': node,
-                    'data': {'globals': hashtrie.keys(g), 'unique': unique}
+                    'data': {'globals': g, 'unique': unique}
                 })),
         khepriZipper(ast),
         initialState,

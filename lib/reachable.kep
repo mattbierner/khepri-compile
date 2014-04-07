@@ -37,15 +37,13 @@ in {
 /* State
  ******************************************************************************/
 var State = record.declare(null, [
-    'bindings',
-    'scope']);
+    'bindings']);
 
-State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]);
+State.empty = State.create(hashtrie.empty);
 
 State.prototype.addReference = \uid ={bindings scope}->
     State.create(
-        hashtrie.set(uid, null, bindings),
-        [hashtrie.set(uid, null, scope.(0)), scope.(1)]);
+        hashtrie.set(uid, null, bindings));
 
 State.prototype.isReachable = \uid ={bindings scope}->
     hashtrie.has(uid, bindings);
@@ -142,6 +140,7 @@ var addRewrite = \type f -> {
     else
         peepholes.(type) = f;
 };
+
 /* 
  ******************************************************************************/
 // Program and Packages
@@ -152,34 +151,26 @@ addRewrite@'Package' <|
     visitChild 'body';
 
 // Clause
-addRewrite@'SwitchCase' <|
-    seq(
-        visitChild 'test',
-        visitChild 'consequent');
+addRewrite@'SwitchCase' <| seq(
+    visitChild 'test',
+    visitChild 'consequent');
 
-addRewrite@'CatchClause' <|
-    seq(
-        visitChild 'param',
-        visitChild 'body');
+addRewrite@'CatchClause' <| seq(
+    visitChild 'param',
+    visitChild 'body');
 
 // Declarations
 addRewrite@'VariableDeclaration' <|
     visitChild 'declarations';
 
-addRewrite@'VariableDeclarator' <| seq(
-    visitChild 'id',
-    
-    when(
-        \node -> node.init,
-        extract \ node ->
-            isReachable(getUid node.id).chain \ reachable ->
-                ?reachable
-                    :visitChild 'init'
-                    :set []));
+addRewrite@'VariableDeclarator' <|
+    extract \ node ->
+        isReachable(getUid node.id).chain \ reachable ->
+            ?reachable
+                :visitChild 'init'
+                :set [];
 
 addRewrite@'Binding' <| seq(
-    visitChild 'pattern',
-    
     extract \ node ->
         isReachable(getUid node.pattern.id).chain \ reachable ->
             ?reachable
@@ -262,12 +253,6 @@ addRewrite@'CurryExpression' <| seq(
 addRewrite@'LetExpression' <| seq(
     visitChild 'body',
     visitChild 'bindings');
-
-// Pattern
-addRewrite@'ArgumentsPattern' <| seq(
-    visitChild 'id',
-    visitChild 'elements',
-    visitChild 'self');
 
 // Value
 addRewrite@'ArrayExpression' <|

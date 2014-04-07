@@ -52,14 +52,12 @@ in {
 var State = record.declare(null, [
     'scope',
     'packageManager',
-    'bindings',
-    'globals']);
+    'bindings']);
 
 State.empty = State.create(
     scope.Scope.empty,
     null,
-    [[], null],
-    []);
+    [[], null]);
 
 /* Monad
  ******************************************************************************/
@@ -90,8 +88,6 @@ var setState = M.lift <\ M.inner.put;
 var modifyState = M.lift <\ M.inner.modify;
 
 var inspectStateWith = M.chain @ extract;
-
-var globals = extract.map \ s -> s.globals;
 
 // Zipper Operations
 ////////////////////////////////////////
@@ -324,7 +320,7 @@ var curryExpression = \loc base args ->
 
 /* Package
  ******************************************************************************/
-var packageBlock = \packageManager, loc, exports, globals body -> let
+var packageBlock = \packageManager loc exports body -> let
     imports = ?body.type === 'WithStatement'
         :fun.filter(\x -> x && x.type === 'ImportPattern', body.bindings)
         :[],
@@ -344,7 +340,6 @@ in
         exports,
         imports,
         targets,
-        globals,
         fBody);
 
 /* Transform
@@ -639,11 +634,10 @@ addTransform(['ObjectPattern', 'EllipsisPattern', 'SinkPattern'],
 addTransform('Program',
     seq(
         pushBindings,
-        globals.chain \ globals ->
         modify \ node ->
             ?node.body.type === 'Package'
                 :node
-                :setData(khepri_program.Program.create(null, fun.concat(globals, node.body)), 'prefix',
+                :setData(node, 'prefix',
                     khepri_statement.ExpressionStatement.create(null,
                         khepri_value.Literal.create(null, 'string', "use strict")))),
     
@@ -661,13 +655,11 @@ addTransform('Program',
 // Package
 addTransform('Package',
     packageManager.chain \packageManager ->
-    globals.chain \ globals ->
     modify \ node ->
         packageBlock(
             packageManager,
             node.loc,
             node.exports,
-            globals,
             node.body));
 
 // Value
@@ -717,13 +709,9 @@ transform = \ast manager data -> {
         if (manager === 'node')
             packageManager = node_manager;
         
-        var globals = data.globals;
-        
         var s = State.empty
             .setScope(scope.Scope.empty)
-            .setPackageManager(packageManager)
-            .setGlobals(?data.globals : khepri_declaration.VariableDeclaration.create(null,data.globals.map(\x ->
-                khepri_declaration.VariableDeclarator.create(null, builtins.(x), definitions.(x)))) : []);
+            .setPackageManager(packageManager);
         
         return run(
             seq(

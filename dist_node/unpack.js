@@ -27,8 +27,6 @@ var ast_expression = require("khepri-ast")["expression"],
                     key = __o["key"];
                 return objectElementUnpack(pattern.ud.id.id, target, key, recursive);
             }), pattern.elements));
-        case "ImportPattern":
-            return pattern;
         default:
             return [];
     }

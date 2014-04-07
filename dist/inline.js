@@ -1,17 +1,19 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
+*/define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk",
-    "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand", "./inline/rename"
+    "khepri-ast/package", "khepri-ast/program", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state",
+    "zipper-m/trans/zipper", "zipper-m/walk", "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand",
+    "./inline/rename"
 ], (function(require, exports, record, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun, binding, __o4, __o5) {
+    ast_pattern, ast_package, ast_program, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun,
+    binding, __o4, __o5) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
         setData = __o0["setData"],
+        modifyNode = __o0["modify"],
         next = __o1["next"],
         seq = __o1["sequence"],
         seqa = __o1["sequencea"],
@@ -26,6 +28,7 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         definitions = __o3["definitions"],
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
+        concat = fun["concat"],
         expandCallee = __o4["expandCallee"],
         expandCurry = __o4["expandCurry"],
         rename = __o5["rename"],
@@ -138,12 +141,18 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             return seq(push, seqa(body), pop);
         }),
         globals = M.chain.bind(null, getState.map((function(s) {
-            return s.globals;
+            return hashtrie.keys(s.globals);
         }))),
         addGlobal = (function(name) {
             return modifyState((function(s) {
                 return s.setGlobals(hashtrie.set(name, name, s.globals));
             }));
+        }),
+        createGlobalDeclarations = (function(g) {
+            return ast_declaration.VariableDeclaration.create(null, g.map((function(x) {
+                return ast_declaration.VariableDeclarator.create(null, builtins[x], definitions[
+                    x]);
+            })));
         }),
         child = (function(edge) {
             var args = arguments;
@@ -188,8 +197,21 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         return seq(addGlobal(name), set(builtins[name]));
     })), checkTop));
     addRewrite("TernaryOperatorExpression", seq(addGlobal("?"), set(builtins["?"]), checkTop));
-    addRewrite("Program", visitChild("body"));
-    addRewrite("Package", visitChild("body"));
+    addRewrite("Program", seq(visitChild("body"), when((function(node) {
+        return (node.body.type !== "Package");
+    }), globals((function(globals) {
+        return modify((function(node) {
+            return ast_program.Program.create(node.loc, concat(
+                createGlobalDeclarations(globals), node.body));
+        }));
+    })))));
+    addRewrite("Package", seq(visitChild("body"), globals((function(globals) {
+        return modify((function(node) {
+            return modifyNode(node, ({
+                "body": concat(createGlobalDeclarations(globals), node.body)
+            }), ({}));
+        }));
+    }))));
     addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
     addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
     addRewrite("VariableDeclaration", visitChild("declarations"));
@@ -208,7 +230,7 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         return (((node && (node.type === "Binding")) && node.value) && (node.value.type ===
             "LetExpression"));
     }), extract((function(node) {
-        var bindings = fun.flatten(fun.concat(node.value.bindings, ast_declaration.Binding.create(
+        var bindings = fun.flatten(concat(node.value.bindings, ast_declaration.Binding.create(
             null, node.pattern, node.value.body)));
         return seq(set(bindings), visitChild((bindings.length - 1)));
     })))));
@@ -424,7 +446,7 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
                     return M.of(({
                         "tree": node,
                         "data": ({
-                            "globals": hashtrie.keys(g),
+                            "globals": g,
                             "unique": unique
                         })
                     }));

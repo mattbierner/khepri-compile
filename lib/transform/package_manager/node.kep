@@ -52,7 +52,7 @@ in
 /**
  * Node package definition code generator.
  */
-definePackage = \loc exports imports targets globals body -> let
+definePackage = \loc exports imports targets body -> let
     exportedNames = ?exports.type === 'PackageExports'
         :fun.map(\x -> x.id.name, exports.exports)
         :[exports.id.name],
@@ -88,7 +88,6 @@ in
                     importPackage(x.from.value))),
             ast_statement.BlockStatement.create(null,
                 concat(
-                    globals,
                     exportHeader,
                     body,
                     exportBody)))]);

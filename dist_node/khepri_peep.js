@@ -20,6 +20,21 @@ var __o = require("khepri-ast-zipper"),
     always = (function(_) {
         return true;
     });
+peepholes.add("LetExpression", UP, (function(node) {
+    return (node.body.type === "LetExpression");
+}), (function(node) {
+    return ast_expression.LetExpression.create(node.loc, concat(node.bindings, node.body.bindings), node.body.body);
+}));
+peepholes.add("CurryExpression", UP, (function(node) {
+    return (node.base.type === "CurryExpression");
+}), (function(node) {
+    return ast_expression.CurryExpression.create(node.loc, node.base.base, concat(node.base.args, node.args));
+}));
+peepholes.add("CallExpression", UP, (function(node) {
+    return (node.callee.type === "CurryExpression");
+}), (function(node) {
+    return ast_expression.CallExpression.create(node.loc, node.callee.base, concat(node.callee.args, node.args));
+}));
 peepholes.add("VariableDeclaration", UP, always, (function(__o) {
     var loc = __o["loc"],
         declarations = __o["declarations"],
@@ -39,21 +54,6 @@ peepholes.add("WithStatement", UP, always, (function(__o) {
         body = __o["body"],
         bound = flattenr(bindings);
     return (bound.length ? ast_statement.WithStatement.create(loc, bound, body) : body);
-}));
-peepholes.add("LetExpression", UP, (function(node) {
-    return (node.body.type === "LetExpression");
-}), (function(node) {
-    return ast_expression.LetExpression.create(node.loc, concat(node.bindings, node.body.bindings), node.body.body);
-}));
-peepholes.add("CurryExpression", UP, (function(node) {
-    return (node.base.type === "CurryExpression");
-}), (function(node) {
-    return ast_expression.CurryExpression.create(node.loc, node.base.base, concat(node.base.args, node.args));
-}));
-peepholes.add("CallExpression", UP, (function(node) {
-    return (node.callee.type === "CurryExpression");
-}), (function(node) {
-    return ast_expression.CallExpression.create(node.loc, node.callee.base, concat(node.callee.args, node.args));
 }));
 peepholes.add("ReturnStatement", false, (function(node) {
     return (node.argument && (node.argument.type === "LetExpression"));

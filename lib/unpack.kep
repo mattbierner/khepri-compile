@@ -50,9 +50,6 @@ in
                 |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id.id, target, key, recursive))
                 |> flatten;
         
-        case 'ImportPattern':
-            return pattern;
-        
         default:
             return [];
         }
