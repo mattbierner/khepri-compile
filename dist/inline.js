@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
+*/define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/program", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state",
     "zipper-m/trans/zipper", "zipper-m/walk", "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand",
@@ -209,7 +208,11 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
     addRewrite("Package", seq(visitChild("body"), globals((function(globals) {
         return modify((function(node) {
             return modifyNode(node, ({
-                "body": concat(createGlobalDeclarations(globals), node.body)
+                "body": ((node.body.type === "WithStatement") ? ast_statement.WithStatement
+                    .create(node.body.loc, node.body.bindings, ast_statement.BlockStatement
+                        .create(null, concat(createGlobalDeclarations(globals),
+                            node.body.body.body))) : concat(
+                        createGlobalDeclarations(globals), node.body))
             }), ({}));
         }));
     }))));

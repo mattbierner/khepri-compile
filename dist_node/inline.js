@@ -221,7 +221,11 @@ addRewrite("Program", seq(visitChild("body"), when((function(node) {
 addRewrite("Package", seq(visitChild("body"), globals((function(globals) {
     return modify((function(node) {
         return modifyNode(node, ({
-            "body": concat(createGlobalDeclarations(globals), node.body)
+            "body": ((node.body.type === "WithStatement") ? ast_statement.WithStatement
+                .create(node.body.loc, node.body.bindings, ast_statement.BlockStatement
+                    .create(null, concat(createGlobalDeclarations(globals), node.body.body
+                        .body))) : concat(createGlobalDeclarations(globals), node.body)
+            )
         }), ({}));
     }));
 }))));

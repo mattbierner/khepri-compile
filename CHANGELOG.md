@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.3.18 - April 7, 2014
+* Fixed AMD package generation for imports.
+
 ## 0.3.17 - April 7, 2014
 * Globals pruned if inlining makes them unreachable.
 ** `(+, 1);` generates `\y -> y + 1` with no `_add`

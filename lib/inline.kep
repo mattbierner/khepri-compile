@@ -1,5 +1,13 @@
 /**
- * @fileOverview Khepri peephole optimization.
+ * @fileOverview Khepri inlining.
+ * 
+ * This stage does the following:
+ * - Replace operators converted to functions with references to a global.
+ * - Add globals to programs and packages.
+ * - Propagate constant values, replacing identifiers with values.
+ * - Fold constant subexpressions.
+ * - Potentially inline functions.
+ * - Rewrite curries and calls of inlined forms to let expressions.
  */
 package (
     optimize)
@@ -393,7 +401,16 @@ addRewrite@'Package' <| seq(
     globals \ globals ->
     modify \ node ->
         modifyNode(node, {
-            'body': concat(createGlobalDeclarations(globals), node.body)
+            'body': ?node.body.type === 'WithStatement'
+                :ast_statement.WithStatement.create(node.body.loc,
+                    node.body.bindings,
+                    ast_statement.BlockStatement.create(null,
+                        concat(
+                          createGlobalDeclarations(globals),
+                          node.body.body.body)))
+                :concat(
+                    createGlobalDeclarations(globals),
+                    node.body)
         }, {}));
 
 // Clause
