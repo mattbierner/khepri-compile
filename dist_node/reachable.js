@@ -118,11 +118,12 @@ addRewrite("TryStatement", seq(visitChild("block"), visitChild("handler"), visit
 addRewrite("WhileStatement", seq(visitChild("test"), visitChild("body")));
 addRewrite("DoWhileStatement", seq(visitChild("body"), visitChild("test")));
 addRewrite("ForStatement", seq(visitChild("init"), visitChild("test"), visitChild("update"), visitChild("body")));
+addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), visitChild("consequent"), visitChild(
+    "alternate")));
 addRewrite("FunctionExpression", seq(visitChild("id"), visitChild("params"), visitChild("body")));
 addRewrite("UnaryExpression", visitChild("argument"));
 addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(visitChild("left"), visitChild(
     "right")));
-addRewrite("ConditionalExpression", seq(visitChild("test"), visitChild("consequent"), visitChild("alternate")));
 addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
     return node.computed;
 }), visitChild("property"))));

@@ -223,7 +223,11 @@ addRewrite@'ForStatement' <| seq(
     visitChild 'update',
     visitChild 'body');
 
-// Expression
+addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
+    visitChild 'test',
+    visitChild 'consequent',
+    visitChild 'alternate');
+
 addRewrite@'FunctionExpression' <| seq(
     visitChild 'id',
     visitChild 'params',
@@ -235,11 +239,6 @@ addRewrite@'UnaryExpression' <|
 addRewrite@['AssignmentExpression', 'LogicalExpression', 'BinaryExpression'] <| seq(
     visitChild 'left',
     visitChild 'right');
-
-addRewrite@'ConditionalExpression' <| seq(
-    visitChild 'test',
-    visitChild 'consequent',
-    visitChild 'alternate');
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
