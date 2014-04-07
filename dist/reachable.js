@@ -103,10 +103,9 @@
     addRewrite("SwitchStatement", seq(visitChild("discriminant"), visitChild("cases")));
     addRewrite(["ReturnStatement", "ThrowStatement"], visitChild("argument"));
     addRewrite("TryStatement", seq(visitChild("block"), visitChild("handler"), visitChild("finalizer")));
-    addRewrite("WhileStatement", seq(visitChild("test"), visitChild("body")));
-    addRewrite("DoWhileStatement", seq(visitChild("body"), visitChild("test")));
-    addRewrite("ForStatement", seq(visitChild("init"), visitChild("test"), visitChild("update"), visitChild(
-        "body")));
+    addRewrite(["WhileStatement", "DoWhileStatement"], seq(visitChild("test"), visitChild("body")));
+    addRewrite("ForStatement", seq(visitChild("body"), visitChild("update"), visitChild("test"), visitChild(
+        "init")));
     addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), visitChild("consequent"),
         visitChild("alternate")));
     addRewrite("FunctionExpression", seq(visitChild("id"), visitChild("params"), visitChild("body")));

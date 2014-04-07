@@ -200,19 +200,15 @@ addRewrite@'TryStatement' <| seq(
     visitChild 'handler',
     visitChild 'finalizer');
 
-addRewrite@'WhileStatement' <| seq(
+addRewrite@['WhileStatement', 'DoWhileStatement'] <| seq(
     visitChild 'test',
     visitChild 'body');
-
-addRewrite@'DoWhileStatement' <| seq(
-    visitChild 'body',
-    visitChild 'test');
 
 addRewrite@'ForStatement' <| seq(
-    visitChild 'init',
-    visitChild 'test',
+    visitChild 'body',
     visitChild 'update',
-    visitChild 'body');
+    visitChild 'test',
+    visitChild 'init');
 
 addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',
