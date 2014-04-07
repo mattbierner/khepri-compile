@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.3.15 - April 6, 2014
+* Fixed globals being marking unreachable.
+
 ## 0.3.14 - April 6, 2014
 * Fixed package with imports.
 

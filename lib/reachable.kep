@@ -72,13 +72,17 @@ var modifyState := M.lift <\ M.inner.modify;
 // Bindings Operations
 ////////////////////////////////////////
 var addReference = \uid ->
-    modifyState \ s ->  
-        s.addReference(uid);
+    ?uid
+        :modifyState \ s ->
+            s.addReference(uid)
+        :pass;
 
 var isReachable = \uid ->
-    getState.map \ s ->  
-        s.isReachable(uid);
-        
+    ?uid
+        :getState.map \ s ->
+            s.isReachable(uid)
+    :M.of true;
+
 // Movement
 ////////////////////////////////////////
 var extract = M.chain @ M.node;
@@ -231,6 +235,11 @@ addRewrite@'UnaryExpression' <|
 addRewrite@['AssignmentExpression', 'LogicalExpression', 'BinaryExpression'] <| seq(
     visitChild 'left',
     visitChild 'right');
+
+addRewrite@'ConditionalExpression' <| seq(
+    visitChild 'test',
+    visitChild 'consequent',
+    visitChild 'alternate');
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',

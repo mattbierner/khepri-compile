@@ -43,14 +43,14 @@
             });
         })(M.lift, M.inner.modify),
         addReference = (function(uid) {
-            return modifyState((function(s) {
+            return (uid ? modifyState((function(s) {
                 return s.addReference(uid);
-            }));
+            })) : pass);
         }),
         isReachable = (function(uid) {
-            return getState.map((function(s) {
+            return (uid ? getState.map((function(s) {
                 return s.isReachable(uid);
-            }));
+            })) : M.of(true));
         }),
         extract = M.chain.bind(null, M.node),
         modify = M.modifyNode,
@@ -115,6 +115,8 @@
     addRewrite("UnaryExpression", visitChild("argument"));
     addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(visitChild("left"),
         visitChild("right")));
+    addRewrite("ConditionalExpression", seq(visitChild("test"), visitChild("consequent"), visitChild(
+        "alternate")));
     addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
         return node.computed;
     }), visitChild("property"))));
