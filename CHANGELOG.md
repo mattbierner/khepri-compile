@@ -1,11 +1,12 @@
 # ChangeLog #
 
-## 0.3.17 - April 6, 2014
+## 0.3.17 - April 7, 2014
 * Globals pruned if inlining makes them unreachable.
 ** `(+, 1);` generates `\y -> y + 1` with no `_add`
 ** While `(+)` generates `var __add = \x y -> x + y; __add;`
 * Fixed potentially incorrect normalization of let bindings with a let expression
   value.
+* Unused declarators without inits can also be pruned.
 
 ## 0.3.15 - April 6, 2014
 * Fixed globals being marking unreachable.
