@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 0.3.13 - April 5, 2014
+* Basic unreachable binding pruning.
+** Compose now should have same overhead as a `compose` function in the worst case,
+  but multi composes can be optimized to a single set of potentially inlined function calls.
+* Unused variable elimination.
+
 ## 0.3.12 - April 5, 2014
 * Restored builtin inlining.
 

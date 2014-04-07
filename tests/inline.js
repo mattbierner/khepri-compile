@@ -45,3 +45,12 @@ exports.capture_mutable= function(test) {
     
     test.done();
 };
+
+/// Ensure that we don't inline the working value in a loop test.
+exports.no_for_working_inline = function(test) {
+    test.equal(
+        evalParser("for (var i = 0; i < 10; i = i + 1) i;"),
+        9);
+    
+    test.done();
+};
