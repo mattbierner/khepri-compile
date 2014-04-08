@@ -217,7 +217,7 @@ var unpackAssign =
  * Expand an arguments pattern to a list of bindings.
  */
 var unpackArgumentsPattern = \parameters -> let
-    elementsPrefix = unpackParameters(parameters.elements),
+    elementsPrefix = unpackParameters(parameters.id, parameters.elements),
     
     selfPrefix = ?parameters.self
         :innerPattern(
@@ -232,9 +232,9 @@ var unpackArgumentsPattern = \parameters -> let
         :[]
 in
     fun.concat(
+        argumentsPrefix,
         elementsPrefix,
-        selfPrefix,
-        argumentsPrefix)
+        selfPrefix)
         |> fun.flatten;
 
 /* Statements

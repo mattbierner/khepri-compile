@@ -92,7 +92,7 @@ peepholes.add('FunctionExpression', UP,
                 }
             },
         
-        bindings = unpackParameters(pre, mid, post),
+        bindings = unpackParameters(node.params.id, pre, mid, post),
         
         body = ?isBlockFunction node
             :ast_statement.BlockStatement.create(null,

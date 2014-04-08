@@ -9,7 +9,8 @@ with
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-
+    
+    import './ast' {type},
     import './fun' fun#{
         concat
         flatten}
@@ -104,14 +105,27 @@ in
         
         case 'ObjectPattern':
             return pattern.elements
-                |> (fun.map @ \node#{type target key} ->
-                    ?type === 'SliceUnpack'
-                        :sliceUnpack(pattern.ud.id.id, node.pattern, node.from, node.to)
+                |> (fun.map @ \node ->
+                    ?type node === 'SliceUnpack'
+                        :sliceUnpack(
+                            pattern.ud.id.id,
+                            node.pattern,
+                            node.from,
+                            node.to)
                      
-                    :?type === 'RelativeUnpack'
-                        :relativeUnpack(pattern.ud.id.id, node.min, node.index, node.pattern)
+                    :?type node === 'RelativeUnpack'
+                        :relativeUnpack(
+                            pattern.ud.id.id,
+                            node.min,
+                            node.index,
+                            node.pattern)
                     
-                    :objectElementUnpack(pattern.ud.id.id, target, key, recursive))
+                    :objectElementUnpack(
+                        pattern.ud.id.id,
+                        node.target,
+                        node.key,
+                        recursive))
+                    
                 |> flatten;
         
         default:
@@ -122,7 +136,7 @@ in
 /**
  * Expand a parameter list to a list of inner bindings.
  */
-unpackParameters = \pre mid post ->
+unpackParameters = \args pre mid post ->
     flatten <| concat(
         fun.map(\x -> {
             switch (x.type) {
@@ -140,11 +154,13 @@ unpackParameters = \pre mid post ->
         }, pre),
         ?mid && mid.id
             :sliceUnpack(
-                identifier 'arguments',
+                args,
                 mid.id,
                 pre.length,
                 post.length)
             :[],
-        fun.map(\x i -> relativeUnpack(identifier('arguments'), pre.length + post.length,  --post.length + i, x), post || []));
+        fun.map(
+            \x i -> relativeUnpack(args, pre.length + post.length, --post.length + i, x),
+            post || []));
 
 }

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement",
     "khepri-ast/value", "khepri-ast-zipper", "akh/unique", "akh/trans/state", "akh/base", "zipper-m/trans/zipper",
@@ -132,11 +131,11 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             return y2(innerPattern(x1.value, x1.pattern));
         })),
         unpackArgumentsPattern = (function(parameters) {
-            var elementsPrefix = unpackParameters(parameters.elements),
+            var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
                 selfPrefix = (parameters.self ? innerPattern(ecma_expression.ThisExpression.create(null),
                     parameters.self) : []),
                 argumentsPrefix = (parameters.id ? innerPattern(identifier(null, "arguments"), parameters.id) : []);
-            return fun.flatten(fun.concat(elementsPrefix, selfPrefix, argumentsPrefix));
+            return fun.flatten(fun.concat(argumentsPrefix, elementsPrefix, selfPrefix));
         }),
         withStatementNoImport = (function(loc, bindings, body) {
             var vars = fun.flatten(fun.map(unpack, bindings)),

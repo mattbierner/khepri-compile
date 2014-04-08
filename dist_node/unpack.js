@@ -6,6 +6,8 @@ var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
+    __o = require("./ast"),
+    type = __o["type"],
     fun = require("./fun"),
     concat = fun["concat"],
     flatten = fun["flatten"],
@@ -33,14 +35,13 @@ var ast_expression = require("khepri-ast")["expression"],
                 recursive)));
         case "ObjectPattern":
             return flatten(fun.map((function(node) {
-                var base0, innerBase, type = node["type"],
-                    target = node["target"],
-                    key = node["key"];
-                return ((type === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern, node
-                    .from, node.to) : ((type === "RelativeUnpack") ? relativeUnpack(pattern.ud.id
-                    .id, node.min, node.index, node.pattern) : ((base0 = pattern.ud.id.id), (
+                var base0, pattern0, key, innerBase;
+                return ((type(node) === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern,
+                    node.from, node.to) : ((type(node) === "RelativeUnpack") ? relativeUnpack(
+                    pattern.ud.id.id, node.min, node.index, node.pattern) : ((base0 =
+                    pattern.ud.id.id), (pattern0 = node.target), (key = node.key), (
                     innerBase = ast_expression.MemberExpression.create(null, base0, key,
-                        true)), (target ? flatten(innerPattern(innerBase, target)) :
+                        true)), (pattern0 ? flatten(innerPattern(innerBase, pattern0)) :
                     ast_declaration.Binding.create(null, ast_pattern.IdentifierPattern.create(
                             null, ast_value.Identifier.create(null, key.value)),
                         innerBase, recursive)))));
@@ -49,21 +50,20 @@ var ast_expression = require("khepri-ast")["expression"],
             return [];
     }
 }));
-(unpackParameters = (function(pre, mid, post) {
+(unpackParameters = (function(args, pre, mid, post) {
     return flatten(concat(fun.map((function(x) {
-            switch (x.type) {
-                case "SinkPattern":
-                case "IdentifierPattern":
-                    return [];
-                case "AsPattern":
-                    return flatten(innerPattern(x.id, x.target));
-                default:
-                    return innerPattern(x, x);
-            }
-        }), pre), ((mid && mid.id) ? sliceUnpack(identifier("arguments"), mid.id, pre.length, post.length) : []),
-        fun.map((function(x, i) {
-            return relativeUnpack(identifier("arguments"), (pre.length + post.length), ((-post.length) +
-                i), x);
+        switch (x.type) {
+            case "SinkPattern":
+            case "IdentifierPattern":
+                return [];
+            case "AsPattern":
+                return flatten(innerPattern(x.id, x.target));
+            default:
+                return innerPattern(x, x);
+        }
+    }), pre), ((mid && mid.id) ? sliceUnpack(args, mid.id, pre.length, post.length) : []), fun.map((
+        function(x, i) {
+            return relativeUnpack(args, (pre.length + post.length), ((-post.length) + i), x);
         }), (post || []))));
 }));
 (exports["innerPattern"] = innerPattern);

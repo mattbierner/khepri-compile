@@ -47,10 +47,10 @@ var splitArrayPattern = (function(elements) {
     return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice((indx + 1))]);
 });
 peepholes.add("FunctionExpression", UP, always, (function(node) {
-    var __o = splitArrayPattern(node.params.elements),
-        pre = __o[0],
-        mid = __o[1],
-        post = __o[2],
+    var __o6 = splitArrayPattern(node.params.elements),
+        pre = __o6[0],
+        mid = __o6[1],
+        post = __o6[2],
         params = map((function(x) {
             switch (x.type) {
                 case "IdentifierPattern":
@@ -61,7 +61,7 @@ peepholes.add("FunctionExpression", UP, always, (function(node) {
                     return x.ud.id;
             }
         }), pre),
-        bindings = unpackParameters(pre, mid, post),
+        bindings = unpackParameters(node.params.id, pre, mid, post),
         body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement.create(
             null, bindings, node.body)]) : ast_expression.LetExpression.create(null, bindings, node.body));
     return ast_expression.FunctionExpression.create(node.loc, node.id, modify(node.params, ({
@@ -75,39 +75,42 @@ var expandAssignment = (function(node) {
         node
     ]);
 });
-peepholes.add("ExpressionStatement", UP, (function(__o) {
-    var expression = __o["expression"];
+peepholes.add("ExpressionStatement", UP, (function(__o6) {
+    var expression = __o6["expression"];
     return (expression.type === "AssignmentExpression");
 }), (function(node) {
+    var node0, right;
     return ast_statement.BlockStatement.create(null, map(ast_statement.ExpressionStatement.create.bind(null,
-        null), flattenr(expandAssignment(node.expression))));
+        null), flattenr(((node0 = node.expression), ((node0.right.type === "AssignmentExpression") ? ((
+        right = expandAssignment(node0.right)), concat(right, ast_expression.AssignmentExpression
+        .create(null, "=", node0.left, right[(right.length - 1)].left))) : [node0])))));
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return (node.operator === "|>");
-}), (function(__o) {
-    var left = __o["left"],
-        right = __o["right"];
+}), (function(__o6) {
+    var left = __o6["left"],
+        right = __o6["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return (node.operator === "<|");
-}), (function(__o) {
-    var left = __o["left"],
-        right = __o["right"];
+}), (function(__o6) {
+    var left = __o6["left"],
+        right = __o6["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 peepholes.add("BinaryExpression", UP, (function(node) {
     return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) || (node.operator ===
         "<<\\"));
-}), (function(__o) {
-    var operator = __o["operator"],
-        left = __o["left"],
-        right = __o["right"];
+}), (function(__o6) {
+    var operator = __o6["operator"],
+        left = __o6["left"],
+        right = __o6["right"];
     return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
 }));
-(normalize = (function(f, g) {
-    return (function(x) {
-        return f(g(x));
-    });
-})(rewrite.bind(null, peepholes), khepriZipper));
+var x = khepriZipper,
+    y = rewrite.bind(null, peepholes);
+(normalize = (function(x0) {
+    return y(x(x0));
+}));
 (exports["normalize"] = normalize);
