@@ -11,11 +11,11 @@ var ast_expression = require("khepri-ast")["expression"],
     flatten = fun["flatten"],
     innerPattern, unpackParameters, identifier = ast_value.Identifier.create.bind(null, null),
     number = ast_value.Literal.create.bind(null, null, "number"),
-    relativeUnpack = (function(start, target, indx, pattern) {
+    relativeUnpack = (function(target, start, indx, pattern) {
         return innerPattern(ast_expression.MemberExpression.create(null, target, ast_expression.BinaryExpression.create(
             null, "+", ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(
                 null, identifier("Math"), identifier("max")), [ast_expression.MemberExpression.create(
-                null, target, identifier("length")), number(start)]), indx), true), pattern);
+                null, target, identifier("length")), number(start)]), number(indx)), true), pattern);
     }),
     sliceUnpack = (function(target, id, from, to) {
         return innerPattern(ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(null,
@@ -44,10 +44,10 @@ var ast_expression = require("khepri-ast")["expression"],
                 var type = node["type"],
                     target = node["target"],
                     key = node["key"];
-                return (((type === "EllipsisPattern") && node.id) ? sliceUnpack(pattern.ud.id.id,
-                    node.id, node.ud.from, node.ud.to) : ((node.ud && (!isNaN(node.ud.start))) ?
-                    relativeUnpack(node.ud.start, pattern.ud.id.id, key, target) :
-                    objectElementUnpack(pattern.ud.id.id, target, key, recursive)));
+                return ((type === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern, node
+                    .from, node.to) : ((type === "RelativeUnpack") ? relativeUnpack(pattern.ud.id
+                    .id, node.min, node.index, node.pattern) : objectElementUnpack(pattern.ud
+                    .id.id, target, key, recursive)));
             }), pattern.elements));
         default:
             return [];
@@ -66,7 +66,7 @@ var ast_expression = require("khepri-ast")["expression"],
             }
         }), pre), ((mid && mid.id) ? sliceUnpack(identifier("arguments"), mid.id, pre.length, post.length) : []),
         fun.map((function(x, i) {
-            return relativeUnpack((pre.length + post.length), identifier("arguments"), number(((-
+            return relativeUnpack(identifier("arguments"), (pre.length + post.length), number(((-
                 post.length) + i)), x);
         }), (post || []))));
 }));

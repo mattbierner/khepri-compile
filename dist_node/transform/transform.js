@@ -190,9 +190,7 @@ var M = ZipperT(StateT(Unique)),
         return withStatementNoImport(loc, fun.map(flattenImport, bindings), body);
     }),
     functionExpression = (function(loc, id, parameters, functionBody, prefix) {
-        var params = fun.filter((function(x) {
-            return (x.type !== "EllipsisPattern");
-        }), parameters.elements),
+        var params = parameters.elements,
             bindings = fun.map((function(x) {
                 return variableDeclarator(null, x.pattern, x.value);
             }), unpackArgumentsPattern(parameters)),

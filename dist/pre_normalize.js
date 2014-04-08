@@ -2,21 +2,25 @@
  * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/package", "khepri-ast/value", "./ast", "./fun", "./rewriter"
-], (function(require, exports, __o, __o0, ast_expression, ast_pattern, ast_package, ast_value, __o1, __o2, __o3) {
+    "khepri-ast/package", "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun", "./rewriter"
+], (function(require, exports, __o, __o0, ast_expression, ast_pattern, ast_package, ast_value, __o1, __o2, __o3,
+    __o4) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
+        modify = __o0["modify"],
         setData = __o0["setData"],
-        type = __o1["type"],
-        concat = __o2["concat"],
-        map = __o2["map"],
-        foldl = __o2["foldl"],
-        foldr = __o2["foldr"],
-        flatten = __o2["flatten"],
-        UP = __o3["UP"],
-        DOWN = __o3["DOWN"],
-        Rewriter = __o3["Rewriter"],
-        rewrite = __o3["rewrite"],
+        SliceUnpack = __o1["SliceUnpack"],
+        RelativeUnpack = __o1["RelativeUnpack"],
+        type = __o2["type"],
+        concat = __o3["concat"],
+        map = __o3["map"],
+        foldl = __o3["foldl"],
+        foldr = __o3["foldr"],
+        flatten = __o3["flatten"],
+        UP = __o4["UP"],
+        DOWN = __o4["DOWN"],
+        Rewriter = __o4["Rewriter"],
+        rewrite = __o4["rewrite"],
         normalize, string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         peepholes = new(Rewriter)();
@@ -60,10 +64,10 @@
             post = __o[2];
         return ast_pattern.ObjectPattern.create(loc, flatten(concat(map((function(x, i) {
                 return ast_pattern.ObjectPatternElement.create(null, number(i), x);
-            }), pre), (mid ? setData(setData(mid, "from", pre.length), "to", post.length) : []),
+            }), pre), ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []),
             map((function(x, i) {
-                return setData(ast_pattern.ObjectPatternElement.create(null, number(((-
-                    post.length) + i)), x), "start", (pre.length + post.length));
+                return RelativeUnpack.create(null, x, ((-post.length) + i), (pre.length +
+                    post.length));
             }), post))));
     }));
     peepholes.add("ObjectPatternElement", DOWN, (function(node) {
@@ -95,7 +99,11 @@
         return ((!node.id) && (node.elements.map(type)
             .indexOf("EllipsisPattern") >= 0));
     }), (function(node) {
-        return setData(node, "arguments", true);
+        var id = setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null,
+            "__args")), "reserved", true);
+        return setData(modify(node, ({
+            "id": id
+        }), ({})), "id", id);
     }));
     (normalize = (function(f, g) {
         return (function(x) {

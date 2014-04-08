@@ -275,8 +275,7 @@ in
  * Function Expression Normalization.
  */
 var functionExpression = \loc, id, parameters, functionBody, prefix -> let
-    params = parameters.elements
-        |> (fun.filter@\x -> x.type !== 'EllipsisPattern'),
+    params = parameters.elements,
         
     bindings = unpackArgumentsPattern(parameters)
         |> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value)),

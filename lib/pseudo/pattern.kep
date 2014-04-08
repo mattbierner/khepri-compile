@@ -1,0 +1,31 @@
+package (
+    RelativeUnpack
+    SliceUnpack)
+with
+    import 'khepri-ast::node'{defineNode, Node},
+    import 'khepri-ast::pattern' {Pattern}
+in
+{
+
+
+RelativeUnpack = defineNode(Pattern, 'RelativeUnpack',
+    ['pattern'],
+    ['index', 'min'],
+    function \loc, pattern, index, min =self-> {
+        Node.call(self, loc);
+        self.pattern = pattern;
+        self.index = index;
+        self.min = min;
+    });
+
+SliceUnpack = defineNode(Pattern, 'SliceUnpack',
+    ['pattern'],
+    ['from', 'to'],
+    function \loc, pattern, from, to =self-> {
+        Node.call(self, loc);
+        self.pattern = pattern;
+        self.from= from;
+        self.to = to;
+    });
+
+}

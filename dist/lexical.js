@@ -72,9 +72,8 @@
         checkTop = inspect((function(x) {
             return _check(x);
         })),
-        child = (function(edge) {
-            var args = arguments;
-            return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
+        child = (function(edge, actions) {
+            return seq(moveChild(edge), seqa(actions), up);
         }),
         checkChild = (function(edge) {
             return child(edge, checkTop);
@@ -210,11 +209,11 @@
         }));
     })));
     addCheck("EllipsisPattern", checkChild("id"));
+    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], checkChild("pattern"));
     addCheck("IdentifierPattern", seq(inspect((function(node) {
         return (reserved(node) ? addImmutableBinding(node.id.name, node.loc) :
             addImmutableBindingChecked(node.id.name, node.loc));
     })), checkChild("id")));
-    addCheck("ImportPattern", checkChild("pattern"));
     addCheck("AsPattern", seq(checkChild("id"), inspect((function(node) {
         return child("target", modifyNode((function(target) {
             return setData(target, "id", node.id);

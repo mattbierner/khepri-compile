@@ -281,10 +281,10 @@ var createGlobalDeclarations = \g ->
 /**
  * Move to a child along `edge` and perform a list of operations. Return to parent.
  */
-var child = \args(edge ...) ->
+var child = \edge ...ops ->
     seq(
         moveChild edge,
-        seqa([].slice.call(args, 1)),
+        seqa ops,
         up);
 
 /**

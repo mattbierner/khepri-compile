@@ -23,12 +23,12 @@ var number = ast_value.Literal.create @ null @ 'number';
 /**
  * Create unpack relative to the end of `target`.
  * 
- * @param start {number} Minimum index the relative unpack can occupy.
  * @param target Parent being unpacked.
+ * @param start {number} Minimum index the relative unpack can occupy.
  * @param indx Relative indx of value.
  * @param pattern Unpack for value.
  */
-var relativeUnpack = \start target indx pattern ->
+var relativeUnpack = \target start indx pattern ->
     innerPattern(
         ast_expression.MemberExpression.create(null,
             target,
@@ -38,8 +38,8 @@ var relativeUnpack = \start target indx pattern ->
                     ast_expression.MemberExpression.create(null,
                         target,
                         identifier 'length'),
-                    number(start)]),
-                indx),
+                    number start]),
+                number indx),
             true),
        pattern);
 
@@ -105,11 +105,11 @@ in
         case 'ObjectPattern':
             return pattern.elements
                 |> (fun.map @ \node#{type target key} ->
-                    ?type === 'EllipsisPattern' && node.id
-                        :sliceUnpack(pattern.ud.id.id, node.id, node.ud.from, node.ud.to)
-                      
-                    :?node.ud && !isNaN node.ud.start
-                        :relativeUnpack(node.ud.start, pattern.ud.id.id, key, target)
+                    ?type === 'SliceUnpack'
+                        :sliceUnpack(pattern.ud.id.id, node.pattern, node.from, node.to)
+                     
+                    :?type === 'RelativeUnpack'
+                        :relativeUnpack(pattern.ud.id.id, node.min, node.index, node.pattern)
                     
                     :objectElementUnpack(pattern.ud.id.id, target, key, recursive))
                 |> flatten;
@@ -145,6 +145,6 @@ unpackParameters = \pre mid post ->
                 pre.length,
                 post.length)
             :[],
-        fun.map(\x i -> relativeUnpack(pre.length + post.length, identifier('arguments'), number(--post.length + i), x), post || []));
+        fun.map(\x i -> relativeUnpack(identifier('arguments'), pre.length + post.length,  number(--post.length + i), x), post || []));
 
 }

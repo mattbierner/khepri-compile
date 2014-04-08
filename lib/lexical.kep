@@ -89,10 +89,10 @@ var setNode = lift <\ M.inner.setNode;
 
 var checkTop = inspect \ x -> _check x; // forward
 
-var child = \args(edge ...)->
+var child = \edge ...actions ->
     seq(
         moveChild edge,
-        seqa([].slice.call(args, 1)),
+        seqa actions,
         up);
 
 var checkChild = \edge ->
@@ -422,10 +422,9 @@ addCheck@'LetExpression' <|
         checkChild 'bindings',
         checkChild 'body');
 
-addCheck@'CurryExpression' <|
-    seq(
-        checkChild 'base',
-        checkChild 'args');
+addCheck@'CurryExpression' <| seq(
+    checkChild 'base',
+    checkChild 'args');
 
 // Patterns
 addCheck@'SinkPattern'<|
@@ -440,6 +439,9 @@ addCheck@'SinkPattern'<|
 addCheck@'EllipsisPattern' <|
     checkChild 'id';
 
+addCheck@['SliceUnpack', 'RelativeUnpack', 'ImportPattern'] <|
+    checkChild 'pattern';
+
 addCheck@'IdentifierPattern' <| seq(
     inspect \ node ->
         ?reserved node
@@ -447,8 +449,6 @@ addCheck@'IdentifierPattern' <| seq(
             :addImmutableBindingChecked(node.id.name, node.loc),
     checkChild 'id');
 
-addCheck@'ImportPattern' <|
-    checkChild 'pattern';
 
 addCheck@'AsPattern' <| seq(
     checkChild 'id',
