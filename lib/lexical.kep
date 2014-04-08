@@ -89,7 +89,7 @@ var setNode = lift <\ M.inner.setNode;
 
 var checkTop = inspect \ x -> _check x; // forward
 
-var child = \args(edge ...) ->
+var child = \args(edge ...)->
     seq(
         moveChild edge,
         seqa([].slice.call(args, 1)),

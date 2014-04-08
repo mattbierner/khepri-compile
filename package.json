@@ -1,6 +1,6 @@
 {
     "name": "khepri-compile",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "description": "Compiler for the Khepri programming language",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -9,7 +9,8 @@
         "Khepri",
         "ecmascript",
         "language",
-        "programming language"
+        "programming language",
+        "functional"
     ],
     "repository": {
         "type": "git",
@@ -53,7 +54,7 @@
         "nodeunit": "0.8.x",
         
         "khepri-parse": "0.11.x",
-        "ecma-unparse": "3.2.x"
+        "ecma-unparse": "3.3.x"
     },
     
     "scripts": {

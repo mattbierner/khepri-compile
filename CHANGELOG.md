@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.4.1 - April 8, 2014
+* Restored support for unnamed ellipsis pattern.=
+
 ## 0.4.0 - April 8, 2014
 * Added support for slice unpacks.
 

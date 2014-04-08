@@ -105,7 +105,7 @@ in
         case 'ObjectPattern':
             return pattern.elements
                 |> (fun.map @ \node#{type target key} ->
-                    ?type === 'EllipsisPattern'
+                    ?type === 'EllipsisPattern' && node.id
                         :sliceUnpack(pattern.ud.id.id, node.id, node.ud.from, node.ud.to)
                       
                     :?node.ud && !isNaN node.ud.start
@@ -138,7 +138,7 @@ unpackParameters = \pre mid post ->
                 return innerPattern(x, x);
             }
         }, pre),
-        ?mid
+        ?mid && mid.id
             :sliceUnpack(
                 identifier 'arguments',
                 mid.id,
