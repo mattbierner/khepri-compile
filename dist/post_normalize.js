@@ -1,14 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression",
+*/define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "./ast", "./fun", "./unpack", "./builtin", "./rewriter"
 ], (function(require, exports, __o, __o0, ast_statement, ast_expression, ast_pattern, ast_value, __o1, __o2, __o3,
     __o4, __o5) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         modify = __o0["modify"],
+        type = __o1["type"],
         isBlockFunction = __o1["isBlockFunction"],
         concat = __o2["concat"],
         flattenr = __o2["flattenr"],
@@ -34,25 +34,34 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
             "bindings": flattenr(map(expandBinding, node.bindings))
         }), ({}));
     })));
+    var splitArrayPattern = (function(elements) {
+        var indx = elements.map(type)
+            .indexOf("EllipsisPattern");
+        return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice(
+            (indx + 1))]);
+    });
     peepholes.add("FunctionExpression", UP, always, (function(node) {
-        var params = map((function(x) {
-            switch (x.type) {
-                case "IdentifierPattern":
-                    return x;
-                case "AsPattern":
-                    return x.id;
-                default:
-                    return x.ud.id;
-            }
-        }), filter((function(x) {
-            return (x.type !== "EllipsisPattern");
-        }), node.params.elements)),
-            bindings = unpackParameters(node.params.elements),
+        var __o = splitArrayPattern(node.params.elements),
+            pre = __o[0],
+            mid = __o[1],
+            post = __o[2],
+            params = map((function(x) {
+                switch (x.type) {
+                    case "IdentifierPattern":
+                        return x;
+                    case "AsPattern":
+                        return x.id;
+                    default:
+                        return x.ud.id;
+                }
+            }), pre),
+            bindings = unpackParameters(pre, mid, post),
             body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement
                 .create(null, bindings, node.body)
             ]) : ast_expression.LetExpression.create(null, bindings, node.body));
-        return ast_expression.FunctionExpression.create(node.loc, node.id, ast_pattern.ArgumentsPattern
-            .create(null, node.params.id, params, node.params.self), body);
+        return ast_expression.FunctionExpression.create(node.loc, node.id, modify(node.params, ({
+            "elements": params
+        }), ({})), body);
     }));
     var expandAssignment = (function(node) {
         var right;

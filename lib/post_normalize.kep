@@ -19,6 +19,7 @@ with
     import 'khepri-ast::value' ast_value,
     
     import './ast' {
+        type
         isBlockFunction},
     import './fun' {
         concat
@@ -64,6 +65,13 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
                 'bindings': flattenr <| map(expandBinding, node.bindings)
             }, {}));
 
+var splitArrayPattern = \elements -> let
+    indx = elements.map(type).indexOf('EllipsisPattern')
+in
+    ?indx < 0
+        :[elements, null, []]
+        :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
+
 /**
  * Expand potentially complex parameter patterns in a function to simple
  * identifier patterns for the arguments with a binding body to unpack
@@ -73,17 +81,18 @@ peepholes.add('FunctionExpression', UP,
     always,
     
     \node -> let
-        params = node.params.elements
-            |> (filter @ \x -> x.type !== 'EllipsisPattern')
-            |> (map @ \x -> {
+        [pre mid post] = splitArrayPattern(node.params.elements),
+        
+        params = pre
+            |> map @ \x -> {
                 switch (x.type) {
                 case 'IdentifierPattern': return x;
                 case 'AsPattern': return x.id;
                 default: return x.ud.id;
                 }
-            }),
+            },
         
-        bindings = unpackParameters(node.params.elements),
+        bindings = unpackParameters(pre, mid, post),
         
         body = ?isBlockFunction node
             :ast_statement.BlockStatement.create(null,
@@ -96,10 +105,7 @@ peepholes.add('FunctionExpression', UP,
     in
         ast_expression.FunctionExpression.create(node.loc,
             node.id,
-            ast_pattern.ArgumentsPattern.create(null,
-                node.params.id,
-                params,
-                node.params.self),
+            modify(node.params, {'elements': params}, {}),
             body));
 
 /* Expression Conversion

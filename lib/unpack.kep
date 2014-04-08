@@ -10,9 +10,60 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
 
-    import './fun' fun#{flatten}
+    import './fun' fun#{
+        concat
+        flatten}
 in {
 
+var identifier = ast_value.Identifier.create @ null;
+
+var number = ast_value.Literal.create @ null @ 'number';
+
+
+/**
+ * Create unpack relative to the end of `target`.
+ * 
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param target Parent being unpacked.
+ * @param indx Relative indx of value.
+ * @param pattern Unpack for value.
+ */
+var relativeUnpack = \start target indx pattern ->
+    innerPattern(
+        ast_expression.MemberExpression.create(null,
+            target,
+            ast_expression.BinaryExpression.create(null, '+',
+                ast_expression.CallExpression.create(null,
+                ast_expression.MemberExpression.create(null, identifier('Math'), identifier('max')), [
+                    ast_expression.MemberExpression.create(null,
+                        target,
+                        identifier 'length'),
+                    number(start)]),
+                indx),
+            true),
+       pattern);
+
+/**
+ * Unpack a range of values for `target`.
+ * 
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param id Value unpack.
+ * @param from Start of slice.
+ * @param to End of slice, as offset from end.
+ */
+var sliceUnpack = \target id from to ->
+    innerPattern(
+        ast_expression.CallExpression.create(null,
+            ast_expression.MemberExpression.create(null,
+                ast_expression.MemberExpression.create(null,
+                    ast_expression.ArrayExpression.create(null, []),
+                    identifier "slice"),
+                identifier('call')),
+            ?to === 0
+                :[target, number from]
+                :[target, number from, number(--to)]),
+      id);
+    
 /**
  * Expand a complex binding to a list of identifier bindings.
  * 
@@ -20,16 +71,22 @@ in {
  * @param pattern Pattern unpacking base value.
  */
 innerPattern = let
-    objectElementUnpack = \base, pattern, key recursive -> let
-        innerBase = ast_expression.MemberExpression.create(null, base, key, true)
-    in
+    objectElement = \innerBase pattern key recursive ->
         ?pattern
             :flatten <| innerPattern(innerBase, pattern)
-            :ast_declaration.Binding.create(null,
-                ast_pattern.IdentifierPattern.create(null,
-                    ast_value.Identifier.create(null, key.value)),
-                innerBase,
-                recursive)
+        
+        :ast_declaration.Binding.create(null,
+            ast_pattern.IdentifierPattern.create(null,
+                ast_value.Identifier.create(null, key.value)),
+            innerBase,
+            recursive),
+
+    objectElementUnpack = \base, pattern, key recursive ->
+        objectElement(
+            ast_expression.MemberExpression.create(null, base, key, true),
+            pattern,
+            key,
+            recursive)
 in
     \base pattern recursive -> {
         switch (pattern.type) {
@@ -47,7 +104,14 @@ in
         
         case 'ObjectPattern':
             return pattern.elements
-                |> (fun.map @ \{target key} -> objectElementUnpack(pattern.ud.id.id, target, key, recursive))
+                |> (fun.map @ \node#{type target key} ->
+                    ?type === 'EllipsisPattern'
+                        :sliceUnpack(pattern.ud.id.id, node.id, node.ud.from, node.ud.to)
+                      
+                    :?node.ud && !isNaN node.ud.start
+                        :relativeUnpack(node.ud.start, pattern.ud.id.id, key, target)
+                    
+                    :objectElementUnpack(pattern.ud.id.id, target, key, recursive))
                 |> flatten;
         
         default:
@@ -58,18 +122,29 @@ in
 /**
  * Expand a parameter list to a list of inner bindings.
  */
-unpackParameters = flatten <\
-    fun.map @ \x -> {
-        switch (x.type) {
-        // Avoid generating redundant unpacks for parameters names.
-        case 'SinkPattern':
-        case 'IdentifierPattern':
-            return [];
-        case 'AsPattern':
-            return flatten <| innerPattern(x.id, x.target);
-        default:
-            return innerPattern(x, x);
-        }
-    };
+unpackParameters = \pre mid post ->
+    flatten <| concat(
+        fun.map(\x -> {
+            switch (x.type) {
+            // Avoid generating redundant unpacks for parameters names.
+            case 'SinkPattern':
+            case 'IdentifierPattern':
+                return [];
+            
+            case 'AsPattern':
+                return flatten <| innerPattern(x.id, x.target);
+            
+            default:
+                return innerPattern(x, x);
+            }
+        }, pre),
+        ?mid
+            :sliceUnpack(
+                identifier 'arguments',
+                mid.id,
+                pre.length,
+                post.length)
+            :[],
+        fun.map(\x i -> relativeUnpack(pre.length + post.length, identifier('arguments'), number(--post.length + i), x), post || []));
 
 }

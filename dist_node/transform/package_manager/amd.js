@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/amd.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     __o = require("khepri-ast")["node"],
@@ -15,8 +16,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
     builtins = __o0["builtins"],
     definePackage, defineProgram, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
     map = Function.prototype.call.bind(Array.prototype.map),
-    path = (function(path) {
-        return path.split("::")
+    path = (function(path0) {
+        return path0.split("::")
             .join("/");
     });
 (defineProgram = (function(body) {
@@ -28,19 +29,19 @@ var ast_declaration = require("khepri-ast")["declaration"],
     return ast_expression.CallExpression.create(null, builtins.require, [ast_value.Literal.create(null,
         "string", packagePath)]);
 }));
-(definePackage = (function(loc, exports, imports, targets, body) {
-    var exportedNames = ((exports.type === "PackageExports") ? fun.map((function(x) {
+(definePackage = (function(loc, exports0, imports, targets, body) {
+    var exportedNames = ((exports0.type === "PackageExports") ? fun.map((function(x) {
         return x.id.name;
-    }), exports.exports) : [exports.id.name]),
+    }), exports0.exports) : [exports0.id.name]),
         exportHeader = ast_declaration.VariableDeclaration.create(null, map(exportedNames, (function(x) {
             return ast_declaration.VariableDeclarator.create(null, ast_value.Identifier.create(null,
                 x));
         }))),
-        exportBody = ((exports.type === "PackageExports") ? map(exports.exports, (function(x) {
+        exportBody = ((exports0.type === "PackageExports") ? map(exports0.exports, (function(x) {
             return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
                 .create(null, "=", ast_expression.MemberExpression.create(null, builtins.exports, x
                     .alias, true), x.id));
-        })) : ast_statement.ReturnStatement.create(null, exports.id)),
+        })) : ast_statement.ReturnStatement.create(null, exports0.id)),
         packageBody = setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
             .create(null, null, concat(ast_pattern.IdentifierPattern.create(null, builtins.require),
                 ast_pattern.IdentifierPattern.create(null, builtins.exports), map(imports, (function(x) {

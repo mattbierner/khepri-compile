@@ -1,6 +1,6 @@
 {
     "name": "khepri-compile",
-    "version": "0.3.18",
+    "version": "0.4.20",
     "description": "Compiler for the Khepri programming language",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -39,7 +39,7 @@
         "ecma-ast": "2.5.x",
         "ecma-ast-zipper": "1.0.x",
         
-        "khepri-ast": "3.8.x",
+        "khepri-ast": "3.9.x",
         "khepri-ast-zipper": "1.1.x",
         
         "hashtrie": "0.2.x",
@@ -52,7 +52,7 @@
     "devDependencies": {
         "nodeunit": "0.8.x",
         
-        "khepri-parse": "0.10.x",
+        "khepri-parse": "0.11.x",
         "ecma-unparse": "3.2.x"
     },
     

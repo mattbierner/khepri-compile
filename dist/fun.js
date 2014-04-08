@@ -31,8 +31,8 @@ define(["require", "exports"], (function(require, exports) {
         return Array.prototype.map.call(a, f);
     }));
     (flatten = (function(x) {
-        return (Array.isArray(x) ? Array.prototype.concat.apply([], x.filter((function(x) {
-            return (!(!x));
+        return (Array.isArray(x) ? Array.prototype.concat.apply([], x.filter((function(x0) {
+            return (!(!x0));
         }))) : x);
     }));
     (flattenr = (function(x) {

@@ -36,8 +36,8 @@ var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, is
     return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
 }));
 (isLambda = (function(node) {
-    return (((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
-        .self)) && (!node.params.id));
+    return ((((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
+        .self)) && (!node.params.id)) && (!(node.params.ud && node.params.ud.arguments)));
 }));
 (getUd = (function(name, node) {
     return ((node && node.ud) && node.ud[name]);

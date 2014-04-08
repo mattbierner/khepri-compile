@@ -437,41 +437,40 @@ addCheck@'SinkPattern'<|
                 'uid',
                 uid));
 
-addCheck@'IdentifierPattern' <|
-    seq(
-        inspect \ node ->
-            ?reserved node
-                :addImmutableBinding(node.id.name, node.loc)
-                :addImmutableBindingChecked(node.id.name, node.loc),
-        checkChild 'id');
+addCheck@'EllipsisPattern' <|
+    checkChild 'id';
+
+addCheck@'IdentifierPattern' <| seq(
+    inspect \ node ->
+        ?reserved node
+            :addImmutableBinding(node.id.name, node.loc)
+            :addImmutableBindingChecked(node.id.name, node.loc),
+    checkChild 'id');
 
 addCheck@'ImportPattern' <|
     checkChild 'pattern';
 
-addCheck@'AsPattern' <|
-    seq(
-        checkChild 'id',
-        inspect \ node ->
-            child('target',
-                modifyNode \ target ->
-                    // Hack: For generating argument lists, we want to use the 
-                    // as pattern name if possible.
-                    setData(target, 'id', node.id),
-                checkTop));
+addCheck@'AsPattern' <| seq(
+    checkChild 'id',
+    inspect \ node ->
+        child('target',
+            modifyNode \ target ->
+                // Hack: For generating argument lists, we want to use the 
+                // as pattern name if possible.
+                setData(target, 'id', node.id),
+            checkTop));
 
 addCheck@'ObjectPattern' <|
     checkChild 'elements';
 
-addCheck@'ObjectPatternElement' <|
-    seq(
-        checkChild 'target',
-        checkChild 'key');
+addCheck@'ObjectPatternElement' <| seq(
+    checkChild 'target',
+    checkChild 'key');
 
-addCheck@'ArgumentsPattern' <|
-    seq(
-        checkChild 'id',
-        checkChild 'elements',
-        checkChild 'self');
+addCheck@'ArgumentsPattern' <| seq(
+    checkChild 'id',
+    checkChild 'elements',
+    checkChild 'self');
 
 // Value
 addCheck@'ObjectValue' <|

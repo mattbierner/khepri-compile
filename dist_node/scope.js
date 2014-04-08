@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     hashtrie = require("hashtrie"),
     Scope, push, pop;

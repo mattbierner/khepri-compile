@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.4.0 - April 8, 2014
+* Added support for slice unpacks.
+
 ## 0.3.18 - April 7, 2014
 * Fixed AMD package generation for imports.
 

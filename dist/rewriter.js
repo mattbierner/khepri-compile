@@ -60,17 +60,11 @@ define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun
             node = tree.node(ctx);
         return transform(ctx, self.upTransforms(node));
     }));
-    var opt = (function(rewritter, ctx) {
+    var x = (function(rewritter, ctx) {
         return walk(rewritter.transform.bind(rewritter), rewritter.transformPost.bind(rewritter), ctx);
     }),
-        x = (function(rewritter, ctx) {
-            return walk(rewritter.transform.bind(rewritter), rewritter.transformPost.bind(rewritter), ctx);
-        }),
         x0 = zipper.root,
-        y = tree.node,
-        y0 = (function(x1) {
-            return y(x0(x1));
-        });
+        y = tree.node;
     (rewrite = (function() {
         var x1 = x.apply(null, arguments);
         return y(x0(x1));

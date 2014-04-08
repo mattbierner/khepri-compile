@@ -15,10 +15,14 @@ with
     import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
+    import './ast' {type},
+    
     import './fun' {
+        concat
         map
         foldl
-        foldr},
+        foldr
+        flatten},
     import './rewriter' {
         UP
         DOWN
@@ -27,6 +31,7 @@ with
 in {
 
 var string = ast_value.Literal.create @ (null, 'string');
+var number = ast_value.Literal.create @ (null, 'number');
 
 
 var peepholes = new Rewriter();
@@ -77,20 +82,45 @@ peepholes.add('CurryExpression', DOWN,
 
 /* Pattern Normalizations
  ******************************************************************************/
+var splitArrayPattern = \elements -> let
+    indx = elements.map(type).indexOf('EllipsisPattern')
+in
+    ?indx < 0
+        :[elements, null, []]
+        :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
+
 /**
  * Convert array patterns to object patterns
  */
 peepholes.add('ArrayPattern', DOWN,
     \_ -> true,
     
-    \node#{loc elements} ->
+    \node#{loc elements} -> let
+        [pre mid post] = splitArrayPattern elements
+    in
         ast_pattern.ObjectPattern.create(loc,
-            map(
-                \x i ->
-                    ast_pattern.ObjectPatternElement.create(null,
-                        string(i + ''),
-                        x),
-                elements)));
+            flatten <| concat(
+                map(
+                    \x i ->
+                        ast_pattern.ObjectPatternElement.create(null,
+                            number(i),
+                            x),
+                    pre),
+                ?mid
+                    :setData(
+                        setData(mid, 'from', pre.length),
+                        'to',
+                        post.length)
+                    :[],
+                map(
+                    \x i ->
+                        setData(
+                            ast_pattern.ObjectPatternElement.create(null,
+                                number(--post.length + i),
+                                x),
+                            'start',
+                            pre.length + post.length),
+                    post))));
 
 /**
  * Normalize object patterns to ('key': pattern) form.
@@ -149,6 +179,16 @@ peepholes.add('ObjectPattern', UP,
         ast_pattern.AsPattern.create(null,
             id,
             setData(node, 'id', id)));
+
+/**
+ */
+peepholes.add('ArgumentsPattern', UP,
+    \node ->
+        !node.id && node.elements.map(type).indexOf('EllipsisPattern') >= 0,
+    
+    \node ->
+        setData(node, 'arguments', true));
+
 
 /* Interface
  ******************************************************************************/

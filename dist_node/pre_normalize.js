@@ -10,16 +10,21 @@ var __o = require("khepri-ast-zipper"),
     ast_pattern = require("khepri-ast")["pattern"],
     ast_package = require("khepri-ast")["package"],
     ast_value = require("khepri-ast")["value"],
-    __o1 = require("./fun"),
-    map = __o1["map"],
-    foldl = __o1["foldl"],
-    foldr = __o1["foldr"],
-    __o2 = require("./rewriter"),
-    UP = __o2["UP"],
-    DOWN = __o2["DOWN"],
-    Rewriter = __o2["Rewriter"],
-    rewrite = __o2["rewrite"],
+    __o1 = require("./ast"),
+    type = __o1["type"],
+    __o2 = require("./fun"),
+    concat = __o2["concat"],
+    map = __o2["map"],
+    foldl = __o2["foldl"],
+    foldr = __o2["foldr"],
+    flatten = __o2["flatten"],
+    __o3 = require("./rewriter"),
+    UP = __o3["UP"],
+    DOWN = __o3["DOWN"],
+    Rewriter = __o3["Rewriter"],
+    rewrite = __o3["rewrite"],
     normalize, string = ast_value.Literal.create.bind(null, null, "string"),
+    number = ast_value.Literal.create.bind(null, null, "number"),
     peepholes = new(Rewriter)();
 peepholes.add("PackageExport", UP, (function(node) {
     return (!node.alias);
@@ -44,14 +49,27 @@ peepholes.add("CurryExpression", DOWN, (function(node) {
         return ast_expression.CurryExpression.create(null, p, [arg]);
     }), base, args);
 }));
+var splitArrayPattern = (function(elements) {
+    var indx = elements.map(type)
+        .indexOf("EllipsisPattern");
+    return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice((indx + 1))]);
+});
 peepholes.add("ArrayPattern", DOWN, (function(_) {
     return true;
 }), (function(node) {
     var loc = node["loc"],
-        elements = node["elements"];
-    return ast_pattern.ObjectPattern.create(loc, map((function(x, i) {
-        return ast_pattern.ObjectPatternElement.create(null, string((i + "")), x);
-    }), elements));
+        elements = node["elements"],
+        __o = splitArrayPattern(elements),
+        pre = __o[0],
+        mid = __o[1],
+        post = __o[2];
+    return ast_pattern.ObjectPattern.create(loc, flatten(concat(map((function(x, i) {
+        return ast_pattern.ObjectPatternElement.create(null, number(i), x);
+    }), pre), (mid ? setData(setData(mid, "from", pre.length), "to", post.length) : []), map((
+        function(x, i) {
+            return setData(ast_pattern.ObjectPatternElement.create(null, number(((-post.length) +
+                i)), x), "start", (pre.length + post.length));
+        }), post))));
 }));
 peepholes.add("ObjectPatternElement", DOWN, (function(node) {
     return (!node.target);
@@ -77,6 +95,12 @@ peepholes.add("ObjectPattern", UP, (function(node) {
     var id = setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, "__o")),
         "reserved", true);
     return ast_pattern.AsPattern.create(null, id, setData(node, "id", id));
+}));
+peepholes.add("ArgumentsPattern", UP, (function(node) {
+    return ((!node.id) && (node.elements.map(type)
+        .indexOf("EllipsisPattern") >= 0));
+}), (function(node) {
+    return setData(node, "arguments", true);
 }));
 (normalize = (function(f, g) {
     return (function(x) {

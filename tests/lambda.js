@@ -50,3 +50,62 @@ exports.introduces_new_scope_for_body = function(test) {
     
     test.done();
 };
+
+exports.total_slice = function(test) {
+    var f = testParser("(\\...a -> a);");
+    
+    test.deepEqual(
+        f(1, 2, 3),
+        [1, 2, 3]);
+    
+    test.deepEqual(
+        f(),
+        []);
+    
+    test.done();
+};
+
+exports.pre_slice = function(test) {
+    var f = testParser("(\\a b ...c -> [a, b, c]);");
+    
+    test.deepEqual(
+        f(1, 2, 3),
+        [1, 2, [3]]);
+    
+    test.deepEqual(
+        f(1, 2),
+        [1, 2, []]);
+  
+    test.deepEqual(
+        f(1),
+        [1, undefined, []]);
+    
+    test.done();
+};
+
+exports.post_slice = function(test) {
+    var f = testParser("(\\...a b c -> [a, b, c]);");
+
+    test.deepEqual(
+        f(1, 2, 3),
+        [[1], 2, 3]);
+    
+    test.deepEqual(
+        f(1, 2),
+        [[], 1, 2]);
+  
+    test.deepEqual(
+        f(1),
+        [[], 1, undefined]);
+    
+    test.done();
+};
+
+exports.post_slice_unpack = function(test) {
+    var f = testParser("(\\...a [b] -> [a, b]);");
+
+    test.deepEqual(
+        f(1, [2, 3], [4, 5]),
+        [[1, [2, 3]], 4]);
+    test.done();
+};

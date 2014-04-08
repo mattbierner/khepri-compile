@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique",
     "zipper-m/trans/zipper", "./scope", "./fun"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, Error, ErrorT, Unique,
@@ -210,6 +209,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 .create(null, "_"), "uid", uid));
         }));
     })));
+    addCheck("EllipsisPattern", checkChild("id"));
     addCheck("IdentifierPattern", seq(inspect((function(node) {
         return (reserved(node) ? addImmutableBinding(node.id.name, node.loc) :
             addImmutableBindingChecked(node.id.name, node.loc));

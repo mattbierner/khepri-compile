@@ -43,8 +43,8 @@ with
     import '../builtin' {builtins definitions},
     import '../unpack' {innerPattern unpackParameters},
     
-    import './package_manager::amd' _,
-    import './package_manager::node' _
+    import './package_manager/amd' _,
+    import './package_manager/node' _
 in {
 
 /* State

@@ -16,18 +16,18 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
         seqa = __o1["sequencea"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
-        optimize, State = record.declare(null, ["bindings"]);
+        optimize, x, y, consequent, alternate, State = record.declare(null, ["bindings"]);
     (State.empty = State.create(hashtrie.empty));
     (State.prototype.addReference = (function(uid) {
-        var __o = this,
-            bindings = __o["bindings"],
-            scope = __o["scope"];
+        var __o3 = this,
+            bindings = __o3["bindings"],
+            scope = __o3["scope"];
         return State.create(hashtrie.set(uid, null, bindings));
     }));
     (State.prototype.isReachable = (function(uid) {
-        var __o = this,
-            bindings = __o["bindings"],
-            scope = __o["scope"];
+        var __o3 = this,
+            bindings = __o3["bindings"],
+            scope = __o3["scope"];
         return hashtrie.has(uid, bindings);
     }));
     var _check, M = ZipperT(StateM),
@@ -36,11 +36,9 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
         }),
         pass = M.of(null),
         getState = M.lift(M.inner.get),
-        modifyState = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.lift, M.inner.modify),
+        modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
+            return x(y(x0));
+        })),
         addReference = (function(uid) {
             return (uid ? modifyState((function(s) {
                 return s.addReference(uid);
@@ -52,40 +50,36 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
             })) : M.of(true));
         }),
         extract = M.chain.bind(null, M.node),
-        modify = M.modifyNode,
         set = M.setNode,
         up = M.up,
         down = M.down,
         left = M.left,
         rightmost = M.move(zipper.rightmost),
         moveChild = M.child,
-        when = (function(test, consequent, alternate) {
-            return extract((function(node) {
-                return (test(node) ? consequent : (alternate || pass));
-            }));
-        }),
         child = (function(edge) {
             var args = arguments;
             return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
         }),
-        checkTop = extract((function(x) {
-            return _check(x);
+        checkTop = extract((function(x0) {
+            return _check(x0);
         })),
         visitChild = (function(edge) {
             return child(edge, checkTop);
         }),
         peepholes = ({}),
         addRewrite = (function(type, f) {
-            if (Array.isArray(type)) type.forEach((function(type) {
-                return addRewrite(type, f);
+            if (Array.isArray(type)) type.forEach((function(type0) {
+                return addRewrite(type0, f);
             }));
-            else(peepholes[type] = f);
+            else {
+                (peepholes[type] = f);
+            }
         });
-    addRewrite("Program", visitChild("body"));
-    addRewrite("Package", visitChild("body"));
-    addRewrite("SwitchCase", seq(visitChild("test"), visitChild("consequent")));
-    addRewrite("CatchClause", seq(visitChild("param"), visitChild("body")));
-    addRewrite("VariableDeclaration", visitChild("declarations"));
+    addRewrite("Program", child("body", checkTop));
+    addRewrite("Package", child("body", checkTop));
+    addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
+    addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
+    addRewrite("VariableDeclaration", child("declarations", checkTop));
     addRewrite("VariableDeclarator", extract((function(node) {
         return isReachable(getUid(node.id))
             .chain((function(reachable) {
@@ -98,31 +92,34 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
                 return (reachable ? visitChild("value") : set([]));
             }));
     }))));
-    addRewrite("BlockStatement", visitChild("body"));
-    addRewrite("ExpressionStatement", visitChild("expression"));
-    addRewrite("WithStatement", seq(visitChild("body"), visitChild("bindings")));
-    addRewrite("SwitchStatement", seq(visitChild("discriminant"), visitChild("cases")));
-    addRewrite(["ReturnStatement", "ThrowStatement"], visitChild("argument"));
-    addRewrite("TryStatement", seq(visitChild("block"), visitChild("handler"), visitChild("finalizer")));
-    addRewrite(["WhileStatement", "DoWhileStatement"], seq(visitChild("test"), visitChild("body")));
-    addRewrite("ForStatement", seq(visitChild("body"), visitChild("update"), visitChild("test"), visitChild(
-        "init")));
-    addRewrite(["ConditionalExpression", "IfStatement"], seq(visitChild("test"), visitChild("consequent"),
-        visitChild("alternate")));
-    addRewrite("FunctionExpression", seq(visitChild("id"), visitChild("params"), visitChild("body")));
-    addRewrite("UnaryExpression", visitChild("argument"));
-    addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(visitChild("left"),
-        visitChild("right")));
-    addRewrite("MemberExpression", seq(visitChild("object"), when((function(node) {
-        return node.computed;
-    }), visitChild("property"))));
-    addRewrite("NewExpression", seq(visitChild("callee"), visitChild("args")));
-    addRewrite("CallExpression", seq(visitChild("callee"), visitChild("args")));
-    addRewrite("CurryExpression", seq(visitChild("base"), visitChild("args")));
-    addRewrite("LetExpression", seq(visitChild("body"), visitChild("bindings")));
-    addRewrite("ArrayExpression", visitChild("elements"));
-    addRewrite("ObjectExpression", visitChild("properties"));
-    addRewrite("ObjectValue", visitChild("value"));
+    addRewrite("BlockStatement", child("body", checkTop));
+    addRewrite("ExpressionStatement", child("expression", checkTop));
+    addRewrite("WithStatement", seq(child("body", checkTop), child("bindings", checkTop)));
+    addRewrite("SwitchStatement", seq(child("discriminant", checkTop), child("cases", checkTop)));
+    addRewrite(["ReturnStatement", "ThrowStatement"], child("argument", checkTop));
+    addRewrite("TryStatement", seq(child("block", checkTop), child("handler", checkTop), child("finalizer",
+        checkTop)));
+    addRewrite(["WhileStatement", "DoWhileStatement"], seq(child("test", checkTop), child("body", checkTop)));
+    addRewrite("ForStatement", seq(child("body", checkTop), child("update", checkTop), child("test", checkTop),
+        child("init", checkTop)));
+    addRewrite(["ConditionalExpression", "IfStatement"], seq(child("test", checkTop), child("consequent",
+        checkTop), child("alternate", checkTop)));
+    addRewrite("FunctionExpression", seq(child("id", checkTop), child("params", checkTop), child("body",
+        checkTop)));
+    addRewrite("UnaryExpression", child("argument", checkTop));
+    addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(child("left", checkTop),
+        child("right", checkTop)));
+    addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)), (
+        alternate = undefined), extract((function(node) {
+        return (node.computed ? consequent : (alternate || pass));
+    })))));
+    addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
+    addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
+    addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));
+    addRewrite("LetExpression", seq(child("body", checkTop), child("bindings", checkTop)));
+    addRewrite("ArrayExpression", child("elements", checkTop));
+    addRewrite("ObjectExpression", child("properties", checkTop));
+    addRewrite("ObjectValue", child("value", checkTop));
     addRewrite("Identifier", extract((function(node) {
         return addReference(getUid(node));
     })));

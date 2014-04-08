@@ -96,7 +96,7 @@ isTruthy = \node ->
  * Is a node a function with a block body?
  */
 isBlockFunction = \node ->
-    (  type node=== 'FunctionExpression'
+    (  type node === 'FunctionExpression'
     && type node.body === 'BlockStatement');
 
 /**
@@ -107,7 +107,8 @@ isLambda = \node ->
     && !node.id
     && !isBlockFunction node
     && !node.params.self
-    && !node.params.id);
+    && !node.params.id
+    && !(node.params.ud && node.params.ud.arguments));
 
 /* UID
  ******************************************************************************/

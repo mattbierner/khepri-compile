@@ -9,12 +9,7 @@ var ast_node = require("khepri-ast")["node"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
-    builtins, definitions, flip = (function(f) {
-        return (function(x, y) {
-            return f(y, x);
-        });
-    }),
-    unique = (function() {
+    builtins, definitions, unique = (function() {
         var x = 0;
         return (function() {
             (x = (x + 1));
@@ -39,21 +34,6 @@ var uid0 = unique();
 (builtins["exports"] = setData(ast_value.Identifier.create(null, "exports"), "uid", uid0));
 var uid1 = unique();
 (builtins["module"] = setData(ast_value.Identifier.create(null, "module"), "uid", uid1));
-var unary = (function(op) {
-    var xArg = identifier("x", unique());
-    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg)
-    ]), op(xArg));
-}),
-    unaryOp = (function(op) {
-        var op0 = (function(x) {
-            return ast_expression.UnaryExpression.create(null, op, x);
-        }),
-            xArg = identifier("x", unique());
-        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg)
-        ]), ast_expression.UnaryExpression.create(null, op, xArg));
-    });
 [
     ["typeof", "__typeof"],
     ["void", "__void"],
@@ -62,13 +42,11 @@ var unary = (function(op) {
     ["++", "__plus"],
     ["--", "__minus"]
 ].forEach((function(__o) {
-    var op0, xArg, op = __o[0],
-        name = __o[1];
-    registerAliasedSymbol(op, name, ((op0 = (function(x) {
-        return ast_expression.UnaryExpression.create(null, op, x);
-    })), (xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
-            xArg)]), ast_expression.UnaryExpression.create(null, op, xArg))));
+    var xArg, op = __o["0"],
+        name = __o["1"];
+    registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(
+        null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
+            null, xArg)]), ast_expression.UnaryExpression.create(null, op, xArg))));
 }));
 var uid2 = unique(),
     xArg = setData(ast_value.Identifier.create(null, "x"), "uid", uid2),
@@ -89,11 +67,10 @@ var binary = (function(op) {
     ]), op(xArg0, yArg0));
 }),
     registerBinary = (function(op, name, impl) {
-        var f;
         registerAliasedSymbol(op, name, binary(impl));
-        registerAliasedSymbol(("_" + op), (name + "r"), binary(((f = impl), (function(x, y) {
-            return f(y, x);
-        }))));
+        registerAliasedSymbol(("_" + op), (name + "r"), binary((function(x, y) {
+            return impl(y, x);
+        })));
     }),
     binaryOp = (function(op) {
         return (function(x, y) {
@@ -122,21 +99,16 @@ var binary = (function(op) {
     ["!==", "__sneq"],
     ["instanceof", "__instanceof"]
 ].forEach((function(__o) {
-    var op = __o[0],
-        name = __o[1];
+    var op = __o["0"],
+        name = __o["1"];
     registerBinary(op, name, binaryOp(op));
 }));
-var logicalOp = (function(op) {
-    return (function(x, y) {
-        return ast_expression.LogicalExpression.create(null, op, x, y);
-    });
-});
 [
     ["||", "__or"],
     ["&&", "__and"]
 ].forEach((function(__o) {
-    var op = __o[0],
-        name = __o[1];
+    var op = __o["0"],
+        name = __o["1"];
     registerBinary(op, name, (function(x, y) {
         return ast_expression.LogicalExpression.create(null, op, x, y);
     }));
@@ -150,45 +122,38 @@ registerBinary(".", "__dot", (function(x, y) {
 registerBinary("@", "__curry", (function(x, y) {
     return ast_expression.CurryExpression.create(null, x, [y]);
 }));
-var f, pipe = (function(callee, arg) {
-        return ast_expression.CallExpression.create(null, callee, [arg]);
-    });
-registerBinary("<|", "__pipe", pipe);
-registerBinary("|>", "__rpipe", ((f = pipe), (function(x, y) {
-    var callee = y,
-        arg = x;
+var pipe = (function(callee, arg) {
     return ast_expression.CallExpression.create(null, callee, [arg]);
-})));
-var f0, singleCompose = (function(f0, g) {
-        var x = identifier("x", unique());
-        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, x)
-        ]), ast_expression.CallExpression.create(null, f0, [ast_expression.CallExpression.create(null, g, [x])]));
-    });
+});
+registerBinary("<|", "__pipe", pipe);
+registerBinary("|>", "__rpipe", (function(x, y) {
+    return ast_expression.CallExpression.create(null, y, [x]);
+}));
+var singleCompose = (function(f, g) {
+    var x = identifier("x", unique());
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_pattern.IdentifierPattern.create(null, x)
+    ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, g, [x])]));
+});
 registerBinary("<\\", "__compose", singleCompose);
-registerBinary("\\>", "__rcompose", ((f0 = singleCompose), (function(x, y) {
-    var f1 = y,
-        g = x,
-        x0 = identifier("x", unique());
-    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-        null, [ast_pattern.IdentifierPattern.create(null, x0)]), ast_expression.CallExpression.create(
-        null, f1, [ast_expression.CallExpression.create(null, g, [x0])]));
-})));
-var f1, multiCompose = (function(f1, g) {
-        return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
-            ast_expression.CallExpression.create(null, f1, [ast_expression.CallExpression.create(null,
-                ast_expression.MemberExpression.create(null, g, identifier("apply")), [ast_value.Literal.create(
-                    null, "null"), identifier("arguments")])]));
-    });
+registerBinary("\\>", "__rcompose", (function(x, y) {
+    var x0 = identifier("x", unique());
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_pattern.IdentifierPattern.create(null, x0)
+    ]), ast_expression.CallExpression.create(null, y, [ast_expression.CallExpression.create(null, x, [x0])]));
+}));
+var multiCompose = (function(f, g) {
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
+        ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression
+            .create(null, g, identifier("apply")), [ast_value.Literal.create(null, "null"), identifier(
+                "arguments")])]));
+});
 registerBinary("<<\\", "__composen", multiCompose);
-registerBinary("\\>>", "__rcomposen", ((f1 = multiCompose), (function(x, y) {
-    var f2 = y,
-        g = x;
-    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-        null, []), ast_expression.CallExpression.create(null, f2, [ast_expression.CallExpression.create(
-        null, ast_expression.MemberExpression.create(null, g, identifier("apply")), [ast_value.Literal
-            .create(null, "null"), identifier("arguments")
-        ])]));
-})));
+registerBinary("\\>>", "__rcomposen", (function(x, y) {
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, []),
+        ast_expression.CallExpression.create(null, y, [ast_expression.CallExpression.create(null,
+            ast_expression.MemberExpression.create(null, x, identifier("apply")), [ast_value.Literal.create(
+                null, "null"), identifier("arguments")])]));
+}));
 (exports["builtins"] = builtins);
 (exports["definitions"] = definitions);
