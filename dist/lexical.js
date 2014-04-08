@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique",
     "zipper-m/trans/zipper", "./scope", "./fun"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, Error, ErrorT, Unique,
@@ -15,64 +16,49 @@
         seqa = __o0["sequencea"],
         Scope = scope["Scope"],
         foldl = __o1["foldl"],
-        check, reserved = (function(node) {
+        check, x, y, x0, y0, x1, y1, x2, y2, reserved = (function(node) {
             return ((node && node.ud) && node.ud.reserved);
         }),
         _check, M = ErrorT(ZipperT(StateT(Unique))),
         run = (function(p, s, ctx, ok, err) {
-            return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(ErrorT.runErrorT(p, (function(f, g) {
-                return (function(x) {
-                    return f(g(x));
-                });
-            })(M.inner.of, ok), (function(f, g) {
-                return (function(x) {
-                    return f(g(x));
-                });
-            })(M.inner.of, err)), ctx), s), 1000);
+            var y, y0;
+            return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(ErrorT.runErrorT(p, ((y = M.inner.of), (
+                function(x) {
+                    return y(ok(x));
+                })), ((y0 = M.inner.of), (function(x) {
+                return y0(err(x));
+            }))), ctx), s), 1000);
         }),
         error = M.fail,
         lift = M.lift,
         unique = M.chain.bind(null, M.liftInner.liftInner(Unique.unique)),
         extract = M.liftInner(M.inner.inner.get),
         examineScope = M.chain.bind(null, extract),
-        modifyScope = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(M.liftInner, M.inner.inner.modify),
+        modifyScope = ((x = M.liftInner), (y = M.inner.inner.modify), (function(x0) {
+            return x(y(x0));
+        })),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
         inspect = M.chain.bind(null, lift(M.inner.node)),
         extractNode = lift(M.inner.node),
-        move = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, M.inner.move),
         up = lift(M.inner.up),
         down = lift(M.inner.down),
-        left = lift(M.inner.left),
         right = lift(M.inner.right),
         root = lift(M.inner.root),
-        moveChild = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, M.inner.child),
-        modifyNode = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, M.inner.modifyNode),
-        setNode = (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(lift, M.inner.setNode),
-        checkTop = inspect((function(x) {
-            return _check(x);
+        moveChild = ((x0 = lift), (y0 = M.inner.child), (function(x1) {
+            return x0(y0(x1));
         })),
-        child = (function(edge, actions) {
+        modifyNode = ((x1 = lift), (y1 = M.inner.modifyNode), (function(x2) {
+            return x1(y1(x2));
+        })),
+        setNode = ((x2 = lift), (y2 = M.inner.setNode), (function(x3) {
+            return x2(y2(x3));
+        })),
+        checkTop = inspect((function(x3) {
+            return _check(x3);
+        })),
+        child = (function(edge) {
+            var actions = [].slice.call(arguments, 1);
             return seq(moveChild(edge), seqa(actions), up);
         }),
         checkChild = (function(edge) {
@@ -137,25 +123,27 @@
         }),
         checks = ({}),
         addCheck = (function(type, check) {
-            if (Array.isArray(type)) type.forEach((function(x) {
-                return addCheck(x, check);
+            if (Array.isArray(type)) type.forEach((function(x3) {
+                return addCheck(x3, check);
             }));
-            else(checks[type] = check);
+            else {
+                (checks[type] = check);
+            }
         });
-    addCheck("Program", block(checkChild("body")));
-    addCheck("PackageExports", checkChild("exports"));
+    addCheck("Program", block(child("body", checkTop)));
+    addCheck("PackageExports", child("exports", checkTop));
     addCheck("PackageExport", inspect((function(node) {
         return addMutableBindingChecked(node.id.name, node.loc);
     })));
-    addCheck("Package", block(checkChild("exports"), child("body", inspect((function(node) {
+    addCheck("Package", block(child("exports", checkTop), child("body", inspect((function(node) {
         return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body",
             checkChild("body"))) : checkChild("body"));
     })))));
-    addCheck("SwitchCase", seq(checkChild("test"), checkChild("consequent")));
+    addCheck("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
     addCheck("CatchClause", block(inspect((function(node) {
         return addImmutableBindingChecked(node.param.name, node.param.loc);
-    })), checkChild("param"), child("body", checkChild("body"))));
-    addCheck(["StaticDeclaration", "VariableDeclaration"], checkChild("declarations"));
+    })), child("param", checkTop), child("body", child("body", checkTop))));
+    addCheck(["StaticDeclaration", "VariableDeclaration"], child("declarations", checkTop));
     addCheck("StaticDeclarator", inspect((function(node) {
         return addStaticBindingChecked(node.id.name, node.loc);
     })));
@@ -169,60 +157,61 @@
         return (node.recursive ? seq(checkChild("pattern"), checkChild("value")) : seq(checkChild(
             "value"), checkChild("pattern")));
     })));
-    addCheck("BlockStatement", block(checkChild("body")));
-    addCheck("ExpressionStatement", checkChild("expression"));
-    addCheck("IfStatement", seq(checkChild("test"), block(checkChild("consequent")), block(checkChild(
-        "alternate"))));
-    addCheck("WithStatement", block(checkChild("bindings"), child("body", checkChild("body"))));
-    addCheck("SwitchStatement", block(checkChild("discriminant"), checkChild("cases")));
-    addCheck(["ReturnStatement", "ThrowStatement"], checkChild("argument"));
-    addCheck("TryStatement", seq(checkChild("block"), block(checkChild("handler")), block(checkChild(
-        "finalizer"))));
-    addCheck("WhileStatement", seq(checkChild("test"), block(checkChild("body"))));
-    addCheck("DoWhileStatement", seq(block(checkChild("body")), checkChild("test")));
-    addCheck("ForStatement", block(checkChild("init"), checkChild("test"), checkChild("update"), block(
-        checkChild("body"))));
+    addCheck("BlockStatement", block(child("body", checkTop)));
+    addCheck("ExpressionStatement", child("expression", checkTop));
+    addCheck("IfStatement", seq(child("test", checkTop), block(child("consequent", checkTop)), block(child(
+        "alternate", checkTop))));
+    addCheck("WithStatement", block(child("bindings", checkTop), child("body", child("body", checkTop))));
+    addCheck("SwitchStatement", block(child("discriminant", checkTop), child("cases", checkTop)));
+    addCheck(["ReturnStatement", "ThrowStatement"], child("argument", checkTop));
+    addCheck("TryStatement", seq(child("block", checkTop), block(child("handler", checkTop)), block(child(
+        "finalizer", checkTop))));
+    addCheck("WhileStatement", seq(child("test", checkTop), block(child("body", checkTop))));
+    addCheck("DoWhileStatement", seq(block(child("body", checkTop)), child("test", checkTop)));
+    addCheck("ForStatement", block(child("init", checkTop), child("test", checkTop), child("update", checkTop),
+        block(child("body", checkTop))));
     addCheck("FunctionExpression", block(inspect((function(node) {
         return (node.id ? addImmutableBinding(node.id.name, node.loc) : pass);
-    })), checkChild("id"), checkChild("params"), inspect((function(node) {
+    })), child("id", checkTop), child("params", checkTop), inspect((function(node) {
         return ((node.body.type === "BlockStatement") ? child("body", checkChild("body")) :
             checkChild("body"));
     }))));
-    addCheck("UnaryExpression", checkChild("argument"));
+    addCheck("UnaryExpression", child("argument", checkTop));
     addCheck("AssignmentExpression", seq(child("left", checkTop, inspect((function(left) {
         return ((left.type === "Identifier") ? checkCanAssign(left.name, left.loc) : pass);
-    }))), checkChild("right")));
-    addCheck(["LogicalExpression", "BinaryExpression"], seq(checkChild("left"), checkChild("right")));
-    addCheck("ConditionalExpression", seq(checkChild("test"), checkChild("consequent"), checkChild("alternate")));
-    addCheck(["CallExpression", "NewExpression"], seq(checkChild("callee"), checkChild("args")));
-    addCheck("MemberExpression", seq(checkChild("object"), inspect((function(node) {
+    }))), child("right", checkTop)));
+    addCheck(["LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child("right", checkTop)));
+    addCheck("ConditionalExpression", seq(child("test", checkTop), child("consequent", checkTop), child(
+        "alternate", checkTop)));
+    addCheck(["CallExpression", "NewExpression"], seq(child("callee", checkTop), child("args", checkTop)));
+    addCheck("MemberExpression", seq(child("object", checkTop), inspect((function(node) {
         return (node.computed ? checkChild("property") : pass);
     }))));
-    addCheck("ArrayExpression", checkChild("elements"));
-    addCheck("ObjectExpression", checkChild("properties"));
-    addCheck("LetExpression", block(checkChild("bindings"), checkChild("body")));
-    addCheck("CurryExpression", seq(checkChild("base"), checkChild("args")));
+    addCheck("ArrayExpression", child("elements", checkTop));
+    addCheck("ObjectExpression", child("properties", checkTop));
+    addCheck("LetExpression", block(child("bindings", checkTop), child("body", checkTop)));
+    addCheck("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));
     addCheck("SinkPattern", unique((function(uid) {
         return modifyNode((function(node) {
             return ast_pattern.IdentifierPattern.create(node.loc, setData(ast_value.Identifier
                 .create(null, "_"), "uid", uid));
         }));
     })));
-    addCheck("EllipsisPattern", checkChild("id"));
-    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], checkChild("pattern"));
+    addCheck("EllipsisPattern", child("id", checkTop));
+    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], child("pattern", checkTop));
     addCheck("IdentifierPattern", seq(inspect((function(node) {
         return (reserved(node) ? addImmutableBinding(node.id.name, node.loc) :
             addImmutableBindingChecked(node.id.name, node.loc));
-    })), checkChild("id")));
-    addCheck("AsPattern", seq(checkChild("id"), inspect((function(node) {
+    })), child("id", checkTop)));
+    addCheck("AsPattern", seq(child("id", checkTop), inspect((function(node) {
         return child("target", modifyNode((function(target) {
             return setData(target, "id", node.id);
         })), checkTop);
     }))));
-    addCheck("ObjectPattern", checkChild("elements"));
-    addCheck("ObjectPatternElement", seq(checkChild("target"), checkChild("key")));
-    addCheck("ArgumentsPattern", seq(checkChild("id"), checkChild("elements"), checkChild("self")));
-    addCheck("ObjectValue", checkChild("value"));
+    addCheck("ObjectPattern", child("elements", checkTop));
+    addCheck("ObjectPatternElement", seq(child("target", checkTop), child("key", checkTop)));
+    addCheck("ArgumentsPattern", seq(child("id", checkTop), child("elements", checkTop), child("self", checkTop)));
+    addCheck("ObjectValue", child("value", checkTop));
     addCheck("Identifier", inspect((function(node) {
         var name = node["name"],
             loc = node["loc"];
@@ -240,18 +229,18 @@
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var g = (function(x) {
-        return x.concat("require", "module", "exports");
+    var g = (function(x3) {
+        return x3.concat("require", "module", "exports");
     }),
         addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {
-        return run(seq(checkTop, root, extractNode.chain((function(x) {
-            return unique((function(unique) {
+        return run(seq(checkTop, root, extractNode.chain((function(x3) {
+            return unique((function(unique0) {
                 return extract.map((function(s) {
                     return ({
-                        "tree": x,
+                        "tree": x3,
                         "data": ({
-                            "unique": unique
+                            "unique": unique0
                         })
                     });
                 }));

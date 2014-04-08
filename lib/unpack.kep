@@ -145,6 +145,6 @@ unpackParameters = \pre mid post ->
                 pre.length,
                 post.length)
             :[],
-        fun.map(\x i -> relativeUnpack(identifier('arguments'), pre.length + post.length,  number(--post.length + i), x), post || []));
+        fun.map(\x i -> relativeUnpack(identifier('arguments'), pre.length + post.length,  --post.length + i, x), post || []));
 
 }
