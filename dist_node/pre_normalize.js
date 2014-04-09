@@ -37,18 +37,18 @@ peepholes.add("PackageExport", UP, (function(node) {
 }));
 peepholes.add("LetExpression", UP, (function(node) {
     return (node.bindings.length > 1);
-}), (function(__o) {
-    var bindings = __o["bindings"],
-        body = __o["body"];
+}), (function(__o5) {
+    var bindings = __o5["bindings"],
+        body = __o5["body"];
     return foldr((function(p, c) {
         return ast_expression.LetExpression.create(null, [c], p);
     }), body, bindings);
 }));
 peepholes.add("CurryExpression", DOWN, (function(node) {
     return (node.args.length > 1);
-}), (function(__o) {
-    var base = __o["base"],
-        args = __o["args"];
+}), (function(__o5) {
+    var base = __o5["base"],
+        args = __o5["args"];
     return foldl((function(p, arg) {
         return ast_expression.CurryExpression.create(null, p, [arg]);
     }), base, args);
@@ -63,15 +63,15 @@ peepholes.add("ArrayPattern", DOWN, (function(_) {
 }), (function(node) {
     var loc = node["loc"],
         elements = node["elements"],
-        __o = splitArrayPattern(elements),
-        pre = __o[0],
-        mid = __o[1],
-        post = __o[2];
+        __o5 = splitArrayPattern(elements),
+        pre = __o5[0],
+        mid = __o5[1],
+        post = __o5[2];
     return ast_pattern.ObjectPattern.create(loc, flatten(concat(map((function(x, i) {
             return ast_pattern.ObjectPatternElement.create(null, number(i), x);
         }), pre), ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []),
         map((function(x, i) {
-            return RelativeUnpack.create(null, x, ((-post.length) + i), (pre.length + post.length));
+            return RelativeUnpack.create(null, x, i, post.length);
         }), post))));
 }));
 peepholes.add("ObjectPatternElement", DOWN, (function(node) {
@@ -109,9 +109,9 @@ peepholes.add("ArgumentsPattern", UP, (function(node) {
         "id": id
     }), ({})), "id", id);
 }));
-(normalize = (function(f, g) {
-    return (function(x) {
-        return f(g(x));
-    });
-})(rewrite.bind(null, peepholes), khepriZipper));
+var x = khepriZipper,
+    y = rewrite.bind(null, peepholes);
+(normalize = (function(x0) {
+    return y(x(x0));
+}));
 (exports["normalize"] = normalize);

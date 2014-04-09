@@ -110,7 +110,7 @@ peepholes.add('ArrayPattern', DOWN,
                     :SliceUnpack.create(null, mid.id, pre.length, post.length)
                     :[],
                 map(
-                    \x i -> RelativeUnpack.create(null, x, --post.length + i, pre.length + post.length),
+                    \x i -> RelativeUnpack.create(null, x, i, post.length),
                     post))));
 
 /**

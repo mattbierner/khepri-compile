@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "./ast", "./fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, fun) {
     "use strict";
@@ -13,10 +12,9 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
         number = ast_value.Literal.create.bind(null, null, "number"),
         relativeUnpack = (function(target, start, indx, pattern) {
             return innerPattern(ast_expression.MemberExpression.create(null, target, ast_expression.BinaryExpression
-                .create(null, "+", ast_expression.CallExpression.create(null, ast_expression.MemberExpression
-                    .create(null, identifier("Math"), identifier("max")), [ast_expression.MemberExpression
-                        .create(null, target, identifier("length")), number(start)
-                    ]), number(indx)), true), pattern);
+                    .create(null, "+", ast_expression.BinaryExpression.create(null, "-", ast_expression.MemberExpression
+                        .create(null, target, identifier("length")), number(start)), number(indx)), true),
+                pattern);
         }),
         sliceUnpack = (function(target, id, from, to) {
             return innerPattern(ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(
@@ -64,8 +62,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                 }
             }), pre), ((mid && mid.id) ? sliceUnpack(args, mid.id, pre.length, post.length) : []),
             fun.map((function(x, i) {
-                return relativeUnpack(args, (pre.length + post.length), ((-post.length) + i),
-                    x);
+                return relativeUnpack(args, post.length, i, x);
             }), (post || []))));
     }));
     (exports["innerPattern"] = innerPattern);
