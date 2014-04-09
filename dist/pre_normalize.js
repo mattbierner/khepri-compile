@@ -66,7 +66,8 @@
                 return ast_pattern.ObjectPatternElement.create(null, number(i), x);
             }), pre), ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []),
             map((function(x, i) {
-                return RelativeUnpack.create(null, x, i, post.length);
+                return RelativeUnpack.create(null, x, (post.length - i), (post.length +
+                    pre.length));
             }), post))));
     }));
     peepholes.add("ObjectPatternElement", DOWN, (function(node) {

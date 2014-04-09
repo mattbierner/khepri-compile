@@ -33,12 +33,13 @@ var relativeUnpack = \target start indx pattern ->
     innerPattern(
         ast_expression.MemberExpression.create(null,
             target,
-            ast_expression.BinaryExpression.create(null, '+',
-                ast_expression.BinaryExpression.create(null, '-',
+            ast_expression.BinaryExpression.create(null, '-',
+                ast_expression.CallExpression.create(null,
+                ast_expression.MemberExpression.create(null, identifier('Math'), identifier('max')), [
                     ast_expression.MemberExpression.create(null,
                         target,
                         identifier 'length'),
-                    number start),
+                    number start]),
                 number indx),
             true),
        pattern);
@@ -159,7 +160,7 @@ unpackParameters = \args pre mid post ->
                 post.length)
             :[],
         fun.map(
-            \x i -> relativeUnpack(args, post.length, i, x),
+            \x i -> relativeUnpack(args, pre.length + post.length, post.length - i, x),
             post || []));
 
 }
