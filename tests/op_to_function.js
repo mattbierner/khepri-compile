@@ -46,7 +46,7 @@ exports.computed_member = function(test) {
 
 exports.non_computed_member = function(test) {
     test.equal(
-        testParser("var f = (.x); f {'x': 3};"),
+        testParser("var x = 100; var f = (.x); f {'x': 3};"),
         3);
     
     test.done();

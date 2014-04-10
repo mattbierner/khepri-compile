@@ -1,5 +1,14 @@
 # ChangeLog #
 
+## 0.5.0 - April 10, 2014
+* Non computed member operator to function.
+* Added support for marking previously mutable binding immutable with `:=`.
+** Can be used for declarations and package exports.
+** Must take place in same scope as declaration.
+* Better generated code when an argument to an inlined function is not provided,
+  so it evaluates to undefined.
+** `var f := \x -> x.x; f();` will output `undefined.x;`
+
 ## 0.4.1 - April 8, 2014
 * Restored support for unnamed ellipsis pattern.
 

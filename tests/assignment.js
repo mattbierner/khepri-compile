@@ -22,6 +22,21 @@ exports.basic_mutable_binding = function(test) {
     test.done();
 };
 
+exports.setting_mutable_to_immutable_cannot_set_after = function(test) {
+    test.equal(
+        run("var a = 10; a := 3; a; a + 10;"),
+        13);
+    
+    test.throws(
+        run.bind(null, "var a; a := 3; a = 10;"));
+    
+        
+    test.throws(
+        run.bind(null, "var a; a := 3; {a = 10;}"));
+    
+    test.done();
+};
+
 exports.setting_mutable_to_immutable_must_be_in_block = function(test) {
     test.equal(
         run("var a = 10; a := 3; a;"),
@@ -29,6 +44,9 @@ exports.setting_mutable_to_immutable_must_be_in_block = function(test) {
     
     test.throws(
         run.bind(null, "var a; { a := 3; }; a;"));
+    
+    test.throws(
+        run.bind(null, "var a; if (false) a := 3; a;"));
     
     test.done();
 };
