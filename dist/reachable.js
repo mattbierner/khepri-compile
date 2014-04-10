@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
+*/
+define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "akh/base", "akh/state", "zipper-m/trans/zipper", "zipper-m/walk", "./ast"
 ], (function(require, exports, record, hashtrie, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression,

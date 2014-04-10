@@ -31,6 +31,8 @@
         (builtins["exports"] = setData(ast_value.Identifier.create(null, "exports"), "uid", uid0));
         var uid1 = unique();
         (builtins["module"] = setData(ast_value.Identifier.create(null, "module"), "uid", uid1));
+        var uid2 = unique();
+        (builtins["undefined"] = setData(ast_value.Identifier.create(null, "undefined"), "uid", uid2));
         [
             ["typeof", "__typeof"],
             ["void", "__void"],
@@ -46,12 +48,12 @@
                     .create(null, xArg)
                 ]), ast_expression.UnaryExpression.create(null, op, xArg))));
         }));
-        var uid2 = unique(),
-            xArg = setData(ast_value.Identifier.create(null, "x"), "uid", uid2),
-            uid3 = unique(),
-            yArg = setData(ast_value.Identifier.create(null, "y"), "uid", uid3),
+        var uid3 = unique(),
+            xArg = setData(ast_value.Identifier.create(null, "x"), "uid", uid3),
             uid4 = unique(),
-            zArg = setData(ast_value.Identifier.create(null, "z"), "uid", uid4),
+            yArg = setData(ast_value.Identifier.create(null, "y"), "uid", uid4),
+            uid5 = unique(),
+            zArg = setData(ast_value.Identifier.create(null, "z"), "uid", uid5),
             ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                     null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
                         null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression
@@ -115,7 +117,7 @@
         registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);
         }));
-        registerBinary(".()", "__dot", (function(x, y) {
+        registerBinary(".", "__dot", (function(x, y) {
             return ast_expression.MemberExpression.create(null, x, y, true);
         }));
         registerBinary("@", "__curry", (function(x, y) {
@@ -158,8 +160,8 @@
                 ])
             ]));
         }));
-        (member = (function(id, uid5) {
-            var xArg0 = identifier("x", uid5);
+        (member = (function(id, uid6) {
+            var xArg0 = identifier("x", uid6);
             return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                     null, null, [ast_pattern.IdentifierPattern.create(null, xArg0)]), ast_expression.MemberExpression
                 .create(null, xArg0, identifier(id), false));

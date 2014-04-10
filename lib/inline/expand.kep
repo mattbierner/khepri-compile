@@ -12,7 +12,8 @@ with
     import '../fun' {
         concat
         map},
-    import './rename' {rename}
+    import './rename' {rename},
+    import '../builtin' {builtins}
 in{
 
 var getParmeterIds := map  @ \x -> getUid(x.id);
@@ -22,7 +23,7 @@ var argsToBindings := \uid names parameters args ->
         \x i ->
             ast_declaration.Binding.create(null,
                 rename(uid, names, x),
-                (args.(i) || ast_value.Identifier.create(null, 'undefined'))),
+                (args.(i) || builtins.undefined)),
         parameters.elements);
 
 /**

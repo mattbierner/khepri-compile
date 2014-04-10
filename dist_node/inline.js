@@ -374,7 +374,7 @@ addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent7 = ch
 }))), ((consequent8 = modify((function(__o5) {
     var object = __o5["object"],
         property = __o5["property"];
-    return (object.elements[property.value] || ast_value.Identifier.create(null, "undefined"));
+    return (object.elements[property.value] || builtins.undefined);
 }))), (alternate8 = undefined), extract((function(node) {
     return (((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property)) ?
         consequent8 : (alternate8 || pass));
@@ -389,8 +389,7 @@ addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent7 = ch
 }))), ((consequent10 = modify((function(node) {
     var str = node.object.value,
         idx = node.property.value;
-    return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : ast_value
-        .Identifier.create(null, "undefined"));
+    return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : builtins.undefined);
 }))), (alternate10 = undefined), extract((function(node) {
     return (((node.computed && ((node.object.type === "Literal") && (node.object.kind === "string"))) &&
         isNumberish(node.property)) ? consequent10 : (alternate10 || pass));

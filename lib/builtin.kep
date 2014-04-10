@@ -52,6 +52,8 @@ builtins.('require') = identifier('require', unique());
 builtins.('exports') = identifier('exports', unique());
 builtins.('module') = identifier('module', unique());
 
+builtins.('undefined') = identifier('undefined', unique());
+
 /* Unary Operators
  ******************************************************************************/
 with
@@ -175,7 +177,7 @@ registerBinary('new', '__new', \x y ->
     ast_expression.NewExpression.create(null, x, [y]));
 
 // Computed Member
-registerBinary('.()', '__dot', \x y ->
+registerBinary('.', '__dot', \x y ->
     ast_expression.MemberExpression.create(null, x, y, true));
 
 // Curry

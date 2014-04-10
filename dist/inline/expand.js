@@ -1,15 +1,15 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "../ast", "../fun", "./rename"
-], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1) {
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
+    "khepri-ast/value", "../ast", "../fun", "./rename", "../builtin"
+], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, __o2) {
     "use strict";
     var getUid = __o["getUid"],
         concat = __o0["concat"],
         map = __o0["map"],
         rename = __o1["rename"],
+        builtins = __o2["builtins"],
         expandCallee, expandCurry, getParmeterIds = map.bind(null, (function(x) {
             return getUid(x.id);
         }));
@@ -19,7 +19,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
             parameters = target.params,
             bindings = map((function(x, i) {
                 return ast_declaration.Binding.create(null, rename(uid, ids, x), (args[i] ||
-                    ast_value.Identifier.create(null, "undefined")));
+                    builtins.undefined));
             }), parameters.elements);
         return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings),
             rename(uid, ids, target.body));

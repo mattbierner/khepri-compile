@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -14,6 +13,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
     map = __o0["map"],
     __o1 = require("./rename"),
     rename = __o1["rename"],
+    __o2 = require("../builtin"),
+    builtins = __o2["builtins"],
     expandCallee, expandCurry, getParmeterIds = map.bind(null, (function(x) {
         return getUid(x.id);
     }));
@@ -22,8 +23,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
         ids = getParmeterIds(target.params.elements),
         parameters = target.params,
         bindings = map((function(x, i) {
-            return ast_declaration.Binding.create(null, rename(uid, ids, x), (args[i] || ast_value.Identifier
-                .create(null, "undefined")));
+            return ast_declaration.Binding.create(null, rename(uid, ids, x), (args[i] || builtins.undefined));
         }), parameters.elements);
     return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings), rename(uid, ids,
         target.body));

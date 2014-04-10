@@ -654,7 +654,7 @@ addRewrite@'MemberExpression' <| seq(
             && isNumberish node.property),
     
         modify \ {object property} ->
-            object.elements.(property.value) || ast_value.Identifier.create(null, 'undefined')),
+            object.elements.(property.value) || builtins.undefined),
        
     /**
      * Length of array expression.
@@ -684,12 +684,11 @@ addRewrite@'MemberExpression' <| seq(
         in
             ?idx < str.length
                 :ast_value.Literal.create(null, 'string', str.(idx))
-                :ast_value.Identifier.create(null, 'undefined')));
+                :builtins.undefined));
 
-addRewrite@'NewExpression' <|
-    seq(
-        visitChild 'callee',
-        visitChild 'args');
+addRewrite@'NewExpression' <| seq(
+    visitChild 'callee',
+    visitChild 'args');
 
 addRewrite@'CallExpression' <| seq(
     visitChild 'callee',
