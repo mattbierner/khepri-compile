@@ -43,3 +43,11 @@ exports.computed_member = function(test) {
     
     test.done();
 };
+
+exports.non_computed_member = function(test) {
+    test.equal(
+        testParser("var f = (.x); f {'x': 3};"),
+        3);
+    
+    test.done();
+};

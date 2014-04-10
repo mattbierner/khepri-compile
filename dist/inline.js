@@ -1,15 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
+*/define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/program", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state",
     "zipper-m/trans/zipper", "zipper-m/walk", "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand",
     "./inline/rename"
 ], (function(require, exports, record, hashtrie, __o, __o0, ast_declaration, ast_statement, ast_expression,
-    ast_pattern, ast_package, ast_program, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, __o3, fun,
-    binding, __o4, __o5) {
+    ast_pattern, ast_package, ast_program, ast_value, __o1, Unique, StateT, ZipperT, walk, __o2, builtin, fun,
+    binding, __o3, __o4) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
         Node = __o0["Node"],
@@ -25,15 +24,15 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         isPrimitive = __o2["isPrimitive"],
         isNumberish = __o2["isNumberish"],
         isTruthy = __o2["isTruthy"],
-        builtins = __o3["builtins"],
-        definitions = __o3["definitions"],
+        builtins = builtin["builtins"],
+        definitions = builtin["definitions"],
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
         concat = fun["concat"],
-        expandCallee = __o4["expandCallee"],
-        expandCurry = __o4["expandCurry"],
-        rename = __o5["rename"],
-        incCount = __o5["incCount"],
+        expandCallee = __o3["expandCallee"],
+        expandCurry = __o3["expandCurry"],
+        rename = __o4["rename"],
+        incCount = __o4["incCount"],
         optimize, x, y, consequent, alternate, consequent0, alternate0, consequent1, alternate1, consequent2,
             alternate2, arithmetic, consequent3, alternate3, consequent4, alternate4, arithmetic0, consequent5,
             alternate5, consequent6, alternate6, consequent7, alternate7, consequent8, alternate8, consequent9,
@@ -117,8 +116,8 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         return s.outer.setBindings(s.bindings)
             .setGlobals(s.globals)
             .setCtx(s.ctx)
-            .setWorking(hashtrie.fold((function(p, __o6) {
-                var key = __o6["key"];
+            .setWorking(hashtrie.fold((function(p, __o5) {
+                var key = __o5["key"];
                 return hashtrie.set(key, null, p);
             }), s.outer.working, s.working));
     }));
@@ -157,9 +156,9 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             }));
         }),
         getBinding = (function(uid) {
-            return (uid ? getState.map((function(__o6) {
-                var bindings = __o6["bindings"],
-                    working = __o6["working"];
+            return (uid ? getState.map((function(__o5) {
+                var bindings = __o5["bindings"],
+                    working = __o5["working"];
                 return (binding.getBinding(uid, bindings) || binding.getBinding(uid, working));
             })) : pass);
         }),
@@ -225,13 +224,15 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
                 (peepholes[type] = f);
             }
         });
-    addRewrite("UnaryOperatorExpression", seq(extract((function(__o6) {
-        var op = __o6["op"];
-        return seq(addGlobal(op), set(builtins[op]));
+    addRewrite("UnaryOperatorExpression", seq(extract((function(__o5) {
+        var op = __o5["op"];
+        return (builtins[op] ? seq(addGlobal(op), set(builtins[op])) : unique((function(uid) {
+            return set(builtin.member(op, uid));
+        })));
     })), checkTop));
-    addRewrite("BinaryOperatorExpression", seq(extract((function(__o6) {
-        var op = __o6["op"],
-            flipped = __o6["flipped"],
+    addRewrite("BinaryOperatorExpression", seq(extract((function(__o5) {
+        var op = __o5["op"],
+            flipped = __o5["flipped"],
             name = (flipped ? ("_" + op) : op);
         return seq(addGlobal(name), set(builtins[name]));
     })), checkTop));
@@ -311,10 +312,10 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             arithmetic[operator] && isPrimitive(argument))) ? consequent3 : (
             alternate3 || pass));
     }))))));
-    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((consequent4 = extract((function(__o6) {
-        var operator = __o6["operator"],
-            left = __o6["left"],
-            right0 = __o6["right"];
+    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((consequent4 = extract((function(__o5) {
+        var operator = __o5["operator"],
+            left = __o5["left"],
+            right0 = __o5["right"];
         return ((operator === "=") ? addWorking(getUid(left), right0) :
             addBindingForNode(left, right0));
     }))), (alternate4 = undefined), extract((function(node) {
@@ -337,10 +338,10 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         ">=": __gte,
         "||": __or,
         "&&": __and
-    })), seq(child("left", checkTop), child("right", checkTop), ((consequent5 = modify((function(__o6) {
-        var operator = __o6["operator"],
-            left = __o6["left"],
-            right0 = __o6["right"],
+    })), seq(child("left", checkTop), child("right", checkTop), ((consequent5 = modify((function(__o5) {
+        var operator = __o5["operator"],
+            left = __o5["left"],
+            right0 = __o5["right"],
             value = arithmetic0[operator](left.value, right0.value);
         return ast_value.Literal.create(null, (typeof value), value);
     }))), (alternate5 = undefined), extract((function(node) {
@@ -350,10 +351,10 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             isPrimitive(right0))) ? consequent5 : (alternate5 || pass));
     }))))));
     addRewrite(["ConditionalExpression", "IfStatement"], seq(child("test", checkTop), ((consequent6 = extract((
-            function(__o6) {
-                var test = __o6["test"],
-                    consequent7 = __o6["consequent"],
-                    alternate6 = __o6["alternate"];
+            function(__o5) {
+                var test = __o5["test"],
+                    consequent7 = __o5["consequent"],
+                    alternate6 = __o5["alternate"];
                 return seq(set((isTruthy(test) ? consequent7 : alternate6)), checkTop);
             }))), (alternate6 = seq(child("consequent", checkTop), child("alternate", checkTop))),
         extract((function(node) {
@@ -362,16 +363,16 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
     addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent7 = child("property", checkTop)), (
         alternate7 = undefined), extract((function(node) {
         return (node.computed ? consequent7 : (alternate7 || pass));
-    }))), ((consequent8 = modify((function(__o6) {
-        var object = __o6["object"],
-            property = __o6["property"];
+    }))), ((consequent8 = modify((function(__o5) {
+        var object = __o5["object"],
+            property = __o5["property"];
         return (object.elements[property.value] || ast_value.Identifier.create(null,
             "undefined"));
     }))), (alternate8 = undefined), extract((function(node) {
         return (((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(
             node.property)) ? consequent8 : (alternate8 || pass));
-    }))), ((consequent9 = modify((function(__o6) {
-        var object = __o6["object"];
+    }))), ((consequent9 = modify((function(__o5) {
+        var object = __o5["object"];
         return ast_value.Literal.create(null, "number", object.elements.length);
     }))), (alternate9 = undefined), extract((function(node) {
         return ((((node.type === "MemberExpression") && (node.object.type ===
@@ -433,13 +434,13 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         return ((isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(
             node.base.body))) ? consequent14 : (alternate14 || pass));
     })))));
-    addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), modify((function(__o6) {
-        var loc = __o6["loc"],
-            bindings = __o6["bindings"],
-            body = __o6["body"];
+    addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), modify((function(__o5) {
+        var loc = __o5["loc"],
+            bindings = __o5["bindings"],
+            body = __o5["body"];
         return ast_expression.LetExpression.create(loc, flattenr(bindings), body);
-    })), ((consequent15 = modify((function(__o6) {
-        var body = __o6["body"];
+    })), ((consequent15 = modify((function(__o5) {
+        var body = __o5["body"];
         return body;
     }))), (alternate15 = undefined), extract((function(node) {
         var bindings;

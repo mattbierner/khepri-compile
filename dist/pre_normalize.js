@@ -47,7 +47,7 @@
             return ast_expression.CurryExpression.create(null, p, [arg]);
         }), base, args);
     }));
-    var splitPatternList = (function(elements) {
+    var splitUnpackList = (function(elements) {
         var indx = elements.map(type)
             .indexOf("EllipsisPattern");
         return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice(
@@ -64,7 +64,7 @@
     }), (function(__o5) {
         var loc = __o5["loc"],
             elements = __o5["elements"],
-            __o6 = splitPatternList(elements),
+            __o6 = splitUnpackList(elements),
             pre = __o6[0],
             mid = __o6[1],
             post = __o6[2];
@@ -76,7 +76,7 @@
         return (node.elements.map(type)
             .indexOf("EllipsisPattern") >= 0);
     }), (function(node) {
-        var __o5 = splitPatternList(node.elements),
+        var __o5 = splitUnpackList(node.elements),
             pre = __o5[0],
             mid = __o5[1],
             post = __o5[2],

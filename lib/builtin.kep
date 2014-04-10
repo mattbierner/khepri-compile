@@ -3,7 +3,9 @@
  */
 package (
     builtins
-    definitions)
+    definitions
+    
+    member)
 with
     import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
@@ -172,8 +174,8 @@ in {
 registerBinary('new', '__new', \x y ->
     ast_expression.NewExpression.create(null, x, [y]));
 
-// Dot
-registerBinary('.', '__dot', \x y ->
+// Computed Member
+registerBinary('.()', '__dot', \x y ->
     ast_expression.MemberExpression.create(null, x, y, true));
 
 // Curry
@@ -227,5 +229,18 @@ in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);
 }
+
+/* Macro Operators
+ ******************************************************************************/
+/**
+ * Non computed member access.
+ */
+member = \id uid -> let
+    xArg = identifier('x', uid)
+in
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg)]),
+        ast_expression.MemberExpression.create(null, xArg, identifier id, false));
         
 }

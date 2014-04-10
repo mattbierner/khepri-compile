@@ -46,7 +46,7 @@ with
         isPrimitive
         isNumberish
         isTruthy},
-    import './builtin' {builtins definitions},
+    import './builtin' builtin#{builtins definitions },
     import './fun' fun#{flattenr flatten concat},
     import './inline/bindings' binding,
     import './inline/expand' {
@@ -350,34 +350,37 @@ var addRewrite = \type f -> {
 /**
  * Convert Unary Op Expression to function.
  */
-addRewrite@'UnaryOperatorExpression' <|
-    seq(
-        extract \ {op} ->
-            seq(
+addRewrite@'UnaryOperatorExpression' <| seq(
+    extract \ {op} ->
+        ?builtins.(op)
+            :seq(
                 addGlobal(op),
-                set <| builtins.(op)),
-        checkTop);
+                set <| builtins.(op))
+            
+            // Must be a non computed member expression
+            // This really more of a macro, so it is handled differently
+            :unique \ uid ->
+                set <| builtin.member(op, uid),
+    checkTop);
 
 /**
  * Convert binary op expression to function.
  */
-addRewrite@'BinaryOperatorExpression' <|
-    seq(
-        extract \ {op flipped} ->
-            let name = ?flipped : '_' + op : op in
-                seq(
-                    addGlobal(name),
-                    set <| builtins.(name)),
-        checkTop);
+addRewrite@'BinaryOperatorExpression' <| seq(
+    extract \ {op flipped} ->
+        let name = ?flipped : '_' + op : op in
+            seq(
+                addGlobal(name),
+                set <| builtins.(name)),
+    checkTop);
 
 /**
  * Convert ternary op expression to function.
  */
-addRewrite@'TernaryOperatorExpression' <|
-    seq(
-        addGlobal('?'),
-        set <| builtins.('?'),
-        checkTop);
+addRewrite@'TernaryOperatorExpression' <| seq(
+    addGlobal('?'),
+    set <| builtins.('?'),
+    checkTop);
 
 /* 
  ******************************************************************************/

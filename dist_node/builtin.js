@@ -1,15 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
-    builtins, definitions, unique = (function() {
+    builtins, definitions, member, unique = (function() {
         var x = 0;
         return (function() {
             (x = (x + 1));
@@ -42,8 +41,8 @@ var uid1 = unique();
     ["++", "__plus"],
     ["--", "__minus"]
 ].forEach((function(__o) {
-    var xArg, op = __o["0"],
-        name = __o["1"];
+    var xArg, op = __o[0],
+        name = __o[1];
     registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(
         null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
             null, xArg)]), ast_expression.UnaryExpression.create(null, op, xArg))));
@@ -99,16 +98,16 @@ var binary = (function(op) {
     ["!==", "__sneq"],
     ["instanceof", "__instanceof"]
 ].forEach((function(__o) {
-    var op = __o["0"],
-        name = __o["1"];
+    var op = __o[0],
+        name = __o[1];
     registerBinary(op, name, binaryOp(op));
 }));
 [
     ["||", "__or"],
     ["&&", "__and"]
 ].forEach((function(__o) {
-    var op = __o["0"],
-        name = __o["1"];
+    var op = __o[0],
+        name = __o[1];
     registerBinary(op, name, (function(x, y) {
         return ast_expression.LogicalExpression.create(null, op, x, y);
     }));
@@ -116,7 +115,7 @@ var binary = (function(op) {
 registerBinary("new", "__new", (function(x, y) {
     return ast_expression.NewExpression.create(null, x, [y]);
 }));
-registerBinary(".", "__dot", (function(x, y) {
+registerBinary(".()", "__dot", (function(x, y) {
     return ast_expression.MemberExpression.create(null, x, y, true);
 }));
 registerBinary("@", "__curry", (function(x, y) {
@@ -155,5 +154,12 @@ registerBinary("\\>>", "__rcomposen", (function(x, y) {
             ast_expression.MemberExpression.create(null, x, identifier("apply")), [ast_value.Literal.create(
                 null, "null"), identifier("arguments")])]));
 }));
+(member = (function(id, uid5) {
+    var xArg0 = identifier("x", uid5);
+    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_pattern.IdentifierPattern.create(null, xArg0)
+    ]), ast_expression.MemberExpression.create(null, xArg0, identifier(id), false));
+}));
 (exports["builtins"] = builtins);
 (exports["definitions"] = definitions);
+(exports["member"] = member);

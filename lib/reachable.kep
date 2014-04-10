@@ -37,9 +37,10 @@ in {
 /* State
  ******************************************************************************/
 var State = record.declare(null, [
-    'bindings']);
+    'bindings',
+    'scope']);
 
-State.empty = State.create(hashtrie.empty);
+State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]);
 
 State.prototype.addReference = \uid ={bindings scope}->
     State.create(
@@ -75,11 +76,11 @@ var addReference = \uid ->
             s.addReference(uid)
         :pass;
 
-var isReachable = \uid ->
+var isReachable = \uid yes no ->
     ?uid
-        :getState.map \ s ->
-            s.isReachable(uid)
-    :M.of true;
+        :getState.chain \ s ->
+            ?s.isReachable(uid) : yes : no
+    :yes;
 
 // Movement
 ////////////////////////////////////////
@@ -93,7 +94,6 @@ var down = M.down;
 var left = M.left;
 
 var rightmost = M.move zipper.rightmost;
-
 
 var moveChild =  M.child;
 
@@ -112,10 +112,10 @@ var when = \test consequent alternate ->
 /**
  * Move to a child along `edge` and perform a list of operations. Return to parent.
  */
-var child = \args(edge ...) ->
+var child = \edge ...actions ->
     seq(
         moveChild edge,
-        seqa([].slice.call(args, 1)),
+        seqa actions,
         up);
 
 /**
@@ -165,17 +165,15 @@ addRewrite@'VariableDeclaration' <|
 
 addRewrite@'VariableDeclarator' <|
     extract \ node ->
-        isReachable(getUid node.id).chain \ reachable ->
-            ?reachable
-                :visitChild 'init'
-                :set [];
+        isReachable(getUid node.id,
+            visitChild 'init',
+            set []);
 
-addRewrite@'Binding' <| seq(
+addRewrite@'Binding' <|
     extract \ node ->
-        isReachable(getUid node.pattern.id).chain \ reachable ->
-            ?reachable
-                :visitChild 'value'
-                :set []);
+        isReachable(getUid node.pattern.id,
+            visitChild 'value',
+            set []);
 
 // Statement
 addRewrite@'BlockStatement' <|

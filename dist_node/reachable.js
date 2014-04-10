@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hashtrie = require("hashtrie"),
     zipper = require("neith")["zipper"],
@@ -26,8 +25,8 @@ var record = require("bes")["record"],
     __o2 = require("./ast"),
     getUd = __o2["getUd"],
     getUid = __o2["getUid"],
-    optimize, x, y, consequent, alternate, State = record.declare(null, ["bindings"]);
-(State.empty = State.create(hashtrie.empty));
+    optimize, x, y, consequent, alternate, State = record.declare(null, ["bindings", "scope"]);
+(State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]));
 (State.prototype.addReference = (function(uid) {
     var __o3 = this,
         bindings = __o3["bindings"],
@@ -54,10 +53,10 @@ var _check, M = ZipperT(StateM),
             return s.addReference(uid);
         })) : pass);
     }),
-    isReachable = (function(uid) {
-        return (uid ? getState.map((function(s) {
-            return s.isReachable(uid);
-        })) : M.of(true));
+    isReachable = (function(uid, yes, no) {
+        return (uid ? getState.chain((function(s) {
+            return (s.isReachable(uid) ? yes : no);
+        })) : yes);
     }),
     extract = M.chain.bind(null, M.node),
     set = M.setNode,
@@ -67,8 +66,8 @@ var _check, M = ZipperT(StateM),
     rightmost = M.move(zipper.rightmost),
     moveChild = M.child,
     child = (function(edge) {
-        var args = arguments;
-        return seq(moveChild(edge), seqa([].slice.call(args, 1)), up);
+        var actions = [].slice.call(arguments, 1);
+        return seq(moveChild(edge), seqa(actions), up);
     }),
     checkTop = extract((function(x0) {
         return _check(x0);
@@ -91,17 +90,11 @@ addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkT
 addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
 addRewrite("VariableDeclaration", child("declarations", checkTop));
 addRewrite("VariableDeclarator", extract((function(node) {
-    return isReachable(getUid(node.id))
-        .chain((function(reachable) {
-            return (reachable ? visitChild("init") : set([]));
-        }));
+    return isReachable(getUid(node.id), visitChild("init"), set([]));
 })));
-addRewrite("Binding", seq(extract((function(node) {
-    return isReachable(getUid(node.pattern.id))
-        .chain((function(reachable) {
-            return (reachable ? visitChild("value") : set([]));
-        }));
-}))));
+addRewrite("Binding", extract((function(node) {
+    return isReachable(getUid(node.pattern.id), visitChild("value"), set([]));
+})));
 addRewrite("BlockStatement", child("body", checkTop));
 addRewrite("ExpressionStatement", child("expression", checkTop));
 addRewrite("WithStatement", seq(child("body", checkTop), child("bindings", checkTop)));

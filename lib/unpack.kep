@@ -1,5 +1,7 @@
 /**
  * @fileOverview Unpack expansion.
+ * 
+ * TODO: Move slice and relative logic to transform stage
  */
 package (
     innerPattern
@@ -62,7 +64,7 @@ var sliceUnpack = \target id from to ->
                 identifier 'call'),
             ?to === 0
                 :[target, number from]
-                :[target, number from, number (--to)]),
+                :[target, number from, number(--to)]),
       id);
     
 /**
@@ -136,9 +138,9 @@ in
 /**
  * Expand a parameter list to a list of inner bindings.
  */
-unpackParameters = \args pre mid post ->
-    flatten <|
-        fun.map(\x -> {
+unpackParameters = \args elements ->
+    elements
+        |> fun.map @ \x -> {
             switch (x.type) {
             // Avoid generating redundant unpacks for parameters names.
             case 'SinkPattern':
@@ -157,6 +159,7 @@ unpackParameters = \args pre mid post ->
             default:
                 return innerPattern(x, x);
             }
-        }, pre);
+        }
+        |> flatten;
 
 }

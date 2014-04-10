@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value"], (
     function(require, exports, ast_node, ast_pattern, ast_expression, ast_value) {
         "use strict";
         var setData = ast_node["setData"],
             setUserData = ast_node["setUserData"],
-            builtins, definitions, unique = (function() {
+            builtins, definitions, member, unique = (function() {
                 var x = 0;
                 return (function() {
                     (x = (x + 1));
@@ -40,8 +39,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             ["++", "__plus"],
             ["--", "__minus"]
         ].forEach((function(__o) {
-            var xArg, op = __o["0"],
-                name = __o["1"];
+            var xArg, op = __o[0],
+                name = __o[1];
             registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), ast_expression.FunctionExpression
                 .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
                     .create(null, xArg)
@@ -99,16 +98,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             ["!==", "__sneq"],
             ["instanceof", "__instanceof"]
         ].forEach((function(__o) {
-            var op = __o["0"],
-                name = __o["1"];
+            var op = __o[0],
+                name = __o[1];
             registerBinary(op, name, binaryOp(op));
         }));
         [
             ["||", "__or"],
             ["&&", "__and"]
         ].forEach((function(__o) {
-            var op = __o["0"],
-                name = __o["1"];
+            var op = __o[0],
+                name = __o[1];
             registerBinary(op, name, (function(x, y) {
                 return ast_expression.LogicalExpression.create(null, op, x, y);
             }));
@@ -116,7 +115,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);
         }));
-        registerBinary(".", "__dot", (function(x, y) {
+        registerBinary(".()", "__dot", (function(x, y) {
             return ast_expression.MemberExpression.create(null, x, y, true);
         }));
         registerBinary("@", "__curry", (function(x, y) {
@@ -159,6 +158,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 ])
             ]));
         }));
+        (member = (function(id, uid5) {
+            var xArg0 = identifier("x", uid5);
+            return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg0)]), ast_expression.MemberExpression
+                .create(null, xArg0, identifier(id), false));
+        }));
         (exports["builtins"] = builtins);
         (exports["definitions"] = definitions);
+        (exports["member"] = member);
     }));

@@ -85,13 +85,19 @@ peepholes.add('CurryExpression', DOWN,
 
 /* Pattern Normalizations
  ******************************************************************************/
-var splitPatternList = \elements -> let
+/**
+ * Split a list of unpacks around an ellipsis.
+ */
+var splitUnpackList = \elements -> let
     indx = elements.map(type).indexOf('EllipsisPattern')
 in
     ?indx < 0
         :[elements, null, []]
         :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
 
+/**
+ * Rejoin a split argument list into slice and relative unpacks.
+ */
 var createUnpackList = \pre mid post ->
     concat(
         pre,
@@ -105,13 +111,13 @@ var createUnpackList = \pre mid post ->
 /**
  * Convert array pattern to object pattern.
  * 
- * Also generate slice and relative unpacks from if 
+ * Also generate slice and relative unpacks if ellipsis pattern used.
  */
 peepholes.add('ArrayPattern', DOWN,
     \_ -> true,
     
     \{loc elements} -> let
-        [pre mid post] = splitPatternList elements
+        [pre mid post] = splitUnpackList elements
     in
         ast_pattern.ObjectPattern.create(loc,
             createUnpackList(
@@ -131,7 +137,7 @@ peepholes.add('ArgumentsPattern', UP,
        node.elements.map(type).indexOf('EllipsisPattern') >= 0,
     
     \node -> let
-        [pre mid post] = splitPatternList node.elements,
+        [pre mid post] = splitUnpackList node.elements,
         
         id = node.id || setData(
             ast_pattern.IdentifierPattern.create(null,
