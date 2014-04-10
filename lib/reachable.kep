@@ -6,7 +6,7 @@ package (
 with
     import 'bes::record' record,
 
-    import 'hashtrie' hashtrie,
+    import 'hamt' hamt,
     
     import 'neith::zipper' zipper,
     
@@ -40,14 +40,14 @@ var State = record.declare(null, [
     'bindings',
     'scope']);
 
-State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]);
+State.empty = State.create(hamt.empty, [hamt.empty, null]);
 
 State.prototype.addReference = \uid ={bindings scope}->
     State.create(
-        hashtrie.set(uid, null, bindings));
+        hamt.set(uid, null, bindings));
 
 State.prototype.isReachable = \uid ={bindings scope}->
-    hashtrie.has(uid, bindings);
+    hamt.has(uid, bindings);
 
 /* Forward
  ******************************************************************************/

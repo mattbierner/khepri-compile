@@ -16,7 +16,7 @@ package (
 with
     import 'bes::record' record,
     
-    import 'hashtrie' hashtrie
+    import 'hamt' hamt
 in {
 
 var IMMUTABLE := 0,
@@ -37,13 +37,13 @@ Scope = record.declare(null, [
     'mapping',
     'definitions']);
 
-Scope.empty = Scope.create(hashtrie.empty, null, hashtrie.empty, hashtrie.empty);
+Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty);
 
 /**
  * Does this scope have a binding for `id`?
  */
 Scope.prototype.hasOwnBinding = \id =self->
-    hashtrie.has(id, self.record);
+    hamt.has(id, self.record);
 
 /**
  * Does this scope or its parents have a given binding for `id`?
@@ -64,7 +64,7 @@ in
  * Get information for a given binding. Returns null if binding does not exist.
  */
 Scope.prototype.getBinding = \id =self->
-    (  hashtrie.get(id, self.record)
+    (  hamt.get(id, self.record)
     || ?self.outer
         :self.outer.getBinding(id)
         :null);
@@ -74,7 +74,7 @@ Scope.prototype.getBinding = \id =self->
  */
 Scope.prototype.getUid = \id =self->
     ?self.hasOwnBinding(id)
-        :hashtrie.get(id, self.definitions)
+        :hamt.get(id, self.definitions)
         :?self.outer
             :self.outer.getUid(id)
             :null;
@@ -83,7 +83,7 @@ Scope.prototype.getUid = \id =self->
  * Does this scope have its own a mapping for a given identifier.
  */
 Scope.prototype.hasOwnMapping = \id =self->
-    hashtrie.has(id, self.mapping);
+    hamt.has(id, self.mapping);
 
 /**
  * Does this scope have any mapping for a given identifier.
@@ -97,7 +97,7 @@ Scope.prototype.hasMapping = \id =self->
  */
 Scope.prototype.getMapping = \id =self->
     ?self.hasOwnMapping(id)
-        :hashtrie.get(id, self.mapping)
+        :hamt.get(id, self.mapping)
         :self.outer && self.outer.getMapping(id);
 
 /**
@@ -123,7 +123,7 @@ Scope.prototype.getUnusedId = \id =self-> {
  */
 addUid = \s id uid->
     s.setDefinitions <|
-        hashtrie.set(id, uid, s.definitions);
+        hamt.set(id, uid, s.definitions);
 
 /**
  * Create a new modified scope with a given binding.
@@ -134,7 +134,7 @@ addUid = \s id uid->
  */
 addBinding = \s, id, info -> 
     s.setRecord <| 
-        hashtrie.set(id, info, s.record);
+        hamt.set(id, info, s.record);
 
 /**
  * Create a new modified scope with a new mutable binding.
@@ -172,7 +172,7 @@ addImmutableBinding = \s, id, loc ->
 setBindingMutability = \s id mutable ->
     ?s.hasOwnBinding id
         :s.setRecord <|
-            hashtrie.modify(id, \binding -> ({
+            hamt.modify(id, \binding -> ({
                 'loc': binding.loc,
                 'mutable': ?mutable : MUTABLE : IMMUTABLE
             }), s.record)
@@ -187,7 +187,7 @@ setBindingMutability = \s id mutable ->
  */
 addMapping = \s from to ->
     s.setMapping(
-        hashtrie.set(from, to, s.mapping));
+        hamt.set(from, to, s.mapping));
 
 /* Operations
  ******************************************************************************/

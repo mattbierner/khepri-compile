@@ -5,20 +5,20 @@ package (
     getBinding
     )
 with
-    import 'hashtrie' hashtrie
+    import 'hamt' hamt
 in {
 
-empty = hashtrie.empty;
+empty = hamt.empty;
 
 /**
  * 
  */
-setBinding = hashtrie.set;
+setBinding = hamt.set;
 
 /**
  * 
  */
-getBinding = hashtrie.get;
+getBinding = hamt.get;
 
 
 }

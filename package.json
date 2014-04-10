@@ -43,7 +43,7 @@
         "khepri-ast": "3.9.x",
         "khepri-ast-zipper": "1.1.x",
         
-        "hashtrie": "0.2.x",
+        "hamt": "0.1.x",
         
         "akh": "1.1.x",
         "zipper-m": "0.1.x",

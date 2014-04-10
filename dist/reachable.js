@@ -1,11 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
+*/define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "akh/base", "akh/state", "zipper-m/trans/zipper", "zipper-m/walk", "./ast"
-], (function(require, exports, record, hashtrie, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression,
+], (function(require, exports, record, hamt, zipper, __o, __o0, ast_declaration, ast_statement, ast_expression,
     ast_pattern, ast_value, __o1, StateM, ZipperT, walk, __o2) {
     "use strict";
     var khepriZipper = __o["khepriZipper"],
@@ -16,19 +15,19 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
         seqa = __o1["sequencea"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
-        optimize, x, y, consequent, alternate, State = record.declare(null, ["bindings", "scope"]);
-    (State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]));
+        optimize, x, y, consequent, State = record.declare(null, ["bindings", "scope"]);
+    (State.empty = State.create(hamt.empty, [hamt.empty, null]));
     (State.prototype.addReference = (function(uid) {
         var __o3 = this,
             bindings = __o3["bindings"],
             scope = __o3["scope"];
-        return State.create(hashtrie.set(uid, null, bindings));
+        return State.create(hamt.set(uid, null, bindings));
     }));
     (State.prototype.isReachable = (function(uid) {
         var __o3 = this,
             bindings = __o3["bindings"],
             scope = __o3["scope"];
-        return hashtrie.has(uid, bindings);
+        return hamt.has(uid, bindings);
     }));
     var _check, M = ZipperT(StateM),
         run = (function(c, ctx) {
@@ -57,7 +56,8 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
         rightmost = M.move(zipper.rightmost),
         moveChild = M.child,
         child = (function(edge) {
-            var actions = [].slice.call(arguments, 1);
+            var __args = arguments,
+                actions = [].slice.call(__args, 1);
             return seq(moveChild(edge), seqa(actions), up);
         }),
         checkTop = extract((function(x0) {
@@ -103,10 +103,10 @@ define(["require", "exports", "bes/record", "hashtrie", "neith/zipper", "khepri-
     addRewrite("UnaryExpression", child("argument", checkTop));
     addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(child("left", checkTop),
         child("right", checkTop)));
-    addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)), (
-        alternate = undefined), extract((function(node) {
-        return (node.computed ? consequent : (alternate || pass));
-    })))));
+    addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)),
+        extract((function(node) {
+            return (node.computed ? consequent : (undefined || pass));
+        })))));
     addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],

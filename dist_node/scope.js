@@ -3,13 +3,13 @@
  * DO NOT EDIT
 */"use strict";
 var record = require("bes")["record"],
-    hashtrie = require("hashtrie"),
+    hamt = require("hamt"),
     Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping, push, pop;
 (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
-(Scope.empty = Scope.create(hashtrie.empty, null, hashtrie.empty, hashtrie.empty));
+(Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty));
 (Scope.prototype.hasOwnBinding = (function(id) {
     var self = this;
-    return hashtrie.has(id, self.record);
+    return hamt.has(id, self.record);
 }));
 (Scope.prototype.hasBinding = (function(id) {
     var self = this;
@@ -22,16 +22,16 @@ var record = require("bes")["record"],
 }));
 (Scope.prototype.getBinding = (function(id) {
     var self = this;
-    return (hashtrie.get(id, self.record) || (self.outer ? self.outer.getBinding(id) : null));
+    return (hamt.get(id, self.record) || (self.outer ? self.outer.getBinding(id) : null));
 }));
 (Scope.prototype.getUid = (function(id) {
     var self = this;
-    return (self.hasOwnBinding(id) ? hashtrie.get(id, self.definitions) : (self.outer ? self.outer.getUid(id) :
+    return (self.hasOwnBinding(id) ? hamt.get(id, self.definitions) : (self.outer ? self.outer.getUid(id) :
         null));
 }));
 (Scope.prototype.hasOwnMapping = (function(id) {
     var self = this;
-    return hashtrie.has(id, self.mapping);
+    return hamt.has(id, self.mapping);
 }));
 (Scope.prototype.hasMapping = (function(id) {
     var self = this;
@@ -39,7 +39,7 @@ var record = require("bes")["record"],
 }));
 (Scope.prototype.getMapping = (function(id) {
     var self = this;
-    return (self.hasOwnMapping(id) ? hashtrie.get(id, self.mapping) : (self.outer && self.outer.getMapping(id)));
+    return (self.hasOwnMapping(id) ? hamt.get(id, self.mapping) : (self.outer && self.outer.getMapping(id)));
 }));
 (Scope.prototype.getUnusedId = (function(id) {
     var self = this;
@@ -49,10 +49,10 @@ var record = require("bes")["record"],
         if ((!self.hasBinding((id + i)))) return (id + i);
 }));
 (addUid = (function(s, id, uid) {
-    return s.setDefinitions(hashtrie.set(id, uid, s.definitions));
+    return s.setDefinitions(hamt.set(id, uid, s.definitions));
 }));
 (addBinding = (function(s, id, info) {
-    return s.setRecord(hashtrie.set(id, info, s.record));
+    return s.setRecord(hamt.set(id, info, s.record));
 }));
 (addMutableBinding = (function(s, id, loc) {
     return addBinding(s, id, ({
@@ -67,7 +67,7 @@ var record = require("bes")["record"],
     }));
 }));
 (setBindingMutability = (function(s, id, mutable) {
-    return (s.hasOwnBinding(id) ? s.setRecord(hashtrie.modify(id, (function(binding) {
+    return (s.hasOwnBinding(id) ? s.setRecord(hamt.modify(id, (function(binding) {
         return ({
             "loc": binding.loc,
             "mutable": (mutable ? 1 : 0)
@@ -75,7 +75,7 @@ var record = require("bes")["record"],
     }), s.record)) : (s.outer && s.setOuter(setBindingMutability(s.outer, id, mutable))));
 }));
 (addMapping = (function(s, from, to) {
-    return s.setMapping(hashtrie.set(from, to, s.mapping));
+    return s.setMapping(hamt.set(from, to, s.mapping));
 }));
 (push = (function(s) {
     return Scope.empty.setOuter(s)

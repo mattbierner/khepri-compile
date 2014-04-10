@@ -14,7 +14,7 @@ package (
 with
     import 'bes::record' record,
 
-    import 'hashtrie' hashtrie,
+    import 'hamt' hamt,
     
     import 'khepri-ast-zipper' {khepriZipper},
 
@@ -85,9 +85,9 @@ var State := record.declare(null, [
 State.empty = new State(
     binding.empty,
     binding.empty,
-    hashtrie.empty,
+    hamt.empty,
     null,
-    hashtrie.empty);
+    hamt.empty);
 
 State.prototype.addBinding = \uid target simple =s->
     s.setBindings(
@@ -108,9 +108,9 @@ State.prototype.pop = \=s->
         .setCtx(s.ctx)
         .setWorking(
             // Delete working bindings modified in inner from outer scope.
-            hashtrie.fold(
+            hamt.fold(
                 \p {key} ->
-                    hashtrie.set(key, null, p),
+                    hamt.set(key, null, p),
                 s.outer.working,
                 s.working));
  
@@ -258,14 +258,14 @@ var block = \body(...) ->
 /**
  * Get globals.
  */
-var globals = M.chain @ (getState.map \ s -> hashtrie.keys(s.globals));
+var globals = M.chain @ (getState.map \ s -> hamt.keys(s.globals));
 
 /**
  * Add a new global.
  */
 var addGlobal = \name ->
     modifyState \ s ->
-        s.setGlobals(hashtrie.set(name, name, s.globals));
+        s.setGlobals(hamt.set(name, name, s.globals));
 
 /**
  * 

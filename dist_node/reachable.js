@@ -3,7 +3,7 @@
  * DO NOT EDIT
 */"use strict";
 var record = require("bes")["record"],
-    hashtrie = require("hashtrie"),
+    hamt = require("hamt"),
     zipper = require("neith")["zipper"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
@@ -25,19 +25,19 @@ var record = require("bes")["record"],
     __o2 = require("./ast"),
     getUd = __o2["getUd"],
     getUid = __o2["getUid"],
-    optimize, x, y, consequent, alternate, State = record.declare(null, ["bindings", "scope"]);
-(State.empty = State.create(hashtrie.empty, [hashtrie.empty, null]));
+    optimize, x, y, consequent, State = record.declare(null, ["bindings", "scope"]);
+(State.empty = State.create(hamt.empty, [hamt.empty, null]));
 (State.prototype.addReference = (function(uid) {
     var __o3 = this,
         bindings = __o3["bindings"],
         scope = __o3["scope"];
-    return State.create(hashtrie.set(uid, null, bindings));
+    return State.create(hamt.set(uid, null, bindings));
 }));
 (State.prototype.isReachable = (function(uid) {
     var __o3 = this,
         bindings = __o3["bindings"],
         scope = __o3["scope"];
-    return hashtrie.has(uid, bindings);
+    return hamt.has(uid, bindings);
 }));
 var _check, M = ZipperT(StateM),
     run = (function(c, ctx) {
@@ -66,7 +66,8 @@ var _check, M = ZipperT(StateM),
     rightmost = M.move(zipper.rightmost),
     moveChild = M.child,
     child = (function(edge) {
-        var actions = [].slice.call(arguments, 1);
+        var __args = arguments,
+            actions = [].slice.call(__args, 1);
         return seq(moveChild(edge), seqa(actions), up);
     }),
     checkTop = extract((function(x0) {
@@ -110,10 +111,10 @@ addRewrite("FunctionExpression", seq(child("id", checkTop), child("params", chec
 addRewrite("UnaryExpression", child("argument", checkTop));
 addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child(
     "right", checkTop)));
-addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)), (alternate =
-    undefined), extract((function(node) {
-    return (node.computed ? consequent : (alternate || pass));
-})))));
+addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)), extract((
+    function(node) {
+        return (node.computed ? consequent : (undefined || pass));
+    })))));
 addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
 addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
 addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));
