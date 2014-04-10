@@ -11,6 +11,9 @@ with
     import 'hashtrie' hashtrie
 in {
 
+var IMMUTABLE := 0,
+    MUTABLE := 1;
+
 /* Scope
  ******************************************************************************/
 /**
@@ -40,6 +43,13 @@ Scope.prototype.hasOwnBinding = \id =self->
 Scope.prototype.hasBinding = \id =self->
     (  self.hasOwnBinding(id)
     || (self.outer && self.outer.hasBinding(id)));
+
+/**
+ */
+Scope.prototype.hasMutableBinding = \id =self-> let
+    binding = self.getBinding(id)
+in
+    (binding && binding.mutable === MUTABLE);
 
 /**
  * Get information for a given binding. Returns null if binding does not exist.
@@ -118,7 +128,7 @@ Scope.addBinding = \s, id, info ->
  */
 Scope.addMutableBinding = \s, id, loc ->
     Scope.addBinding(s, id, {
-        'mutable': true,
+        'mutable': MUTABLE,
         'loc': loc
     });
 
@@ -131,23 +141,25 @@ Scope.addMutableBinding = \s, id, loc ->
  */
 Scope.addImmutableBinding = \s, id, loc ->
     Scope.addBinding(s, id, {
-        'mutable': false,
+        'mutable': IMMUTABLE,
         'loc': loc
     });
 
 /**
- * Create a new modified scope with a new reserved binding.
+ * Create a new modified scope with a new immutable binding.
  * 
  * @s Scope
  * @param id Identifier for new binding
  * @param loc Location of binding in source code.
  */
-Scope.addReservedBinding = \s, id, loc ->
-    Scope.addBinding(s, id, {
-        'mutable': false,
-        'reserved': true,
-        'loc': loc
-    });
+Scope.setBindingMutability = \s id mutable ->
+    ?s.hasOwnBinding id
+        :s.setRecord(
+            hashtrie.modify(id, \binding -> ({
+                'loc': binding.loc,
+                'mutable': ?mutable : MUTABLE : IMMUTABLE
+            }), s.record))
+        :(s.outer && s.setOuter(Scope.setBindingMutability(s.outer, id, mutable)));
 
 /**
  * Create a new modified scope with a new mapping

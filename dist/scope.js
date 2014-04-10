@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
+*/define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
     "use strict";
     var Scope, push, pop;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
@@ -14,6 +13,11 @@ define(["require", "exports", "bes/record", "hashtrie"], (function(require, expo
     (Scope.prototype.hasBinding = (function(id) {
         var self = this;
         return (self.hasOwnBinding(id) || (self.outer && self.outer.hasBinding(id)));
+    }));
+    (Scope.prototype.hasMutableBinding = (function(id) {
+        var self = this,
+            binding = self.getBinding(id);
+        return (binding && (binding.mutable === 1));
     }));
     (Scope.prototype.getBinding = (function(id) {
         var self = this;
@@ -52,22 +56,23 @@ define(["require", "exports", "bes/record", "hashtrie"], (function(require, expo
     }));
     (Scope.addMutableBinding = (function(s, id, loc) {
         return Scope.addBinding(s, id, ({
-            "mutable": true,
+            "mutable": 1,
             "loc": loc
         }));
     }));
     (Scope.addImmutableBinding = (function(s, id, loc) {
         return Scope.addBinding(s, id, ({
-            "mutable": false,
+            "mutable": 0,
             "loc": loc
         }));
     }));
-    (Scope.addReservedBinding = (function(s, id, loc) {
-        return Scope.addBinding(s, id, ({
-            "mutable": false,
-            "reserved": true,
-            "loc": loc
-        }));
+    (Scope.setBindingMutability = (function(s, id, mutable) {
+        return (s.hasOwnBinding(id) ? s.setRecord(hashtrie.modify(id, (function(binding) {
+            return ({
+                "loc": binding.loc,
+                "mutable": (mutable ? 1 : 0)
+            });
+        }), s.record)) : (s.outer && s.setOuter(Scope.setBindingMutability(s.outer, id, mutable))));
     }));
     (Scope.addMapping = (function(s, from, to) {
         return s.setMapping(hashtrie.set(from, to, s.mapping));

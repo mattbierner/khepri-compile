@@ -219,7 +219,7 @@ var addWorking = \uid value simple ->
 var getBinding = \uid ->
     ?uid
         :getState.map \ {bindings working} ->
-            (binding.getBinding(uid, working) || binding.getBinding(uid, bindings))
+            (binding.getBinding(uid, bindings) || binding.getBinding(uid, working))
         :pass;
 
 /**
@@ -574,8 +574,10 @@ addRewrite@'AssignmentExpression' <| seq(
         \{left} ->
             left.type === 'Identifier',
         
-        extract \ node ->
-            addWorking(getUid(node.left), node.right)));
+        extract \ {operator left right} ->
+            ?operator === '='
+                :addWorking(getUid left, right)
+                :addBindingForNode(left, right)));
 
 /**
  * Combine binary arithmetic operations on primitive literals.
@@ -648,9 +650,22 @@ addRewrite@'MemberExpression' <| seq(
             && node.object.type === 'ArrayExpression'
             && isNumberish node.property),
     
-        modify \ node ->
-            node.object.elements.(node.property.value) || ast_value.Identifier.create(null, 'undefined')),
-            
+        modify \ {object property} ->
+            object.elements.(property.value) || ast_value.Identifier.create(null, 'undefined')),
+       
+    /**
+     * Length of array expression.
+     */
+    when(
+        \node ->
+            (  node.type === 'MemberExpression'
+            && node.object.type === 'ArrayExpression'
+            && (  (!node.computed && node.property.name === 'length')
+               || (node.computed && node.property.type === 'Literal' && node.property.value === 'length'))),
+    
+        modify \ {object} ->
+            ast_value.Literal.create(null, 'number', object.elements.length)),
+        
     /**
      * Constant index in string expression.
      */

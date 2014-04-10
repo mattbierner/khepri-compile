@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hashtrie = require("hashtrie"),
     Scope, push, pop;
@@ -15,6 +14,11 @@ var record = require("bes")["record"],
 (Scope.prototype.hasBinding = (function(id) {
     var self = this;
     return (self.hasOwnBinding(id) || (self.outer && self.outer.hasBinding(id)));
+}));
+(Scope.prototype.hasMutableBinding = (function(id) {
+    var self = this,
+        binding = self.getBinding(id);
+    return (binding && (binding.mutable === 1));
 }));
 (Scope.prototype.getBinding = (function(id) {
     var self = this;
@@ -52,22 +56,23 @@ var record = require("bes")["record"],
 }));
 (Scope.addMutableBinding = (function(s, id, loc) {
     return Scope.addBinding(s, id, ({
-        "mutable": true,
+        "mutable": 1,
         "loc": loc
     }));
 }));
 (Scope.addImmutableBinding = (function(s, id, loc) {
     return Scope.addBinding(s, id, ({
-        "mutable": false,
+        "mutable": 0,
         "loc": loc
     }));
 }));
-(Scope.addReservedBinding = (function(s, id, loc) {
-    return Scope.addBinding(s, id, ({
-        "mutable": false,
-        "reserved": true,
-        "loc": loc
-    }));
+(Scope.setBindingMutability = (function(s, id, mutable) {
+    return (s.hasOwnBinding(id) ? s.setRecord(hashtrie.modify(id, (function(binding) {
+        return ({
+            "loc": binding.loc,
+            "mutable": (mutable ? 1 : 0)
+        });
+    }), s.record)) : (s.outer && s.setOuter(Scope.setBindingMutability(s.outer, id, mutable))));
 }));
 (Scope.addMapping = (function(s, from, to) {
     return s.setMapping(hashtrie.set(from, to, s.mapping));

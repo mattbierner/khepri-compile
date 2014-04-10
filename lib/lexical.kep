@@ -116,6 +116,18 @@ var block = \body(...) ->
         pop);
 
 /**
+ * 
+ */
+var hasBinding = \id, loc ->
+    extract.map \ s -> s.hasBinding(id);
+
+/**
+ * 
+ */
+var hasOwnBinding = \id, loc ->
+    extract.map \ s -> s.hasOwnBinding(id);
+
+/**
  * Check to ensure the current scope contains a binding for `id`.
  */
 var checkHasBinding = \id, loc ->
@@ -143,19 +155,29 @@ var checkCanAddOwnBinding = \id loc ->
  */
 var checkCanAssign = \id, loc -> 
     examineScope \ s ->
-        ?s.hasBinding(id)
-            :let b = s.getBinding(id) in
-                ?b.mutable
-                    :pass
-                    :error("Assign to immutable variable:'" + id + "' at:"+ loc)
-            :pass;
+        ?s.hasMutableBinding(id)
+            :pass
+        :error("Assign to immutable variable:'" + id + "' at:" + loc.start);
+
+/**
+ * Set the mutability of binding for `id`.
+ * 
+ * Bindings 
+ */
+var markBindingImmutable = \id loc ->
+    examineScope \ s ->
+        ?s.hasOwnBinding id
+            :modifyScope \ s ->
+                Scope.setBindingMutability(s, id, false)
+            :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
 
 /**
  * Define a new identifier and create a uid entry for it.
  */
 var addUid = \id ->
     unique \ uid ->
-        modifyScope(\s -> Scope.addUid(s, id, uid));
+        modifyScope \ s ->
+            Scope.addUid(s, id, uid);
 
 /**
  * Add a new mutable binding in the current scope.
@@ -318,7 +340,7 @@ addCheck@'IfStatement' <|
             checkChild 'alternate'));
 
 addCheck@'WithStatement' <|
-     block(
+    block(
         checkChild 'bindings',
         child('body',
             checkChild 'body'));
@@ -377,40 +399,38 @@ addCheck@'FunctionExpression' <|
 addCheck@'UnaryExpression' <|
     checkChild 'argument';
 
-addCheck@'AssignmentExpression' <|
-    seq(
-        child('left',
-            checkTop,
-            inspect \ left ->
-                ?left.type === 'Identifier'
-                    :checkCanAssign(left.name, left.loc)
-                    :pass),
-        checkChild 'right');
+addCheck@'AssignmentExpression' <| seq(
+    checkChild 'left',
+    inspect \ {operator left} ->
+        ?left.type === 'Identifier'
+            :seq(
+                checkCanAssign(left.name, left.loc),
+                ?operator === ':='
+                    :markBindingImmutable(left.name, left.loc)
+                    :pass)
+            :pass,
+    checkChild 'right');
 
-addCheck@['LogicalExpression', 'BinaryExpression'] <|
-    seq(
-        checkChild 'left',
-        checkChild 'right');
+addCheck@['LogicalExpression', 'BinaryExpression'] <| seq(
+    checkChild 'left',
+    checkChild 'right');
 
-addCheck@'ConditionalExpression' <|
-    seq(
-        checkChild 'test',
-        checkChild 'consequent',
-        checkChild 'alternate');
+addCheck@'ConditionalExpression' <| seq(
+    checkChild 'test',
+    checkChild 'consequent',
+    checkChild 'alternate');
 
-addCheck@['CallExpression', 'NewExpression'] <|
-    seq(
-        checkChild 'callee',
-        checkChild 'args');
+addCheck@['CallExpression', 'NewExpression'] <| seq(
+    checkChild 'callee',
+    checkChild 'args');
 
-addCheck@'MemberExpression' <|
-    seq(
-        checkChild 'object',
-        inspect \ node ->
-            ?node.computed
-                :checkChild 'property'
-                :pass);
-    
+addCheck@'MemberExpression' <| seq(
+    checkChild 'object',
+    inspect \ node ->
+        ?node.computed
+            :checkChild 'property'
+            :pass);
+
 addCheck@'ArrayExpression' <|
     checkChild 'elements';
 

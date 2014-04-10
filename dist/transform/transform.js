@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement",
     "khepri-ast/value", "khepri-ast-zipper", "akh/unique", "akh/trans/state", "akh/base", "zipper-m/trans/zipper",
@@ -262,8 +261,7 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
             node0.body);
     })));
     addTransform("AssignmentExpression", null, modify((function(node0) {
-        return ecma_expression.AssignmentExpression.create(node0.loc, node0.operator, node0.left,
-            node0.right);
+        return ecma_expression.AssignmentExpression.create(node0.loc, "=", node0.left, node0.right);
     })));
     addTransform("UnaryExpression", null, modify((function(node0) {
         var op = node0.operator;

@@ -499,7 +499,7 @@ addTransform('AssignmentExpression',
     null,
     modify \ node ->
         ecma_expression.AssignmentExpression.create(node.loc,
-            node.operator,
+            '=',
             node.left,
             node.right));
 

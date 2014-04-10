@@ -35,7 +35,7 @@ var relativeUnpack = \target start indx pattern ->
             target,
             ast_expression.BinaryExpression.create(null, '-',
                 ast_expression.CallExpression.create(null,
-                ast_expression.MemberExpression.create(null, identifier('Math'), identifier('max')), [
+                ast_expression.MemberExpression.create(null, identifier 'Math', identifier 'max'), [
                     ast_expression.MemberExpression.create(null,
                         target,
                         identifier 'length'),
@@ -59,10 +59,10 @@ var sliceUnpack = \target id from to ->
                 ast_expression.MemberExpression.create(null,
                     ast_expression.ArrayExpression.create(null, []),
                     identifier "slice"),
-                identifier('call')),
+                identifier 'call'),
             ?to === 0
                 :[target, number from]
-                :[target, number from, number(--to)]),
+                :[target, number from, number --to]),
       id);
     
 /**

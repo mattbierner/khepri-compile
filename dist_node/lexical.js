@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -92,9 +91,16 @@ var ast_node = require("khepri-ast")["node"],
     }),
     checkCanAssign = (function(id, loc) {
         return examineScope((function(s) {
-            var b;
-            return (s.hasBinding(id) ? ((b = s.getBinding(id)), (b.mutable ? pass : error((((
-                "Assign to immutable variable:'" + id) + "' at:") + loc)))) : pass);
+            return (s.hasMutableBinding(id) ? pass : error(((("Assign to immutable variable:'" + id) +
+                "' at:") + loc.start)));
+        }));
+    }),
+    markBindingImmutable = (function(id, loc) {
+        return examineScope((function(s) {
+            return (s.hasOwnBinding(id) ? modifyScope((function(s0) {
+                return Scope.setBindingMutability(s0, id, false);
+            })) : error((((("Cannot mark variable:'" + id) + "' at:") + loc.start) +
+                " immutable in enclosed scope")));
         }));
     }),
     addUid = (function(id) {
@@ -184,9 +190,12 @@ addCheck("FunctionExpression", block(inspect((function(node) {
         "body"));
 }))));
 addCheck("UnaryExpression", child("argument", checkTop));
-addCheck("AssignmentExpression", seq(child("left", checkTop, inspect((function(left) {
-    return ((left.type === "Identifier") ? checkCanAssign(left.name, left.loc) : pass);
-}))), child("right", checkTop)));
+addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o2) {
+    var operator = __o2["operator"],
+        left = __o2["left"];
+    return ((left.type === "Identifier") ? seq(checkCanAssign(left.name, left.loc), ((operator === ":=") ?
+        markBindingImmutable(left.name, left.loc) : pass)) : pass);
+})), child("right", checkTop)));
 addCheck(["LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child("right", checkTop)));
 addCheck("ConditionalExpression", seq(child("test", checkTop), child("consequent", checkTop), child("alternate",
     checkTop)));

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
     "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique",
     "zipper-m/trans/zipper", "./scope", "./fun"
 ], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, Error, ErrorT, Unique,
@@ -85,9 +84,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         }),
         checkCanAssign = (function(id, loc) {
             return examineScope((function(s) {
-                var b;
-                return (s.hasBinding(id) ? ((b = s.getBinding(id)), (b.mutable ? pass : error((((
-                    "Assign to immutable variable:'" + id) + "' at:") + loc)))) : pass);
+                return (s.hasMutableBinding(id) ? pass : error(((("Assign to immutable variable:'" +
+                    id) + "' at:") + loc.start)));
+            }));
+        }),
+        markBindingImmutable = (function(id, loc) {
+            return examineScope((function(s) {
+                return (s.hasOwnBinding(id) ? modifyScope((function(s0) {
+                    return Scope.setBindingMutability(s0, id, false);
+                })) : error((((("Cannot mark variable:'" + id) + "' at:") + loc.start) +
+                    " immutable in enclosed scope")));
             }));
         }),
         addUid = (function(id) {
@@ -177,9 +183,12 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             checkChild("body"));
     }))));
     addCheck("UnaryExpression", child("argument", checkTop));
-    addCheck("AssignmentExpression", seq(child("left", checkTop, inspect((function(left) {
-        return ((left.type === "Identifier") ? checkCanAssign(left.name, left.loc) : pass);
-    }))), child("right", checkTop)));
+    addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o2) {
+        var operator = __o2["operator"],
+            left = __o2["left"];
+        return ((left.type === "Identifier") ? seq(checkCanAssign(left.name, left.loc), ((
+            operator === ":=") ? markBindingImmutable(left.name, left.loc) : pass)) : pass);
+    })), child("right", checkTop)));
     addCheck(["LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child("right", checkTop)));
     addCheck("ConditionalExpression", seq(child("test", checkTop), child("consequent", checkTop), child(
         "alternate", checkTop)));

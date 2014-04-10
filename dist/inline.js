@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
+*/define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "khepri-ast/node",
     "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/package", "khepri-ast/program", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state",
     "zipper-m/trans/zipper", "zipper-m/walk", "./ast", "./builtin", "./fun", "./inline/bindings", "./inline/expand",
@@ -37,9 +36,9 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
         optimize, x, y, consequent, alternate, consequent0, alternate0, consequent1, alternate1, consequent2,
             alternate2, arithmetic, consequent3, alternate3, consequent4, alternate4, arithmetic0, consequent5,
             alternate5, consequent6, alternate6, consequent7, alternate7, consequent8, alternate8, consequent9,
-            alternate9, exp, consequent10, alternate10, consequent11, alternate11, exp0, consequent12,
-            alternate12, consequent13, alternate13, consequent14, alternate14, consequent15, alternate15,
-            __plus = (function(x) {
+            alternate9, consequent10, alternate10, exp, consequent11, alternate11, consequent12, alternate12,
+            exp0, consequent13, alternate13, consequent14, alternate14, consequent15, alternate15, consequent16,
+            alternate16, __plus = (function(x) {
                 return (+x);
             }),
         __blas = (function(x, y) {
@@ -160,7 +159,7 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             return (uid ? getState.map((function(__o6) {
                 var bindings = __o6["bindings"],
                     working = __o6["working"];
-                return (binding.getBinding(uid, working) || binding.getBinding(uid, bindings));
+                return (binding.getBinding(uid, bindings) || binding.getBinding(uid, working));
             })) : pass);
         }),
         tryPrune = (function(id) {
@@ -311,8 +310,12 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
             arithmetic[operator] && isPrimitive(argument))) ? consequent3 : (
             alternate3 || pass));
     }))))));
-    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((consequent4 = extract((function(node) {
-        return addWorking(getUid(node.left), node.right);
+    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((consequent4 = extract((function(__o6) {
+        var operator = __o6["operator"],
+            left = __o6["left"],
+            right0 = __o6["right"];
+        return ((operator === "=") ? addWorking(getUid(left), right0) :
+            addBindingForNode(left, right0));
     }))), (alternate4 = undefined), extract((function(node) {
         var left;
         return (((left = node["left"]), (left.type === "Identifier")) ? consequent4 : (
@@ -358,27 +361,37 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
     addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent7 = child("property", checkTop)), (
         alternate7 = undefined), extract((function(node) {
         return (node.computed ? consequent7 : (alternate7 || pass));
-    }))), ((consequent8 = modify((function(node) {
-        return (node.object.elements[node.property.value] || ast_value.Identifier.create(
-            null, "undefined"));
+    }))), ((consequent8 = modify((function(__o6) {
+        var object = __o6["object"],
+            property = __o6["property"];
+        return (object.elements[property.value] || ast_value.Identifier.create(null,
+            "undefined"));
     }))), (alternate8 = undefined), extract((function(node) {
         return (((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(
             node.property)) ? consequent8 : (alternate8 || pass));
-    }))), ((consequent9 = modify((function(node) {
+    }))), ((consequent9 = modify((function(__o6) {
+        var object = __o6["object"];
+        return ast_value.Literal.create(null, "number", object.elements.length);
+    }))), (alternate9 = undefined), extract((function(node) {
+        return ((((node.type === "MemberExpression") && (node.object.type ===
+            "ArrayExpression")) && (((!node.computed) && (node.property.name ===
+            "length")) || ((node.computed && (node.property.type === "Literal")) &&
+            (node.property.value === "length")))) ? consequent9 : (alternate9 || pass));
+    }))), ((consequent10 = modify((function(node) {
         var str = node.object.value,
             idx = node.property.value;
         return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) :
             ast_value.Identifier.create(null, "undefined"));
-    }))), (alternate9 = undefined), extract((function(node) {
+    }))), (alternate10 = undefined), extract((function(node) {
         return (((node.computed && ((node.object.type === "Literal") && (node.object.kind ===
-            "string"))) && isNumberish(node.property)) ? consequent9 : (alternate9 ||
+            "string"))) && isNumberish(node.property)) ? consequent10 : (alternate10 ||
             pass));
     })))));
     addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop), ((exp = M.node.map((
         function(node) {
             return node.callee;
-        }))), (consequent10 = exp.chain((function(x0) {
+        }))), (consequent11 = exp.chain((function(x0) {
         var exp0, callee = (getExpansion(x0) ? ((exp0 = getExpansion(x0)), ((exp0.count <
                 1) ? exp0.value : setData(x0, "expand", null))) : x0);
         return modify((function(node) {
@@ -387,20 +400,20 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
                 .countvalue, ast_expression.CallExpression.create(node.loc,
                     callee, node.args));
         }));
-    }))), (alternate10 = undefined), extract((function(node) {
-        return (getExpansion(node.callee) ? consequent10 : (alternate10 || pass));
-    }))), ((consequent11 = seq(unique((function(uid) {
+    }))), (alternate11 = undefined), extract((function(node) {
+        return (getExpansion(node.callee) ? consequent11 : (alternate11 || pass));
+    }))), ((consequent12 = seq(unique((function(uid) {
         return modify((function(node) {
             return expandCallee(uid, node.callee, node.args);
         }));
-    })), checkTop)), (alternate11 = undefined), extract((function(node) {
+    })), checkTop)), (alternate12 = undefined), extract((function(node) {
         return ((isLambda(node.callee) || ((node.callee.type === "LetExpression") &&
-            isLambda(node.callee.body))) ? consequent11 : (alternate11 || pass));
+            isLambda(node.callee.body))) ? consequent12 : (alternate12 || pass));
     })))));
     addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop), ((exp0 = M.node.map((
         function(node) {
             return node.base;
-        }))), (consequent12 = exp0.chain((function(x0) {
+        }))), (consequent13 = exp0.chain((function(x0) {
         var exp1, base = (getExpansion(x0) ? ((exp1 = getExpansion(x0)), ((exp1.count <
                 1) ? exp1.value : setData(x0, "expand", null))) : x0);
         return modify((function(node) {
@@ -409,28 +422,28 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
                 .value, ast_expression.CurryExpression.create(node.loc, base,
                     node.args));
         }));
-    }))), (alternate12 = undefined), extract((function(node) {
-        return (getExpansion(node.base) ? consequent12 : (alternate12 || pass));
-    }))), ((consequent13 = seq(unique((function(uid) {
+    }))), (alternate13 = undefined), extract((function(node) {
+        return (getExpansion(node.base) ? consequent13 : (alternate13 || pass));
+    }))), ((consequent14 = seq(unique((function(uid) {
         return modify((function(node) {
             return expandCurry(uid, node.base, node.args);
         }));
-    })), checkTop)), (alternate13 = undefined), extract((function(node) {
+    })), checkTop)), (alternate14 = undefined), extract((function(node) {
         return ((isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(
-            node.base.body))) ? consequent13 : (alternate13 || pass));
+            node.base.body))) ? consequent14 : (alternate14 || pass));
     })))));
     addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), modify((function(__o6) {
         var loc = __o6["loc"],
             bindings = __o6["bindings"],
             body = __o6["body"];
         return ast_expression.LetExpression.create(loc, flattenr(bindings), body);
-    })), ((consequent14 = modify((function(__o6) {
+    })), ((consequent15 = modify((function(__o6) {
         var body = __o6["body"];
         return body;
-    }))), (alternate14 = undefined), extract((function(node) {
+    }))), (alternate15 = undefined), extract((function(node) {
         var bindings;
-        return (((bindings = node["bindings"]), (!bindings.length)) ? consequent14 : (
-            alternate14 || pass));
+        return (((bindings = node["bindings"]), (!bindings.length)) ? consequent15 : (
+            alternate15 || pass));
     })))));
     addRewrite("ArgumentsPattern", seq(child("id", checkTop), child("elements", checkTop), child("self",
         checkTop)));
@@ -440,14 +453,14 @@ define(["require", "exports", "bes/record", "hashtrie", "khepri-ast-zipper", "kh
     addRewrite("ArrayExpression", child("elements", checkTop));
     addRewrite("ObjectExpression", child("properties", checkTop));
     addRewrite("ObjectValue", child("value", checkTop));
-    addRewrite("Identifier", ((consequent15 = extract((function(node) {
+    addRewrite("Identifier", ((consequent16 = extract((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding0) {
                 return (((binding0 && binding0.value) && binding0.simple) ? set(
                     binding0.value) : pass);
             }));
-    }))), (alternate15 = undefined), extract((function(node) {
-        return ((getUid(node) && (!getExpansion(node))) ? consequent15 : (alternate15 || pass));
+    }))), (alternate16 = undefined), extract((function(node) {
+        return ((getUid(node) && (!getExpansion(node))) ? consequent16 : (alternate16 || pass));
     }))));
     (_check = (function(node) {
         if (Array.isArray(node)) {

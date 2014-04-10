@@ -274,7 +274,7 @@ addTransform("ForStatement", null, modify((function(node0) {
     return ecma_statement.ForStatement.create(node0.loc, node0.init, node0.test, node0.update, node0.body);
 })));
 addTransform("AssignmentExpression", null, modify((function(node0) {
-    return ecma_expression.AssignmentExpression.create(node0.loc, node0.operator, node0.left, node0.right);
+    return ecma_expression.AssignmentExpression.create(node0.loc, "=", node0.left, node0.right);
 })));
 addTransform("UnaryExpression", null, modify((function(node0) {
     var op = node0.operator;
