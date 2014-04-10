@@ -85,33 +85,64 @@ peepholes.add('CurryExpression', DOWN,
 
 /* Pattern Normalizations
  ******************************************************************************/
-var splitArrayPattern = \elements -> let
+var splitPatternList = \elements -> let
     indx = elements.map(type).indexOf('EllipsisPattern')
 in
     ?indx < 0
         :[elements, null, []]
         :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
 
+var createUnpackList = \pre mid post ->
+    concat(
+        pre,
+        ?mid && mid.id
+            :SliceUnpack.create(null, mid.id, pre.length, post.length)
+            :[],
+        map(
+            \x i -> RelativeUnpack.create(null, x, post.length - i, post.length + pre.length),
+            post));
+
 /**
- * Convert array patterns to object patterns
+ * Convert array pattern to object pattern.
+ * 
+ * Also generate slice and relative unpacks from if 
  */
 peepholes.add('ArrayPattern', DOWN,
     \_ -> true,
     
-    \node#{loc elements} -> let
-        [pre mid post] = splitArrayPattern elements
+    \{loc elements} -> let
+        [pre mid post] = splitPatternList elements
     in
         ast_pattern.ObjectPattern.create(loc,
-            flatten <| concat(
+            createUnpackList(
                 map(
                     \x i -> ast_pattern.ObjectPatternElement.create(null, number i, x),
                     pre),
-                ?mid && mid.id
-                    :SliceUnpack.create(null, mid.id, pre.length, post.length)
-                    :[],
-                map(
-                    \x i -> RelativeUnpack.create(null, x, post.length - i, post.length + pre.length),
-                    post))));
+                mid,
+                post)));
+
+/**
+ * Rewrite arg pattern elements if an ellipsis pattern is used.
+ * 
+ * Also ensure arguments patterns with an ellipsis have an argument name.
+ */
+peepholes.add('ArgumentsPattern', UP,
+    \node ->
+       node.elements.map(type).indexOf('EllipsisPattern') >= 0,
+    
+    \node -> let
+        [pre mid post] = splitPatternList node.elements,
+        
+        id = node.id || setData(
+            ast_pattern.IdentifierPattern.create(null,
+                ast_value.Identifier.create(null, '__args')),
+            'reserved',
+            true)
+    in
+        modify(node, {
+            'id': id,
+            'elements': createUnpackList(pre, mid, post)
+        }, {}));
 
 /**
  * Normalize object patterns to ('key': pattern) form.
@@ -170,26 +201,6 @@ peepholes.add('ObjectPattern', UP,
         ast_pattern.AsPattern.create(null,
             id,
             setData(node, 'id', id)));
-
-/**
- * Make sure all arguments patterns that use an ellipisis have an argument name.
- */
-peepholes.add('ArgumentsPattern', UP,
-    \node ->
-        !node.id && node.elements.map(type).indexOf('EllipsisPattern') >= 0,
-    
-    \node -> let
-        id = setData(
-            ast_pattern.IdentifierPattern.create(null,
-                ast_value.Identifier.create(null, '__args')),
-            'reserved',
-            true)
-    in
-        setData(
-            modify(node, {'id': id}, {}),
-            'id',
-            id));
-
 
 /* Interface
  ******************************************************************************/

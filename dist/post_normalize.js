@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression",
+*/define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/pattern", "khepri-ast/value", "./ast", "./fun", "./unpack", "./builtin", "./rewriter"
 ], (function(require, exports, __o, __o0, ast_statement, ast_expression, ast_pattern, ast_value, __o1, __o2, __o3,
     __o4, __o5) {
@@ -35,28 +34,21 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
             "bindings": flattenr(map(expandBinding, node.bindings))
         }), ({}));
     })));
-    var splitArrayPattern = (function(elements) {
-        var indx = elements.map(type)
-            .indexOf("EllipsisPattern");
-        return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice(
-            (indx + 1))]);
-    });
     peepholes.add("FunctionExpression", UP, always, (function(node) {
-        var __o6 = splitArrayPattern(node.params.elements),
-            pre = __o6[0],
-            mid = __o6[1],
-            post = __o6[2],
-            params = map((function(x) {
-                switch (x.type) {
-                    case "IdentifierPattern":
-                        return x;
-                    case "AsPattern":
-                        return x.id;
-                    default:
-                        return x.ud.id;
-                }
-            }), pre),
-            bindings = unpackParameters(node.params.id, pre, mid, post),
+        var params = flattenr(map((function(x) {
+            switch (x.type) {
+                case "IdentifierPattern":
+                    return x;
+                case "AsPattern":
+                    return x.id;
+                case "SliceUnpack":
+                case "RelativeUnpack":
+                    return [];
+                default:
+                    return x.ud.id;
+            }
+        }), node.params.elements)),
+            bindings = unpackParameters(node.params.id, node.params.elements),
             body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement
                 .create(null, bindings, node.body)
             ]) : ast_expression.LetExpression.create(null, bindings, node.body));

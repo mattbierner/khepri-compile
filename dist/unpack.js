@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "./ast", "./fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, fun) {
     "use strict";
@@ -51,22 +50,22 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                 return [];
         }
     }));
-    (unpackParameters = (function(args, pre, mid, post) {
-        return flatten(concat(fun.map((function(x) {
-                switch (x.type) {
-                    case "SinkPattern":
-                    case "IdentifierPattern":
-                        return [];
-                    case "AsPattern":
-                        return flatten(innerPattern(x.id, x.target));
-                    default:
-                        return innerPattern(x, x);
-                }
-            }), pre), ((mid && mid.id) ? sliceUnpack(args, mid.id, pre.length, post.length) : []),
-            fun.map((function(x, i) {
-                return relativeUnpack(args, (pre.length + post.length), (post.length - i),
-                    x);
-            }), (post || []))));
+    (unpackParameters = (function(args, elements) {
+        return flatten(fun.map((function(x) {
+            switch (x.type) {
+                case "SinkPattern":
+                case "IdentifierPattern":
+                    return [];
+                case "SliceUnpack":
+                    return sliceUnpack(args, x.pattern, x.from, x.to);
+                case "RelativeUnpack":
+                    return relativeUnpack(args, x.min, x.index, x.pattern);
+                case "AsPattern":
+                    return flatten(innerPattern(x.id, x.target));
+                default:
+                    return innerPattern(x, x);
+            }
+        }), elements));
     }));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);

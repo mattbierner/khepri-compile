@@ -50,21 +50,22 @@ var ast_expression = require("khepri-ast")["expression"],
             return [];
     }
 }));
-(unpackParameters = (function(args, pre, mid, post) {
-    return flatten(concat(fun.map((function(x) {
+(unpackParameters = (function(args, elements) {
+    return flatten(fun.map((function(x) {
         switch (x.type) {
             case "SinkPattern":
             case "IdentifierPattern":
                 return [];
+            case "SliceUnpack":
+                return sliceUnpack(args, x.pattern, x.from, x.to);
+            case "RelativeUnpack":
+                return relativeUnpack(args, x.min, x.index, x.pattern);
             case "AsPattern":
                 return flatten(innerPattern(x.id, x.target));
             default:
                 return innerPattern(x, x);
         }
-    }), pre), ((mid && mid.id) ? sliceUnpack(args, mid.id, pre.length, post.length) : []), fun.map((
-        function(x, i) {
-            return relativeUnpack(args, (pre.length + post.length), (post.length - i), x);
-        }), (post || []))));
+    }), elements));
 }));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);

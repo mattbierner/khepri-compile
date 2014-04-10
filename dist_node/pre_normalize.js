@@ -53,26 +53,44 @@ peepholes.add("CurryExpression", DOWN, (function(node) {
         return ast_expression.CurryExpression.create(null, p, [arg]);
     }), base, args);
 }));
-var splitArrayPattern = (function(elements) {
+var splitPatternList = (function(elements) {
     var indx = elements.map(type)
         .indexOf("EllipsisPattern");
     return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice((indx + 1))]);
-});
+}),
+    createUnpackList = (function(pre, mid, post) {
+        return concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []), map(
+            (function(x, i) {
+                return RelativeUnpack.create(null, x, (post.length - i), (post.length + pre.length));
+            }), post));
+    });
 peepholes.add("ArrayPattern", DOWN, (function(_) {
     return true;
+}), (function(__o5) {
+    var loc = __o5["loc"],
+        elements = __o5["elements"],
+        __o6 = splitPatternList(elements),
+        pre = __o6[0],
+        mid = __o6[1],
+        post = __o6[2];
+    return ast_pattern.ObjectPattern.create(loc, createUnpackList(map((function(x, i) {
+        return ast_pattern.ObjectPatternElement.create(null, number(i), x);
+    }), pre), mid, post));
+}));
+peepholes.add("ArgumentsPattern", UP, (function(node) {
+    return (node.elements.map(type)
+        .indexOf("EllipsisPattern") >= 0);
 }), (function(node) {
-    var loc = node["loc"],
-        elements = node["elements"],
-        __o5 = splitArrayPattern(elements),
+    var __o5 = splitPatternList(node.elements),
         pre = __o5[0],
         mid = __o5[1],
-        post = __o5[2];
-    return ast_pattern.ObjectPattern.create(loc, flatten(concat(map((function(x, i) {
-            return ast_pattern.ObjectPatternElement.create(null, number(i), x);
-        }), pre), ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []),
-        map((function(x, i) {
-            return RelativeUnpack.create(null, x, (post.length - i), (post.length + pre.length));
-        }), post))));
+        post = __o5[2],
+        id = (node.id || setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null,
+            "__args")), "reserved", true));
+    return modify(node, ({
+        "id": id,
+        "elements": createUnpackList(pre, mid, post)
+    }), ({}));
 }));
 peepholes.add("ObjectPatternElement", DOWN, (function(node) {
     return (!node.target);
@@ -98,16 +116,6 @@ peepholes.add("ObjectPattern", UP, (function(node) {
     var id = setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, "__o")),
         "reserved", true);
     return ast_pattern.AsPattern.create(null, id, setData(node, "id", id));
-}));
-peepholes.add("ArgumentsPattern", UP, (function(node) {
-    return ((!node.id) && (node.elements.map(type)
-        .indexOf("EllipsisPattern") >= 0));
-}), (function(node) {
-    var id = setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, "__args")),
-        "reserved", true);
-    return setData(modify(node, ({
-        "id": id
-    }), ({})), "id", id);
 }));
 var x = khepriZipper,
     y = rewrite.bind(null, peepholes);

@@ -74,7 +74,7 @@
                     "' at:") + loc)));
             }));
         }),
-        checkCanAddOwnBinding = (function(id, loc) {
+        checkCanAddBinding = (function(id, loc) {
             return examineScope((function(s) {
                 var start, binding, end;
                 return (s.hasOwnBinding(id) ? ((start = (loc && loc.start)), (binding = s.getBinding(
@@ -91,7 +91,7 @@
         markBindingImmutable = (function(id, loc) {
             return examineScope((function(s) {
                 return (s.hasOwnBinding(id) ? modifyScope((function(s0) {
-                    return Scope.setBindingMutability(s0, id, false);
+                    return scope.setBindingMutability(s0, id, false);
                 })) : error((((("Cannot mark variable:'" + id) + "' at:") + loc.start) +
                     " immutable in enclosed scope")));
             }));
@@ -99,33 +99,33 @@
         addUid = (function(id) {
             return unique((function(uid) {
                 return modifyScope((function(s) {
-                    return Scope.addUid(s, id, uid);
+                    return scope.addUid(s, id, uid);
                 }));
             }));
         }),
         addMutableBinding = (function(id, loc) {
             return seq(modifyScope((function(s) {
-                return Scope.addMutableBinding(s, id, loc);
+                return scope.addMutableBinding(s, id, loc);
             })), addUid(id));
         }),
         addStaticBinding = (function(id, loc) {
             return modifyScope((function(s) {
-                return Scope.addImmutableBinding(s, id, loc);
+                return scope.addImmutableBinding(s, id, loc);
             }));
         }),
         addImmutableBinding = (function(id, loc) {
             return seq(modifyScope((function(s) {
-                return Scope.addImmutableBinding(s, id, loc);
+                return scope.addImmutableBinding(s, id, loc);
             })), addUid(id));
         }),
         addMutableBindingChecked = (function(id, loc) {
-            return seq(checkCanAddOwnBinding(id, loc), addMutableBinding(id, loc));
+            return seq(checkCanAddBinding(id, loc), addMutableBinding(id, loc));
         }),
         addImmutableBindingChecked = (function(id, loc) {
-            return seq(checkCanAddOwnBinding(id, loc), addImmutableBinding(id, loc));
+            return seq(checkCanAddBinding(id, loc), addImmutableBinding(id, loc));
         }),
         addStaticBindingChecked = (function(id, loc) {
-            return seq(checkCanAddOwnBinding(id, loc), addStaticBinding(id, loc));
+            return seq(checkCanAddBinding(id, loc), addStaticBinding(id, loc));
         }),
         checks = ({}),
         addCheck = (function(type, check) {
@@ -241,7 +241,7 @@
     var g = (function(x3) {
         return x3.concat("require", "module", "exports");
     }),
-        addBindings = foldl.bind(null, Scope.addImmutableBinding, Scope.empty);
+        addBindings = foldl.bind(null, scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {
         return run(seq(checkTop, root, extractNode.chain((function(x3) {
             return unique((function(unique0) {

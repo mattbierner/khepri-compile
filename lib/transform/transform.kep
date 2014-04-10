@@ -141,12 +141,12 @@ var addVar = \id uid ->
     inspectScopeWith \ s ->
         ?s.hasMapping(uid)
             :setScope(
-                scope.Scope.addMutableBinding(s, id))
+                scope.addMutableBinding(s, id))
             
             :let name = s.getUnusedId(id) in
                 setScope(
-                    scope.Scope.addMapping(
-                        scope.Scope.addMutableBinding(s, name),
+                    scope.addMapping(
+                        scope.addMutableBinding(s, name),
                         uid,
                         name));
 

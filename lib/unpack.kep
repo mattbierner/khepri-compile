@@ -62,7 +62,7 @@ var sliceUnpack = \target id from to ->
                 identifier 'call'),
             ?to === 0
                 :[target, number from]
-                :[target, number from, number --to]),
+                :[target, number from, number (--to)]),
       id);
     
 /**
@@ -137,7 +137,7 @@ in
  * Expand a parameter list to a list of inner bindings.
  */
 unpackParameters = \args pre mid post ->
-    flatten <| concat(
+    flatten <|
         fun.map(\x -> {
             switch (x.type) {
             // Avoid generating redundant unpacks for parameters names.
@@ -145,22 +145,18 @@ unpackParameters = \args pre mid post ->
             case 'IdentifierPattern':
                 return [];
             
+            case 'SliceUnpack':
+                return sliceUnpack(args, x.pattern, x.from, x.to);
+            
+            case 'RelativeUnpack':
+                return relativeUnpack(args, x.min, x.index, x.pattern);
+            
             case 'AsPattern':
                 return flatten <| innerPattern(x.id, x.target);
             
             default:
                 return innerPattern(x, x);
             }
-        }, pre),
-        ?mid && mid.id
-            :sliceUnpack(
-                args,
-                mid.id,
-                pre.length,
-                post.length)
-            :[],
-        fun.map(
-            \x i -> relativeUnpack(args, pre.length + post.length, post.length - i, x),
-            post || []));
+        }, pre);
 
 }

@@ -3,7 +3,8 @@
  * DO NOT EDIT
 */define(["require", "exports", "bes/record", "hashtrie"], (function(require, exports, record, hashtrie) {
     "use strict";
-    var Scope, push, pop;
+    var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
+            push, pop;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
     (Scope.empty = Scope.create(hashtrie.empty, null, hashtrie.empty, hashtrie.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
@@ -17,7 +18,7 @@
     (Scope.prototype.hasMutableBinding = (function(id) {
         var self = this,
             binding = self.getBinding(id);
-        return (binding && (binding.mutable === 1));
+        return (binding && binding.mutable);
     }));
     (Scope.prototype.getBinding = (function(id) {
         var self = this;
@@ -48,42 +49,49 @@
             (i = (i + 1)))
             if ((!self.hasBinding((id + i)))) return (id + i);
     }));
-    (Scope.addUid = (function(s, id, uid) {
+    (addUid = (function(s, id, uid) {
         return s.setDefinitions(hashtrie.set(id, uid, s.definitions));
     }));
-    (Scope.addBinding = (function(s, id, info) {
+    (addBinding = (function(s, id, info) {
         return s.setRecord(hashtrie.set(id, info, s.record));
     }));
-    (Scope.addMutableBinding = (function(s, id, loc) {
-        return Scope.addBinding(s, id, ({
+    (addMutableBinding = (function(s, id, loc) {
+        return addBinding(s, id, ({
             "mutable": 1,
             "loc": loc
         }));
     }));
-    (Scope.addImmutableBinding = (function(s, id, loc) {
-        return Scope.addBinding(s, id, ({
+    (addImmutableBinding = (function(s, id, loc) {
+        return addBinding(s, id, ({
             "mutable": 0,
             "loc": loc
         }));
     }));
-    (Scope.setBindingMutability = (function(s, id, mutable) {
+    (setBindingMutability = (function(s, id, mutable) {
         return (s.hasOwnBinding(id) ? s.setRecord(hashtrie.modify(id, (function(binding) {
             return ({
                 "loc": binding.loc,
                 "mutable": (mutable ? 1 : 0)
             });
-        }), s.record)) : (s.outer && s.setOuter(Scope.setBindingMutability(s.outer, id, mutable))));
+        }), s.record)) : (s.outer && s.setOuter(setBindingMutability(s.outer, id, mutable))));
     }));
-    (Scope.addMapping = (function(s, from, to) {
+    (addMapping = (function(s, from, to) {
         return s.setMapping(hashtrie.set(from, to, s.mapping));
     }));
     (push = (function(s) {
-        return new(Scope)(hashtrie.empty, s, ({}), s.definitions);
+        return Scope.empty.setOuter(s)
+            .setDefinitions(s.definitions);
     }));
     (pop = (function(s) {
         return s.outer;
     }));
     (exports["Scope"] = Scope);
+    (exports["addUid"] = addUid);
+    (exports["addBinding"] = addBinding);
+    (exports["addMutableBinding"] = addMutableBinding);
+    (exports["addImmutableBinding"] = addImmutableBinding);
+    (exports["setBindingMutability"] = setBindingMutability);
+    (exports["addMapping"] = addMapping);
     (exports["push"] = push);
     (exports["pop"] = pop);
 }));

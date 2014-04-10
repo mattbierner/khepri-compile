@@ -11,7 +11,7 @@ in
 RelativeUnpack = defineNode(Pattern, 'RelativeUnpack',
     ['pattern'],
     ['index', 'min'],
-    function \loc, pattern, index, min =self-> {
+    function \loc pattern index min =self-> {
         Node.call(self, loc);
         self.pattern = pattern;
         self.index = index;
@@ -21,7 +21,7 @@ RelativeUnpack = defineNode(Pattern, 'RelativeUnpack',
 SliceUnpack = defineNode(Pattern, 'SliceUnpack',
     ['pattern'],
     ['from', 'to'],
-    function \loc, pattern, from, to =self-> {
+    function \loc pattern from to =self-> {
         Node.call(self, loc);
         self.pattern = pattern;
         self.from= from;

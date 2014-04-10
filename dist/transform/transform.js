@@ -83,9 +83,9 @@
         addVar = (function(id, uid) {
             return inspectScopeWith((function(s) {
                 var name;
-                return (s.hasMapping(uid) ? setScope(scope.Scope.addMutableBinding(s, id)) : ((name =
-                    s.getUnusedId(id)), setScope(scope.Scope.addMapping(scope.Scope.addMutableBinding(
-                    s, name), uid, name))));
+                return (s.hasMapping(uid) ? setScope(scope.addMutableBinding(s, id)) : ((name = s.getUnusedId(
+                    id)), setScope(scope.addMapping(scope.addMutableBinding(s, name), uid,
+                    name))));
             }));
         }),
         pushBindings = modifyState((function(s) {

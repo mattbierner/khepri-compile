@@ -13,7 +13,7 @@ with
     
     import 'akh::base' {
         next
-        'sequence':seq
+        'sequence': seq
         'sequencea': seqa},
     import 'akh::trans::state' StateT,
     import 'akh::identity' Identity,
@@ -114,32 +114,20 @@ var block = \body(...) ->
         push,
         seqa(body),
         pop);
-
+ 
 /**
- * 
- */
-var hasBinding = \id, loc ->
-    extract.map \ s -> s.hasBinding(id);
-
-/**
- * 
- */
-var hasOwnBinding = \id, loc ->
-    extract.map \ s -> s.hasOwnBinding(id);
-
-/**
- * Check to ensure the current scope contains a binding for `id`.
+ * Ensure the current scope contains a binding for `id`.
  */
 var checkHasBinding = \id, loc ->
     examineScope \ s ->
         ?s.hasBinding(id)
             :pass
-            :error("Undeclared identifier:'" + id + "' at:" + loc);
+        :error("Undeclared identifier:'" + id + "' at:" + loc);
 
 /**
- * Check to ensure the current scope does not have has a binding for `id`.
+ * Ensure the current scope does not have has a binding for `id`.
  */
-var checkCanAddOwnBinding = \id loc -> 
+var checkCanAddBinding = \id loc -> 
     examineScope \ s ->
         ?s.hasOwnBinding(id)
             :let
@@ -148,10 +136,10 @@ var checkCanAddOwnBinding = \id loc ->
                 end = binding.loc && binding.loc.start
             in
                 error("'" + id + "' at:" + start + " already bound for scope from:" + end)
-            :pass;
+        :pass;
 
 /**
- * Check if `id` is a mutable binding.
+ * Ensure `id` is a mutable binding.
  */
 var checkCanAssign = \id, loc -> 
     examineScope \ s ->
@@ -160,15 +148,15 @@ var checkCanAssign = \id, loc ->
         :error("Assign to immutable variable:'" + id + "' at:" + loc.start);
 
 /**
- * Set the mutability of binding for `id`.
+ * Mark existing binding for `id` as immutable.
  * 
- * Bindings 
+ * This must take place in the same scope the variable was declared in.
  */
 var markBindingImmutable = \id loc ->
     examineScope \ s ->
         ?s.hasOwnBinding id
             :modifyScope \ s ->
-                Scope.setBindingMutability(s, id, false)
+                scope.setBindingMutability(s, id, false)
             :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
 
 /**
@@ -177,7 +165,7 @@ var markBindingImmutable = \id loc ->
 var addUid = \id ->
     unique \ uid ->
         modifyScope \ s ->
-            Scope.addUid(s, id, uid);
+            scope.addUid(s, id, uid);
 
 /**
  * Add a new mutable binding in the current scope.
@@ -186,8 +174,8 @@ var addUid = \id ->
 var addMutableBinding = \id, loc -> 
     seq(
          modifyScope \ s ->
-             Scope.addMutableBinding(s, id, loc),
-         addUid(id));
+             scope.addMutableBinding(s, id, loc),
+         addUid id);
 
 /**
  * Adds a new static binding in the current scope.
@@ -198,7 +186,7 @@ var addMutableBinding = \id, loc ->
  */
 var addStaticBinding = \id, loc -> 
      modifyScope \ s ->
-         Scope.addImmutableBinding(s, id, loc);
+         scope.addImmutableBinding(s, id, loc);
 
 /**
  * Adds a new immutable binding in the current scope.
@@ -207,8 +195,8 @@ var addStaticBinding = \id, loc ->
 var addImmutableBinding = \id, loc -> 
     seq(
          modifyScope \ s ->
-             Scope.addImmutableBinding(s, id, loc),
-         addUid(id));
+             scope.addImmutableBinding(s, id, loc),
+         addUid id);
 
 /**
  * Add a new mutable binding in the current scope.
@@ -216,7 +204,7 @@ var addImmutableBinding = \id, loc ->
  */
 var addMutableBindingChecked = \id, loc ->
     seq(
-        checkCanAddOwnBinding(id, loc),
+        checkCanAddBinding(id, loc),
         addMutableBinding(id, loc));
 
 /**
@@ -225,7 +213,7 @@ var addMutableBindingChecked = \id, loc ->
  */
 var addImmutableBindingChecked = \id, loc ->
     seq(
-        checkCanAddOwnBinding(id, loc),
+        checkCanAddBinding(id, loc),
         addImmutableBinding(id, loc));
 
 /**
@@ -234,7 +222,7 @@ var addImmutableBindingChecked = \id, loc ->
  */
 var addStaticBindingChecked = \id, loc ->
     seq(
-        checkCanAddOwnBinding(id, loc),
+        checkCanAddBinding(id, loc),
         addStaticBinding(id, loc));
 
 /* Checks
@@ -276,10 +264,9 @@ addCheck@'Package' <|
                     :checkChild 'body'));
 
 // Clause
-addCheck@'SwitchCase' <|
-    seq(
-        checkChild 'test',
-        checkChild 'consequent');
+addCheck@'SwitchCase' <| seq(
+    checkChild 'test',
+    checkChild 'consequent');
 
 addCheck@'CatchClause' <|
     block(
@@ -331,13 +318,12 @@ addCheck@'BlockStatement' <|
 addCheck@'ExpressionStatement' <|
     checkChild 'expression';
 
-addCheck@'IfStatement' <|
-    seq(
-        checkChild 'test',
-        block(
-            checkChild 'consequent'),
-        block(
-            checkChild 'alternate'));
+addCheck@'IfStatement' <| seq(
+    checkChild 'test',
+    block(
+        checkChild 'consequent'),
+    block(
+        checkChild 'alternate'));
 
 addCheck@'WithStatement' <|
     block(
@@ -353,25 +339,22 @@ addCheck@'SwitchStatement' <|
 addCheck@['ReturnStatement', 'ThrowStatement'] <|
     checkChild 'argument';
 
-addCheck@'TryStatement' <|
-    seq(
-        checkChild 'block',
-        block(
-            checkChild 'handler'),
-        block(
-            checkChild 'finalizer'));
+addCheck@'TryStatement' <| seq(
+    checkChild 'block',
+    block(
+        checkChild 'handler'),
+    block(
+        checkChild 'finalizer'));
 
-addCheck@'WhileStatement' <|
-    seq(
-        checkChild 'test',
-        block(
-            checkChild 'body'));
+addCheck@'WhileStatement' <| seq(
+    checkChild 'test',
+    block(
+        checkChild 'body'));
 
-addCheck@'DoWhileStatement' <|
-    seq(
-        block(
-            checkChild 'body'),
-        checkChild 'test');
+addCheck@'DoWhileStatement' <| seq(
+    block(
+        checkChild 'body'),
+    checkChild 'test');
 
 addCheck@'ForStatement' <|
     block(
@@ -469,7 +452,6 @@ addCheck@'IdentifierPattern' <| seq(
             :addImmutableBindingChecked(node.id.name, node.loc),
     checkChild 'id');
 
-
 addCheck@'AsPattern' <| seq(
     checkChild 'id',
     inspect \ node ->
@@ -527,7 +509,7 @@ _check = \node -> {
 
 var g = \x -> x.concat('require', 'module', 'exports');
 
-var addBindings = foldl@(Scope.addImmutableBinding, Scope.empty);
+var addBindings = foldl@(scope.addImmutableBinding, Scope.empty);
 
 /**
  * 

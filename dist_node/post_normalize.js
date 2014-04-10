@@ -41,27 +41,21 @@ peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = 
         "bindings": flattenr(map(expandBinding, node.bindings))
     }), ({}));
 })));
-var splitArrayPattern = (function(elements) {
-    var indx = elements.map(type)
-        .indexOf("EllipsisPattern");
-    return ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice((indx + 1))]);
-});
 peepholes.add("FunctionExpression", UP, always, (function(node) {
-    var __o6 = splitArrayPattern(node.params.elements),
-        pre = __o6[0],
-        mid = __o6[1],
-        post = __o6[2],
-        params = map((function(x) {
-            switch (x.type) {
-                case "IdentifierPattern":
-                    return x;
-                case "AsPattern":
-                    return x.id;
-                default:
-                    return x.ud.id;
-            }
-        }), pre),
-        bindings = unpackParameters(node.params.id, pre, mid, post),
+    var params = flattenr(map((function(x) {
+        switch (x.type) {
+            case "IdentifierPattern":
+                return x;
+            case "AsPattern":
+                return x.id;
+            case "SliceUnpack":
+            case "RelativeUnpack":
+                return [];
+            default:
+                return x.ud.id;
+        }
+    }), node.params.elements)),
+        bindings = unpackParameters(node.params.id, node.params.elements),
         body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement.create(
             null, bindings, node.body)]) : ast_expression.LetExpression.create(null, bindings, node.body));
     return ast_expression.FunctionExpression.create(node.loc, node.id, modify(node.params, ({

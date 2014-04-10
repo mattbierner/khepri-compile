@@ -65,13 +65,6 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
                 'bindings': flattenr <| map(expandBinding, node.bindings)
             }, {}));
 
-var splitArrayPattern = \elements -> let
-    indx = elements.map(type).indexOf('EllipsisPattern')
-in
-    ?indx < 0
-        :[elements, null, []]
-        :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
-
 /**
  * Expand potentially complex parameter patterns in a function to simple
  * identifier patterns for the arguments with a binding body to unpack
@@ -81,18 +74,19 @@ peepholes.add('FunctionExpression', UP,
     always,
     
     \node -> let
-        [pre mid post] = splitArrayPattern(node.params.elements),
-        
-        params = pre
+        params = node.params.elements
             |> map @ \x -> {
                 switch (x.type) {
                 case 'IdentifierPattern': return x;
                 case 'AsPattern': return x.id;
+                case 'SliceUnpack':
+                case 'RelativeUnpack': return [];
                 default: return x.ud.id;
                 }
-            },
+            }
+            |> flattenr,
         
-        bindings = unpackParameters(node.params.id, pre, mid, post),
+        bindings = unpackParameters(node.params.id, node.params.elements),
         
         body = ?isBlockFunction node
             :ast_statement.BlockStatement.create(null,
