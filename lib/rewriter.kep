@@ -82,6 +82,6 @@ var opt = \rewritter ctx  ->
  * @param rewritter Rewitter collection.
  * @param ctx Zipper of tree to rewrite.
  */
-rewrite = opt \>> zipper.root \> tree.node;
+rewrite = opt \>> zipper.root;
 
 }

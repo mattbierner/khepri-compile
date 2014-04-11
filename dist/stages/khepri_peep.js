@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/khepri_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "bes/object", "../khepri_peep"], (function(require, exports, Error, __o,
+*/define(["require", "exports", "akh/error", "bes/object", "../khepri_peep"], (function(require, exports, Error, __o,
     khepri_peep) {
     "use strict";
     var setProperty = __o["setProperty"],

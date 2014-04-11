@@ -10,14 +10,7 @@ with
     
     import 'neith::zipper' zipper,
     
-    import 'khepri-ast-zipper' {khepriZipper},
-
     import 'khepri-ast::node' {Node setData},
-    import 'khepri-ast::declaration' ast_declaration,
-    import 'khepri-ast::statement' ast_statement,
-    import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::pattern' ast_pattern,
-    import 'khepri-ast::value' ast_value,
     
     import 'akh::base' {
         next
@@ -30,24 +23,27 @@ with
     import 'zipper-m::walk' walk,
     
     import './ast' {
-        getUd
+        type
         getUid}
 in {
 
 /* State
  ******************************************************************************/
 var State = record.declare(null, [
-    'bindings',
-    'scope']);
+    'bindings']);
 
-State.empty = State.create(hamt.empty, [hamt.empty, null]);
+State.empty = State.create(hamt.empty);
 
-State.prototype.addReference = \uid ={bindings scope}->
+State.prototype.setReference = \uid count={bindings}->
     State.create(
-        hamt.set(uid, null, bindings));
+        hamt.set(uid, count, bindings));
 
-State.prototype.isReachable = \uid ={bindings scope}->
-    hamt.has(uid, bindings);
+State.prototype.addReference = \uid ={bindings}->
+    State.create(
+        hamt.modify(uid, \x -> (x + 1 || 1), bindings));
+
+State.prototype.isReachable = State.prototype.getCount = \uid ={bindings}->
+    hamt.get(uid, bindings);
 
 /* Forward
  ******************************************************************************/
@@ -76,6 +72,17 @@ var addReference = \uid ->
             s.addReference(uid)
         :pass;
 
+var setCount = \uid count ->
+    ?uid
+        :modifyState \ s ->
+            s.setReference(uid, count)
+        :pass;
+
+var getCount = \uid yes no ->
+    ?uid
+        :getState.map \ s -> s.getCount(uid)
+    :M.of 0;
+
 var isReachable = \uid yes no ->
     ?uid
         :getState.chain \ s ->
@@ -84,24 +91,26 @@ var isReachable = \uid yes no ->
 
 // Movement
 ////////////////////////////////////////
-var extract = M.chain @ M.node;
+var extractCtx := M.get;
 
-var modify = M.modifyNode;
-var set = M.setNode;
+var extract := M.chain @ M.node;
 
-var up = M.up;
-var down = M.down;
-var left = M.left;
+var modify := M.modifyNode;
+var set := M.setNode;
 
-var rightmost = M.move zipper.rightmost;
+var up := M.up;
+var down := M.down;
+var left := M.left;
 
-var moveChild =  M.child;
+var rightmost := M.move zipper.rightmost;
+
+var moveChild := M.child;
 
 /**
- * When `test` is true for current node, evaluate consequent. Otherwise evalaute
+ * When `test` is true for current node, evaluate consequent. Otherwise evaluate
  * alternate.
  */
-var when = \test consequent alternate ->
+var when := \test consequent alternate ->
     extract \ node ->
         ?test node
             :consequent
@@ -121,27 +130,27 @@ var child = \edge ...actions ->
 /**
  * Rewrite the current node.
  */
-var checkTop = extract \ x -> _check x; // forward
+var checkTop := extract \ x -> { return _check x; }; // forward
 
 /**
  * Rewrite a child node.
  */
-var visitChild = \edge ->
+var visitChild := \edge ->
     child(edge,
         checkTop);
 
 /*
  ******************************************************************************/
-var peepholes = {};
+var peepholes := {};
 
-var addRewrite = \type f -> {
+var addRewrite := \type f -> {
     if (Array.isArray type)
         type.forEach \ type -> addRewrite(type, f);
     else
         peepholes.(type) = f;
 };
 
-/* 
+/* Checks
  ******************************************************************************/
 // Program and Packages
 addRewrite@'Program' <|
@@ -221,15 +230,26 @@ addRewrite@'FunctionExpression' <| seq(
 addRewrite@'UnaryExpression' <|
     visitChild 'argument';
 
-addRewrite@['AssignmentExpression', 'LogicalExpression', 'BinaryExpression'] <| seq(
+addRewrite@['LogicalExpression', 'BinaryExpression'] <| seq(
     visitChild 'left',
     visitChild 'right');
 
+addRewrite@'AssignmentExpression' <| 
+  /*  when((.left) \> type \> (===, "Identifier"),
+        // Don't count assignments as reachable.
+        extract \ node ->
+            let uid = getUid node.left in
+                getCount(uid).chain \ count -> 
+                    ?count
+                        :seq(visitChild 'right', setCount(uid, count))
+                        :set null,*/
+        seq(
+            visitChild 'left',
+            visitChild 'right');
+
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
-    when(
-        \node ->
-            node.computed,
+    when((.computed),
         visitChild 'property'));
 
 addRewrite@'NewExpression' <| seq(
@@ -259,8 +279,7 @@ addRewrite@'ObjectValue' <|
     visitChild 'value';
 
 addRewrite@'Identifier' <|
-    extract \ node ->
-        addReference(getUid node);
+    extract (getUid \> addReference);
 
 /* Interface
  ******************************************************************************/
@@ -296,10 +315,10 @@ optimize = \ast data ->
     run(
         next(
             checkTop,
-            extract \ node ->
+            extractCtx.chain \ node ->
                 M.of({
                     'tree': node
                 })),
-        khepriZipper(ast));
+        ast);
 
 }

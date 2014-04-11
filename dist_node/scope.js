@@ -81,8 +81,8 @@ var record = require("bes")["record"],
     return Scope.empty.setOuter(s)
         .setDefinitions(s.definitions);
 }));
-(pop = (function(s) {
-    return s.outer;
+(pop = (function(x) {
+    return x.outer;
 }));
 (exports["Scope"] = Scope);
 (exports["addUid"] = addUid);

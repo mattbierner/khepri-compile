@@ -8,8 +8,6 @@ with
     import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-        
-    import 'khepri-ast-zipper' {khepriZipper},
     
     import 'akh::base' {
         next
@@ -23,6 +21,7 @@ with
     
     import 'zipper-m::trans::zipper' ZipperT,
     
+    import './ast' {type},
     import './scope' scope#{Scope},
     import './fun' {foldl}
 in {
@@ -58,9 +57,9 @@ var unique = M.chain @ (M.liftInner.liftInner (Unique.unique));
 
 // Scope Operations
 ////////////////////////////////////////
-var extract = M.liftInner (M.inner.inner.get);
+var extractScope = M.liftInner (M.inner.inner.get);
 
-var examineScope = M.chain @ extract;
+var examineScope = M.chain @ extractScope;
 
 var modifyScope = M.liftInner <\ M.inner.inner.modify;
 
@@ -69,9 +68,11 @@ var pop = modifyScope scope.pop;
 
 // Movement Operations
 ////////////////////////////////////////
-var inspect = M.chain @ lift(M.inner.node);
+var extractCtx = lift (M.inner.get);
 
-var extractNode = lift <| M.inner.node;
+var extract = lift (M.inner.node);
+
+var inspect = M.chain @ extract;
 
 var move = lift <\ M.inner.move;
 
@@ -107,14 +108,39 @@ var checkChild = \edge ->
 var pass = M.of();
 
 /**
+ * When `test` is true for current node, evaluate consequent. Otherwise evalaute
+ * alternate.
+ */
+var when = \test consequent alternate ->
+    inspect \ node ->
+        ?test node
+            :consequent
+            :(alternate || pass);
+
+/**
  * Create a new lexical block for body.
  */
 var block = \body(...) ->
     seq(
         push,
-        seqa(body),
+        seqa body,
         pop);
- 
+
+/**
+ * Define a new identifier and create a uid entry for it.
+ */
+var addUid = \id ->
+    unique \ uid ->
+        modifyScope \ s ->
+            scope.addUid(s, id, uid);
+
+/**
+ * Get the uid of an identifier.
+ */
+var getUid = \id ->
+    extractScope.map \ s ->
+        s.getUid(id);
+
 /**
  * Ensure the current scope contains a binding for `id`.
  */
@@ -158,14 +184,6 @@ var markBindingImmutable = \id loc ->
             :modifyScope \ s ->
                 scope.setBindingMutability(s, id, false)
             :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
-
-/**
- * Define a new identifier and create a uid entry for it.
- */
-var addUid = \id ->
-    unique \ uid ->
-        modifyScope \ s ->
-            scope.addUid(s, id, uid);
 
 /**
  * Add a new mutable binding in the current scope.
@@ -255,13 +273,12 @@ addCheck@'Package' <|
         checkChild 'exports',
         // Evaluate body in same scope
         child('body',
-            inspect \ node ->
-                ?node.type === 'WithStatement'
-                    :seq(
-                        checkChild 'bindings',
-                        child('body',
-                            checkChild 'body'))
-                    :checkChild 'body'));
+            when(type \> (===, 'WithStatement'),
+                seq(
+                    checkChild 'bindings',
+                    child('body',
+                        checkChild 'body')),
+                checkChild 'body')));
 
 // Clause
 addCheck@'SwitchCase' <| seq(
@@ -301,14 +318,13 @@ addCheck@'VariableDeclarator' <|
                 checkChild 'id');
 
 addCheck@'Binding' <|
-    inspect \ node ->
-        ?node.recursive
-            :seq(
-                checkChild 'pattern',
-                checkChild 'value')
-            :seq(
-                checkChild 'value',
-                checkChild 'pattern');
+    when((.recursive),
+        seq(
+            checkChild 'pattern',
+            checkChild 'value'),
+        seq(
+            checkChild 'value',
+            checkChild 'pattern'));
 
 // Statement
 addCheck@'BlockStatement' <|
@@ -373,11 +389,11 @@ addCheck@'FunctionExpression' <|
                  :pass,
          checkChild 'id',
          checkChild 'params',
-         inspect \ node ->
-             ?node.body.type === "BlockStatement"
-                 :child('body',
-                     checkChild 'body')
-                 :checkChild 'body');
+         // Evaluate body in same scope
+         child('body',
+             when(type \> (===, 'BlockStatement'),
+                 checkChild 'body',
+                 checkTop)));
 
 addCheck@'UnaryExpression' <|
     checkChild 'argument';
@@ -409,10 +425,8 @@ addCheck@['CallExpression', 'NewExpression'] <| seq(
 
 addCheck@'MemberExpression' <| seq(
     checkChild 'object',
-    inspect \ node ->
-        ?node.computed
-            :checkChild 'property'
-            :pass);
+    when((.computed),
+        checkChild 'property'));
 
 addCheck@'ArrayExpression' <|
     checkChild 'elements';
@@ -519,12 +533,12 @@ check = \ast globals seed ->
         seq(
             checkTop,
             root,
-            extractNode.chain \ x ->
+            extractCtx.chain \ x ->
             unique \ unique ->
-            extract.map \ s ->
+            extractScope.map \ s ->
                 ({'tree': x , 'data': {'unique': unique}})),
         addBindings(g(globals || [])),
-        khepriZipper(ast),
+        ast,
         Error.of,
         Error.fail,
         seed);

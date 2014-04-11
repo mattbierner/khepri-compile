@@ -5,40 +5,39 @@
 var record = require("bes")["record"],
     hamt = require("hamt"),
     zipper = require("neith")["zipper"],
-    __o = require("khepri-ast-zipper"),
-    khepriZipper = __o["khepriZipper"],
-    __o0 = require("khepri-ast")["node"],
-    Node = __o0["Node"],
-    setData = __o0["setData"],
-    ast_declaration = require("khepri-ast")["declaration"],
-    ast_statement = require("khepri-ast")["statement"],
-    ast_expression = require("khepri-ast")["expression"],
-    ast_pattern = require("khepri-ast")["pattern"],
-    ast_value = require("khepri-ast")["value"],
-    __o1 = require("akh")["base"],
-    next = __o1["next"],
-    seq = __o1["sequence"],
-    seqa = __o1["sequencea"],
+    __o = require("khepri-ast")["node"],
+    Node = __o["Node"],
+    setData = __o["setData"],
+    __o0 = require("akh")["base"],
+    next = __o0["next"],
+    seq = __o0["sequence"],
+    seqa = __o0["sequencea"],
     StateM = require("akh")["state"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    __o2 = require("./ast"),
-    getUd = __o2["getUd"],
-    getUid = __o2["getUid"],
-    optimize, x, y, consequent, State = record.declare(null, ["bindings", "scope"]);
-(State.empty = State.create(hamt.empty, [hamt.empty, null]));
+    __o1 = require("./ast"),
+    type = __o1["type"],
+    getUid = __o1["getUid"],
+    optimize, x, y, consequent, x0, State = record.declare(null, ["bindings"]);
+(State.empty = State.create(hamt.empty));
+(State.prototype.setReference = (function(uid, count) {
+    var __o2 = this,
+        bindings = __o2["bindings"];
+    return State.create(hamt.set(uid, count, bindings));
+}));
 (State.prototype.addReference = (function(uid) {
-    var __o3 = this,
-        bindings = __o3["bindings"],
-        scope = __o3["scope"];
-    return State.create(hamt.set(uid, null, bindings));
+    var __o2 = this,
+        bindings = __o2["bindings"];
+    return State.create(hamt.modify(uid, (function(x) {
+        return ((x + 1) || 1);
+    }), bindings));
 }));
-(State.prototype.isReachable = (function(uid) {
-    var __o3 = this,
-        bindings = __o3["bindings"],
-        scope = __o3["scope"];
-    return hamt.has(uid, bindings);
+(State.prototype.getCount = (function(uid) {
+    var __o2 = this,
+        bindings = __o2["bindings"];
+    return hamt.get(uid, bindings);
 }));
+(State.prototype.isReachable = State.prototype.getCount);
 var _check, M = ZipperT(StateM),
     run = (function(c, ctx) {
         return StateM.evalState(ZipperT.runZipperT(c, ctx), State.empty);
@@ -48,16 +47,12 @@ var _check, M = ZipperT(StateM),
     modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
         return x(y(x0));
     })),
-    addReference = (function(uid) {
-        return (uid ? modifyState((function(s) {
-            return s.addReference(uid);
-        })) : pass);
-    }),
     isReachable = (function(uid, yes, no) {
         return (uid ? getState.chain((function(s) {
             return (s.isReachable(uid) ? yes : no);
         })) : yes);
     }),
+    extractCtx = M.get,
     extract = M.chain.bind(null, M.node),
     set = M.setNode,
     up = M.up,
@@ -73,16 +68,13 @@ var _check, M = ZipperT(StateM),
     checkTop = extract((function(x0) {
         return _check(x0);
     })),
-    visitChild = (function(edge) {
-        return child(edge, checkTop);
-    }),
     peepholes = ({}),
-    addRewrite = (function(type, f) {
-        if (Array.isArray(type)) type.forEach((function(type0) {
-            return addRewrite(type0, f);
+    addRewrite = (function(type0, f) {
+        if (Array.isArray(type0)) type0.forEach((function(type1) {
+            return addRewrite(type1, f);
         }));
         else {
-            (peepholes[type] = f);
+            (peepholes[type0] = f);
         }
     });
 addRewrite("Program", child("body", checkTop));
@@ -91,10 +83,10 @@ addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkT
 addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
 addRewrite("VariableDeclaration", child("declarations", checkTop));
 addRewrite("VariableDeclarator", extract((function(node) {
-    return isReachable(getUid(node.id), visitChild("init"), set([]));
+    return isReachable(getUid(node.id), child("init", checkTop), set([]));
 })));
 addRewrite("Binding", extract((function(node) {
-    return isReachable(getUid(node.pattern.id), visitChild("value"), set([]));
+    return isReachable(getUid(node.pattern.id), child("value", checkTop), set([]));
 })));
 addRewrite("BlockStatement", child("body", checkTop));
 addRewrite("ExpressionStatement", child("expression", checkTop));
@@ -109,8 +101,8 @@ addRewrite(["ConditionalExpression", "IfStatement"], seq(child("test", checkTop)
     "alternate", checkTop)));
 addRewrite("FunctionExpression", seq(child("id", checkTop), child("params", checkTop), child("body", checkTop)));
 addRewrite("UnaryExpression", child("argument", checkTop));
-addRewrite(["AssignmentExpression", "LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child(
-    "right", checkTop)));
+addRewrite(["LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child("right", checkTop)));
+addRewrite("AssignmentExpression", seq(child("left", checkTop), child("right", checkTop)));
 addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)), extract((
     function(node) {
         return (node.computed ? consequent : (undefined || pass));
@@ -122,9 +114,12 @@ addRewrite("LetExpression", seq(child("body", checkTop), child("bindings", check
 addRewrite("ArrayExpression", child("elements", checkTop));
 addRewrite("ObjectExpression", child("properties", checkTop));
 addRewrite("ObjectValue", child("value", checkTop));
-addRewrite("Identifier", extract((function(node) {
-    return addReference(getUid(node));
-})));
+addRewrite("Identifier", extract(((x0 = getUid), (function(x1) {
+    var uid = x0(x1);
+    return (uid ? modifyState((function(s) {
+        return s.addReference(uid);
+    })) : pass);
+}))));
 (_check = (function(node) {
     if (Array.isArray(node)) {
         if ((!node.length)) return pass;
@@ -136,10 +131,10 @@ addRewrite("Identifier", extract((function(node) {
     return pass;
 }));
 (optimize = (function(ast, data) {
-    return run(next(checkTop, extract((function(node) {
+    return run(next(checkTop, extractCtx.chain((function(node) {
         return M.of(({
             "tree": node
         }));
-    }))), khepriZipper(ast));
+    }))), ast);
 }));
 (exports["optimize"] = optimize);

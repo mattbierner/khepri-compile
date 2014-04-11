@@ -10,13 +10,9 @@
 package (
     normalize)
 with
-    import 'khepri-ast-zipper' {khepriZipper},
-    
     import 'khepri-ast::node' {modify},
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::pattern' ast_pattern,
-    import 'khepri-ast::value' ast_value,
     
     import './ast' {
         type
@@ -24,7 +20,6 @@ with
     import './fun' {
         concat
         flattenr
-        filter
         map},
     import './unpack' {
         innerPattern
@@ -39,11 +34,22 @@ with
         rewrite}
 in {
 
-var always := \_ -> true;
+var getParameterNames := 
+    flattenr <\ map @ \x -> {
+        switch (x.type) {
+        case 'IdentifierPattern': return x;
+        case 'AsPattern': return x.id;
+        case 'SliceUnpack':
+        case 'RelativeUnpack': return [];
+        default: return x.ud.id;
+        }
+    };
 
 /* Transforms
  ******************************************************************************/
 var peepholes = new Rewriter();
+
+var always := \_ -> true;
 
 /* Binding Expansion
  ******************************************************************************/
@@ -56,7 +62,7 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
     
     let
         expandBinding = \binding ->
-            ?binding.type === 'ImportPattern'
+            ?type binding === 'ImportPattern'
                 :binding
                 :innerPattern(binding.value, binding.pattern, binding.recursive)
     in
@@ -74,17 +80,7 @@ peepholes.add('FunctionExpression', UP,
     always,
     
     \node -> let
-        params = node.params.elements
-            |> map @ \x -> {
-                switch (x.type) {
-                case 'IdentifierPattern': return x;
-                case 'AsPattern': return x.id;
-                case 'SliceUnpack':
-                case 'RelativeUnpack': return [];
-                default: return x.ud.id;
-                }
-            }
-            |> flattenr,
+        params = getParameterNames(node.params.elements),
         
         bindings = unpackParameters(node.params.id, node.params.elements),
         
@@ -169,6 +165,6 @@ peepholes.add('BinaryExpression', UP,
 
 /* Interface
  ******************************************************************************/
-normalize = khepriZipper \> rewrite @ peepholes;
+normalize = rewrite @ peepholes;
 
 }

@@ -1,24 +1,24 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "khepri-ast-zipper",
-    "akh/base", "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique",
-    "zipper-m/trans/zipper", "./scope", "./fun"
-], (function(require, exports, ast_node, ast_pattern, ast_value, __o, __o0, StateT, Identity, Error, ErrorT, Unique,
-    ZipperT, scope, __o1) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
+    "akh/trans/state", "akh/identity", "akh/error", "akh/trans/error", "akh/unique", "zipper-m/trans/zipper",
+    "./ast", "./scope", "./fun"
+], (function(require, exports, ast_node, ast_pattern, ast_value, __o, StateT, Identity, Error, ErrorT, Unique,
+    ZipperT, __o0, scope, __o1) {
     "use strict";
     var setData = ast_node["setData"],
         setUserData = ast_node["setUserData"],
-        khepriZipper = __o["khepriZipper"],
-        next = __o0["next"],
-        seq = __o0["sequence"],
-        seqa = __o0["sequencea"],
+        next = __o["next"],
+        seq = __o["sequence"],
+        seqa = __o["sequencea"],
+        type = __o0["type"],
         Scope = scope["Scope"],
         foldl = __o1["foldl"],
-        check, x, y, x0, y0, x1, y1, x2, y2, reserved = (function(node) {
-            return ((node && node.ud) && node.ud.reserved);
-        }),
+        check, x, y, x0, y0, x1, y1, x2, y2, x3, consequent, alternate, consequent0, alternate0, x4,
+            consequent1, alternate1, consequent2, reserved = (function(node) {
+                return ((node && node.ud) && node.ud.reserved);
+            }),
         _check, M = ErrorT(ZipperT(StateT(Unique))),
         run = (function(p, s, ctx, ok, err) {
             var y, y0;
@@ -32,15 +32,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         error = M.fail,
         lift = M.lift,
         unique = M.chain.bind(null, M.liftInner.liftInner(Unique.unique)),
-        extract = M.liftInner(M.inner.inner.get),
-        examineScope = M.chain.bind(null, extract),
+        extractScope = M.liftInner(M.inner.inner.get),
+        examineScope = M.chain.bind(null, extractScope),
         modifyScope = ((x = M.liftInner), (y = M.inner.inner.modify), (function(x0) {
             return x(y(x0));
         })),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
-        inspect = M.chain.bind(null, lift(M.inner.node)),
-        extractNode = lift(M.inner.node),
+        extractCtx = lift(M.inner.get),
+        extract = lift(M.inner.node),
+        inspect = M.chain.bind(null, extract),
         up = lift(M.inner.up),
         down = lift(M.inner.down),
         right = lift(M.inner.right),
@@ -58,7 +59,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             return _check(x3);
         })),
         child = (function(edge) {
-            var actions = [].slice.call(arguments, 1);
+            var __args = arguments,
+                actions = [].slice.call(__args, 1);
             return seq(moveChild(edge), seqa(actions), up);
         }),
         checkChild = (function(edge) {
@@ -68,6 +70,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         block = (function() {
             var body = arguments;
             return seq(push, seqa(body), pop);
+        }),
+        addUid = (function(id) {
+            return unique((function(uid) {
+                return modifyScope((function(s) {
+                    return scope.addUid(s, id, uid);
+                }));
+            }));
         }),
         checkHasBinding = (function(id, loc) {
             return examineScope((function(s) {
@@ -97,13 +106,6 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                     " immutable in enclosed scope")));
             }));
         }),
-        addUid = (function(id) {
-            return unique((function(uid) {
-                return modifyScope((function(s) {
-                    return scope.addUid(s, id, uid);
-                }));
-            }));
-        }),
         addMutableBinding = (function(id, loc) {
             return seq(modifyScope((function(s) {
                 return scope.addMutableBinding(s, id, loc);
@@ -129,12 +131,12 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             return seq(checkCanAddBinding(id, loc), addStaticBinding(id, loc));
         }),
         checks = ({}),
-        addCheck = (function(type, check) {
-            if (Array.isArray(type)) type.forEach((function(x3) {
+        addCheck = (function(type0, check) {
+            if (Array.isArray(type0)) type0.forEach((function(x3) {
                 return addCheck(x3, check);
             }));
             else {
-                (checks[type] = check);
+                (checks[type0] = check);
             }
         });
     addCheck("Program", block(child("body", checkTop)));
@@ -142,10 +144,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
     addCheck("PackageExport", inspect((function(node) {
         return addMutableBindingChecked(node.id.name, node.loc);
     })));
-    addCheck("Package", block(child("exports", checkTop), child("body", inspect((function(node) {
-        return ((node.type === "WithStatement") ? seq(checkChild("bindings"), child("body",
-            checkChild("body"))) : checkChild("body"));
-    })))));
+    addCheck("Package", block(child("exports", checkTop), child("body", ((x3 = type), (consequent = seq(child(
+        "bindings", checkTop), child("body", child("body", checkTop)))), (alternate = child(
+        "body", checkTop)), inspect((function(node) {
+        var y3;
+        return (((y3 = x3(node)), ("WithStatement" === y3)) ? consequent : (alternate ||
+            pass));
+    }))))));
     addCheck("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
     addCheck("CatchClause", block(inspect((function(node) {
         return addImmutableBindingChecked(node.param.name, node.param.loc);
@@ -160,10 +165,10 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         return (node.recursive ? seq(bind, checkChild("id"), checkChild("init")) : seq(checkChild(
             "init"), bind, checkChild("id")));
     })));
-    addCheck("Binding", inspect((function(node) {
-        return (node.recursive ? seq(checkChild("pattern"), checkChild("value")) : seq(checkChild(
-            "value"), checkChild("pattern")));
-    })));
+    addCheck("Binding", ((consequent0 = seq(child("pattern", checkTop), child("value", checkTop))), (alternate0 =
+        seq(child("value", checkTop), child("pattern", checkTop))), inspect((function(node) {
+        return (node.recursive ? consequent0 : (alternate0 || pass));
+    }))));
     addCheck("BlockStatement", block(child("body", checkTop)));
     addCheck("ExpressionStatement", child("expression", checkTop));
     addCheck("IfStatement", seq(child("test", checkTop), block(child("consequent", checkTop)), block(child(
@@ -179,10 +184,12 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         block(child("body", checkTop))));
     addCheck("FunctionExpression", block(inspect((function(node) {
         return (node.id ? addImmutableBinding(node.id.name, node.loc) : pass);
-    })), child("id", checkTop), child("params", checkTop), inspect((function(node) {
-        return ((node.body.type === "BlockStatement") ? child("body", checkChild("body")) :
-            checkChild("body"));
-    }))));
+    })), child("id", checkTop), child("params", checkTop), child("body", ((x4 = type), (consequent1 =
+        child("body", checkTop)), (alternate1 = checkTop), inspect((function(node) {
+        var y3;
+        return (((y3 = x4(node)), ("BlockStatement" === y3)) ? consequent1 : (
+            alternate1 || pass));
+    }))))));
     addCheck("UnaryExpression", child("argument", checkTop));
     addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o2) {
         var operator = __o2["operator"],
@@ -194,9 +201,10 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
     addCheck("ConditionalExpression", seq(child("test", checkTop), child("consequent", checkTop), child(
         "alternate", checkTop)));
     addCheck(["CallExpression", "NewExpression"], seq(child("callee", checkTop), child("args", checkTop)));
-    addCheck("MemberExpression", seq(child("object", checkTop), inspect((function(node) {
-        return (node.computed ? checkChild("property") : pass);
-    }))));
+    addCheck("MemberExpression", seq(child("object", checkTop), ((consequent2 = child("property", checkTop)),
+        inspect((function(node) {
+            return (node.computed ? consequent2 : (undefined || pass));
+        })))));
     addCheck("ArrayExpression", child("elements", checkTop));
     addCheck("ObjectExpression", child("properties", checkTop));
     addCheck("LetExpression", block(child("bindings", checkTop), child("body", checkTop)));
@@ -239,23 +247,23 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
         return pass;
     }));
-    var g = (function(x3) {
-        return x3.concat("require", "module", "exports");
+    var g = (function(x5) {
+        return x5.concat("require", "module", "exports");
     }),
         addBindings = foldl.bind(null, scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {
-        return run(seq(checkTop, root, extractNode.chain((function(x3) {
+        return run(seq(checkTop, root, extractCtx.chain((function(x5) {
             return unique((function(unique0) {
-                return extract.map((function(s) {
+                return extractScope.map((function(s) {
                     return ({
-                        "tree": x3,
+                        "tree": x5,
                         "data": ({
                             "unique": unique0
                         })
                     });
                 }));
             }));
-        }))), addBindings(g((globals || []))), khepriZipper(ast), Error.of, Error.fail, seed);
+        }))), addBindings(g((globals || []))), ast, Error.of, Error.fail, seed);
     }));
     (exports["check"] = check);
 }));

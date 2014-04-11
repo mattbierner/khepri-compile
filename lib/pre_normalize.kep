@@ -7,8 +7,6 @@
 package (
     normalize)
 with
-    import 'khepri-ast-zipper' {khepriZipper},
-    
     import 'khepri-ast::node' {modify setData},
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
@@ -210,6 +208,6 @@ peepholes.add('ObjectPattern', UP,
 
 /* Interface
  ******************************************************************************/
-normalize = khepriZipper \> rewrite @ peepholes;
+normalize = rewrite @ peepholes;
 
 }

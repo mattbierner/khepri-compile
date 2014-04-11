@@ -16,8 +16,6 @@ with
 
     import 'hamt' hamt,
     
-    import 'khepri-ast-zipper' {khepriZipper},
-
     import 'khepri-ast::node' {Node setData 'modify': modifyNode},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
@@ -163,6 +161,8 @@ var modifyState := M.lift <\ M.inner.modify;
 
 // Movement
 ////////////////////////////////////////
+var extractCtx = M.get;
+
 var extract = M.chain @ M.node;
 
 var modify = M.modifyNode;
@@ -439,7 +439,7 @@ addRewrite@'VariableDeclarator' <| seq(
     visitChild 'init',
     
     when(
-        \node -> node.init,
+        (.init),
         
         extract \ node ->
             ?node.immutable
@@ -625,8 +625,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
      * Reduce conditionals with constant test.
      */
     when(
-        \node ->
-            isPrimitive node.test,
+        (.test) \> isPrimitive,
         
         extract \ {test consequent alternate} ->
             seq(
@@ -640,8 +639,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
     when(
-        \node ->
-            node.computed,
+        (.computed),
         visitChild 'property'),
     
     /**
@@ -698,11 +696,10 @@ addRewrite@'CallExpression' <| seq(
      * Expand callee.
      */
     when(
-        \node ->
-            isExpansion(node.callee),
+        (.callee) \> isExpansion,
         
         expand(
-            M.node.map \ node -> node.callee,
+            M.node.map (.callee),
             \callee ->
                 modify \ node ->
                     incCount(
@@ -737,11 +734,10 @@ addRewrite@'CurryExpression' <| seq(
      * Expand Curry Base
      */
     when(
-        \node ->
-            (isExpansion(node.base)),
+        (.base) \> isExpansion,
         
         expand(
-            M.node.map \ node -> node.base,
+            M.node.map (.base),
             \base ->
                 modify \ node ->
                     incCount(
@@ -862,14 +858,14 @@ optimize = \ast data ->
     run(
         next(
             checkTop,
-            extract \ node ->
+            extractCtx.chain \ node ->
             globals \ g ->
             unique \ unique ->
                 M.of({
                     'tree': node,
                     'data': {'globals': g, 'unique': unique}
                 })),
-        khepriZipper(ast),
+        ast,
         initialState,
         data.unique);
 

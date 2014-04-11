@@ -9,7 +9,9 @@
 package compile
 with
     import 'akh::error' Error,
-
+    
+    import 'khepri-ast-zipper' {khepriZipper},
+    
     import './stages/pre_normalize' pre_normalize,
     import './stages/lexical' lexical,
     import './stages/reachable' reachable,
@@ -44,7 +46,7 @@ in
     \root options err ->
         Error.runError(
             compiler{
-                'tree': root,
+                'tree': khepriZipper root,
                 'options': (options || {}) },
             extract,
             err || thr);

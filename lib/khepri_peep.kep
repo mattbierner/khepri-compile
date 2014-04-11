@@ -7,8 +7,6 @@
 package (
     optimize)
 with
-    import 'khepri-ast-zipper' {khepriZipper},
-
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -182,6 +180,6 @@ peepholes.add('ExpressionStatement', UP,
 /**
  * 
  */
-optimize = khepriZipper \> rewrite@peepholes;
+optimize = rewrite@peepholes;
 
 }

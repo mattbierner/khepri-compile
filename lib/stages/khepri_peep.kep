@@ -6,7 +6,7 @@ with
     import 'akh::error' Error,
     
     import 'bes::object' {setProperty},
-    
+
     import '../khepri_peep' khepri_peep
 in {
 

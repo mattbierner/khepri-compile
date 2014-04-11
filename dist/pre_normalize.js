@@ -1,27 +1,24 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/package", "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun", "./rewriter"
-], (function(require, exports, __o, __o0, ast_expression, ast_pattern, ast_package, ast_value, __o1, __o2, __o3,
-    __o4) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
+    "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun", "./rewriter"
+], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";
-    var khepriZipper = __o["khepriZipper"],
-        modify = __o0["modify"],
-        setData = __o0["setData"],
-        SliceUnpack = __o1["SliceUnpack"],
-        RelativeUnpack = __o1["RelativeUnpack"],
-        type = __o2["type"],
-        concat = __o3["concat"],
-        map = __o3["map"],
-        foldl = __o3["foldl"],
-        foldr = __o3["foldr"],
-        flatten = __o3["flatten"],
-        UP = __o4["UP"],
-        DOWN = __o4["DOWN"],
-        Rewriter = __o4["Rewriter"],
-        rewrite = __o4["rewrite"],
+    var modify = __o["modify"],
+        setData = __o["setData"],
+        SliceUnpack = __o0["SliceUnpack"],
+        RelativeUnpack = __o0["RelativeUnpack"],
+        type = __o1["type"],
+        concat = __o2["concat"],
+        map = __o2["map"],
+        foldl = __o2["foldl"],
+        foldr = __o2["foldr"],
+        flatten = __o2["flatten"],
+        UP = __o3["UP"],
+        DOWN = __o3["DOWN"],
+        Rewriter = __o3["Rewriter"],
+        rewrite = __o3["rewrite"],
         normalize, string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         peepholes = new(Rewriter)();
@@ -32,18 +29,18 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
     }));
     peepholes.add("LetExpression", UP, (function(node) {
         return (node.bindings.length > 1);
-    }), (function(__o5) {
-        var bindings = __o5["bindings"],
-            body = __o5["body"];
+    }), (function(__o4) {
+        var bindings = __o4["bindings"],
+            body = __o4["body"];
         return foldr((function(p, c) {
             return ast_expression.LetExpression.create(null, [c], p);
         }), body, bindings);
     }));
     peepholes.add("CurryExpression", DOWN, (function(node) {
         return (node.args.length > 1);
-    }), (function(__o5) {
-        var base = __o5["base"],
-            args = __o5["args"];
+    }), (function(__o4) {
+        var base = __o4["base"],
+            args = __o4["args"];
         return foldl((function(p, arg) {
             return ast_expression.CurryExpression.create(null, p, [arg]);
         }), base, args);
@@ -62,13 +59,13 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
         });
     peepholes.add("ArrayPattern", DOWN, (function(_) {
         return true;
-    }), (function(__o5) {
-        var loc = __o5["loc"],
-            elements = __o5["elements"],
-            __o6 = splitUnpackList(elements),
-            pre = __o6[0],
-            mid = __o6[1],
-            post = __o6[2];
+    }), (function(__o4) {
+        var loc = __o4["loc"],
+            elements = __o4["elements"],
+            __o5 = splitUnpackList(elements),
+            pre = __o5[0],
+            mid = __o5[1],
+            post = __o5[2];
         return ast_pattern.ObjectPattern.create(loc, createUnpackList(map((function(x, i) {
             return ast_pattern.ObjectPatternElement.create(null, number(i), x);
         }), pre), mid, post));
@@ -77,10 +74,10 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
         return (node.elements.map(type)
             .indexOf("EllipsisPattern") >= 0);
     }), (function(node) {
-        var __o5 = splitUnpackList(node.elements),
-            pre = __o5[0],
-            mid = __o5[1],
-            post = __o5[2],
+        var __o4 = splitUnpackList(node.elements),
+            pre = __o4[0],
+            mid = __o4[1],
+            post = __o4[2],
             id = (node.id || setData(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(
                 null, "__args")), "reserved", true));
         return modify(node, ({
@@ -113,10 +110,6 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
             "__o")), "reserved", true);
         return ast_pattern.AsPattern.create(null, id, setData(node, "id", id));
     }));
-    var x = khepriZipper,
-        y = rewrite.bind(null, peepholes);
-    (normalize = (function(x0) {
-        return y(x(x0));
-    }));
+    (normalize = rewrite.bind(null, peepholes));
     (exports["normalize"] = normalize);
 }));

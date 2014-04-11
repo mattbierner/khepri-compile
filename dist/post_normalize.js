@@ -1,34 +1,45 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression",
-    "khepri-ast/pattern", "khepri-ast/value", "./ast", "./fun", "./unpack", "./builtin", "./rewriter"
-], (function(require, exports, __o, __o0, ast_statement, ast_expression, ast_pattern, ast_value, __o1, __o2, __o3,
-    __o4, __o5) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression", "./ast", "./fun",
+    "./unpack", "./builtin", "./rewriter"
+], (function(require, exports, __o, ast_statement, ast_expression, __o0, __o1, __o2, __o3, __o4) {
     "use strict";
-    var khepriZipper = __o["khepriZipper"],
-        modify = __o0["modify"],
-        type = __o1["type"],
-        isBlockFunction = __o1["isBlockFunction"],
-        concat = __o2["concat"],
-        flattenr = __o2["flattenr"],
-        filter = __o2["filter"],
-        map = __o2["map"],
-        innerPattern = __o3["innerPattern"],
-        unpackParameters = __o3["unpackParameters"],
-        builtins = __o4["builtins"],
-        definitions = __o4["definitions"],
-        UP = __o5["UP"],
-        DOWN = __o5["DOWN"],
-        Rewriter = __o5["Rewriter"],
-        rewrite = __o5["rewrite"],
-        normalize, expandBinding, always = (function(_) {
+    var modify = __o["modify"],
+        type = __o0["type"],
+        isBlockFunction = __o0["isBlockFunction"],
+        concat = __o1["concat"],
+        flattenr = __o1["flattenr"],
+        map = __o1["map"],
+        innerPattern = __o2["innerPattern"],
+        unpackParameters = __o2["unpackParameters"],
+        builtins = __o3["builtins"],
+        definitions = __o3["definitions"],
+        UP = __o4["UP"],
+        DOWN = __o4["DOWN"],
+        Rewriter = __o4["Rewriter"],
+        rewrite = __o4["rewrite"],
+        normalize, x, y, expandBinding, getParameterNames = ((x = flattenr), (y = map.bind(null, (function(x0) {
+            switch (x0.type) {
+                case "IdentifierPattern":
+                    return x0;
+                case "AsPattern":
+                    return x0.id;
+                case "SliceUnpack":
+                case "RelativeUnpack":
+                    return [];
+                default:
+                    return x0.ud.id;
+            }
+        }))), (function(x0) {
+            return x(y(x0));
+        })),
+        peepholes = new(Rewriter)(),
+        always = (function(_) {
             return true;
-        }),
-        peepholes = new(Rewriter)();
+        });
     peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-        return ((binding.type === "ImportPattern") ? binding : innerPattern(binding.value,
+        return ((type(binding) === "ImportPattern") ? binding : innerPattern(binding.value,
             binding.pattern, binding.recursive));
     })), (function(node) {
         return modify(node, ({
@@ -36,19 +47,7 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
         }), ({}));
     })));
     peepholes.add("FunctionExpression", UP, always, (function(node) {
-        var params = flattenr(map((function(x) {
-            switch (x.type) {
-                case "IdentifierPattern":
-                    return x;
-                case "AsPattern":
-                    return x.id;
-                case "SliceUnpack":
-                case "RelativeUnpack":
-                    return [];
-                default:
-                    return x.ud.id;
-            }
-        }), node.params.elements)),
+        var params = getParameterNames(node.params.elements),
             bindings = unpackParameters(node.params.id, node.params.elements),
             body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement
                 .create(null, bindings, node.body)
@@ -63,8 +62,8 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
             concat(right, ast_expression.AssignmentExpression.create(null, "=", node.left, right[(right
                 .length - 1)].left))) : [node]);
     });
-    peepholes.add("ExpressionStatement", UP, (function(__o6) {
-        var expression = __o6["expression"];
+    peepholes.add("ExpressionStatement", UP, (function(__o5) {
+        var expression = __o5["expression"];
         return (expression.type === "AssignmentExpression");
     }), (function(node) {
         var node0, right;
@@ -76,31 +75,27 @@ define(["require", "exports", "khepri-ast-zipper", "khepri-ast/node", "khepri-as
     }));
     peepholes.add("BinaryExpression", UP, (function(node) {
         return (node.operator === "|>");
-    }), (function(__o6) {
-        var left = __o6["left"],
-            right = __o6["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, right, [left]);
     }));
     peepholes.add("BinaryExpression", UP, (function(node) {
         return (node.operator === "<|");
-    }), (function(__o6) {
-        var left = __o6["left"],
-            right = __o6["right"];
+    }), (function(__o5) {
+        var left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, left, [right]);
     }));
     peepholes.add("BinaryExpression", UP, (function(node) {
         return ((((node.operator === "\\>") || (node.operator === "\\>>")) || (node.operator === "<\\")) ||
             (node.operator === "<<\\"));
-    }), (function(__o6) {
-        var operator = __o6["operator"],
-            left = __o6["left"],
-            right = __o6["right"];
+    }), (function(__o5) {
+        var operator = __o5["operator"],
+            left = __o5["left"],
+            right = __o5["right"];
         return ast_expression.CallExpression.create(null, definitions[operator], [left, right]);
     }));
-    var x = khepriZipper,
-        y = rewrite.bind(null, peepholes);
-    (normalize = (function(x0) {
-        return y(x(x0));
-    }));
+    (normalize = rewrite.bind(null, peepholes));
     (exports["normalize"] = normalize);
 }));

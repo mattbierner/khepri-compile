@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/rewriter.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/rewriter.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var zipper = require("neith")["zipper"],
     tree = require("neith")["tree"],
     __o = require("neith")["walk"],
@@ -65,11 +64,9 @@ var transform = (function(ctx, transforms) {
 var x = (function(rewritter, ctx) {
     return walk(rewritter.transform.bind(rewritter), rewritter.transformPost.bind(rewritter), ctx);
 }),
-    x0 = zipper.root,
-    y = tree.node;
+    y = zipper.root;
 (rewrite = (function() {
-    var x1 = x.apply(null, arguments);
-    return y(x0(x1));
+    return y(x.apply(null, arguments));
 }));
 (exports["UP"] = UP);
 (exports["DOWN"] = DOWN);

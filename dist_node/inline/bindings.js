@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/bindings.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/bindings.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var hamt = require("hamt"),
     empty, setBinding, getBinding;
 (empty = hamt.empty);

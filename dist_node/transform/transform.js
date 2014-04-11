@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -19,19 +18,17 @@ var record = require("bes")["record"],
     khepri_program = require("khepri-ast")["program"],
     khepri_statement = require("khepri-ast")["statement"],
     khepri_value = require("khepri-ast")["value"],
-    __o = require("khepri-ast-zipper"),
-    khepriZipper = __o["khepriZipper"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
-    __o0 = require("akh")["base"],
-    liftM2 = __o0["liftM2"],
-    next = __o0["next"],
-    seq = __o0["sequence"],
+    __o = require("akh")["base"],
+    liftM2 = __o["liftM2"],
+    next = __o["next"],
+    seq = __o["sequence"],
     ZipperT = require("zipper-m")["trans"]["zipper"],
     walk = require("zipper-m")["walk"],
-    __o1 = require("../ast"),
-    type = __o1["type"],
-    getUid = __o1["getUid"],
+    __o0 = require("../ast"),
+    type = __o0["type"],
+    getUid = __o0["getUid"],
     scope = require("../scope"),
     Scope = scope["Scope"],
     fun = require("../fun"),
@@ -39,15 +36,17 @@ var record = require("bes")["record"],
     flatten = fun["flatten"],
     flip = fun["flip"],
     filter = fun["filter"],
-    __o2 = require("../builtin"),
-    builtins = __o2["builtins"],
-    definitions = __o2["definitions"],
-    __o3 = require("../unpack"),
-    innerPattern = __o3["innerPattern"],
-    unpackParameters = __o3["unpackParameters"],
+    __o1 = require("../builtin"),
+    builtins = __o1["builtins"],
+    definitions = __o1["definitions"],
+    __o2 = require("../unpack"),
+    innerPattern = __o2["innerPattern"],
+    unpackParameters = __o2["unpackParameters"],
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
-    transform, x, y, x0, y0, y1, y2, useStrict, State = record.declare(null, ["scope", "packageManager", "bindings"]);
+    transform, x, y, f, f0, x0, y0, y1, y2, useStrict, State = record.declare(null, ["scope", "packageManager",
+        "bindings"
+    ]);
 (State.empty = State.create(Scope.empty, null, [
     [], null
 ]));
@@ -68,36 +67,29 @@ var M = ZipperT(StateT(Unique)),
     modify = M.modifyNode,
     set = M.setNode,
     inspectScope = (function(f) {
-        return extract.map((function(s) {
-            return f(s.scope);
+        return extract.map((function(x0) {
+            return f(x0.scope);
         }));
     }),
     inspectScopeWith = (function(f) {
-        return extract.chain((function(s) {
-            return f(s.scope);
+        return extract.chain((function(x0) {
+            return f(x0.scope);
         }));
     }),
-    packageManager = extract.map((function(s) {
-        return s.packageManager;
+    packageManager = extract.map((function(x0) {
+        return x0.packageManager;
     })),
-    modifyScope = (function(f) {
+    setScope = (function(scope0) {
         return modifyState((function(s) {
-            return s.setScope(f(s.scope));
+            return s.setScope(scope0);
         }));
     }),
-    setScope = (function(s) {
-        return modifyScope((function() {
-            return s;
-        }));
-    }),
-    enterBlock = extract.chain((function(s) {
-        var s0 = s.scope;
-        return setScope(Scope.empty.setOuter(s0));
-    })),
-    exitBlock = extract.chain((function(s) {
-        var s0 = s.scope;
-        return setScope(s0.outer);
-    })),
+    enterBlock = ((f = scope.push), modifyState((function(s) {
+        return s.setScope(f(s.scope));
+    }))),
+    exitBlock = ((f0 = scope.pop), modifyState((function(s) {
+        return s.setScope(f0(s.scope));
+    }))),
     getMapping = (function(uid) {
         return inspectScope((function(s) {
             return s.getMapping(uid);
@@ -123,8 +115,8 @@ var M = ZipperT(StateT(Unique)),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
-    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o4) {
-        var uid = __o4[1];
+    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o3) {
+        var uid = __o3[1];
         return getMapping(uid);
     }))), (function(x1) {
         var x2 = x1.bindings[0];
@@ -213,16 +205,17 @@ var M = ZipperT(StateT(Unique)),
             "post": post
         })]);
     });
-addTransform("VariableDeclaration", null, modify((function(__o4) {
-    var loc = __o4["loc"],
-        declarations = __o4["declarations"];
-    return (declarations.length ? ecma_declaration.VariableDeclaration.create(loc, declarations) : null);
+addTransform("VariableDeclaration", null, modify((function(__o3) {
+    var loc = __o3["loc"],
+        declarations = __o3["declarations"];
+    return ecma_declaration.VariableDeclaration.create(loc, declarations);
 })));
 addTransform("VariableDeclarator", null, modify((function(node0) {
     return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
 })));
-addTransform("StaticDeclaration", modify((function(node0) {
-    return ecma_statement.EmptyStatement.create(node0.loc);
+addTransform("StaticDeclaration", modify((function(__o3) {
+    var loc = __o3["loc"];
+    return ecma_statement.EmptyStatement.create(loc);
 })));
 addTransform("CatchClause", null, modify((function(node0) {
     return ecma_clause.CatchClause.create(node0.loc, node0.param, node0.body);
@@ -384,6 +377,6 @@ var _transp = (function(node0) {
     }
     var s = State.empty.setPackageManager(packageManager0);
     return run(seq(addVar("require", getUid(builtins.require)), addVar("exports", getUid(builtins.exports)),
-        walk(M, _transform, _transformPost), node), s, khepriZipper(ast));
+        walk(M, _transform, _transformPost), node), s, ast);
 }));
 (exports["transform"] = transform);

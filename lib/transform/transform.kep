@@ -22,8 +22,6 @@ with
     import 'khepri-ast::statement' khepri_statement,
     import 'khepri-ast::value' khepri_value,
     
-    import 'khepri-ast-zipper' {khepriZipper},
-    
     import 'akh::unique' Unique,
     import 'akh::trans::state' StateT,
     import 'akh::base' {
@@ -101,29 +99,29 @@ var set = M.setNode;
 
 // Scoping Operations
 ////////////////////////////////////////
-var inspectScope = \f -> extract.map\s -> f(s.scope);
+var inspectScope = \f -> extract.map (f <\ (.scope));
 
-var inspectScopeWith = \f -> extract.chain\s -> f(s.scope);
+var inspectScopeWith = \f -> extract.chain(f <\ (.scope));
 
-var packageManager = extract.map\s -> s.packageManager;
+var packageManager = extract.map (.packageManager);
+
+var setScope = \scope ->
+    modifyState \ s ->
+        s.setScope(scope);
 
 var modifyScope = \f ->
     modifyState \ s ->
         s.setScope(f s.scope);
 
-var setScope = \s -> modifyScope \ -> s;
-
 /**
  * Enter a new real scope.
  */
-var enterBlock = inspectScopeWith \ s ->
-    setScope <| Scope.empty.setOuter(s);
+var enterBlock = modifyScope (scope.push);
 
 /**
  * Exit the current real scope.
  */
-var exitBlock = inspectScopeWith \ s ->
-    setScope(s.outer);
+var exitBlock = modifyScope (scope.pop);
 
 /**
  * Get the identifier name for `uid`.
@@ -201,10 +199,10 @@ var variableDeclarator = ecma_declaration.VariableDeclarator.create;
  * Expand a binding to a list of simple variable declarations.
  */
 var unpack =
-    (\binding ->
-        innerPattern(binding.value, binding.pattern))
-    \> (fun.map @ \x ->
-        variableDeclarator(null, x.pattern, x.value));
+    \binding ->
+        innerPattern(binding.value, binding.pattern) §
+    \> fun.map @ \x ->
+        variableDeclarator(null, x.pattern, x.value);
 
 /**
  * Expand an binding to a list of assignment expressions.
@@ -244,9 +242,7 @@ in
  * With statement translation.
  */
 var withStatementNoImport = \loc bindings body -> let
-    vars =
-        fun.map(unpack, bindings)
-            |> flatten,
+    vars = flatten <| fun.map(unpack, bindings),
     
     prefix = variableDeclaration(null, vars)
 in
@@ -275,11 +271,11 @@ in
 /**
  * Function Expression Normalization.
  */
-var functionExpression = \loc, id, parameters, functionBody, prefix -> let
+var functionExpression = \loc id parameters functionBody prefix -> let
     params = parameters.elements,
         
     bindings = unpackArgumentsPattern(parameters)
-        |> (fun.map @ \x -> variableDeclarator(null, x.pattern, x.value)),
+        |> fun.map @ \x -> variableDeclarator(null, x.pattern, x.value),
     
     body = ?type functionBody === "BlockStatement"
         :functionBody
@@ -363,10 +359,8 @@ var addTransform = \type pre post -> {
 addTransform('VariableDeclaration',
     null,
     modify \ {loc declarations} ->
-        ?declarations.length
-            :ecma_declaration.VariableDeclaration.create(loc,
-                declarations)
-            :null);
+        ecma_declaration.VariableDeclaration.create(loc,
+            declarations));
 
 addTransform('VariableDeclarator',
     null,
@@ -376,8 +370,8 @@ addTransform('VariableDeclarator',
             node.init));
 
 addTransform('StaticDeclaration',
-    modify \ node ->
-        ecma_statement.EmptyStatement.create(node.loc));
+    modify \ {loc} ->
+        ecma_statement.EmptyStatement.create(loc));
 
 // Clauses
 addTransform('CatchClause',
@@ -646,14 +640,14 @@ addTransform('Program',
             concat(
                 ?node.ud && node.ud.prefix :node.ud.prefix :[],
                 ecma_declaration.VariableDeclaration.create(null,
-                    bindings.map(\x ->
+                    bindings.map\x ->
                         ecma_declaration.VariableDeclarator.create(null,
-                            identifier(null, x)))),
+                            identifier(null, x))),
                 node.body)));
 
 // Package
 addTransform('Package',
-    packageManager.chain \packageManager ->
+    packageManager.chain \ packageManager ->
     modify \ node ->
         packageBlock(
             packageManager,
@@ -672,7 +666,7 @@ addTransform('Identifier',
                 getMapping(getUid node).chain \ name ->
                     set <| identifier(node.loc, name))
         
-        // When node has no uid, dont rename
+        // When node has no uid, don't rename
         :set <| identifier(node.loc, node.name));
 
 /*
@@ -721,7 +715,7 @@ transform = \ast manager data -> {
                 walk(M, _transform, _transformPost),
                 node),
             s,
-            khepriZipper ast);
+            ast);
     }
 };
 

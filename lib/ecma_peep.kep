@@ -61,7 +61,7 @@ peepholes.add('VariableDeclaration', DOWN,
     always,
     
     \node -> let
-        declarations = node.declarations.filter(\x -> !!x)
+        declarations = node.declarations.filter\x -> !!x
     in
         modify(node, {
             'declarations': declarations

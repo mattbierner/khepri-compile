@@ -196,6 +196,6 @@ push = \s ->
         .setOuter(s)
         .setDefinitions(s.definitions);
 
-pop = \s -> s.outer;
+pop = (.outer);
 
 }
