@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Error = require("akh")["error"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],

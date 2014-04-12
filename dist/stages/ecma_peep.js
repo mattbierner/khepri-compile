@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/ecma_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/error", "bes/object", "neith/tree", "../ecma_peep"], (function(require, exports,
+*/
+define(["require", "exports", "akh/error", "bes/object", "neith/tree", "../ecma_peep"], (function(require, exports,
     Error, __o, __o0, ecma_peep) {
     "use strict";
     var setProperty = __o["setProperty"],

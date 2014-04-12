@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     hamt = require("hamt"),
     zipper = require("neith")["zipper"],
