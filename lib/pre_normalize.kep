@@ -146,7 +146,7 @@ peepholes.add('ArgumentsPattern', UP,
         modify(node, {
             'id': id,
             'elements': createUnpackList(pre, mid, post)
-        }, {}));
+        }));
 
 /**
  * Normalize object patterns to ('key': pattern) form.

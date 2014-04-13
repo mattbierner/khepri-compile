@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     ast_statement = require("khepri-ast")["statement"],
@@ -50,7 +49,7 @@ peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = 
 })), (function(node) {
     return modify(node, ({
         "bindings": flattenr(map(expandBinding, node.bindings))
-    }), ({}));
+    }));
 })));
 peepholes.add("FunctionExpression", UP, always, (function(node) {
     var params = getParameterNames(node.params.elements),
@@ -59,7 +58,7 @@ peepholes.add("FunctionExpression", UP, always, (function(node) {
             null, bindings, node.body)]) : ast_expression.LetExpression.create(null, bindings, node.body));
     return ast_expression.FunctionExpression.create(node.loc, node.id, modify(node.params, ({
         "elements": params
-    }), ({})), body);
+    })), body);
 }));
 var expandAssignment = (function(node) {
     var right;

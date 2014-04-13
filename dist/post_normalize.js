@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression", "./ast", "./fun",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression", "./ast", "./fun",
     "./unpack", "./builtin", "./rewriter"
 ], (function(require, exports, __o, ast_statement, ast_expression, __o0, __o1, __o2, __o3, __o4) {
     "use strict";
@@ -45,7 +44,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri
     })), (function(node) {
         return modify(node, ({
             "bindings": flattenr(map(expandBinding, node.bindings))
-        }), ({}));
+        }));
     })));
     peepholes.add("FunctionExpression", UP, always, (function(node) {
         var params = getParameterNames(node.params.elements),
@@ -55,7 +54,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri
             ]) : ast_expression.LetExpression.create(null, bindings, node.body));
         return ast_expression.FunctionExpression.create(node.loc, node.id, modify(node.params, ({
             "elements": params
-        }), ({})), body);
+        })), body);
     }));
     var expandAssignment = (function(node) {
         var right;

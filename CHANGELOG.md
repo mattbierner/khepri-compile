@@ -1,6 +1,8 @@
 # ChangeLog #
 
-## 0.5.0 - April 13, 2014
+## 0.5.1 - April 13, 2014
+* Performance improvements.
+** Compiler should be around 2x faster or better.
 
 ## 0.5.0 - April 10, 2014
 * Non computed member operator to function.

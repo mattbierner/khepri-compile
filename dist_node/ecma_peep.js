@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
     __o0 = require("ecma-ast")["node"],
@@ -29,7 +28,7 @@ var __o = require("ecma-ast-zipper"),
         return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ? concat(modify(
             c, ({
                 "declarations": concat(c.declarations, p[0].declarations)
-            }), ({})), p.slice(1)) : concat(c, p));
+            })), p.slice(1)) : concat(c, p));
     }), []),
     peepholes = new(Rewriter)(),
     always = (function(_) {
@@ -41,7 +40,7 @@ peepholes.add("VariableDeclaration", DOWN, always, (function(node) {
     }));
     return modify(node, ({
         "declarations": declarations
-    }), ({}));
+    }));
 }));
 peepholes.add("VariableDeclaration", UP, (function(node) {
     return (!node.declarations.length);
@@ -51,12 +50,12 @@ peepholes.add("VariableDeclaration", UP, (function(node) {
 peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
     return modify(node, ({
         "body": flattenBlockBody(node.body)
-    }), ({}));
+    }));
 }));
 peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
     return modify(node, ({
         "body": mergeBlockDeclarations(node.body)
-    }), ({}));
+    }));
 }));
 var x0 = ecmaZipper,
     y0 = rewrite.bind(null, peepholes);

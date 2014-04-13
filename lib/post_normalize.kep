@@ -69,7 +69,7 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
         \node ->
             modify(node, {
                 'bindings': flattenr <| map(expandBinding, node.bindings)
-            }, {}));
+            }));
 
 /**
  * Expand potentially complex parameter patterns in a function to simple
@@ -95,7 +95,7 @@ peepholes.add('FunctionExpression', UP,
     in
         ast_expression.FunctionExpression.create(node.loc,
             node.id,
-            modify(node.params, {'elements': params}, {}),
+            modify(node.params, {'elements': params}),
             body));
 
 /* Expression Conversion

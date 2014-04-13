@@ -41,7 +41,7 @@ var mergeBlockDeclarations :=
                         'declarations': concat(
                             c.declarations,
                             p.(0).declarations)
-                    }, {}),
+                    }),
                     p.slice(1))
                 :concat(c, p),
         []);
@@ -65,7 +65,7 @@ peepholes.add('VariableDeclaration', DOWN,
     in
         modify(node, {
             'declarations': declarations
-        }, {}));
+        }));
 
 /**
  * Remove empty Variable declarations.
@@ -87,7 +87,7 @@ peepholes.add(['Program', 'BlockStatement'], UP,
     \node ->
         modify(node, {
             'body': flattenBlockBody(node.body)
-        }, {}));
+        }));
 
 /**
  * Merge neighboring var  declarations
@@ -97,7 +97,7 @@ peepholes.add(['Program', 'BlockStatement'], UP,
     \node ->
         modify(node, {
             'body': mergeBlockDeclarations(node.body)
-            }, {}));
+            }));
 
 /* Interface
  ******************************************************************************/

@@ -12,7 +12,7 @@
         seqa = __o0["sequencea"],
         type = __o1["type"],
         getUid = __o1["getUid"],
-        optimize, x, y, consequent, x0, State = record.declare(null, ["bindings"]);
+        optimize, x, y, x0, consequent, alternate, consequent0, x1, State = record.declare(null, ["bindings"]);
     (State.empty = State.create(hamt.empty));
     (State.prototype.setReference = (function(uid, count) {
         var __o2 = this,
@@ -41,6 +41,16 @@
         modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
             return x(y(x0));
         })),
+        setCount = (function(uid, count) {
+            return (uid ? modifyState((function(s) {
+                return s.setReference(uid, count);
+            })) : pass);
+        }),
+        getCount = (function(uid, yes, no) {
+            return (uid ? getState.map((function(s) {
+                return s.getCount(uid);
+            })) : M.of(0));
+        }),
         isReachable = (function(uid, yes, no) {
             return (uid ? getState.chain((function(s) {
                 return (s.isReachable(uid) ? yes : no);
@@ -98,10 +108,21 @@
         checkTop)));
     addRewrite("UnaryExpression", child("argument", checkTop));
     addRewrite(["LogicalExpression", "BinaryExpression"], seq(child("left", checkTop), child("right", checkTop)));
-    addRewrite("AssignmentExpression", seq(child("left", checkTop), child("right", checkTop)));
-    addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent = child("property", checkTop)),
+    addRewrite("AssignmentExpression", ((x0 = type), (consequent = extract((function(node) {
+        var uid = getUid(node.left);
+        return getCount(uid)
+            .chain((function(count) {
+                return (count ? seq(child("right", checkTop), setCount(uid, count)) :
+                    set(null));
+            }));
+    }))), (alternate = seq(child("left", checkTop), child("right", checkTop))), extract((function(node) {
+        var x1, y0;
+        return (((x1 = node.left), (y0 = x0(x1)), ("Identifier" === y0)) ? consequent : (
+            alternate || pass));
+    }))));
+    addRewrite("MemberExpression", seq(child("object", checkTop), ((consequent0 = child("property", checkTop)),
         extract((function(node) {
-            return (node.computed ? consequent : (undefined || pass));
+            return (node.computed ? consequent0 : (undefined || pass));
         })))));
     addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
@@ -110,8 +131,8 @@
     addRewrite("ArrayExpression", child("elements", checkTop));
     addRewrite("ObjectExpression", child("properties", checkTop));
     addRewrite("ObjectValue", child("value", checkTop));
-    addRewrite("Identifier", extract(((x0 = getUid), (function(x1) {
-        var uid = x0(x1);
+    addRewrite("Identifier", extract(((x1 = getUid), (function(x2) {
+        var uid = x1(x2);
         return (uid ? modifyState((function(s) {
             return s.addReference(uid);
         })) : pass);

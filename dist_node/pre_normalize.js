@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     setData = __o["setData"],
@@ -89,7 +88,7 @@ peepholes.add("ArgumentsPattern", UP, (function(node) {
     return modify(node, ({
         "id": id,
         "elements": createUnpackList(pre, mid, post)
-    }), ({}));
+    }));
 }));
 peepholes.add("ObjectPatternElement", DOWN, (function(node) {
     return (!node.target);
