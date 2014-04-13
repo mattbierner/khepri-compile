@@ -13,13 +13,13 @@ with
         next
         'sequence': seq
         'sequencea': seqa},
-    import 'akh::trans::state' StateT,
+    import 'akh::trans::statei' StateT,
     import 'akh::identity' Identity,
     import 'akh::error' Error,
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
     
-    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::trans::tree' TreeZipperT,
     
     import './ast' {type},
     import './scope' scope#{Scope},
@@ -35,12 +35,12 @@ var _check;
 
 /* Monad
  ******************************************************************************/
-var M = ErrorT (ZipperT (StateT (Unique)));
+var M = ErrorT (TreeZipperT (StateT (Unique)));
 
 var run = \p s ctx ok err->
     Unique.runUnique(
         StateT.evalStateT(
-            ZipperT.runZipperT(
+            TreeZipperT.runTreeZipperT(
                 ErrorT.runErrorT(
                     p,
                     ok \> M.inner.of,

@@ -1,10 +1,9 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/node", "akh/base", "akh/state",
-    "zipper-m/trans/zipper", "zipper-m/walk", "./ast"
-], (function(require, exports, record, hamt, zipper, __o, __o0, StateM, ZipperT, walk, __o1) {
+*/define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/node", "akh/base", "akh/state",
+    "zipper-m/trans/tree", "zipper-m/walk", "./ast"
+], (function(require, exports, record, hamt, zipper, __o, __o0, StateM, TreeZipperT, walk, __o1) {
     "use strict";
     var Node = __o["Node"],
         setData = __o["setData"],
@@ -33,9 +32,9 @@ define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/
         return hamt.get(uid, bindings);
     }));
     (State.prototype.isReachable = State.prototype.getCount);
-    var _check, M = ZipperT(StateM),
+    var _check, M = TreeZipperT(StateM),
         run = (function(c, ctx) {
-            return StateM.evalState(ZipperT.runZipperT(c, ctx), State.empty);
+            return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), State.empty);
         }),
         pass = M.of(null),
         getState = M.lift(M.inner.get),

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -20,12 +19,12 @@ var record = require("bes")["record"],
     khepri_statement = require("khepri-ast")["statement"],
     khepri_value = require("khepri-ast")["value"],
     Unique = require("akh")["unique"],
-    StateT = require("akh")["trans"]["state"],
+    StateT = require("akh")["trans"]["statei"],
     __o = require("akh")["base"],
     liftM2 = __o["liftM2"],
     next = __o["next"],
     seq = __o["sequence"],
-    ZipperT = require("zipper-m")["trans"]["zipper"],
+    TreeZipperT = require("zipper-m")["trans"]["tree"],
     walk = require("zipper-m")["walk"],
     __o0 = require("../ast"),
     type = __o0["type"],
@@ -51,9 +50,9 @@ var record = require("bes")["record"],
 (State.empty = State.create(Scope.empty, null, [
     [], null
 ]));
-var M = ZipperT(StateT(Unique)),
+var M = TreeZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
+        return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
     }),
     pass = M.of(null),
     cons = liftM2.bind(null, concat),

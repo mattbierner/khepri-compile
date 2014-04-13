@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hamt = require("hamt"),
     __o = require("khepri-ast")["node"],
@@ -22,7 +21,7 @@ var record = require("bes")["record"],
     seqa = __o0["sequencea"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["state"],
-    ZipperT = require("zipper-m")["trans"]["zipper"],
+    TreeZipperT = require("zipper-m")["trans"]["tree"],
     walk = require("zipper-m")["walk"],
     __o1 = require("./ast"),
     isIdentifier = __o1["isIdentifier"],
@@ -138,9 +137,9 @@ var markExpansion = (function(id, count, target) {
     }));
 }),
     getExpansion = getUd.bind(null, "expand"),
-    M = ZipperT(StateT(Unique)),
+    M = TreeZipperT(StateT(Unique)),
     run = (function(c, ctx, state, seed) {
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
+        return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state), seed);
     }),
     pass = M.of(null),
     unique = M.chain.bind(null, M.liftInner(Unique.unique)),

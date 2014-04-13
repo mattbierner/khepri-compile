@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -12,12 +11,12 @@ var ast_node = require("khepri-ast")["node"],
     next = __o["next"],
     seq = __o["sequence"],
     seqa = __o["sequencea"],
-    StateT = require("akh")["trans"]["state"],
+    StateT = require("akh")["trans"]["statei"],
     Identity = require("akh")["identity"],
     Error = require("akh")["error"],
     ErrorT = require("akh")["trans"]["error"],
     Unique = require("akh")["unique"],
-    ZipperT = require("zipper-m")["trans"]["zipper"],
+    TreeZipperT = require("zipper-m")["trans"]["tree"],
     __o0 = require("./ast"),
     type = __o0["type"],
     scope = require("./scope"),
@@ -28,10 +27,10 @@ var ast_node = require("khepri-ast")["node"],
         alternate1, consequent2, reserved = (function(node) {
             return ((node && node.ud) && node.ud.reserved);
         }),
-    _check, M = ErrorT(ZipperT(StateT(Unique))),
+    _check, M = ErrorT(TreeZipperT(StateT(Unique))),
     run = (function(p, s, ctx, ok, err) {
         var y, y0;
-        return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(ErrorT.runErrorT(p, ((y = M.inner.of), (
+        return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(ErrorT.runErrorT(p, ((y = M.inner.of), (
             function(x) {
                 return y(ok(x));
             })), ((y0 = M.inner.of), (function(x) {

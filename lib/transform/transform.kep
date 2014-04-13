@@ -23,13 +23,13 @@ with
     import 'khepri-ast::value' khepri_value,
     
     import 'akh::unique' Unique,
-    import 'akh::trans::state' StateT,
+    import 'akh::trans::statei' StateT,
     import 'akh::base' {
         liftM2
         next
         'sequence': seq},
     
-    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
     
     import '../ast' {type getUid},
@@ -61,12 +61,12 @@ State.empty = State.create(
 
 /* Monad
  ******************************************************************************/
-var M = ZipperT (StateT Unique);
+var M = TreeZipperT (StateT Unique);
 
 var run = \m s ctx seed ->
     Unique.runUnique(
         StateT.evalStateT(
-            ZipperT.runZipperT(m, ctx),
+            TreeZipperT.runTreeZipperT(m, ctx),
             s),
         seed);
 

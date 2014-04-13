@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hamt = require("hamt"),
     zipper = require("neith")["zipper"],
@@ -14,7 +13,7 @@ var record = require("bes")["record"],
     seq = __o0["sequence"],
     seqa = __o0["sequencea"],
     StateM = require("akh")["state"],
-    ZipperT = require("zipper-m")["trans"]["zipper"],
+    TreeZipperT = require("zipper-m")["trans"]["tree"],
     walk = require("zipper-m")["walk"],
     __o1 = require("./ast"),
     type = __o1["type"],
@@ -39,9 +38,9 @@ var record = require("bes")["record"],
     return hamt.get(uid, bindings);
 }));
 (State.prototype.isReachable = State.prototype.getCount);
-var _check, M = ZipperT(StateM),
+var _check, M = TreeZipperT(StateM),
     run = (function(c, ctx) {
-        return StateM.evalState(ZipperT.runZipperT(c, ctx), State.empty);
+        return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), State.empty);
     }),
     pass = M.of(null),
     getState = M.lift(M.inner.get),

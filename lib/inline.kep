@@ -33,7 +33,7 @@ with
     import 'akh::unique' Unique,
     import 'akh::trans::state' StateT,
 
-    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
     
     import './ast' {
@@ -140,12 +140,12 @@ var expandNode = \node ->
 
 /* Monad
  ******************************************************************************/
-var M = ZipperT (StateT Unique);
+var M = TreeZipperT (StateT Unique);
 
 var run = \c ctx state seed ->
     Unique.runUnique(
         StateT.evalStateT(
-            ZipperT.runZipperT(c, ctx),
+            TreeZipperT.runTreeZipperT(c, ctx),
             state),
         seed);
 

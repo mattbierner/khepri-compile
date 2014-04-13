@@ -19,7 +19,7 @@ with
     
     import 'akh::state' StateM,
 
-    import 'zipper-m::trans::zipper' ZipperT,
+    import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
     
     import './ast' {
@@ -49,11 +49,11 @@ State.prototype.isReachable = State.prototype.getCount = \uid ={bindings}->
  ******************************************************************************/
 var _check;
 
-var M = ZipperT (StateM);
+var M = TreeZipperT (StateM);
 
 var run = \c ctx ->
     StateM.evalState(
-        ZipperT.runZipperT(c, ctx),
+        TreeZipperT.runTreeZipperT(c, ctx),
         State.empty);
 
 var pass = M.of null;

@@ -1,14 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
+*/define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package", "khepri-ast/program", "khepri-ast/value",
-    "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/zipper", "zipper-m/walk", "./ast", "./builtin",
+    "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree", "zipper-m/walk", "./ast", "./builtin",
     "./fun", "./inline/bindings", "./inline/expand", "./inline/rename"
 ], (function(require, exports, record, hamt, __o, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_package, ast_program, ast_value, __o0, Unique, StateT, ZipperT, walk, __o1, builtin, fun, binding, __o2,
-    __o3) {
+    ast_package, ast_program, ast_value, __o0, Unique, StateT, TreeZipperT, walk, __o1, builtin, fun, binding,
+    __o2, __o3) {
     "use strict";
     var Node = __o["Node"],
         setData = __o["setData"],
@@ -125,9 +124,9 @@ define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-a
         }));
     }),
         getExpansion = getUd.bind(null, "expand"),
-        M = ZipperT(StateT(Unique)),
+        M = TreeZipperT(StateT(Unique)),
         run = (function(c, ctx, state, seed) {
-            return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(c, ctx), state), seed);
+            return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state), seed);
         }),
         pass = M.of(null),
         unique = M.chain.bind(null, M.liftInner(Unique.unique)),

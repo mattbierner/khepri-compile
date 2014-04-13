@@ -1,5 +1,7 @@
 # ChangeLog #
 
+## 0.5.0 - April 13, 2014
+
 ## 0.5.0 - April 10, 2014
 * Non computed member operator to function.
 * Added support for marking previously mutable binding immutable with `:=`.

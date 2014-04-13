@@ -1,16 +1,15 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement",
-    "khepri-ast/value", "akh/unique", "akh/trans/state", "akh/base", "zipper-m/trans/zipper", "zipper-m/walk",
+    "khepri-ast/value", "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "zipper-m/walk",
     "../ast", "../scope", "../fun", "../builtin", "../unpack", "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_node, khepri_pattern,
-    khepri_program, khepri_statement, khepri_value, Unique, StateT, __o, ZipperT, walk, __o0, scope, fun, __o1,
-    __o2, _, _0) {
+    khepri_program, khepri_statement, khepri_value, Unique, StateT, __o, TreeZipperT, walk, __o0, scope, fun,
+    __o1, __o2, _, _0) {
     "use strict";
     var setData = khepri_node["setData"],
         liftM2 = __o["liftM2"],
@@ -33,9 +32,9 @@ define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declara
     (State.empty = State.create(Scope.empty, null, [
         [], null
     ]));
-    var M = ZipperT(StateT(Unique)),
+    var M = TreeZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
-            return Unique.runUnique(StateT.evalStateT(ZipperT.runZipperT(m, ctx), s), seed);
+            return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
         }),
         pass = M.of(null),
         cons = liftM2.bind(null, concat),
