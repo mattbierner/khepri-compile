@@ -34,20 +34,20 @@
         optimize, x, y, consequent, consequent0, consequent1, consequent2, arithmetic, consequent3, consequent4,
             arithmetic0, consequent5, y0, consequent6, alternate, consequent7, consequent8, consequent9,
             consequent10, exp, consequent11, consequent12, exp0, consequent13, consequent14, consequent15,
-            consequent16, __plus = (function(x) {
-                return (+x);
+            consequent16, __and = (function(x, y) {
+                return (x && y);
             }),
+        __plus = (function(x) {
+            return (+x);
+        }),
+        __minus = (function(x) {
+            return (-x);
+        }),
         __blas = (function(x, y) {
             return (x << y);
         }),
         __or = (function(x, y) {
             return (x || y);
-        }),
-        __minus = (function(x) {
-            return (-x);
-        }),
-        __and = (function(x, y) {
-            return (x && y);
         }),
         __bras = (function(x, y) {
             return (x >> y);
@@ -58,9 +58,6 @@
         __lte = (function(x, y) {
             return (x <= y);
         }),
-        __typeof = (function(x) {
-            return (typeof x);
-        }),
         __mod = (function(x, y) {
             return (x % y);
         }),
@@ -70,11 +67,17 @@
         __add = (function(x, y) {
             return (x + y);
         }),
-        __lt = (function(x, y) {
-            return (x < y);
-        }),
         __sub = (function(x, y) {
             return (x - y);
+        }),
+        __div = (function(x, y) {
+            return (x / y);
+        }),
+        __typeof = (function(x) {
+            return (typeof x);
+        }),
+        __lt = (function(x, y) {
+            return (x < y);
         }),
         __gt = (function(x, y) {
             return (x > y);
@@ -85,15 +88,12 @@
         __brls = (function(x, y) {
             return (x >>> y);
         }),
-        __div = (function(x, y) {
-            return (x / y);
-        }),
         __gte = (function(x, y) {
             return (x >= y);
         }),
         _check, Binding = record.declare(null, ["value", "immutable", "simple"]),
-        State = record.declare(null, ["bindings", "working", "globals", "outer", "ctx"]);
-    (State.empty = new(State)(binding.empty, binding.empty, hamt.empty, null, hamt.empty));
+        State = record.declare(null, ["bindings", "working", "globals", "outer"]);
+    (State.empty = new(State)(binding.empty, binding.empty, hamt.empty, null));
     (State.prototype.addBinding = (function(uid, target, simple) {
         var s = this;
         return s.setBindings(binding.setBinding(uid, Binding.create(target, true, simple), s.bindings));
@@ -111,7 +111,6 @@
         var s = this;
         return s.outer.setBindings(s.bindings)
             .setGlobals(s.globals)
-            .setCtx(s.ctx)
             .setWorking(hamt.fold((function(p, __o4) {
                 var key = __o4["key"];
                 return hamt.set(key, null, p);

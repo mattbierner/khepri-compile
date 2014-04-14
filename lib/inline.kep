@@ -77,15 +77,13 @@ var State := record.declare(null, [
     'bindings',
     'working',
     'globals',
-    'outer',
-    'ctx']);
+    'outer']);
 
 State.empty = new State(
     binding.empty,
     binding.empty,
     hamt.empty,
-    null,
-    hamt.empty);
+    null);
 
 State.prototype.addBinding = \uid target simple =s->
     s.setBindings(
@@ -103,7 +101,6 @@ State.prototype.pop = \=s->
     s.outer
         .setBindings(s.bindings)
         .setGlobals(s.globals)
-        .setCtx(s.ctx)
         .setWorking(
             // Delete working bindings modified in inner from outer scope.
             hamt.fold(

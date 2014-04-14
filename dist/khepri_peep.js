@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/khepri_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/khepri_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
+*/
+define(["require", "exports", "khepri-ast/declaration", "khepri-ast/statement", "khepri-ast/expression",
     "khepri-ast/value", "./fun", "./rewriter"
 ], (function(require, exports, ast_declaration, ast_statement, ast_expression, ast_value, __o, __o0) {
     "use strict";

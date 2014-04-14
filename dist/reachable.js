@@ -2,8 +2,8 @@
  * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
 */define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/node", "akh/base", "akh/state",
-    "zipper-m/trans/tree", "zipper-m/walk", "./ast"
-], (function(require, exports, record, hamt, zipper, __o, __o0, StateM, TreeZipperT, walk, __o1) {
+    "zipper-m/trans/tree", "./ast"
+], (function(require, exports, record, hamt, zipper, __o, __o0, StateM, TreeZipperT, __o1) {
     "use strict";
     var Node = __o["Node"],
         setData = __o["setData"],
@@ -62,7 +62,7 @@
         up = M.up,
         down = M.down,
         left = M.left,
-        rightmost = M.move(zipper.rightmost),
+        rightmost = M.rightmost,
         moveChild = M.child,
         child = (function(edge) {
             var __args = arguments,
@@ -82,7 +82,9 @@
             }
         });
     addRewrite("Program", child("body", checkTop));
-    addRewrite("Package", child("body", checkTop));
+    addRewrite("Package", seq(child("exports", checkTop), child("body", checkTop)));
+    addRewrite("PackageExports", child("exports", checkTop));
+    addRewrite("PackageExport", child("id", checkTop));
     addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
     addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
     addRewrite("VariableDeclaration", child("declarations", checkTop));

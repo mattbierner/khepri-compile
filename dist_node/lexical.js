@@ -148,9 +148,10 @@ var ast_node = require("khepri-ast")["node"],
     });
 addCheck("Program", block(child("body", checkTop)));
 addCheck("PackageExports", child("exports", checkTop));
-addCheck("PackageExport", inspect((function(node) {
-    return addMutableBindingChecked(node.id.name, node.loc);
-})));
+addCheck("PackageExport", seq(inspect((function(__o2) {
+    var id = __o2["id"];
+    return addMutableBindingChecked(id.name, id.loc);
+})), child("id", checkTop)));
 addCheck("Package", block(child("exports", checkTop), child("body", ((x3 = type), (consequent = seq(child("bindings",
     checkTop), child("body", child("body", checkTop)))), (alternate = child("body", checkTop)), inspect(
     (function(node) {

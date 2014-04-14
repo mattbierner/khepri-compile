@@ -262,11 +262,10 @@ addCheck@'Program' <|
 addCheck@'PackageExports' <|
     checkChild 'exports';
 
-addCheck@'PackageExport' <|
-    inspect \ node ->
-        addMutableBindingChecked(
-            node.id.name,
-            node.loc);
+addCheck@'PackageExport' <| seq(
+    inspect \ {id} ->
+        addMutableBindingChecked(id.name, id.loc),
+    checkChild 'id');
 
 addCheck@'Package' <|
     block(

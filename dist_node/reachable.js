@@ -14,7 +14,6 @@ var record = require("bes")["record"],
     seqa = __o0["sequencea"],
     StateM = require("akh")["state"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
-    walk = require("zipper-m")["walk"],
     __o1 = require("./ast"),
     type = __o1["type"],
     getUid = __o1["getUid"],
@@ -68,7 +67,7 @@ var _check, M = TreeZipperT(StateM),
     up = M.up,
     down = M.down,
     left = M.left,
-    rightmost = M.move(zipper.rightmost),
+    rightmost = M.rightmost,
     moveChild = M.child,
     child = (function(edge) {
         var __args = arguments,
@@ -88,7 +87,9 @@ var _check, M = TreeZipperT(StateM),
         }
     });
 addRewrite("Program", child("body", checkTop));
-addRewrite("Package", child("body", checkTop));
+addRewrite("Package", seq(child("exports", checkTop), child("body", checkTop)));
+addRewrite("PackageExports", child("exports", checkTop));
+addRewrite("PackageExport", child("id", checkTop));
 addRewrite("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
 addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
 addRewrite("VariableDeclaration", child("declarations", checkTop));

@@ -20,7 +20,6 @@ with
     import 'akh::state' StateM,
 
     import 'zipper-m::trans::tree' TreeZipperT,
-    import 'zipper-m::walk' walk,
     
     import './ast' {
         type
@@ -102,7 +101,7 @@ var up := M.up;
 var down := M.down;
 var left := M.left;
 
-var rightmost := M.move zipper.rightmost;
+var rightmost := M.rightmost;
 
 var moveChild := M.child;
 
@@ -156,8 +155,15 @@ var addRewrite := \type f -> {
 addRewrite@'Program' <|
     visitChild 'body';
 
-addRewrite@'Package' <|
-    visitChild 'body';
+addRewrite@'Package' <| seq(
+    visitChild 'exports', // mark all exports reachable before visiting body
+    visitChild 'body');
+
+addRewrite@'PackageExports' <|
+    visitChild 'exports';
+
+addRewrite@'PackageExport' <|
+    visitChild 'id';
 
 // Clause
 addRewrite@'SwitchCase' <| seq(
@@ -284,9 +290,8 @@ addRewrite@'Identifier' <|
 /* Interface
  ******************************************************************************/
 _check = \node -> {
-    if (Array.isArray(node)) {
-        if (!node.length)
-            return pass;
+    if (Array.isArray node) {
+        if (!node.length) return pass;
         
         // Visit all elements of array in reverse order, from right to left.
         return seq(

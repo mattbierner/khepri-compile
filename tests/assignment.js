@@ -17,7 +17,7 @@ exports.basic_mutable_binding = function(test) {
         6);
     
     test.equal(
-        run("var a; a = 3; { a = 3; }; a = 6;"),
+        run("var a; a = 3; { a = 3; }; a = 6; a;"),
         6);
     test.done();
 };
