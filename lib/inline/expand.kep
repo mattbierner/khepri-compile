@@ -76,7 +76,7 @@ in
         first = target.params.elements.(0),
         rest = target.params.elements.slice(1),
         
-        map = [getUid(first.id)],
+        closure = ((target.ud && target.ud.closure) || []),
         
         body = ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null,
@@ -89,7 +89,7 @@ in
                 concat(
                     base.bindings || [],
                     ast_declaration.Binding.create(null,
-                        rename(uid, map, first),
+                        rename(uid, closure, first),
                         args.(0))),
                 body)
             :body;
