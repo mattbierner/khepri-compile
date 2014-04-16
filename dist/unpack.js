@@ -1,12 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
-    "khepri-ast/value", "./ast", "./fun"
-], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, fun) {
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+    "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun"
+], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, fun) {
     "use strict";
-    var type = __o["type"],
+    var SliceUnpack = __o["SliceUnpack"],
+        RelativeUnpack = __o["RelativeUnpack"],
+        type = __o0["type"],
         concat = fun["concat"],
         flatten = fun["flatten"],
         innerPattern, unpackParameters, identifier = ast_value.Identifier.create.bind(null, null),
@@ -58,9 +59,9 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
                 case "IdentifierPattern":
                     return [];
                 case "SliceUnpack":
-                    return sliceUnpack(args, x.pattern, x.from, x.to);
+                    return sliceUnpack(args.id, x.pattern, x.from, x.to);
                 case "RelativeUnpack":
-                    return relativeUnpack(args, x.min, x.index, x.pattern);
+                    return relativeUnpack(args.id, x.min, x.index, x.pattern);
                 case "AsPattern":
                     return flatten(innerPattern(x.id, x.target));
                 default:

@@ -12,6 +12,8 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
+    import './pseudo/pattern' {SliceUnpack RelativeUnpack},
+    
     import './ast' {type},
     import './fun' fun#{
         concat
@@ -148,10 +150,10 @@ unpackParameters = \args elements ->
                 return [];
             
             case 'SliceUnpack':
-                return sliceUnpack(args, x.pattern, x.from, x.to);
+                return sliceUnpack(args.id, x.pattern, x.from, x.to);
             
             case 'RelativeUnpack':
-                return relativeUnpack(args, x.min, x.index, x.pattern);
+                return relativeUnpack(args.id, x.min, x.index, x.pattern);
             
             case 'AsPattern':
                 return flatten <| innerPattern(x.id, x.target);

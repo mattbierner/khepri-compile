@@ -129,7 +129,10 @@
     addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop)));
-    addRewrite("LetExpression", seq(child("body", checkTop), child("bindings", checkTop)));
+    addRewrite("LetExpression", seq(extract((function(node) {
+        return pass;
+    })), child("body", checkTop), child("bindings", checkTop)));
+    addRewrite("ArgumentsPattern", child("id", checkTop));
     addRewrite("ArrayExpression", child("elements", checkTop));
     addRewrite("ObjectExpression", child("properties", checkTop));
     addRewrite("ObjectValue", child("value", checkTop));

@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 0.5.3 - APril 16, 2014
+* Fixed bug that could cause the arguments unpack of an inlined function to be
+  pruned.
+* Improvements to constant folding of non-immutable bindings.
+
 ## 0.5.2 - April 15, 2014
 * Added support to inline call of lambda that uses arguments object.
 * Don't count assignment in reachability.

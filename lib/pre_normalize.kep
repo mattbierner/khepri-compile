@@ -99,10 +99,10 @@ var createUnpackList = \pre mid post ->
     concat(
         pre,
         ?mid && mid.id
-            :SliceUnpack.create(null, mid.id, pre.length, post.length)
+            :SliceUnpack.create(null, mid.id, null, pre.length, post.length)
             :[],
         map(
-            \x i -> RelativeUnpack.create(null, x, post.length - i, post.length + pre.length),
+            \x i -> RelativeUnpack.create(null, x, null, post.length - i, post.length + pre.length),
             post));
 
 /**

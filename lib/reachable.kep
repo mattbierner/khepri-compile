@@ -271,8 +271,14 @@ addRewrite@'CurryExpression' <| seq(
     visitChild 'args');
 
 addRewrite@'LetExpression' <| seq(
+    extract \ node -> 
+    pass,
     visitChild 'body',
     visitChild 'bindings');
+
+// Unpack
+addRewrite@'ArgumentsPattern' <|
+    visitChild 'id';
 
 // Value
 addRewrite@'ArrayExpression' <|

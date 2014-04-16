@@ -53,9 +53,10 @@
             (indx + 1))]);
     }),
         createUnpackList = (function(pre, mid, post) {
-            return concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, pre.length, post.length) : []),
+            return concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null, pre.length, post.length) : []),
                 map((function(x, i) {
-                    return RelativeUnpack.create(null, x, (post.length - i), (post.length + pre.length));
+                    return RelativeUnpack.create(null, x, null, (post.length - i), (post.length +
+                        pre.length));
                 }), post));
         });
     peepholes.add("ArrayPattern", DOWN, (function(_) {

@@ -221,16 +221,6 @@ var getBinding = \uid ->
             (binding.getBinding(uid, bindings) || binding.getBinding(uid, working))
         :pass;
 
-/**
- * 
- */
-var tryPrune = \id ->
-    let uid = getUid id in
-        getBinding(uid).chain \ binding ->
-            ?binding && binding.simple && !isExpansion binding.value && (isPrimitive binding.value || (binding.immutable && isIdentifier binding.value))
-                :set []
-                :pass;
-
 // Scoping operations
 ////////////////////////////////////////
 /**
@@ -332,6 +322,26 @@ var addBindingForNode = \id value ->
                     :addBinding(uid, value, false)
         
         :addBinding(uid, value, false);
+
+var addWorkingForNode = \id value ->
+    let uid = getUid id in
+        ?isPrimitive value
+            :addWorking(uid, value, true)
+        
+        :?isLambda value
+            :addWorking(uid, markExpansion(id, 0, value), true)
+        
+        :?isIdentifier value
+            :getBinding(getUid value).chain \ binding ->
+                ?binding && binding.immutable
+                    :addWorking(uid,
+                        ?binding.simple && binding.value
+                            :binding.value
+                            :value,
+                        true)
+                    :addWorking(uid, value, false)
+        
+        :addWorking(uid, value, false);
 
 /*
  ******************************************************************************/
@@ -442,9 +452,7 @@ addRewrite@'VariableDeclarator' <| seq(
         
         extract \ node ->
             ?node.immutable
-                :seq(
-                    addBindingForNode(node.id, node.init),
-                    tryPrune(node.id))
+                :addBindingForNode(node.id, node.init)
                 :addWorking(
                     getUid(node.id),
                     node.init,
@@ -468,9 +476,7 @@ addRewrite@'Binding' <| seq(
             && getUid node.pattern.id),
         
         extract \ node ->
-            seq(
-                addBindingForNode(node.pattern.id, node.value),
-                tryPrune(node.pattern.id))),
+            addBindingForNode(node.pattern.id, node.value)),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -575,7 +581,7 @@ addRewrite@'AssignmentExpression' <| seq(
     when((.left) \> type \> (===, 'Identifier'),
         extract \ {operator left right} ->
             ?operator === '='
-                :addWorking(getUid left, right)
+                :addWorkingForNode(left, right)
                 :addBindingForNode(left, right)));
 
 /**

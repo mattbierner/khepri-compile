@@ -1,14 +1,16 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o = require("./ast"),
-    type = __o["type"],
+    __o = require("./pseudo/pattern"),
+    SliceUnpack = __o["SliceUnpack"],
+    RelativeUnpack = __o["RelativeUnpack"],
+    __o0 = require("./ast"),
+    type = __o0["type"],
     fun = require("./fun"),
     concat = fun["concat"],
     flatten = fun["flatten"],
@@ -58,9 +60,9 @@ var ast_expression = require("khepri-ast")["expression"],
             case "IdentifierPattern":
                 return [];
             case "SliceUnpack":
-                return sliceUnpack(args, x.pattern, x.from, x.to);
+                return sliceUnpack(args.id, x.pattern, x.from, x.to);
             case "RelativeUnpack":
-                return relativeUnpack(args, x.min, x.index, x.pattern);
+                return relativeUnpack(args.id, x.min, x.index, x.pattern);
             case "AsPattern":
                 return flatten(innerPattern(x.id, x.target));
             default:

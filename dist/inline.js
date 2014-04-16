@@ -160,15 +160,6 @@
                 return (binding.getBinding(uid, bindings) || binding.getBinding(uid, working));
             })) : pass);
         }),
-        tryPrune = (function(id) {
-            var uid = getUid(id);
-            return getBinding(uid)
-                .chain((function(binding0) {
-                    return ((((binding0 && binding0.simple) && (!getExpansion(binding0.value))) &&
-                        (isPrimitive(binding0.value) || (binding0.immutable && isIdentifier(
-                            binding0.value)))) ? set([]) : pass);
-                }));
-        }),
         push = modifyState((function(s) {
             return s.push();
         })),
@@ -213,6 +204,16 @@
                         binding0.value) ? binding0.value : value), true) : addBinding(
                         uid, value, false));
                 })) : addBinding(uid, value, false))));
+        }),
+        addWorkingForNode = (function(id, value) {
+            var uid = getUid(id);
+            return (isPrimitive(value) ? addWorking(uid, value, true) : (isLambda(value) ? addWorking(uid,
+                markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
+                .chain((function(binding0) {
+                    return ((binding0 && binding0.immutable) ? addWorking(uid, ((binding0.simple &&
+                        binding0.value) ? binding0.value : value), true) : addWorking(
+                        uid, value, false));
+                })) : addWorking(uid, value, false))));
         }),
         peepholes = ({}),
         addRewrite = (function(type0, f) {
@@ -261,15 +262,14 @@
     addRewrite("CatchClause", seq(child("param", checkTop), child("body", checkTop)));
     addRewrite("VariableDeclaration", child("declarations", checkTop));
     addRewrite("VariableDeclarator", seq(child("init", checkTop), ((consequent0 = extract((function(node) {
-        return (node.immutable ? seq(addBindingForNode(node.id, node.init), tryPrune(
-            node.id)) : addWorking(getUid(node.id), node.init, ((isPrimitive(node.init) ||
-            isIdentifier(node.init)) || isLambda(node.init))));
+        return (node.immutable ? addBindingForNode(node.id, node.init) : addWorking(
+            getUid(node.id), node.init, ((isPrimitive(node.init) || isIdentifier(
+                node.init)) || isLambda(node.init))));
     }))), extract((function(node) {
         return (node.init ? consequent0 : (undefined || pass));
     })))));
     addRewrite("Binding", seq(child("value", checkTop), ((consequent1 = extract((function(node) {
-        return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern
-            .id));
+        return addBindingForNode(node.pattern.id, node.value);
     }))), extract((function(node) {
         return (((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id)) ?
             consequent1 : (undefined || pass));
@@ -317,7 +317,7 @@
             var operator = __o4["operator"],
                 left = __o4["left"],
                 right0 = __o4["right"];
-            return ((operator === "=") ? addWorking(getUid(left), right0) :
+            return ((operator === "=") ? addWorkingForNode(left, right0) :
                 addBindingForNode(left, right0));
         }))), extract((function(node) {
         var x1, y0;
