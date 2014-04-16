@@ -21,7 +21,9 @@ with
     
     import 'zipper-m::trans::tree' TreeZipperT,
     
-    import './ast' {type},
+    import './ast' {
+        type
+        isIdentifier},
     import './scope' scope#{Scope},
     import './fun' {foldl}
 in {
@@ -277,19 +279,6 @@ addCheck@'Package' <|
                         checkChild 'body')),
                 checkChild 'body')));
 
-// Clause
-addCheck@'SwitchCase' <| seq(
-    checkChild 'test',
-    checkChild 'consequent');
-
-addCheck@'CatchClause' <|
-    block(
-        inspect \ {param} ->
-            addImmutableBindingChecked(param.name, param.loc),
-        checkChild 'param',
-        child('body',
-            checkChild 'body'));
-
 // Declarations
 addCheck@['StaticDeclaration', 'VariableDeclaration'] <|
     checkChild 'declarations';
@@ -298,21 +287,21 @@ addCheck@'StaticDeclarator' <|
     inspect \ {id} ->
         addStaticBindingChecked(id.name, id.loc);
 
-addCheck@'VariableDeclarator' <|
-    inspect \ node -> let
-        bind = ?node.immutable
+addCheck@'VariableDeclarator' <| let
+    bind = \node ->
+        ?node.immutable
             :addImmutableBindingChecked(node.id.name, node.loc)
             :addMutableBindingChecked(node.id.name, node.loc)
-    in
-        ?node.recursive
-            :seq(
-                bind,
-                checkChild 'id',
-                checkChild 'init')
-            :seq(
-                checkChild 'init',
-                bind,
-                checkChild 'id');
+in
+    when((.recursive),
+        seq(
+            inspect bind,
+            checkChild 'id',
+            checkChild 'init'),
+        seq(
+            checkChild 'init',
+            inspect bind,
+            checkChild 'id'));
 
 addCheck@'Binding' <|
     when((.recursive),
@@ -349,6 +338,10 @@ addCheck@'SwitchStatement' <|
         checkChild 'discriminant',
         checkChild 'cases');
 
+addCheck@'SwitchCase' <| seq(
+    checkChild 'test',
+    checkChild 'consequent');
+
 addCheck@['ReturnStatement', 'ThrowStatement'] <|
     checkChild 'argument';
 
@@ -358,6 +351,14 @@ addCheck@'TryStatement' <| seq(
         checkChild 'handler'),
     block(
         checkChild 'finalizer'));
+
+addCheck@'CatchClause' <|
+    block(
+        inspect \ {param} ->
+            addImmutableBindingChecked(param.name, param.loc),
+        checkChild 'param',
+        child('body',
+            checkChild 'body'));
 
 addCheck@'WhileStatement' <| seq(
     checkChild 'test',
@@ -398,7 +399,7 @@ addCheck@'UnaryExpression' <|
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
     inspect \ {operator left} ->
-        ?left.type === 'Identifier'
+        ?isIdentifier left
             :seq(
                 checkCanAssign(left.name, left.loc),
                 ?operator === ':='
@@ -441,15 +442,6 @@ addCheck@'CurryExpression' <| seq(
     checkChild 'args');
 
 // Patterns
-addCheck@'SinkPattern'<|
-    unique \ uid ->
-    modifyNode \ node ->
-        ast_pattern.IdentifierPattern.create(node.loc,
-            setData(
-                ast_value.Identifier.create(null, '_'),
-                'uid',
-                uid));
-
 addCheck@'EllipsisPattern' <|
     checkChild 'id';
 
@@ -457,10 +449,10 @@ addCheck@['SliceUnpack', 'RelativeUnpack', 'ImportPattern'] <|
     checkChild 'pattern';
 
 addCheck@'IdentifierPattern' <| seq(
-    inspect \ node ->
+    inspect \ node#{loc id} ->
         ?reserved node
-            :addImmutableBinding(node.id.name, node.loc)
-            :addImmutableBindingChecked(node.id.name, node.loc),
+            :addImmutableBinding(id.name, loc)
+            :addImmutableBindingChecked(id.name, loc),
     checkChild 'id');
 
 addCheck@'AsPattern' <| seq(
@@ -490,7 +482,7 @@ addCheck@'ObjectValue' <|
     checkChild 'value';
 
 addCheck@'Identifier' <|
-    inspect \ node#{name loc} ->
+    inspect \ node#{loc name} ->
         seq(
             examineScope \ s ->
                  setNode <| setData(node, 'uid', s.getUid(name)),
@@ -505,10 +497,10 @@ _check = \node -> {
         
         return seq(
             down,
-            seqa(node.map(\_ i -> 
+            seqa(node.map\_ i -> 
                 ?i === node.length - 1
                     :checkTop
-                    :next(checkTop, right))),
+                    :next(checkTop, right)),
             up);
     }
     
@@ -517,8 +509,6 @@ _check = \node -> {
     
     return pass;
 };
-
-var g = \x -> x.concat('require', 'module', 'exports');
 
 var addBindings = foldl@(scope.addImmutableBinding, Scope.empty);
 
@@ -534,7 +524,7 @@ check = \ast globals seed ->
             unique \ unique ->
             extractScope.map \ s ->
                 ({'tree': x , 'data': {'unique': unique}})),
-        addBindings(g(globals || [])),
+        addBindings(globals || []),
         ast,
         Error.of,
         Error.fail,

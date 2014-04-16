@@ -31,11 +31,18 @@ with
         rewrite}
 in {
 
-var string = ast_value.Literal.create @ (null, 'string');
-var number = ast_value.Literal.create @ (null, 'number');
+var string := ast_value.Literal.create @ (null, 'string');
+var number := ast_value.Literal.create @ (null, 'number');
 
+var markReserved := \node ->
+    setData(
+        node,
+        'reserved',
+        true);
 
-var peepholes = new Rewriter();
+var always := \_ -> true;
+
+var peepholes := new Rewriter();
 
 /* Package Normalizations
  ******************************************************************************/
@@ -53,7 +60,7 @@ peepholes.add('PackageExport', UP,
 /* Expression Expansions
  ******************************************************************************/
 /**
- * Convert multiple binding let expression to nested single binding let expressions
+ * Convert multiple binding let expression to nested single binding let expressions.
  */
 peepholes.add('LetExpression', UP,
     \node ->
@@ -67,7 +74,7 @@ peepholes.add('LetExpression', UP,
             bindings));
 
 /**
- * Expand currying with multiple args to nested single arg curries curries.
+ * Expand currying with multiple args to nested single arg curries.
  */
 peepholes.add('CurryExpression', DOWN,
     \node ->
@@ -85,7 +92,7 @@ peepholes.add('CurryExpression', DOWN,
 /**
  * Split a list of unpacks around an ellipsis.
  */
-var splitUnpackList = \elements -> let
+var splitUnpackList := \elements -> let
     indx = elements.map(type).indexOf('EllipsisPattern')
 in
     ?indx < 0
@@ -95,7 +102,7 @@ in
 /**
  * Rejoin a split argument list into slice and relative unpacks.
  */
-var createUnpackList = \pre mid post ->
+var createUnpackList := \pre mid post ->
     concat(
         pre,
         ?mid && mid.id
@@ -136,11 +143,10 @@ peepholes.add('ArgumentsPattern', UP,
     \node -> let
         [pre mid post] = splitUnpackList node.elements,
         
-        id = node.id || setData(
-            ast_pattern.IdentifierPattern.create(null,
-                ast_value.Identifier.create(null, '__args')),
-            'reserved',
-            true)
+        id = (node.id ||
+            markReserved <|
+                ast_pattern.IdentifierPattern.create(null,
+                    ast_value.Identifier.create(null, '__args')))
     in
         modify(node, {
             'id': id,
@@ -194,15 +200,24 @@ peepholes.add('ObjectPattern', UP,
         !node.ud || !node.ud.id,
     
     \node -> let
-        id = setData(
+        id = markReserved <| 
             ast_pattern.IdentifierPattern.create(null,
-                ast_value.Identifier.create(null, '__o')),
-            'reserved',
-            true)
+                ast_value.Identifier.create(null, '__o'))
     in
         ast_pattern.AsPattern.create(null,
             id,
             setData(node, 'id', id)));
+
+/**
+ * Rewrite sink patterns to identifier patterns.
+ */
+peepholes.add('SinkPattern', DOWN,
+    always,
+    
+    \{loc} ->
+        markReserved <|
+            ast_pattern.IdentifierPattern.create(loc,
+                ast_value.Identifier.create(null, '_')));
 
 /* Interface
  ******************************************************************************/
