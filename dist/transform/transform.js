@@ -118,7 +118,7 @@
         variableDeclaration = khepri_declaration.VariableDeclaration.create,
         variableDeclarator = ecma_declaration.VariableDeclarator.create,
         unpack = ((y1 = fun.map.bind(null, (function(x1) {
-            return variableDeclarator(null, x1.pattern, x1.value);
+            return variableDeclarator(null, x1.pattern.id, x1.value);
         }))), (function(x1) {
             return y1(innerPattern(x1.value, x1.pattern));
         })),
@@ -316,8 +316,8 @@
     addTransform("ObjectValue", null, modify((function(node0) {
         return ecma_value.ObjectValue.create(node0.loc, node0.key, node0.value);
     })));
-    addTransform(["IdentifierPattern", "AsPattern", "ArgumentsPattern"], null, modify((function(node0) {
-        return node0.id;
+    addTransform(["IdentifierPattern", "AsPattern", "ArgumentsPattern"], null, modify((function(x1) {
+        return x1.id;
     })));
     addTransform(["ObjectPattern", "EllipsisPattern", "SinkPattern"], null, modify((function(node0) {
         return (node0.ud && node0.ud.id);

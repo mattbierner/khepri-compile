@@ -1,11 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
+*/define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
-            push, pop;
+            getClosure, push, pop;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
     (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
@@ -79,6 +78,10 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (addMapping = (function(s, from, to) {
         return s.setMapping(hamt.set(from, to, s.mapping));
     }));
+    (getClosure = (function(s) {
+        return (s ? hamt.values(s.record)
+            .concat(getClosure(s.outer)) : []);
+    }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)
             .setDefinitions(s.definitions);
@@ -93,6 +96,7 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (exports["addImmutableBinding"] = addImmutableBinding);
     (exports["setBindingMutability"] = setBindingMutability);
     (exports["addMapping"] = addMapping);
+    (exports["getClosure"] = getClosure);
     (exports["push"] = push);
     (exports["pop"] = pop);
 }));

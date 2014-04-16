@@ -57,6 +57,7 @@
         })),
         push = modifyScope(scope.push),
         pop = modifyScope(scope.pop),
+        getClosure = M.chain.bind(null, extractScope.map(scope.getClosure)),
         extractCtx = lift(M.inner.get),
         extract = lift(M.inner.node),
         inspect = M.chain.bind(null, extract),
@@ -257,7 +258,11 @@
         (body12 = [((__args43 = ["body", checkTop]), (actions = [].slice.call(__args43, 1)),
             seq(moveChild("body"), seqa(actions), up))]), seq(push, seqa(body12), pop))]), seq(push,
         seqa(body11), pop)));
-    addCheck("FunctionExpression", ((body13 = [inspect((function(__o2) {
+    addCheck("FunctionExpression", ((body13 = [getClosure((function(closure) {
+        return modifyNode((function(node) {
+            return setData(node, "closure", closure);
+        }));
+    })), inspect((function(__o2) {
         var id = __o2["id"];
         return (id ? addImmutableBinding(id.name, id.loc) : pass);
     })), ((__args44 = ["id", checkTop]), (actions = [].slice.call(__args44, 1)), seq(moveChild(

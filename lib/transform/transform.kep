@@ -202,7 +202,7 @@ var unpack =
     \binding ->
         innerPattern(binding.value, binding.pattern) §
     \> fun.map @ \x ->
-        variableDeclarator(null, x.pattern, x.value);
+        variableDeclarator(null, x.pattern.id, x.value);
 
 /**
  * Expand an binding to a list of assignment expressions.
@@ -612,8 +612,7 @@ addTransform('ObjectValue',
 // Patterns
 addTransform(['IdentifierPattern', 'AsPattern', 'ArgumentsPattern'],
     null,
-    modify \ node ->
-        node.id);
+    modify (.id));
 
 addTransform(['ObjectPattern', 'EllipsisPattern', 'SinkPattern'],
     null,

@@ -17,23 +17,13 @@ with
 in{
 
 /**
- * Get the uids of all elements in an argument unpack object.
- */
-var getParmeterIds := \params ->
-    concat(
-        map(\x -> getUid(x.id), params.elements),
-        ?params.id
-            :getUid params.id.id
-            :[]);
-
-/**
  * Convert the elements of an argument unpack object to a set of bindings.
  */
 var argsToBindings := \uid parameters args ->
     map(
         \x i ->
             ast_declaration.Binding.create(null,
-                rename(uid, [getUid x.id], x),
+                rename(uid, [], x),
                 (args.(i) || builtins.undefined)),
         parameters.elements);
 
@@ -58,7 +48,7 @@ var argsBinding := \uid arg bindings args ->
 expandCallee = \uid callee args -> let
     target = ?callee.type === 'LetExpression' : callee.body : callee,
     
-    ids = getParmeterIds(target.params),
+    closure = ((target.ud && target.ud.closure) || []),
     
     bindings = argsToBindings(uid, target.params, args),
     
@@ -71,7 +61,7 @@ in
             callee.bindings || [],
             bindings,
             argBinding),
-        rename(uid, ids, target.body));
+        rename(uid, closure, target.body));
 
 /**
  * Expand a curry of a lambda expression of let expression with curry body

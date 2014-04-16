@@ -6,9 +6,9 @@ with
     import 'neith::walk' {preWalk},
     import 'neith::tree' tree,
     
-    import 'khepri-ast::node' {setData},
+    import 'khepri-ast::node' {setData modify},
     
-    import '../ast' {getUid}
+    import '../ast' {type getUid}
 in {
 
 
@@ -25,19 +25,14 @@ rename = \prefix list root ->
             node = tree.node(ctx),
             uid = getUid(node)
         in
-            ?list.indexOf(uid) >= 0
+            ?node && !Array.isArray(node) && list.indexOf(uid) < 0
                 :tree.setNode(
                     setData(node, 'uid', prefix + '-' + uid),
                     ctx)
-                :ctx,
-        khepriZipper(root));
+            :ctx,
+        khepriZipper root);
 
 /**
- * Rename all identifier instances in an AST.
- * 
- * @param prefix Unique id to prefix to all renamed identifiers.
- * @param list List of identifier uids to rename. All others will be ignored
- * @param root Root node of tree to traverse.
  */
 incCount = \target count value root ->
     tree.node <| preWalk(
@@ -53,6 +48,6 @@ incCount = \target count value root ->
             }
             return ctx;
         }},
-        khepriZipper(root));
+        khepriZipper root);
 
 }

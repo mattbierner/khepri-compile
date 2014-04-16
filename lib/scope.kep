@@ -11,6 +11,8 @@ package (
     setBindingMutability
     addMapping
     
+    getClosure
+    
     push
     pop)
 with
@@ -188,6 +190,11 @@ setBindingMutability = \s id mutable ->
 addMapping = \s from to ->
     s.setMapping(
         hamt.set(from, to, s.mapping));
+
+getClosure := \s ->
+    ?s
+        :hamt.values(s.record).concat(getClosure s.outer)
+        :[];
 
 /* Operations
  ******************************************************************************/

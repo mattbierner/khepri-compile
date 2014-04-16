@@ -2,11 +2,10 @@ package (
     RelativeUnpack
     SliceUnpack)
 with
-    import 'khepri-ast::node'{defineNode, Node},
+    import 'khepri-ast::node'{defineNode Node},
     import 'khepri-ast::pattern' {Pattern}
 in
 {
-
 
 RelativeUnpack = defineNode(Pattern, 'RelativeUnpack',
     ['pattern', 'target'],
@@ -26,7 +25,7 @@ SliceUnpack = defineNode(Pattern, 'SliceUnpack',
         Node.call(self, loc);
         self.pattern = pattern;
         self.target = target;
-        self.from= from;
+        self.from = from;
         self.to = to;
     });
 

@@ -68,6 +68,8 @@ var modifyScope = M.liftInner <\ M.inner.inner.modify;
 var push = modifyScope scope.push;
 var pop = modifyScope scope.pop;
 
+var getClosure = M.chain @ (extractScope.map (scope.getClosure));
+
 // Movement Operations
 ////////////////////////////////////////
 var extractCtx = lift (M.inner.get);
@@ -381,7 +383,11 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-         inspect \ {id} ->
+        getClosure \ closure ->
+        modifyNode \ node ->
+            setData(node, 'closure', closure),
+        
+        inspect \ {id} ->
              ?id
                  :addImmutableBinding(id.name, id.loc)
                  :pass,
