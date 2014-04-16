@@ -43,8 +43,7 @@ var peepholes = new Rewriter();
  * Add aliases to all package exports
  */
 peepholes.add('PackageExport', UP,
-    \node ->
-        !node.alias,
+    (!) <\ (.alias),
     
     \node ->
         ast_package.PackageExport.create(node.loc,
@@ -152,8 +151,7 @@ peepholes.add('ArgumentsPattern', UP,
  * Normalize object patterns to ('key': pattern) form.
  */
 peepholes.add('ObjectPatternElement', DOWN,
-    \node ->
-        !node.target,
+    (!) <\ (.target),
     
     \node#{key} -> {
         switch(key.type) {

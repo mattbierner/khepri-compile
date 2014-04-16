@@ -16,7 +16,8 @@ package (
     
     isBlockFunction
     isLambda
-    
+    isLambdaWithoutArgs
+
     getUd
     getUid)
 {
@@ -100,13 +101,20 @@ isBlockFunction = \node ->
     && type node.body === 'BlockStatement');
 
 /**
- * Is a function a lambda function?
+ * Is a function a lambda function? Includes functions that use the arguments
+ * object.
  */
 isLambda = \node ->
     (  type node === 'FunctionExpression'
     && !node.id
     && !isBlockFunction node
-    && !node.params.self
+    && !node.params.self);
+
+/**
+ * Is a function a lambda function that does not use the arguments object?
+ */
+isLambdaWithoutArgs = \node ->
+    (  isLambda node
     && !node.params.id
     && !(node.params.ud && node.params.ud.arguments));
 

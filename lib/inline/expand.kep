@@ -16,16 +16,41 @@ with
     import '../builtin' {builtins}
 in{
 
-var getParmeterIds := map  @ \x -> getUid(x.id);
+/**
+ * Get the uids of all elements in an argument unpack object.
+ */
+var getParmeterIds := \params ->
+    concat(
+        map(\x -> getUid(x.id), params.elements),
+        ?params.id
+            :getUid params.id.id
+            :[]);
 
-var argsToBindings := \uid names parameters args ->
+/**
+ * Convert the elements of an argument unpack object to a set of bindings.
+ */
+var argsToBindings := \uid parameters args ->
     map(
         \x i ->
             ast_declaration.Binding.create(null,
-                rename(uid, names, x),
+                rename(uid, [getUid x.id], x),
                 (args.(i) || builtins.undefined)),
         parameters.elements);
 
+/**
+ * Convert the arguments unpack of an arguments unpack to a binding.
+ */
+var argsBinding := \uid arg bindings args ->
+    ast_declaration.Binding.create(null,
+        rename(uid, [getUid arg.id], arg),
+        ast_expression.ArrayExpression.create(null,
+            args.map \ x i ->
+                ?bindings.(i)
+                    :bindings.(i).pattern.id
+                    :x));
+
+/* Interface
+ ******************************************************************************/
 /**
  * Expand a call of a lambda expression of let expression with lambda body
  * to a let expression.
@@ -33,14 +58,19 @@ var argsToBindings := \uid names parameters args ->
 expandCallee = \uid callee args -> let
     target = ?callee.type === 'LetExpression' : callee.body : callee,
     
-    ids = getParmeterIds(target.params.elements),
+    ids = getParmeterIds(target.params),
     
-    bindings = argsToBindings(uid, ids, target.params, args)
+    bindings = argsToBindings(uid, target.params, args),
+    
+    argBinding = ?target.params.id
+        :argsBinding(uid, target.params.id, bindings, args)
+        :[]
 in
     ast_expression.LetExpression.create(null,
         concat(
             callee.bindings || [],
-            bindings),
+            bindings,
+            argBinding),
         rename(uid, ids, target.body));
 
 /**

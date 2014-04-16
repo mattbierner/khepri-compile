@@ -1,11 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports"], (function(require, exports) {
+*/define(["require", "exports"], (function(require, exports) {
     "use strict";
     var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,
-            isLambda, getUd, getUid;
+            isLambda, isLambdaWithoutArgs, getUd, getUid;
     (type = (function(node) {
         return (node && node.type);
     }));
@@ -39,8 +38,11 @@ define(["require", "exports"], (function(require, exports) {
         return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
     }));
     (isLambda = (function(node) {
-        return ((((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
-            (!node.params.self)) && (!node.params.id)) && (!(node.params.ud && node.params.ud.arguments)));
+        return ((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
+            (!node.params.self));
+    }));
+    (isLambdaWithoutArgs = (function(node) {
+        return ((isLambda(node) && (!node.params.id)) && (!(node.params.ud && node.params.ud.arguments)));
     }));
     (getUd = (function(name, node) {
         return ((node && node.ud) && node.ud[name]);
@@ -56,6 +58,7 @@ define(["require", "exports"], (function(require, exports) {
     (exports["isTruthy"] = isTruthy);
     (exports["isBlockFunction"] = isBlockFunction);
     (exports["isLambda"] = isLambda);
+    (exports["isLambdaWithoutArgs"] = isLambdaWithoutArgs);
     (exports["getUd"] = getUd);
     (exports["getUid"] = getUid);
 }));

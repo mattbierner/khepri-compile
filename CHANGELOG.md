@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.5.2 - April 15, 2014
+* Added support to inline call of lambda that uses arguments object.
+* Don't count assignment in reachability.
+
 ## 0.5.1 - April 13, 2014
 * Performance improvements.
 ** Compiler should be around 2x faster or better.

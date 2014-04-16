@@ -74,8 +74,6 @@ var extract = lift (M.inner.node);
 
 var inspect = M.chain @ extract;
 
-var move = lift <\ M.inner.move;
-
 var up = lift (M.inner.up);
 var down = lift (M.inner.down);
 var left = lift (M.inner.left);
@@ -286,8 +284,8 @@ addCheck@'SwitchCase' <| seq(
 
 addCheck@'CatchClause' <|
     block(
-        inspect \ node ->
-            addImmutableBindingChecked(node.param.name, node.param.loc),
+        inspect \ {param} ->
+            addImmutableBindingChecked(param.name, param.loc),
         checkChild 'param',
         child('body',
             checkChild 'body'));
@@ -297,8 +295,8 @@ addCheck@['StaticDeclaration', 'VariableDeclaration'] <|
     checkChild 'declarations';
 
 addCheck@'StaticDeclarator' <|
-    inspect \ node ->
-        addStaticBindingChecked(node.id.name, node.loc);
+    inspect \ {id} ->
+        addStaticBindingChecked(id.name, id.loc);
 
 addCheck@'VariableDeclarator' <|
     inspect \ node -> let
@@ -382,9 +380,9 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-         inspect \ node ->
-             ?node.id
-                 :addImmutableBinding(node.id.name, node.loc)
+         inspect \ {id} ->
+             ?id
+                 :addImmutableBinding(id.name, id.loc)
                  :pass,
          checkChild 'id',
          checkChild 'params',

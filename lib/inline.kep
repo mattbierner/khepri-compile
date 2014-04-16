@@ -37,10 +37,12 @@ with
     import 'zipper-m::walk' walk,
     
     import './ast' {
+        type
         isIdentifier
         getUd
         getUid
         isLambda
+        isLambdaWithoutArgs
         isPrimitive
         isNumberish
         isTruthy},
@@ -559,10 +561,10 @@ in seq(
             (  arithmetic.(operator)
             && isPrimitive(argument)),
     
-        modify \ node#{operator argument} -> let
+        modify \ {loc operator argument} -> let
             value = arithmetic.(operator)(argument.value)
         in
-            ast_value.Literal.create(node.loc, typeof value, value)));
+            ast_value.Literal.create(loc, typeof value, value)));
 
 addRewrite@'AssignmentExpression' <| seq(
     visitChild 'right',
@@ -570,10 +572,7 @@ addRewrite@'AssignmentExpression' <| seq(
     /**
      * Update the working value of a binding.
      */
-    when(
-        \{left} ->
-            left.type === 'Identifier',
-        
+    when((.left) \> type \> (===, 'Identifier'),
         extract \ {operator left right} ->
             ?operator === '='
                 :addWorking(getUid left, right)
@@ -752,8 +751,8 @@ addRewrite@'CurryExpression' <| seq(
      */
     when(
         \node ->
-            (  isLambda(node.base)
-            || (node.base.type === 'LetExpression' && isLambda(node.base.body))),
+            (  isLambdaWithoutArgs(node.base)
+            || (node.base.type === 'LetExpression' && isLambdaWithoutArgs(node.base.body))),
         
         seq(
             unique \ uid ->

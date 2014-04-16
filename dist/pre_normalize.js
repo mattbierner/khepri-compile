@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
     "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun", "./rewriter"
 ], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";
@@ -23,8 +22,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         normalize, string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         peepholes = new(Rewriter)();
-    peepholes.add("PackageExport", UP, (function(node) {
-        return (!node.alias);
+    peepholes.add("PackageExport", UP, (function(x) {
+        var x0 = x.alias;
+        return (!x0);
     }), (function(node) {
         return ast_package.PackageExport.create(node.loc, node.id, string(node.id.name));
     }));
@@ -86,8 +86,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             "elements": createUnpackList(pre, mid, post)
         }));
     }));
-    peepholes.add("ObjectPatternElement", DOWN, (function(node) {
-        return (!node.target);
+    peepholes.add("ObjectPatternElement", DOWN, (function(x) {
+        var x0 = x.target;
+        return (!x0);
     }), (function(node) {
         var key = node["key"];
         switch (key.type) {

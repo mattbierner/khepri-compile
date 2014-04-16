@@ -28,8 +28,9 @@ var __o = require("khepri-ast")["node"],
     normalize, string = ast_value.Literal.create.bind(null, null, "string"),
     number = ast_value.Literal.create.bind(null, null, "number"),
     peepholes = new(Rewriter)();
-peepholes.add("PackageExport", UP, (function(node) {
-    return (!node.alias);
+peepholes.add("PackageExport", UP, (function(x) {
+    var x0 = x.alias;
+    return (!x0);
 }), (function(node) {
     return ast_package.PackageExport.create(node.loc, node.id, string(node.id.name));
 }));
@@ -90,8 +91,9 @@ peepholes.add("ArgumentsPattern", UP, (function(node) {
         "elements": createUnpackList(pre, mid, post)
     }));
 }));
-peepholes.add("ObjectPatternElement", DOWN, (function(node) {
-    return (!node.target);
+peepholes.add("ObjectPatternElement", DOWN, (function(x) {
+    var x0 = x.target;
+    return (!x0);
 }), (function(node) {
     var key = node["key"];
     switch (key.type) {

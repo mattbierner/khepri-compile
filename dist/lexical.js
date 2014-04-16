@@ -153,12 +153,14 @@
             pass));
     }))))));
     addCheck("SwitchCase", seq(child("test", checkTop), child("consequent", checkTop)));
-    addCheck("CatchClause", block(inspect((function(node) {
-        return addImmutableBindingChecked(node.param.name, node.param.loc);
+    addCheck("CatchClause", block(inspect((function(__o2) {
+        var param = __o2["param"];
+        return addImmutableBindingChecked(param.name, param.loc);
     })), child("param", checkTop), child("body", child("body", checkTop))));
     addCheck(["StaticDeclaration", "VariableDeclaration"], child("declarations", checkTop));
-    addCheck("StaticDeclarator", inspect((function(node) {
-        return addStaticBindingChecked(node.id.name, node.loc);
+    addCheck("StaticDeclarator", inspect((function(__o2) {
+        var id = __o2["id"];
+        return addStaticBindingChecked(id.name, id.loc);
     })));
     addCheck("VariableDeclarator", inspect((function(node) {
         var bind = (node.immutable ? addImmutableBindingChecked(node.id.name, node.loc) :
@@ -183,8 +185,9 @@
     addCheck("DoWhileStatement", seq(block(child("body", checkTop)), child("test", checkTop)));
     addCheck("ForStatement", block(child("init", checkTop), child("test", checkTop), child("update", checkTop),
         block(child("body", checkTop))));
-    addCheck("FunctionExpression", block(inspect((function(node) {
-        return (node.id ? addImmutableBinding(node.id.name, node.loc) : pass);
+    addCheck("FunctionExpression", block(inspect((function(__o2) {
+        var id = __o2["id"];
+        return (id ? addImmutableBinding(id.name, id.loc) : pass);
     })), child("id", checkTop), child("params", checkTop), child("body", ((x4 = type), (consequent1 =
         child("body", checkTop)), (alternate1 = checkTop), inspect((function(node) {
         var y3;

@@ -15,10 +15,12 @@
         next = __o0["next"],
         seq = __o0["sequence"],
         seqa = __o0["sequencea"],
+        type = __o1["type"],
         isIdentifier = __o1["isIdentifier"],
         getUd = __o1["getUd"],
         getUid = __o1["getUid"],
         isLambda = __o1["isLambda"],
+        isLambdaWithoutArgs = __o1["isLambdaWithoutArgs"],
         isPrimitive = __o1["isPrimitive"],
         isNumberish = __o1["isNumberish"],
         isTruthy = __o1["isTruthy"],
@@ -31,10 +33,10 @@
         expandCurry = __o2["expandCurry"],
         rename = __o3["rename"],
         incCount = __o3["incCount"],
-        optimize, x, y, consequent, consequent0, consequent1, consequent2, arithmetic, consequent3, consequent4,
-            arithmetic0, consequent5, y0, consequent6, alternate, consequent7, consequent8, consequent9,
-            consequent10, exp, consequent11, consequent12, exp0, consequent13, consequent14, consequent15,
-            consequent16, __and = (function(x, y) {
+        optimize, x, y, consequent, consequent0, consequent1, consequent2, arithmetic, consequent3, x0,
+            consequent4, arithmetic0, consequent5, y0, consequent6, alternate, consequent7, consequent8,
+            consequent9, consequent10, exp, consequent11, consequent12, exp0, consequent13, consequent14,
+            consequent15, consequent16, __and = (function(x, y) {
                 return (x && y);
             }),
         __plus = (function(x) {
@@ -213,12 +215,12 @@
                 })) : addBinding(uid, value, false))));
         }),
         peepholes = ({}),
-        addRewrite = (function(type, f) {
-            if (Array.isArray(type)) type.forEach((function(type0) {
-                return addRewrite(type0, f);
+        addRewrite = (function(type0, f) {
+            if (Array.isArray(type0)) type0.forEach((function(type1) {
+                return addRewrite(type1, f);
             }));
             else {
-                (peepholes[type] = f);
+                (peepholes[type0] = f);
             }
         });
     addRewrite("UnaryOperatorExpression", seq(extract((function(__o4) {
@@ -298,26 +300,28 @@
         "typeof": __typeof,
         "++": __plus,
         "--": __minus
-    })), seq(child("argument", checkTop), ((consequent3 = modify((function(node) {
-        var operator = node["operator"],
-            argument = node["argument"],
+    })), seq(child("argument", checkTop), ((consequent3 = modify((function(__o4) {
+        var loc = __o4["loc"],
+            operator = __o4["operator"],
+            argument = __o4["argument"],
             value = arithmetic[operator](argument.value);
-        return ast_value.Literal.create(node.loc, (typeof value), value);
+        return ast_value.Literal.create(loc, (typeof value), value);
     }))), extract((function(node) {
         var operator, argument;
         return (((operator = node["operator"]), (argument = node["argument"]), (
             arithmetic[operator] && isPrimitive(argument))) ? consequent3 : (
             undefined || pass));
     }))))));
-    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((consequent4 = extract((function(__o4) {
-        var operator = __o4["operator"],
-            left = __o4["left"],
-            right0 = __o4["right"];
-        return ((operator === "=") ? addWorking(getUid(left), right0) :
-            addBindingForNode(left, right0));
-    }))), extract((function(node) {
-        var left;
-        return (((left = node["left"]), (left.type === "Identifier")) ? consequent4 : (
+    addRewrite("AssignmentExpression", seq(child("right", checkTop), ((x0 = type), (consequent4 = extract((
+        function(__o4) {
+            var operator = __o4["operator"],
+                left = __o4["left"],
+                right0 = __o4["right"];
+            return ((operator === "=") ? addWorking(getUid(left), right0) :
+                addBindingForNode(left, right0));
+        }))), extract((function(node) {
+        var x1, y0;
+        return (((x1 = node.left), (y0 = x0(x1)), ("Identifier" === y0)) ? consequent4 : (
             undefined || pass));
     })))));
     addRewrite(["LogicalExpression", "BinaryExpression"], ((arithmetic0 = ({
@@ -387,11 +391,11 @@
     })))));
     addRewrite("NewExpression", seq(child("callee", checkTop), child("args", checkTop)));
     addRewrite("CallExpression", seq(child("callee", checkTop), child("args", checkTop), ((exp = M.node.map((
-        function(x0) {
-            return x0.callee;
-        }))), (consequent11 = exp.chain((function(x0) {
-        var exp0, callee = (getExpansion(x0) ? ((exp0 = getExpansion(x0)), ((exp0.count <
-                1) ? exp0.value : setData(x0, "expand", null))) : x0);
+        function(x1) {
+            return x1.callee;
+        }))), (consequent11 = exp.chain((function(x1) {
+        var exp0, callee = (getExpansion(x1) ? ((exp0 = getExpansion(x1)), ((exp0.count <
+                1) ? exp0.value : setData(x1, "expand", null))) : x1);
         return modify((function(node) {
             return incCount(getUid(node.callee), (getExpansion(node.callee)
                     .count || 1), getExpansion(node.callee)
@@ -409,11 +413,11 @@
             isLambda(node.callee.body))) ? consequent12 : (undefined || pass));
     })))));
     addRewrite("CurryExpression", seq(child("base", checkTop), child("args", checkTop), ((exp0 = M.node.map((
-        function(x0) {
-            return x0.base;
-        }))), (consequent13 = exp0.chain((function(x0) {
-        var exp1, base = (getExpansion(x0) ? ((exp1 = getExpansion(x0)), ((exp1.count <
-                1) ? exp1.value : setData(x0, "expand", null))) : x0);
+        function(x1) {
+            return x1.base;
+        }))), (consequent13 = exp0.chain((function(x1) {
+        var exp1, base = (getExpansion(x1) ? ((exp1 = getExpansion(x1)), ((exp1.count <
+                1) ? exp1.value : setData(x1, "expand", null))) : x1);
         return modify((function(node) {
             return incCount(getUid(node.base), getExpansion(node.base),
                 getExpansion(node.base)
@@ -427,8 +431,8 @@
             return expandCurry(uid, node.base, node.args);
         }));
     })), checkTop)), extract((function(node) {
-        return ((isLambda(node.base) || ((node.base.type === "LetExpression") && isLambda(
-            node.base.body))) ? consequent14 : (undefined || pass));
+        return ((isLambdaWithoutArgs(node.base) || ((node.base.type === "LetExpression") &&
+            isLambdaWithoutArgs(node.base.body))) ? consequent14 : (undefined || pass));
     })))));
     addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), modify((function(__o4) {
         var loc = __o4["loc"],
