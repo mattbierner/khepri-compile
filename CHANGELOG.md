@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 0.5.3 - APril 16, 2014
+## 0.5.3 - April 16, 2014
 * Fixed bug that could cause the arguments unpack of an inlined function to be
   pruned.
 * Improvements to constant folding of non-immutable bindings.

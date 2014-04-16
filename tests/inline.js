@@ -54,3 +54,20 @@ exports.no_for_working_inline = function(test) {
     
     test.done();
 };
+
+
+exports.inline_with_args = function(test) {
+    test.equal(
+        evalParser("var f := \\args(...) -> args.(1); f(1,2, 3);"),
+        2);
+    
+    test.done();
+};
+
+exports.inline_with_slice = function(test) {
+    test.deepEqual(
+        evalParser("var f := \\x ...xs -> xs; f(1,2, 3);"),
+        [2, 3]);
+    
+    test.done();
+};
