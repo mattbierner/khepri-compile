@@ -93,10 +93,9 @@ peepholes.add('FunctionExpression', UP,
                 bindings,
                 node.body)
     in
-        ast_expression.FunctionExpression.create(node.loc,
-            node.id,
-            modify(node.params, {'elements': params}),
-            body));
+        modify(node, {
+            params: modify(node.params, {'elements': params})
+        }));
 
 /* Expression Conversion
  ******************************************************************************/

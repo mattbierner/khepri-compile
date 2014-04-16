@@ -79,8 +79,7 @@
         return s.setMapping(hamt.set(from, to, s.mapping));
     }));
     (getClosure = (function(s) {
-        return (s ? hamt.values(s.record)
-            .concat(getClosure(s.outer)) : []);
+        return (s ? hamt.values(s.definitions) : []);
     }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)

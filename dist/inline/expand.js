@@ -32,11 +32,12 @@
         return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest =
             target.params.elements.slice(1)), (closure = ((target.ud && target.ud.closure) || [])), (
             body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rest, target.params.self), rename(uid, map, target.body))), (
-            (first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) ||
-                (first.type === "ObjectPattern"))) ? ast_expression.LetExpression.create(null,
-                concat((base.bindings || []), ast_declaration.Binding.create(null, rename(uid,
-                    closure, first), args[0])), body) : body)));
+                .create(null, null, rename(uid, closure, rest), target.params.self), rename(uid,
+                    closure, target.body))), ((first && (((first.type === "IdentifierPattern") ||
+                (first.type === "AsPattern")) || (first.type === "ObjectPattern"))) ?
+            ast_expression.LetExpression.create(null, concat((base.bindings || []),
+                    ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])),
+                body) : body)));
     }));
     (exports["expandCallee"] = expandCallee);
     (exports["expandCurry"] = expandCurry);

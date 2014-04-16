@@ -80,9 +80,9 @@ in
         
         body = ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null,
-                rest,
+                rename(uid, closure, rest),
                 target.params.self),
-            rename(uid, map, target.body))
+            rename(uid, closure, target.body))
     in
         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,

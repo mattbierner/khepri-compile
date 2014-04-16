@@ -193,7 +193,7 @@ addMapping = \s from to ->
 
 getClosure := \s ->
     ?s
-        :hamt.values(s.record).concat(getClosure s.outer)
+        :hamt.values(s.definitions)
         :[];
 
 /* Operations

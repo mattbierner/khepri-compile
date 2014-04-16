@@ -385,19 +385,20 @@ addCheck@'FunctionExpression' <|
     block(
         getClosure \ closure ->
         modifyNode \ node ->
-            setData(node, 'closure', closure),
+           setData(node, 'closure', closure),
         
         inspect \ {id} ->
-             ?id
-                 :addImmutableBinding(id.name, id.loc)
-                 :pass,
-         checkChild 'id',
-         checkChild 'params',
-         // Evaluate body in same scope
-         child('body',
-             when(type \> (===, 'BlockStatement'),
-                 checkChild 'body',
-                 checkTop)));
+            ?id
+                :addImmutableBinding(id.name, id.loc)
+                :pass,
+        checkChild 'id',
+        
+        checkChild 'params',
+        // Evaluate body in same scope
+        child('body',
+            when(type \> (===, 'BlockStatement'),
+                checkChild 'body',
+                checkTop)));
 
 addCheck@'UnaryExpression' <|
     checkChild 'argument';
