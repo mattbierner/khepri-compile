@@ -32,7 +32,7 @@ var argsToBindings := \uid parameters args ->
  */
 var argsBinding := \uid arg bindings args ->
     ast_declaration.Binding.create(null,
-        rename(uid, [getUid arg.id], arg),
+        rename(uid, [], arg),
         ast_expression.ArrayExpression.create(null,
             args.map \ x i ->
                 ?bindings.(i)

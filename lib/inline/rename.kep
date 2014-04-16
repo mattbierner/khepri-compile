@@ -25,7 +25,7 @@ rename = \prefix list root ->
             node = tree.node(ctx),
             uid = getUid(node)
         in
-            ?node && !Array.isArray(node) && list.indexOf(uid) < 0
+            ?uid && list.indexOf(uid) < 0
                 :tree.setNode(
                     setData(node, 'uid', prefix + '-' + uid),
                     ctx)

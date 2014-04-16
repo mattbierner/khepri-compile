@@ -20,8 +20,8 @@
                     builtins.undefined));
             }), parameters.elements),
             arg, argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(
-                null, rename(uid, [getUid(arg.id)], arg), ast_expression.ArrayExpression.create(
-                    null, args.map((function(x, i) {
+                null, rename(uid, [], arg), ast_expression.ArrayExpression.create(null, args.map(
+                    (function(x, i) {
                         return (bindings[i] ? bindings[i].pattern.id : x);
                     }))))) : []);
         return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings,

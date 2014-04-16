@@ -18,8 +18,8 @@ var __o = require("khepri-ast-zipper"),
     return tree.node(preWalk((function(ctx) {
         var node = tree.node(ctx),
             uid = getUid(node);
-        return (((node && (!Array.isArray(node))) && (list.indexOf(uid) < 0)) ? tree.setNode(
-            setData(node, "uid", ((prefix + "-") + uid)), ctx) : ctx);
+        return ((uid && (list.indexOf(uid) < 0)) ? tree.setNode(setData(node, "uid", ((prefix + "-") +
+            uid)), ctx) : ctx);
     }), khepriZipper(root)));
 }));
 (incCount = (function(target, count, value, root) {

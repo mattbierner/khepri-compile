@@ -24,10 +24,9 @@ var ast_declaration = require("khepri-ast")["declaration"],
             return ast_declaration.Binding.create(null, rename(uid, [], x), (args[i] || builtins.undefined));
         }), parameters.elements),
         arg, argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(null,
-            rename(uid, [getUid(arg.id)], arg), ast_expression.ArrayExpression.create(null, args.map((
-                function(x, i) {
-                    return (bindings[i] ? bindings[i].pattern.id : x);
-                }))))) : []);
+            rename(uid, [], arg), ast_expression.ArrayExpression.create(null, args.map((function(x, i) {
+                return (bindings[i] ? bindings[i].pattern.id : x);
+            }))))) : []);
     return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings, argBinding),
         rename(uid, closure, target.body));
 }));
