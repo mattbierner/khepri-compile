@@ -9,7 +9,7 @@ with
 
     import 'akh::error' Error,
 
-    import '../post_normalize' post_normalize
+    import '../normalize/post_normalize' post_normalize
 in {
 
 /**

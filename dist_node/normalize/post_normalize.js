@@ -1,25 +1,25 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
 */"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
-    __o0 = require("./ast"),
+    __o0 = require("../ast"),
     type = __o0["type"],
     isBlockFunction = __o0["isBlockFunction"],
-    __o1 = require("./fun"),
+    __o1 = require("../fun"),
     concat = __o1["concat"],
     flattenr = __o1["flattenr"],
     map = __o1["map"],
-    __o2 = require("./unpack"),
+    __o2 = require("../inline/unpack"),
     innerPattern = __o2["innerPattern"],
     unpackParameters = __o2["unpackParameters"],
-    __o3 = require("./builtin"),
+    __o3 = require("../builtin"),
     builtins = __o3["builtins"],
     definitions = __o3["definitions"],
-    __o4 = require("./rewriter"),
+    __o4 = require("../rewriter"),
     UP = __o4["UP"],
     DOWN = __o4["DOWN"],
     Rewriter = __o4["Rewriter"],

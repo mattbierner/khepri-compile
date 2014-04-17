@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/pre_normalize.kep'
  * DO NOT EDIT
 */"use strict";
 var __o = require("khepri-ast")["node"],
@@ -9,18 +9,18 @@ var __o = require("khepri-ast")["node"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_package = require("khepri-ast")["package"],
     ast_value = require("khepri-ast")["value"],
-    __o0 = require("./pseudo/pattern"),
+    __o0 = require("../pseudo/pattern"),
     SliceUnpack = __o0["SliceUnpack"],
     RelativeUnpack = __o0["RelativeUnpack"],
-    __o1 = require("./ast"),
+    __o1 = require("../ast"),
     type = __o1["type"],
-    __o2 = require("./fun"),
+    __o2 = require("../fun"),
     concat = __o2["concat"],
     map = __o2["map"],
     foldl = __o2["foldl"],
     foldr = __o2["foldr"],
     flatten = __o2["flatten"],
-    __o3 = require("./rewriter"),
+    __o3 = require("../rewriter"),
     UP = __o3["UP"],
     DOWN = __o3["DOWN"],
     Rewriter = __o3["Rewriter"],

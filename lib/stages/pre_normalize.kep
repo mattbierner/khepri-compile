@@ -7,7 +7,7 @@ package normalize
 with
     import 'akh::error' Error,
     
-    import '../pre_normalize' pre_normalize
+    import '../normalize/pre_normalize' pre_normalize
 in {
 
 /**

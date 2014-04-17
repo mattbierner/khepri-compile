@@ -1,19 +1,20 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/unpack.kep'
  * DO NOT EDIT
 */"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o = require("./pseudo/pattern"),
+    __o = require("../pseudo/pattern"),
     SliceUnpack = __o["SliceUnpack"],
     RelativeUnpack = __o["RelativeUnpack"],
-    __o0 = require("./ast"),
+    __o0 = require("../ast"),
     type = __o0["type"],
-    fun = require("./fun"),
+    fun = require("../fun"),
     concat = fun["concat"],
     flatten = fun["flatten"],
+    map = fun["map"],
     innerPattern, unpackParameters, identifier = ast_value.Identifier.create.bind(null, null),
     number = ast_value.Literal.create.bind(null, null, "number"),
     relativeUnpack = (function(target, start, indx, pattern) {
@@ -34,10 +35,10 @@ var ast_expression = require("khepri-ast")["expression"],
         case "IdentifierPattern":
             return [ast_declaration.Binding.create(null, pattern, base, recursive)];
         case "AsPattern":
-            return fun.concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target,
+            return concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target,
                 recursive)));
         case "ObjectPattern":
-            return flatten(fun.map((function(node) {
+            return flatten(map((function(node) {
                 var base0, pattern0, key, innerBase;
                 return ((type(node) === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern,
                     node.from, node.to) : ((type(node) === "RelativeUnpack") ? relativeUnpack(
@@ -54,7 +55,7 @@ var ast_expression = require("khepri-ast")["expression"],
     }
 }));
 (unpackParameters = (function(args, elements) {
-    return flatten(fun.map((function(x) {
+    return flatten(map((function(x) {
         switch (x.type) {
             case "SinkPattern":
             case "IdentifierPattern":

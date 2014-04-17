@@ -7,7 +7,7 @@ with
     
     import 'akh::error' Error,
     
-    import '../inline' inline
+    import '../inline/inline' inline
 in {
 
 /**

@@ -1,10 +1,9 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/pre_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var Error = require("akh")["error"],
-    pre_normalize = require("../pre_normalize"),
+    pre_normalize = require("../normalize/pre_normalize"),
     normalize;
 (normalize = (function(__o) {
     var options = __o["options"],

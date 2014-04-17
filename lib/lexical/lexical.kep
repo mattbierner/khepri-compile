@@ -5,31 +5,28 @@
 package (
     check)
 with
-    import 'khepri-ast::node' ast_node#{setData setUserData},
-    import 'khepri-ast::pattern' ast_pattern,
-    import 'khepri-ast::value' ast_value,
+    import 'khepri-ast::node' {setData getData},
     
     import 'akh::base' {
         next
         'sequence': seq
         'sequencea': seqa},
     import 'akh::trans::statei' StateT,
-    import 'akh::identity' Identity,
     import 'akh::error' Error,
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
     
     import 'zipper-m::trans::tree' TreeZipperT,
     
-    import './ast' {
+    import '../ast' {
         type
         isIdentifier},
-    import './scope' scope#{Scope},
-    import './fun' {foldl}
+    import '../fun' {foldl},
+    import './scope' scope#{Scope}
 in {
 
 var reserved = \node ->
-    (node && node.ud && node.ud.reserved);
+    getData(node, 'reserved');
 
 /* Forward declarations
  ******************************************************************************/
@@ -204,7 +201,7 @@ var addMutableBinding = \id, loc ->
  * 
  * Does not perform any checks.
  */
-var addStaticBinding = \id, loc -> 
+var addStaticBinding = \id loc -> 
      modifyScope \ s ->
          scope.addImmutableBinding(s, id, loc);
 
@@ -212,7 +209,7 @@ var addStaticBinding = \id, loc ->
  * Adds a new immutable binding in the current scope.
  * Does not perform any checks.
  */
-var addImmutableBinding = \id, loc -> 
+var addImmutableBinding = \id loc -> 
     seq(
          modifyScope \ s ->
              scope.addImmutableBinding(s, id, loc),
@@ -222,7 +219,7 @@ var addImmutableBinding = \id, loc ->
  * Add a new mutable binding in the current scope.
  * Checks to make sure the new binding is valid.
  */
-var addMutableBindingChecked = \id, loc ->
+var addMutableBindingChecked = \id loc ->
     seq(
         checkCanAddBinding(id, loc),
         addMutableBinding(id, loc));
@@ -231,7 +228,7 @@ var addMutableBindingChecked = \id, loc ->
  * Add a new immutable binding in the current scope.
  * Checks to make sure the new binding is valid.
  */
-var addImmutableBindingChecked = \id, loc ->
+var addImmutableBindingChecked = \id loc ->
     seq(
         checkCanAddBinding(id, loc),
         addImmutableBinding(id, loc));
@@ -240,7 +237,7 @@ var addImmutableBindingChecked = \id, loc ->
  * Add a new immutable binding in the current scope.
  * Checks to make sure the new binding is valid.
  */
-var addStaticBindingChecked = \id, loc ->
+var addStaticBindingChecked = \id loc ->
     seq(
         checkCanAddBinding(id, loc),
         addStaticBinding(id, loc));
@@ -251,7 +248,7 @@ var checks = {};
 
 var addCheck = \type, check -> {
     if (Array.isArray(type))
-        type.forEach \x -> addCheck(x, check);
+        type.forEach \ x -> addCheck(x, check);
     else
         checks.(type) = check;
 };
@@ -513,10 +510,7 @@ _check = \node -> {
             up);
     }
     
-    if (node instanceof ast_node.Node && checks.(node.type))
-        return checks.(node.type);
-    
-    return pass;
+    return (checks.(type node) || pass);
 };
 
 var addBindings = foldl@(scope.addImmutableBinding, Scope.empty);

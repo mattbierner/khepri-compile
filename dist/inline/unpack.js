@@ -1,9 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
-    "khepri-ast/value", "./pseudo/pattern", "./ast", "./fun"
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+    "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, fun) {
     "use strict";
     var SliceUnpack = __o["SliceUnpack"],
@@ -11,6 +10,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
         type = __o0["type"],
         concat = fun["concat"],
         flatten = fun["flatten"],
+        map = fun["map"],
         innerPattern, unpackParameters, identifier = ast_value.Identifier.create.bind(null, null),
         number = ast_value.Literal.create.bind(null, null, "number"),
         relativeUnpack = (function(target, start, indx, pattern) {
@@ -32,10 +32,10 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
             case "IdentifierPattern":
                 return [ast_declaration.Binding.create(null, pattern, base, recursive)];
             case "AsPattern":
-                return fun.concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id,
-                    pattern.target, recursive)));
+                return concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target,
+                    recursive)));
             case "ObjectPattern":
-                return flatten(fun.map((function(node) {
+                return flatten(map((function(node) {
                     var base0, pattern0, key, innerBase;
                     return ((type(node) === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id,
                         node.pattern, node.from, node.to) : ((type(node) ===
@@ -54,7 +54,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
         }
     }));
     (unpackParameters = (function(args, elements) {
-        return flatten(fun.map((function(x) {
+        return flatten(map((function(x) {
             switch (x.type) {
                 case "SinkPattern":
                 case "IdentifierPattern":

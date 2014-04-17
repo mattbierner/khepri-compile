@@ -36,7 +36,7 @@ with
     import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
     
-    import './ast' {
+    import '../ast' {
         type
         isIdentifier
         getUd
@@ -46,13 +46,13 @@ with
         isPrimitive
         isNumberish
         isTruthy},
-    import './builtin' builtin#{builtins definitions },
-    import './fun' fun#{flattenr flatten concat},
-    import './inline/bindings' binding,
-    import './inline/expand' {
+    import '../builtin' builtin#{builtins definitions },
+    import '../fun' fun#{flattenr flatten concat},
+    import './bindings' binding,
+    import './expand' {
         expandCallee
         expandCurry},
-    import './inline/rename' {rename incCount}
+    import './rename' {rename incCount}
 in {
 
 /* Config
@@ -788,6 +788,7 @@ addRewrite@'LetExpression' <| seq(
         ast_expression.LetExpression.create(loc,
             flattenr(bindings),
             body),
+    
     /**
      * Collapse empty let expressions.
      */

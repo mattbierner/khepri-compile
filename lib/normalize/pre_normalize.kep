@@ -13,18 +13,18 @@ with
     import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
-    import './pseudo/pattern' {SliceUnpack RelativeUnpack},
+    import '../pseudo/pattern' {SliceUnpack RelativeUnpack},
 
     
-    import './ast' {type},
+    import '../ast' {type},
     
-    import './fun' {
+    import '../fun' {
         concat
         map
         foldl
         foldr
         flatten},
-    import './rewriter' {
+    import '../rewriter' {
         UP
         DOWN
         Rewriter

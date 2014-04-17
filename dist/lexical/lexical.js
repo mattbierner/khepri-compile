@@ -1,25 +1,22 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/value", "akh/base",
-    "akh/trans/statei", "akh/identity", "akh/error", "akh/trans/error", "akh/unique", "zipper-m/trans/tree",
-    "./ast", "./scope", "./fun"
-], (function(require, exports, ast_node, ast_pattern, ast_value, __o, StateT, Identity, Error, ErrorT, Unique,
-    TreeZipperT, __o0, scope, __o1) {
+*/define(["require", "exports", "khepri-ast/node", "akh/base", "akh/trans/statei", "akh/error", "akh/trans/error",
+    "akh/unique", "zipper-m/trans/tree", "../ast", "../fun", "./scope"
+], (function(require, exports, __o, __o0, StateT, Error, ErrorT, Unique, TreeZipperT, __o1, __o2, scope) {
     "use strict";
-    var setData = ast_node["setData"],
-        setUserData = ast_node["setUserData"],
-        next = __o["next"],
-        seq = __o["sequence"],
-        seqa = __o["sequencea"],
-        type = __o0["type"],
-        isIdentifier = __o0["isIdentifier"],
+    var setData = __o["setData"],
+        getData = __o["getData"],
+        next = __o0["next"],
+        seq = __o0["sequence"],
+        seqa = __o0["sequencea"],
+        type = __o1["type"],
+        isIdentifier = __o1["isIdentifier"],
+        foldl = __o2["foldl"],
         Scope = scope["Scope"],
-        foldl = __o1["foldl"],
         check, x, y, x0, y0, x1, y1, x2, y2, x3, consequent, alternate, bind, consequent0, alternate0,
             consequent1, alternate1, x4, consequent2, alternate2, consequent3, reserved = (function(node) {
-                return ((node && node.ud) && node.ud.reserved);
+                return getData(node, "reserved");
             }),
         _check, M = ErrorT(TreeZipperT(StateT(Unique))),
         run = (function(p, s, ctx, ok, err) {
@@ -141,8 +138,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         });
     addCheck("Program", block(child("body", checkTop)));
     addCheck("PackageExports", child("exports", checkTop));
-    addCheck("PackageExport", seq(inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("PackageExport", seq(inspect((function(__o3) {
+        var id = __o3["id"];
         return addMutableBindingChecked(id.name, id.loc);
     })), child("id", checkTop)));
     addCheck("Package", block(child("exports", checkTop), child("body", ((x3 = type), (consequent = seq(child(
@@ -153,8 +150,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             pass));
     }))))));
     addCheck(["StaticDeclaration", "VariableDeclaration"], child("declarations", checkTop));
-    addCheck("StaticDeclarator", inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("StaticDeclarator", inspect((function(__o3) {
+        var id = __o3["id"];
         return addStaticBindingChecked(id.name, id.loc);
     })));
     addCheck("VariableDeclarator", ((bind = (function(node) {
@@ -179,16 +176,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
     addCheck(["ReturnStatement", "ThrowStatement"], child("argument", checkTop));
     addCheck("TryStatement", seq(child("block", checkTop), block(child("handler", checkTop)), block(child(
         "finalizer", checkTop))));
-    addCheck("CatchClause", block(inspect((function(__o2) {
-        var param = __o2["param"];
+    addCheck("CatchClause", block(inspect((function(__o3) {
+        var param = __o3["param"];
         return addImmutableBindingChecked(param.name, param.loc);
     })), child("param", checkTop), child("body", child("body", checkTop))));
     addCheck("WhileStatement", seq(child("test", checkTop), block(child("body", checkTop))));
     addCheck("DoWhileStatement", seq(block(child("body", checkTop)), child("test", checkTop)));
     addCheck("ForStatement", block(child("init", checkTop), child("test", checkTop), child("update", checkTop),
         block(child("body", checkTop))));
-    addCheck("FunctionExpression", block(inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("FunctionExpression", block(inspect((function(__o3) {
+        var id = __o3["id"];
         return (id ? addImmutableBinding(id.name, id.loc) : pass);
     })), child("id", checkTop), getClosure((function(closure) {
         return modifyNode((function(node) {
@@ -201,9 +198,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
             alternate2 || pass));
     }))))));
     addCheck("UnaryExpression", child("argument", checkTop));
-    addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o2) {
-        var operator = __o2["operator"],
-            left = __o2["left"];
+    addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o3) {
+        var operator = __o3["operator"],
+            left = __o3["left"];
         return (isIdentifier(left) ? seq(checkCanAssign(left.name, left.loc), ((operator ===
             ":=") ? markBindingImmutable(left.name, left.loc) : pass)) : pass);
     })), child("right", checkTop)));
@@ -250,8 +247,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
                 return ((i === (node.length - 1)) ? checkTop : next(checkTop, right));
             }))), up);
         }
-        if (((node instanceof ast_node.Node) && checks[node.type])) return checks[node.type];
-        return pass;
+        return (checks[type(node)] || pass);
     }));
     var addBindings = foldl.bind(null, scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {

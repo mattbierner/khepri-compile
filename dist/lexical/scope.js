@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
+*/define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
             getClosure, push, pop;

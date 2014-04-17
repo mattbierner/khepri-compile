@@ -12,12 +12,13 @@ with
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
-    import './pseudo/pattern' {SliceUnpack RelativeUnpack},
+    import '../pseudo/pattern' {SliceUnpack RelativeUnpack},
     
-    import './ast' {type},
-    import './fun' fun#{
+    import '../ast' {type},
+    import '../fun' fun#{
         concat
-        flatten}
+        flatten
+        map}
 in {
 
 var identifier = ast_value.Identifier.create @ null;
@@ -103,13 +104,13 @@ in
                     recursive)];
         
         case 'AsPattern':
-            return fun.concat(
+            return concat(
                 innerPattern(base, pattern.id),
                 flatten <| innerPattern(pattern.id, pattern.target, recursive));
         
         case 'ObjectPattern':
             return pattern.elements
-                |> (fun.map @ \node ->
+                |> (map @ \node ->
                     ?type node === 'SliceUnpack'
                         :sliceUnpack(
                             pattern.ud.id.id,
@@ -142,7 +143,7 @@ in
  */
 unpackParameters = \args elements ->
     elements
-        |> fun.map @ \x -> {
+        |> map @ \x -> {
             switch (x.type) {
             // Avoid generating redundant unpacks for parameters names.
             case 'SinkPattern':

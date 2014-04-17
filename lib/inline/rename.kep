@@ -28,7 +28,7 @@ in
  * @param prefix Unique id to prefix to all renamed identifiers.
  * @param list List of identifier uids to rename. All others will be ignored
  * @param root Root node of tree to traverse.
- */
+ */ 
 rename = \prefix list root ->
     tree.node <| preWalk(
         \ctx -> let

@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("bes")["object"],
     setProperty = __o["setProperty"],
     Error = require("akh")["error"],
-    post_normalize = require("../post_normalize"),
+    post_normalize = require("../normalize/post_normalize"),
     optimize;
 (optimize = (function(input) {
     var tree = input["tree"],

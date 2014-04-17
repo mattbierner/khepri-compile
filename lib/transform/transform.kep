@@ -33,15 +33,14 @@ with
     import 'zipper-m::walk' walk,
     
     import '../ast' {type getUid},
-
-    import '../scope' scope#{Scope},
+    import '../lexical/scope' scope#{Scope},
     import '../fun' fun#{
         concat
         flatten
         flip
         filter},
     import '../builtin' {builtins definitions},
-    import '../unpack' {innerPattern unpackParameters},
+    import '../inline/unpack' {innerPattern unpackParameters},
     
     import './package_manager/amd' _,
     import './package_manager/node' _

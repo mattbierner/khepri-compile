@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/scope.kep'
  * DO NOT EDIT
 */"use strict";
 var record = require("bes")["record"],

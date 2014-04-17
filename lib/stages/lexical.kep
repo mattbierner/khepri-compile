@@ -5,7 +5,7 @@ package check
 with
     import 'akh::error' Error,
 
-    import '../lexical' lexical
+    import '../lexical/lexical' lexical
 in {
 
 

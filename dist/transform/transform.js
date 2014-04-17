@@ -1,12 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
+*/define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/program", "khepri-ast/statement",
     "khepri-ast/value", "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "zipper-m/walk",
-    "../ast", "../scope", "../fun", "../builtin", "../unpack", "./package_manager/amd", "./package_manager/node"
+    "../ast", "../lexical/scope", "../fun", "../builtin", "../inline/unpack", "./package_manager/amd",
+    "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_node, khepri_pattern,
     khepri_program, khepri_statement, khepri_value, Unique, StateT, __o, TreeZipperT, walk, __o0, scope, fun,

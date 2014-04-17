@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/inline.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("bes")["object"],
     setProperty = __o["setProperty"],
     Error = require("akh")["error"],
-    inline = require("../inline"),
+    inline = require("../inline/inline"),
     optimize;
 (optimize = (function(input) {
     var tree = input["tree"],

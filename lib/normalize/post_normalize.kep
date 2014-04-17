@@ -14,20 +14,20 @@ with
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     
-    import './ast' {
+    import '../ast' {
         type
         isBlockFunction},
-    import './fun' {
+    import '../fun' {
         concat
         flattenr
         map},
-    import './unpack' {
+    import '../inline/unpack' {
         innerPattern
         unpackParameters},
-    import './builtin' {
+    import '../builtin' {
         builtins
         definitions},
-    import './rewriter' {
+    import '../rewriter' {
         UP
         DOWN
         Rewriter
