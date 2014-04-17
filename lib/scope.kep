@@ -203,6 +203,7 @@ push = \s ->
         .setOuter(s)
         .setDefinitions(s.definitions);
 
-pop = (.outer);
+pop = \s ->
+    s.outer;
 
 }

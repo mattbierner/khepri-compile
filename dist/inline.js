@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
+*/define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package", "khepri-ast/program", "khepri-ast/value",
     "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree", "zipper-m/walk", "./ast", "./builtin",
     "./fun", "./inline/bindings", "./inline/expand", "./inline/rename"
@@ -36,8 +35,8 @@ define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-a
         incCount = __o3["incCount"],
         optimize, x, y, consequent, consequent0, consequent1, consequent2, arithmetic, consequent3, x0,
             consequent4, arithmetic0, consequent5, y0, consequent6, alternate, consequent7, consequent8,
-            consequent9, consequent10, exp, consequent11, consequent12, exp0, consequent13, consequent14,
-            consequent15, consequent16, __and = (function(x, y) {
+            consequent9, consequent10, exp, consequent11, consequent12, exp0, consequent13, consequent14, x1,
+            consequent15, consequent16, consequent17, __and = (function(x, y) {
                 return (x && y);
             }),
         __plus = (function(x) {
@@ -435,17 +434,28 @@ define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-a
         return ((isLambdaWithoutArgs(node.base) || ((node.base.type === "LetExpression") &&
             isLambdaWithoutArgs(node.base.body))) ? consequent14 : (undefined || pass));
     })))));
-    addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), modify((function(__o4) {
+    addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", checkTop), ((x1 = type), (
+        consequent15 = modify((function(__o4) {
+            var loc = __o4["loc"],
+                bindings = __o4["bindings"],
+                body = __o4["body"];
+            return ast_expression.LetExpression.create(loc, concat(bindings, body.bindings),
+                body.body);
+        }))), extract((function(node) {
+        var x2, y1;
+        return (((x2 = node.body), (y1 = x1(x2)), ("LetExpression" === y1)) ? consequent15 :
+            (undefined || pass));
+    }))), modify((function(__o4) {
         var loc = __o4["loc"],
             bindings = __o4["bindings"],
             body = __o4["body"];
         return ast_expression.LetExpression.create(loc, flattenr(bindings), body);
-    })), ((consequent15 = modify((function(__o4) {
+    })), ((consequent16 = modify((function(__o4) {
         var body = __o4["body"];
         return body;
     }))), extract((function(node) {
         var bindings;
-        return (((bindings = node["bindings"]), (!bindings.length)) ? consequent15 : (
+        return (((bindings = node["bindings"]), (!bindings.length)) ? consequent16 : (
             undefined || pass));
     })))));
     addRewrite("ArgumentsPattern", seq(child("id", checkTop), child("elements", checkTop), child("self",
@@ -456,14 +466,14 @@ define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-a
     addRewrite("ArrayExpression", child("elements", checkTop));
     addRewrite("ObjectExpression", child("properties", checkTop));
     addRewrite("ObjectValue", child("value", checkTop));
-    addRewrite("Identifier", ((consequent16 = extract((function(node) {
+    addRewrite("Identifier", ((consequent17 = extract((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding0) {
                 return (((binding0 && binding0.value) && binding0.simple) ? set(
                     binding0.value) : pass);
             }));
     }))), extract((function(node) {
-        return ((getUid(node) && (!getExpansion(node))) ? consequent16 : (undefined || pass));
+        return ((getUid(node) && (!getExpansion(node))) ? consequent17 : (undefined || pass));
     }))));
     (_check = (function(node) {
         if (Array.isArray(node)) {

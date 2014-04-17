@@ -52,11 +52,15 @@ peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = 
     }));
 })));
 peepholes.add("FunctionExpression", UP, always, (function(node) {
-    var params = getParameterNames(node.params.elements);
+    var params = getParameterNames(node.params.elements),
+        bindings = unpackParameters(node.params.id, node.params.elements),
+        body = (isBlockFunction(node) ? ast_statement.BlockStatement.create(null, [ast_statement.WithStatement.create(
+            null, bindings, node.body)]) : ast_expression.LetExpression.create(null, bindings, node.body));
     return modify(node, ({
         params: modify(node.params, ({
             "elements": params
-        }))
+        })),
+        body: body
     }));
 }));
 var expandAssignment = (function(node) {

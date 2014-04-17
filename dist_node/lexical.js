@@ -191,15 +191,15 @@ addCheck("WhileStatement", seq(child("test", checkTop), block(child("body", chec
 addCheck("DoWhileStatement", seq(block(child("body", checkTop)), child("test", checkTop)));
 addCheck("ForStatement", block(child("init", checkTop), child("test", checkTop), child("update", checkTop), block(child(
     "body", checkTop))));
-addCheck("FunctionExpression", block(getClosure((function(closure) {
+addCheck("FunctionExpression", block(inspect((function(__o2) {
+    var id = __o2["id"];
+    return (id ? addImmutableBinding(id.name, id.loc) : pass);
+})), child("id", checkTop), getClosure((function(closure) {
     return modifyNode((function(node) {
         return setData(node, "closure", closure);
     }));
-})), inspect((function(__o2) {
-    var id = __o2["id"];
-    return (id ? addImmutableBinding(id.name, id.loc) : pass);
-})), child("id", checkTop), child("params", checkTop), child("body", ((x4 = type), (consequent2 = child("body",
-    checkTop)), (alternate2 = checkTop), inspect((function(node) {
+})), child("params", checkTop), child("body", ((x4 = type), (consequent2 = child("body", checkTop)), (
+    alternate2 = checkTop), inspect((function(node) {
     var y3;
     return (((y3 = x4(node)), ("BlockStatement" === y3)) ? consequent2 : (alternate2 || pass));
 }))))));

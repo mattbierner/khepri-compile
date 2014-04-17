@@ -94,7 +94,8 @@ peepholes.add('FunctionExpression', UP,
                 node.body)
     in
         modify(node, {
-            params: modify(node.params, {'elements': params})
+            params: modify(node.params, {'elements': params}),
+            body: body
         }));
 
 /* Expression Conversion

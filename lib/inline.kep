@@ -771,6 +771,17 @@ addRewrite@'LetExpression' <| seq(
     visitChild 'body',
     
     /**
+     * Flatten let with let body.
+     */
+    when((.body) \> type \> (===, 'LetExpression'),
+        modify \ {loc bindings body} ->
+            ast_expression.LetExpression.create(loc,
+                concat(
+                    bindings,
+                    body.bindings),
+                body.body)),
+    
+    /**
      * Flatten let expression bindings.
      */
     modify \ {loc bindings body} ->

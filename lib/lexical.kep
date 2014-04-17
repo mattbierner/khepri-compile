@@ -383,15 +383,17 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-        getClosure \ closure ->
-        modifyNode \ node ->
-           setData(node, 'closure', closure),
-        
         inspect \ {id} ->
             ?id
                 :addImmutableBinding(id.name, id.loc)
                 :pass,
         checkChild 'id',
+        
+        // Attach closure data.
+        // This must include the function's id
+        getClosure \ closure ->
+        modifyNode \ node ->
+           setData(node, 'closure', closure),
         
         checkChild 'params',
         // Evaluate body in same scope
