@@ -10,8 +10,10 @@ with
     import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::expression' ast_expression,
-
-    import 'khepri-ast::value' ast_value
+    
+    import 'khepri-ast::value' ast_value,
+    
+    import './ast' {getUid}
 in {
 
 var flip := \f -> \x y -> f(y, x);
@@ -200,15 +202,18 @@ with
     singleCompose = \f g -> let
         x = identifier('x', unique())
     in
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    x)]),
-            ast_expression.CallExpression.create(null,
-                f, [
-                    ast_expression.CallExpression.create(null,
-                        g,
-                        [x])]))
+        setData(
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null,
+                        x)]),
+                ast_expression.CallExpression.create(null,
+                    f, [
+                        ast_expression.CallExpression.create(null,
+                            g,
+                            [x])])),
+            'closure',
+            [getUid f, getUid g])
 in {
     registerBinary('<\\', '__compose', singleCompose);
     registerBinary('\\>', '__rcompose',  flip singleCompose);
@@ -216,17 +221,20 @@ in {
 
 // ComposeN
 with
-    multiCompose = \f, g ->
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, []),
-            ast_expression.CallExpression.create(null,
-                f, [
-                    ast_expression.CallExpression.create(null,
-                         ast_expression.MemberExpression.create(null,
-                             g,
-                             identifier('apply')),
-                         [ast_value.Literal.create(null, 'null'),
-                         identifier('arguments')])]))
+    multiCompose = \f g ->
+        setData(
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, []),
+                ast_expression.CallExpression.create(null,
+                    f, [
+                        ast_expression.CallExpression.create(null,
+                             ast_expression.MemberExpression.create(null,
+                                 g,
+                                 identifier('apply')),
+                             [ast_value.Literal.create(null, 'null'),
+                             identifier('arguments')])])),
+             'closure',
+             [getUid f, getUid g])
 in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);

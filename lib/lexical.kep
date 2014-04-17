@@ -110,7 +110,7 @@ var checkChild = \edge ->
 var pass = M.of();
 
 /**
- * When `test` is true for current node, evaluate consequent. Otherwise evalaute
+ * When `test` is true for current node, evaluate consequent. Otherwise evaluate
  * alternate.
  */
 var when = \test consequent alternate ->

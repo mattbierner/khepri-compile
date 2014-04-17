@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "../ast", "../fun", "./rename", "../builtin"
 ], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, __o2) {
     "use strict";
@@ -25,8 +24,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                     (function(x, i) {
                         return (bindings[i] ? bindings[i].pattern.id : x);
                     }))))) : []);
-        return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings,
-            argBinding), rename(uid, closure, target.body));
+        return ast_expression.LetExpression.create(null, concat(rename(uid, closure, (callee.bindings || [])),
+            bindings, argBinding), rename(uid, closure, target.body));
     }));
     (expandCurry = (function(uid, base, args) {
         var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
@@ -36,7 +35,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 .create(null, null, rename(uid, closure, rest), target.params.self), rename(uid,
                     closure, target.body))), ((first && (((first.type === "IdentifierPattern") ||
                 (first.type === "AsPattern")) || (first.type === "ObjectPattern"))) ?
-            ast_expression.LetExpression.create(null, concat((base.bindings || []),
+            ast_expression.LetExpression.create(null, concat(rename(uid, closure, (base.bindings || [])),
                     ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])),
                 body) : body)));
     }));

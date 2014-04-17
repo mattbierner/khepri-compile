@@ -27,8 +27,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
             rename(uid, [], arg), ast_expression.ArrayExpression.create(null, args.map((function(x, i) {
                 return (bindings[i] ? bindings[i].pattern.id : x);
             }))))) : []);
-    return ast_expression.LetExpression.create(null, concat((callee.bindings || []), bindings, argBinding),
-        rename(uid, closure, target.body));
+    return ast_expression.LetExpression.create(null, concat(rename(uid, closure, (callee.bindings || [])),
+        bindings, argBinding), rename(uid, closure, target.body));
 }));
 (expandCurry = (function(uid, base, args) {
     var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
@@ -37,8 +37,9 @@ var ast_declaration = require("khepri-ast")["declaration"],
         ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
             null, rename(uid, closure, rest), target.params.self), rename(uid, closure, target.body))), (
         (first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
-            "ObjectPattern"))) ? ast_expression.LetExpression.create(null, concat((base.bindings || []),
-            ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])), body) : body)));
+            "ObjectPattern"))) ? ast_expression.LetExpression.create(null, concat(rename(uid, closure, (
+            base.bindings || [])), ast_declaration.Binding.create(null, rename(uid, closure,
+            first), args[0])), body) : body)));
 }));
 (exports["expandCallee"] = expandCallee);
 (exports["expandCurry"] = expandCurry);

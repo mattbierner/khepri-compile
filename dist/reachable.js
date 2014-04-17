@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/node", "akh/base", "akh/state",
+*/
+define(["require", "exports", "bes/record", "hamt", "neith/zipper", "khepri-ast/node", "akh/base", "akh/state",
     "zipper-m/trans/tree", "./ast"
 ], (function(require, exports, record, hamt, zipper, __o, __o0, StateM, TreeZipperT, __o1) {
     "use strict";

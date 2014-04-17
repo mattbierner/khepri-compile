@@ -58,7 +58,7 @@ expandCallee = \uid callee args -> let
 in
     ast_expression.LetExpression.create(null,
         concat(
-            callee.bindings || [],
+            rename(uid, closure, callee.bindings || []),
             bindings,
             argBinding),
         rename(uid, closure, target.body));
@@ -87,7 +87,7 @@ in
         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,
                 concat(
-                    base.bindings || [],
+                    rename(uid, closure, base.bindings || []),
                     ast_declaration.Binding.create(null,
                         rename(uid, closure, first),
                         args.(0))),

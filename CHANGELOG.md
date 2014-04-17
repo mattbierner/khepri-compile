@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.5.6 - April 16, 2014
+* Fixed inlining of compose when capturing mutable members.
+
 ## 0.5.5 - April 16, 2014
 * Revert to not prune assignments since this is broken for certain edge cases.
 

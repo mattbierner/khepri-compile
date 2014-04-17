@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var Error = require("akh")["error"],
     __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
@@ -30,7 +29,6 @@ var Error = require("akh")["error"],
         .chain(lexical)
         .chain(post_normalize)
         .chain(inline)
-        .chain(reachable)
         .chain(khepri_peep)
         .chain(transform)
         .chain(ecma_peep)), extract, (err || thr));
