@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.5.5 - April 16, 2014
+* Revert to not prune assignments since this is broken for certain edge cases.
+
 ## 0.5.4 - April 16, 2014
 * Fixed `var f := \-> let y -> y;` with local bindings being inlined incorrectly.
 * Improved inlining for fns like `var f := \x -> \y -> x + y;  f 1 2;` to just

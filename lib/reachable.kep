@@ -240,18 +240,9 @@ addRewrite@['LogicalExpression', 'BinaryExpression'] <| seq(
     visitChild 'left',
     visitChild 'right');
 
-addRewrite@'AssignmentExpression' <| 
-    when((.left) \> type \> (===, "Identifier"),
-        // Don't count assignments as reachable.
-        extract \ node ->
-            let uid = getUid node.left in
-                getCount(uid).chain \ count -> 
-                    ?count
-                        :seq(visitChild 'right', setCount(uid, count))
-                        :set null,
-        seq(
-            visitChild 'left',
-            visitChild 'right'));
+addRewrite@'AssignmentExpression' <| seq(
+    visitChild 'left',
+    visitChild 'right');
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',

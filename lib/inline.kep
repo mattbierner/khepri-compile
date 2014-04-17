@@ -279,7 +279,7 @@ var child = \edge ...ops ->
 /**
  * Rewrite the current node.
  */
-var checkTop = extract \ x -> _check x; // forward
+var checkTop = extract \ x -> { return _check x; }; // forward
 
 /**
  * Rewrite a child node.
