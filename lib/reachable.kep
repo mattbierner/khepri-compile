@@ -1,5 +1,10 @@
 /**
- * @fileOverview Khepri peephole optimization.
+ * @fileOverview Remove unused variables and bindings.
+ * 
+ * Walks the program tree in reverse order to find bindings that are never referenced.
+ * This both optimizes the program, and is necessary after the inlining / constant
+ * propogation phase, which makes many bindings unreachable but does not have
+ * enough knowledge to be able to safely prune these.
  */
 package (
     optimize)
@@ -15,10 +20,15 @@ with
 
     import 'zipper-m::trans::tree' TreeZipperT,
     
+    import './fun' {map},
     import './ast' {
         type
         getUid}
 in {
+
+/* Forward
+ ******************************************************************************/
+var _check;
 
 /* State
  ******************************************************************************/
@@ -35,10 +45,8 @@ var stateGetCount = \uid bindings ->
 
 var stateIsReachable = stateGetCount;
 
-/* Forward
+/* Monad
  ******************************************************************************/
-var _check;
-
 var M = TreeZipperT (StateM);
 
 var run = \c ctx ->
@@ -130,7 +138,25 @@ var visitChild := \edge ->
     child(edge,
         checkTop);
 
-/*
+/**
+ * Visit an array node in reverse order.
+ */
+var visitArray := let
+    move = \x i ->
+        ?i
+            :next(checkTop, left)
+            :checkTop
+in
+    \node ->
+        ?node.length
+            :seq(
+                down,
+                rightmost,
+                seqa map(move, node).reverse(),
+                up)
+        :pass;
+
+/* Visit
  ******************************************************************************/
 var peepholes := {};
 
@@ -276,38 +302,21 @@ addRewrite@'Identifier' <|
 
 /* Interface
  ******************************************************************************/
-_check = \node -> {
-    if (Array.isArray node) {
-        if (!node.length) return pass;
-        
-        // Visit all elements of array in reverse order, from right to left.
-        return seq(
-            down,
-            rightmost,
-            node.reduceRight(\p c i ->
-                next(
-                    p,
-                    ?i
-                        :next(checkTop, left)
-                        :checkTop),
-                pass),
-            up);
-    }
-    
-    return (peepholes.(type node) || pass);
-};
+_check = \node ->
+    ?Array.isArray node
+        :visitArray node
+        :peepholes.(type node) || pass;
 
 /**
+ * Traverse Khepri zipper `ast`, removing any bindings that are not reachable.
  * 
+ * Outputs rewritten zipper.
  */
-optimize = \ast data ->
+optimize = \ast ->
     run(
         next(
             checkTop,
-            extractCtx.chain \ node ->
-                M.of({
-                    'tree': node
-                })),
+            extractCtx.map \ node -> ({ tree: node })),
         ast);
 
 }
