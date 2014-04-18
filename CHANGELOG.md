@@ -1,6 +1,11 @@
 # ChangeLog #
 
-## 0.5.6 - April 16, 2014
+## 0.5.7 - April 17, 2014
+* Fixed bug with inline that could cause non local ids to get renamed when
+  function is inlined into a non local context.
+* Restored accidentally commented out reachable pass.
+
+## 0.5.6 - April 17, 2014
 * Fixed inlining of compose when capturing mutable members.
 
 ## 0.5.5 - April 16, 2014
