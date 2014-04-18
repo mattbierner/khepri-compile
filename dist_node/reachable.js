@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var hamt = require("hamt"),
     __o = require("khepri-ast")["node"],
     modify = __o["modify"],

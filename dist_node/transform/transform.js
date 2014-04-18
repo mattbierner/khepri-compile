@@ -15,7 +15,6 @@ var record = require("bes")["record"],
     khepri_node = require("khepri-ast")["node"],
     setData = khepri_node["setData"],
     khepri_pattern = require("khepri-ast")["pattern"],
-    khepri_program = require("khepri-ast")["program"],
     khepri_statement = require("khepri-ast")["statement"],
     khepri_value = require("khepri-ast")["value"],
     Unique = require("akh")["unique"],
@@ -200,10 +199,10 @@ var M = TreeZipperT(StateT(Unique)),
         if (Array.isArray(type0)) return type0.map((function(x3) {
             return addTransform(x3, pre, post);
         }));
-        (transformers[type0] = [({
-            "pre": pre,
-            "post": post
-        })]);
+        (transformers[type0] = ({
+            pre: pre,
+            post: post
+        }));
     });
 addTransform("VariableDeclaration", null, modify((function(__o4) {
     var loc = __o4["loc"],
@@ -354,21 +353,16 @@ addTransform("Identifier", null, withNode((function(node0) {
         }))) : set(identifier(node0.loc, node0.name)));
 })));
 (_trans = (function(node0) {
-    if ((node0 && (node0 instanceof khepri_node.Node))) {
-        var t = transformers[node0.type];
-        if ((t && t[0].pre)) return t[0].pre;
-    }
-    return pass;
+    var t;
+    return ((node0 instanceof khepri_node.Node) ? ((t = transformers[type(node0)]), ((t && t.pre) || pass)) :
+        pass);
 }));
-var _transp = (function(node0) {
-    if ((node0 && (node0 instanceof khepri_node.Node))) {
-        var t = transformers[node0.type];
-        if ((t && t[0].post)) return t[0].post;
-    }
-    return pass;
-}),
-    _transformPost = withNode(_transp);
-(transform = (function(ast, manager, data) {
+var _transformPost = withNode((function(node0) {
+    var t;
+    return ((node0 instanceof khepri_node.Node) ? ((t = transformers[type(node0)]), ((t && t.post) || pass)) :
+        pass);
+}));
+(transform = (function(ast, manager) {
     var amd_manager = require("./package_manager/amd"),
         node_manager = require("./package_manager/node"),
         packageManager0 = amd_manager;

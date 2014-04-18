@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Unpack binding transformation
  */
 package (
     expandBinding
@@ -89,6 +89,9 @@ var expandSlice = map @ \node -> {
 
 expandBindings = innerPattern \>> expandSlice \> flatten;
 
+/**
+ * 
+ */
 expandBinding = \binding ->
     expandBindings(binding.value, binding.pattern);
 

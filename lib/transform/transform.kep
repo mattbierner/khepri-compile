@@ -18,7 +18,6 @@ with
     import 'khepri-ast::expression' khepri_expression,
     import 'khepri-ast::node' khepri_node#{setData},
     import 'khepri-ast::pattern' khepri_pattern,
-    import 'khepri-ast::program' khepri_program,
     import 'khepri-ast::statement' khepri_statement,
     import 'khepri-ast::value' khepri_value,
     
@@ -41,7 +40,6 @@ with
         filter},
     import '../builtin' {builtins definitions},
     import '../inline/unpack' {unpackParameters},
-    
     import './unpack' {expandBinding expandBindings},
 
     import './package_manager/amd' _,
@@ -348,10 +346,10 @@ var addTransform = \type pre post -> {
     if (Array.isArray(type))
         return type.map \ x -> addTransform(x, pre, post);
     
-   transformers.(type) = [{
-        'pre': pre,
-        'post': post
-    }];
+   transformers.(type) = {
+        pre: pre,
+        post: post
+    };
 };
 
 // Declarations
@@ -669,32 +667,31 @@ addTransform('Identifier',
 
 /*
  *****************************************************************************/
-_trans = \node -> {
-    if (node && node instanceof khepri_node.Node) {
-        var t = transformers.(node.type);
-        if (t && t.(0).pre)
-            return t.(0).pre;
-    }
-    return pass;
-};
+_trans = \node ->
+    ?node instanceof khepri_node.Node
+        :let t = transformers.(type node) in
+            (t && t.pre) || pass
+    :pass;
 
-var _transp = \node -> {
-    if (node && node instanceof khepri_node.Node) {
-        var t = transformers.(node.type);
-        if (t && t.(0).post)
-            return t.(0).post;
-    }
-    return pass;
-};
+var _transp = \node ->
+    ?node instanceof khepri_node.Node
+        :let t = transformers.(type node) in
+            (t && t.post) || pass
+    :pass;
 
 var _transformPost = withNode _transp;
 
 /* API
  *****************************************************************************/
 /**
+ * Rewrite a Khepri zippered program to an ECMAScript program.
  * 
+ * Outputs the ECMAScript root.
+ * 
+ * @param ast Zippered khepri program.
+ * @param manager Package manager to use for rewrite.
  */
-transform = \ast manager data -> {
+transform = \ast manager -> {
     with 
         import './package_manager/amd' amd_manager,
         import './package_manager/node' node_manager
