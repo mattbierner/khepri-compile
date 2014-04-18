@@ -1,0 +1,95 @@
+/**
+ * @fileOverview
+ */
+package (
+    expandBinding
+    expandBindings)
+with 
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::value' ast_value,
+    
+    import '../ast' {type getUid},
+    import '../fun' {
+        concat
+        flatten
+        map},
+    import '../inline/unpack' {
+        innerPattern
+        unpackParameters}
+in {
+
+var identifier := ast_value.Identifier.create @ null;
+
+var number := ast_value.Literal.create @ null @ 'number';
+
+
+/**
+ * Create unpack relative to the end of `target`.
+ * 
+ * @param target Parent being unpacked.
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param indx Relative indx of value.
+ * @param pattern Unpack for value.
+ */
+var relativeUnpack = \target start indx pattern ->
+    innerPattern(
+        ast_expression.MemberExpression.create(null,
+            target,
+            ast_expression.BinaryExpression.create(null, '-',
+                ast_expression.CallExpression.create(null,
+                ast_expression.MemberExpression.create(null, identifier 'Math', identifier 'max'), [
+                    ast_expression.MemberExpression.create(null,
+                        target,
+                        identifier 'length'),
+                    number start]),
+                number indx),
+            true),
+       pattern);
+
+/**
+ * Unpack a range of values for `target`.
+ * 
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param id Value unpack.
+ * @param from Start of slice.
+ * @param to End of slice, as offset from end.
+ */
+var sliceUnpack = \target id from to ->
+    innerPattern(
+        ast_expression.CallExpression.create(null,
+            ast_expression.MemberExpression.create(null,
+                ast_expression.MemberExpression.create(null,
+                    ast_expression.ArrayExpression.create(null, []),
+                    identifier "slice"),
+                identifier 'call'),
+            ?to === 0
+                :[target, number from]
+                :[target, number from, number(--to)]),
+      id);
+
+var expandSlice = map @ \node -> {
+        switch (type node.value) {
+        case 'RelativeUnpack':
+            return relativeUnpack(
+                node.value.target,
+                node.value.min,
+                node.value.index,
+                node.value.pattern);
+        case 'SliceUnpack':
+            return sliceUnpack(
+                node.value.target,
+                node.value.pattern,
+                node.value.from,
+                node.value.to);
+        default:
+            return node;
+        }
+    };
+
+expandBindings = innerPattern \>> expandSlice \> flatten;
+
+expandBinding = \binding ->
+    expandBindings(binding.value, binding.pattern);
+
+}

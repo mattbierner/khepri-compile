@@ -1,7 +1,7 @@
 /**
  * @fileOverview Unpack expansion.
  * 
- * TODO: Move slice and relative logic to transform stage
+ * TODO: Move object member access logic to transform stage
  */
 package (
     innerPattern
@@ -18,14 +18,12 @@ with
     import '../fun' fun#{
         concat
         flatten
+        flattenr
         map}
 in {
 
-var identifier = ast_value.Identifier.create @ null;
-
-var number = ast_value.Literal.create @ null @ 'number';
-
-
+/* Unpack expansions
+ ******************************************************************************/
 /**
  * Create unpack relative to the end of `target`.
  * 
@@ -36,18 +34,8 @@ var number = ast_value.Literal.create @ null @ 'number';
  */
 var relativeUnpack = \target start indx pattern ->
     innerPattern(
-        ast_expression.MemberExpression.create(null,
-            target,
-            ast_expression.BinaryExpression.create(null, '-',
-                ast_expression.CallExpression.create(null,
-                ast_expression.MemberExpression.create(null, identifier 'Math', identifier 'max'), [
-                    ast_expression.MemberExpression.create(null,
-                        target,
-                        identifier 'length'),
-                    number start]),
-                number indx),
-            true),
-       pattern);
+        RelativeUnpack.create(null, pattern, target, indx, start),
+        pattern);
 
 /**
  * Unpack a range of values for `target`.
@@ -59,25 +47,14 @@ var relativeUnpack = \target start indx pattern ->
  */
 var sliceUnpack = \target id from to ->
     innerPattern(
-        ast_expression.CallExpression.create(null,
-            ast_expression.MemberExpression.create(null,
-                ast_expression.MemberExpression.create(null,
-                    ast_expression.ArrayExpression.create(null, []),
-                    identifier "slice"),
-                identifier 'call'),
-            ?to === 0
-                :[target, number from]
-                :[target, number from, number(--to)]),
-      id);
-    
+        SliceUnpack.create(null, id, target, from, to),
+        id);
+
 /**
- * Expand a complex binding to a list of identifier bindings.
- * 
- * @param base Value being unpacked.
- * @param pattern Pattern unpacking base value.
+ * Expand an object unpack member to bindings.
  */
-innerPattern = let
-    objectElement = \innerBase pattern key recursive ->
+var expandObjectElement = let
+     objectElement = \innerBase pattern key recursive ->
         ?pattern
             :flatten <| innerPattern(innerBase, pattern)
         
@@ -85,58 +62,76 @@ innerPattern = let
             ast_pattern.IdentifierPattern.create(null,
                 ast_value.Identifier.create(null, key.value)),
             innerBase,
-            recursive),
-
-    objectElementUnpack = \base, pattern, key recursive ->
+            recursive)
+in
+    \base pattern key recursive ->
         objectElement(
             ast_expression.MemberExpression.create(null, base, key, true),
             pattern,
             key,
-            recursive)
-in
-    \base pattern recursive -> {
-        switch (pattern.type) {
-        case 'IdentifierPattern':
-            return [
-                ast_declaration.Binding.create(null,
-                    pattern,
-                    base,
-                    recursive)];
+            recursive);
+
+/**
+ * Expand an object unpack to bindings.
+ */
+var expandObject = \base pattern recursive ->
+    pattern.elements
+        |> (map @ \node ->
+            ?type node === 'SliceUnpack'
+                :sliceUnpack(
+                    pattern.ud.id.id,
+                    node.pattern,
+                    node.from,
+                    node.to)
+             
+            :?type node === 'RelativeUnpack'
+                :relativeUnpack(
+                    pattern.ud.id.id,
+                    node.min,
+                    node.index,
+                    node.pattern)
+            
+            :expandObjectElement(
+                pattern.ud.id.id,
+                node.target,
+                node.key,
+                recursive))
         
-        case 'AsPattern':
-            return concat(
-                innerPattern(base, pattern.id),
-                flatten <| innerPattern(pattern.id, pattern.target, recursive));
-        
-        case 'ObjectPattern':
-            return pattern.elements
-                |> (map @ \node ->
-                    ?type node === 'SliceUnpack'
-                        :sliceUnpack(
-                            pattern.ud.id.id,
-                            node.pattern,
-                            node.from,
-                            node.to)
-                     
-                    :?type node === 'RelativeUnpack'
-                        :relativeUnpack(
-                            pattern.ud.id.id,
-                            node.min,
-                            node.index,
-                            node.pattern)
-                    
-                    :objectElementUnpack(
-                        pattern.ud.id.id,
-                        node.target,
-                        node.key,
-                        recursive))
-                    
-                |> flatten;
-        
-        default:
-            return [];
-        }
-    };
+        |> flattenr;
+
+/**
+ * Expand an as unpack to a binding list.
+ */
+var expandAs = \base pattern recursive ->
+    concat(
+        innerPattern(base, pattern.id),
+        flatten <| innerPattern(pattern.id, pattern.target, recursive));
+
+/**
+ * Expand a complex binding to a list of identifier bindings.
+ * 
+ * @param base Value being unpacked.
+ * @param pattern Pattern unpacking base value.
+ */
+innerPattern = \base pattern recursive -> {
+    switch (pattern.type) {
+    case 'IdentifierPattern':
+        return [
+            ast_declaration.Binding.create(null,
+                pattern,
+                base,
+                recursive)];
+    
+    case 'AsPattern':
+        return expandAs(base, pattern, recursive);
+    
+    case 'ObjectPattern':
+        return expandObject(base, pattern, recursive);
+    
+    default:
+        return [];
+    }
+};
 
 /**
  * Expand a parameter list to a list of inner bindings.

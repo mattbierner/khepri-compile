@@ -11,11 +11,12 @@ package (
 with
     import 'hamt' hamt,
     
+    import 'khepri-ast::node' {modify},
+    
     import 'akh::base' {
         next
         'sequence': seq
         'sequencea': seqa},
-    
     import 'akh::state' StateM,
 
     import 'zipper-m::trans::tree' TreeZipperT,
@@ -124,6 +125,11 @@ var isReachable = \uid yes no ->
             ?stateIsReachable(uid, s) : yes : no
     :yes;
 
+/**
+ * Remove a binding
+ */
+var removeBinding = set [];
+
 // Check Operations
 ////////////////////////////////////////
 /**
@@ -200,13 +206,13 @@ addRewrite@'VariableDeclarator' <|
     extract \ node ->
         isReachable(getUid node.id,
             visitChild 'init',
-            set []);
+            removeBinding);
 
 addRewrite@'Binding' <|
     extract \ node ->
         isReachable(getUid node.pattern.id,
             visitChild 'value',
-            set []);
+            removeBinding);
 
 // Statement
 addRewrite@'BlockStatement' <|
@@ -247,9 +253,9 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'alternate');
 
 addRewrite@'FunctionExpression' <| seq(
+    visitChild 'body',
     visitChild 'id',
-    visitChild 'params',
-    visitChild 'body');
+    visitChild 'params');
 
 addRewrite@'UnaryExpression' <|
     visitChild 'argument';
@@ -284,8 +290,16 @@ addRewrite@'LetExpression' <| seq(
     visitChild 'bindings');
 
 // Unpack
+addRewrite@['SliceUnpack', 'RelativeUnpack'] <|
+    visitChild 'target';
+
 addRewrite@'ArgumentsPattern' <|
-    visitChild 'id';
+    // Prune the arguments binding if possible
+    when((.id),
+        extract \ node -> seq(
+            isReachable(getUid node.id.id,
+                pass,
+                set modify(node, { id: null }))));
 
 // Value
 addRewrite@'ArrayExpression' <|

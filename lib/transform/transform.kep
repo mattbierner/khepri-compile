@@ -40,11 +40,27 @@ with
         flip
         filter},
     import '../builtin' {builtins definitions},
-    import '../inline/unpack' {innerPattern unpackParameters},
+    import '../inline/unpack' {unpackParameters},
     
+    import './unpack' {expandBinding expandBindings},
+
     import './package_manager/amd' _,
     import './package_manager/node' _
 in {
+
+/* Values
+ ******************************************************************************/
+var identifier = \loc, name ->
+    ecma_value.Identifier.create(loc, name);
+
+var nullLiteral = \loc ->
+    ecma_value.Literal.create(loc, 'null', null);
+
+/* Declaration
+ ******************************************************************************/
+var variableDeclaration = khepri_declaration.VariableDeclaration.create;
+
+var variableDeclarator = ecma_declaration.VariableDeclarator.create;
 
 /* State
  ******************************************************************************/
@@ -178,28 +194,13 @@ var _trans;
 
 var _transform = withNode \node -> _trans(node); // Late
 
-/* Values
- ******************************************************************************/
-var identifier = \loc, name ->
-    ecma_value.Identifier.create(loc, name);
-
-var nullLiteral = \loc ->
-    ecma_value.Literal.create(loc, 'null', null);
-
-/* Declaration
- ******************************************************************************/
-var variableDeclaration = khepri_declaration.VariableDeclaration.create;
-
-var variableDeclarator = ecma_declaration.VariableDeclarator.create;
-
 /* Unpacks
  ******************************************************************************/
 /**
  * Expand a binding to a list of simple variable declarations.
  */
 var unpack =
-    \binding ->
-        innerPattern(binding.value, binding.pattern) §
+    expandBinding
     \> fun.map @ \x ->
         variableDeclarator(null, x.pattern.id, x.value);
 
@@ -207,8 +208,7 @@ var unpack =
  * Expand an binding to a list of assignment expressions.
  */
 var unpackAssign =
-    \binding ->
-        innerPattern(binding.value, binding.pattern) §
+    expandBinding
     \> fun.map @ \x ->
         ecma_expression.AssignmentExpression.create(null, '=', x.pattern, x.value);
 
@@ -219,13 +219,13 @@ var unpackArgumentsPattern = \parameters -> let
     elementsPrefix = unpackParameters(parameters.id, parameters.elements),
     
     selfPrefix = ?parameters.self
-        :innerPattern(
+        :expandBindings(
             ecma_expression.ThisExpression.create(null),
             parameters.self)
         :[],
     
     argumentsPrefix = ?parameters.id
-        :innerPattern(
+        :expandBindings(
             identifier(null, 'arguments'),
             parameters.id)
         :[]
@@ -556,7 +556,7 @@ addTransform('MemberExpression',
 addTransform('LetExpression',
     seq(
         withNode \ node -> let
-            bindings = flatten <| fun.map(\x -> ?x : innerPattern(null, x.pattern) : [], node.bindings),
+            bindings = flatten <| fun.map(\x -> ?x : expandBindings(null, x.pattern) : [], node.bindings),
             identifiers = fun.map(\x -> [x.pattern.id.name, getUid(x.pattern.id)], bindings)
         in
             addBindings(identifiers),

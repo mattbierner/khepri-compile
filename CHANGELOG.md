@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.5.8 - April 17, 2014
+* Prune arguments binding if unused.
+
 ## 0.5.7 - April 17, 2014
 * Fixed bug with inline that could cause non local ids to get renamed when
   function is inlined into a non local context.

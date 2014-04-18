@@ -3,17 +3,19 @@
  * DO NOT EDIT
 */"use strict";
 var hamt = require("hamt"),
-    __o = require("akh")["base"],
-    next = __o["next"],
-    seq = __o["sequence"],
-    seqa = __o["sequencea"],
+    __o = require("khepri-ast")["node"],
+    modify = __o["modify"],
+    __o0 = require("akh")["base"],
+    next = __o0["next"],
+    seq = __o0["sequence"],
+    seqa = __o0["sequencea"],
     StateM = require("akh")["state"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
-    __o0 = require("./fun"),
-    map = __o0["map"],
-    __o1 = require("./ast"),
-    type = __o1["type"],
-    getUid = __o1["getUid"],
+    __o1 = require("./fun"),
+    map = __o1["map"],
+    __o2 = require("./ast"),
+    type = __o2["type"],
+    getUid = __o2["getUid"],
     optimize, inc, x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3,
         actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8,
         __args9, actions9, __args10, actions10, __args11, actions11, __args12, actions12, __args13, actions13, __args14,
@@ -23,8 +25,8 @@ var hamt = require("hamt"),
         actions29, __args30, actions30, __args31, actions31, __args32, actions32, __args33, actions33, __args34,
         actions34, __args35, actions35, __args36, actions36, __args37, actions37, consequent, __args38, actions38,
         __args39, actions39, __args40, actions40, __args41, actions41, __args42, actions42, __args43, actions43,
-        __args44, actions44, __args45, actions45, __args46, actions46, __args47, actions47, __args48, actions48,
-        __args49, actions49, x0, _check, stateEmpty = hamt.empty,
+        __args44, actions44, __args45, actions45, __args46, actions46, consequent0, __args47, actions47, __args48,
+        actions48, __args49, actions49, x0, _check, stateEmpty = hamt.empty,
     stateAddReference = ((inc = (function(x) {
         return ((x + 1) || 1);
     })), (function(uid, bindings) {
@@ -60,6 +62,7 @@ var hamt = require("hamt"),
             return (stateIsReachable(uid, s) ? yes : no);
         })) : yes);
     }),
+    removeBinding = set([]),
     checkTop = extract((function(x0) {
         return _check(x0);
     })),
@@ -96,10 +99,10 @@ addRewrite("CatchClause", seq(((__args6 = ["param", checkTop]), (actions6 = [].s
 addRewrite("VariableDeclaration", ((__args8 = ["declarations", checkTop]), (actions8 = [].slice.call(__args8, 1)), seq(
     moveChild("declarations"), seqa(actions8), up)));
 addRewrite("VariableDeclarator", extract((function(node) {
-    return isReachable(getUid(node.id), child("init", checkTop), set([]));
+    return isReachable(getUid(node.id), child("init", checkTop), removeBinding);
 })));
 addRewrite("Binding", extract((function(node) {
-    return isReachable(getUid(node.pattern.id), child("value", checkTop), set([]));
+    return isReachable(getUid(node.pattern.id), child("value", checkTop), removeBinding);
 })));
 addRewrite("BlockStatement", ((__args9 = ["body", checkTop]), (actions9 = [].slice.call(__args9, 1)), seq(moveChild(
     "body"), seqa(actions9), up)));
@@ -130,10 +133,10 @@ addRewrite(["ConditionalExpression", "IfStatement"], seq(((__args25 = ["test", c
     actions26 = [].slice.call(__args26, 1)), seq(moveChild("consequent"), seqa(actions26), up)), ((__args27 = [
     "alternate", checkTop
 ]), (actions27 = [].slice.call(__args27, 1)), seq(moveChild("alternate"), seqa(actions27), up))));
-addRewrite("FunctionExpression", seq(((__args28 = ["id", checkTop]), (actions28 = [].slice.call(__args28, 1)), seq(
-    moveChild("id"), seqa(actions28), up)), ((__args29 = ["params", checkTop]), (actions29 = [].slice.call(
-    __args29, 1)), seq(moveChild("params"), seqa(actions29), up)), ((__args30 = ["body", checkTop]), (actions30 = []
-    .slice.call(__args30, 1)), seq(moveChild("body"), seqa(actions30), up))));
+addRewrite("FunctionExpression", seq(((__args28 = ["body", checkTop]), (actions28 = [].slice.call(__args28, 1)), seq(
+    moveChild("body"), seqa(actions28), up)), ((__args29 = ["id", checkTop]), (actions29 = [].slice.call(
+    __args29, 1)), seq(moveChild("id"), seqa(actions29), up)), ((__args30 = ["params", checkTop]), (actions30 = []
+    .slice.call(__args30, 1)), seq(moveChild("params"), seqa(actions30), up))));
 addRewrite("UnaryExpression", ((__args31 = ["argument", checkTop]), (actions31 = [].slice.call(__args31, 1)), seq(
     moveChild("argument"), seqa(actions31), up)));
 addRewrite(["LogicalExpression", "BinaryExpression"], seq(((__args32 = ["left", checkTop]), (actions32 = [].slice.call(
@@ -159,8 +162,15 @@ addRewrite("CurryExpression", seq(((__args42 = ["base", checkTop]), (actions42 =
 addRewrite("LetExpression", seq(((__args44 = ["body", checkTop]), (actions44 = [].slice.call(__args44, 1)), seq(
     moveChild("body"), seqa(actions44), up)), ((__args45 = ["bindings", checkTop]), (actions45 = [].slice.call(
     __args45, 1)), seq(moveChild("bindings"), seqa(actions45), up))));
-addRewrite("ArgumentsPattern", ((__args46 = ["id", checkTop]), (actions46 = [].slice.call(__args46, 1)), seq(moveChild(
-    "id"), seqa(actions46), up)));
+addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args46 = ["target", checkTop]), (actions46 = [].slice.call(__args46,
+    1)), seq(moveChild("target"), seqa(actions46), up)));
+addRewrite("ArgumentsPattern", ((consequent0 = extract((function(node) {
+    return seq(isReachable(getUid(node.id.id), pass, set(modify(node, ({
+        id: null
+    })))));
+}))), extract((function(node) {
+    return (node.id ? consequent0 : (undefined || pass));
+}))));
 addRewrite("ArrayExpression", ((__args47 = ["elements", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(
     moveChild("elements"), seqa(actions47), up)));
 addRewrite("ObjectExpression", ((__args48 = ["properties", checkTop]), (actions48 = [].slice.call(__args48, 1)), seq(
