@@ -452,9 +452,8 @@ addRewrite("LetExpression", seq(child("bindings", checkTop), child("body", check
         bindings = __o4["bindings"],
         body = __o4["body"];
     return ast_expression.LetExpression.create(loc, flattenr(bindings), body);
-})), ((consequent16 = modify((function(__o4) {
-    var body = __o4["body"];
-    return body;
+})), ((consequent16 = modify((function(x2) {
+    return x2.body;
 }))), extract((function(node) {
     var bindings;
     return (((bindings = node["bindings"]), (!bindings.length)) ? consequent16 : (undefined || pass));

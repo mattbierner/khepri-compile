@@ -71,3 +71,18 @@ exports.inline_with_slice = function(test) {
     
     test.done();
 };
+
+
+exports.inline_does_not_mess_up_local_closure = function(test) {
+    test.deepEqual(
+        evalParser("var f = (+, 10), g = (_ /, 2), h = (*, 3);" +
+                   "var w := \\t ->  t 2;" +
+                   "" +
+                   "var z = \\c k -> \\x -> c(k(x));" +
+                   "var zz = \ce ke -> \xx -> ce(ke(xx));" +
+                   "" +
+                   "w ( z(h, zz(f, g)));"),
+        8);
+    
+    test.done();
+};

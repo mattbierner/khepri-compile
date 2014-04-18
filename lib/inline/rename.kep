@@ -4,9 +4,10 @@ package (
 with
     import 'khepri-ast-zipper' {khepriZipper},
     import 'neith::walk' {preWalk},
+
     import 'neith::tree' tree,
     
-    import 'khepri-ast::node' {setData modify},
+    import 'khepri-ast::node' {setData},
     
     import '../ast' {type getUid}
 in {
@@ -15,12 +16,11 @@ var updateClosure = \node prefix list -> let
     closure = (node.ud && node.ud.closure) || [],
     
     closure = closure.map \ x ->
-        ?list.indexOf(x) < 0
+        ?list.indexOf(x) >= 0
             :prefix + '-' + x
             :x
 in
     setData(node, 'closure', closure);
-
 
 /**
  * Rename all identifier instances in an AST.
@@ -35,7 +35,7 @@ rename = \prefix list root ->
             node = tree.node(ctx),
             uid = getUid(node)
         in
-            ?uid && list.indexOf(uid) < 0
+            ?uid && list.indexOf(uid) >= 0
                 :tree.setNode(
                     setData(node, 'uid', prefix + '-' + uid),
                     ctx)

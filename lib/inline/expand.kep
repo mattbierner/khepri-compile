@@ -6,6 +6,7 @@ with
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
+    import 'khepri-ast::node' {setData},
 
     import '../ast' {
         getUid},
@@ -19,11 +20,11 @@ in{
 /**
  * Convert the elements of an argument unpack object to a set of bindings.
  */
-var argsToBindings := \uid parameters args ->
+var argsToBindings := \uid parameters args closure ->
     map(
         \x i ->
             ast_declaration.Binding.create(null,
-                rename(uid, [], x),
+                rename(uid, closure, x),
                 (args.(i) || builtins.undefined)),
         parameters.elements);
 
@@ -48,19 +49,23 @@ var argsBinding := \uid arg bindings args ->
 expandCallee = \uid callee args -> let
     target = ?callee.type === 'LetExpression' : callee.body : callee,
     
-    closure = ((target.ud && target.ud.closure) || []),
+    closure = ((target.ud && target.ud.locals) || []),
     
-    bindings = argsToBindings(uid, target.params, args),
+    bindings = argsToBindings(uid, target.params, args, closure),
     
     argBinding = ?target.params.id
         :argsBinding(uid, target.params.id, bindings, args)
-        :[]
+        :[],
+    
+    bindings = concat(
+        ?callee.bindings
+            :rename(uid, closure, callee.bindings)
+            :[],
+        bindings,
+        argBinding)
 in
     ast_expression.LetExpression.create(null,
-        concat(
-            rename(uid, closure, callee.bindings || []),
-            bindings,
-            argBinding),
+        bindings,
         rename(uid, closure, target.body));
 
 /**
@@ -76,7 +81,7 @@ in
         first = target.params.elements.(0),
         rest = target.params.elements.slice(1),
         
-        closure = ((target.ud && target.ud.closure) || []),
+        closure = ((target.ud && target.ud.locals) || []),
         
         body = ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null,
@@ -87,7 +92,7 @@ in
         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,
                 concat(
-                    rename(uid, closure, base.bindings || []),
+                    base.bindings,
                     ast_declaration.Binding.create(null,
                         rename(uid, closure, first),
                         args.(0))),

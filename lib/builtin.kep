@@ -200,7 +200,7 @@ in {
 // Compose
 with
     singleCompose = \f g -> let
-        x = identifier('x', unique())
+        x = identifier('z', unique())
     in
         setData(
             ast_expression.FunctionExpression.create(null, null,

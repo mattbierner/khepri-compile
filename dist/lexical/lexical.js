@@ -15,7 +15,7 @@
         foldl = __o2["foldl"],
         Scope = scope["Scope"],
         check, x, y, x0, y0, x1, y1, x2, y2, x3, consequent, alternate, bind, consequent0, alternate0,
-            consequent1, alternate1, x4, consequent2, alternate2, consequent3, reserved = (function(node) {
+            consequent1, alternate1, consequent2, reserved = (function(node) {
                 return getData(node, "reserved");
             }),
         _check, M = ErrorT(TreeZipperT(StateT(Unique))),
@@ -63,7 +63,15 @@
                 actions = [].slice.call(__args, 1);
             return seq(moveChild(edge), seqa(actions), up);
         }),
+        checkChild = (function(edge) {
+            return child(edge, checkTop);
+        }),
         pass = M.of(),
+        when = (function(test, consequent, alternate) {
+            return inspect((function(node) {
+                return (test(node) ? consequent : (alternate || pass));
+            }));
+        }),
         block = (function() {
             var body = arguments;
             return seq(push, seqa(body), pop);
@@ -188,15 +196,18 @@
         var id = __o3["id"];
         return (id ? addImmutableBinding(id.name, id.loc) : pass);
     })), child("id", checkTop), getClosure((function(closure) {
-        return modifyNode((function(node) {
-            return setData(node, "closure", closure);
-        }));
-    })), child("params", checkTop), child("body", ((x4 = type), (consequent2 = child("body", checkTop)), (
-        alternate2 = checkTop), inspect((function(node) {
-        var y3;
-        return (((y3 = x4(node)), ("BlockStatement" === y3)) ? consequent2 : (
-            alternate2 || pass));
-    }))))));
+        var x4;
+        return seq(checkChild("params"), child("body", when(((x4 = type), (function(x5) {
+            var y3 = x4(x5);
+            return ("BlockStatement" === y3);
+        })), checkChild("body"), checkTop)), getClosure((function(locals) {
+            return modifyNode((function(node) {
+                return setData(node, "locals", locals.filter((function(x5) {
+                    return (closure.indexOf(x5) < 0);
+                })));
+            }));
+        })));
+    }))));
     addCheck("UnaryExpression", child("argument", checkTop));
     addCheck("AssignmentExpression", seq(child("left", checkTop), inspect((function(__o3) {
         var operator = __o3["operator"],
@@ -208,9 +219,9 @@
     addCheck("ConditionalExpression", seq(child("test", checkTop), child("consequent", checkTop), child(
         "alternate", checkTop)));
     addCheck(["CallExpression", "NewExpression"], seq(child("callee", checkTop), child("args", checkTop)));
-    addCheck("MemberExpression", seq(child("object", checkTop), ((consequent3 = child("property", checkTop)),
+    addCheck("MemberExpression", seq(child("object", checkTop), ((consequent2 = child("property", checkTop)),
         inspect((function(node) {
-            return (node.computed ? consequent3 : (undefined || pass));
+            return (node.computed ? consequent2 : (undefined || pass));
         })))));
     addCheck("ArrayExpression", child("elements", checkTop));
     addCheck("ObjectExpression", child("properties", checkTop));
@@ -251,11 +262,11 @@
     }));
     var addBindings = foldl.bind(null, scope.addImmutableBinding, Scope.empty);
     (check = (function(ast, globals, seed) {
-        return run(seq(checkTop, root, extractCtx.chain((function(x5) {
+        return run(seq(checkTop, root, extractCtx.chain((function(x4) {
             return unique((function(unique0) {
                 return extractScope.map((function(s) {
                     return ({
-                        "tree": x5,
+                        "tree": x4,
                         "data": ({
                             "unique": unique0
                         })

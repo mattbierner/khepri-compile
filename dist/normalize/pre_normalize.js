@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/pre_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun", "../rewriter"
 ], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";

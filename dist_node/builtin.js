@@ -133,14 +133,14 @@ registerBinary("|>", "__rpipe", (function(x, y) {
     return ast_expression.CallExpression.create(null, y, [x]);
 }));
 var singleCompose = (function(f, g) {
-    var x = identifier("x", unique());
+    var x = identifier("z", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
         null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression.create(null,
         f, [ast_expression.CallExpression.create(null, g, [x])])), "closure", [getUid(f), getUid(g)]);
 });
 registerBinary("<\\", "__compose", singleCompose);
 registerBinary("\\>", "__rcompose", (function(x, y) {
-    var x0 = identifier("x", unique());
+    var x0 = identifier("z", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
         null, null, [ast_pattern.IdentifierPattern.create(null, x0)]), ast_expression.CallExpression.create(
         null, y, [ast_expression.CallExpression.create(null, x, [x0])])), "closure", [getUid(y), getUid(x)]);

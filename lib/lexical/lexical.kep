@@ -389,15 +389,17 @@ addCheck@'FunctionExpression' <|
         // Attach closure data.
         // This must include the function's id
         getClosure \ closure ->
-        modifyNode \ node ->
-           setData(node, 'closure', closure),
-        
+       
+        seq(
         checkChild 'params',
         // Evaluate body in same scope
         child('body',
             when(type \> (===, 'BlockStatement'),
                 checkChild 'body',
-                checkTop)));
+                checkTop)),
+        getClosure \ locals ->
+         modifyNode \ node ->
+           setData(node, 'locals', locals.filter(\x -> closure.indexOf(x) < 0))));
 
 addCheck@'UnaryExpression' <|
     checkChild 'argument';

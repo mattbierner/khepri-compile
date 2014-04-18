@@ -796,8 +796,7 @@ addRewrite@'LetExpression' <| seq(
         \{bindings} ->
             !bindings.length,
         
-        modify \ {body} ->
-            body));
+        modify (.body)));
 
 // Pattern
 addRewrite@'ArgumentsPattern' <| seq(

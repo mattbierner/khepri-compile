@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value",
     "./ast"
 ], (function(require, exports, ast_node, ast_pattern, ast_expression, ast_value, __o) {
     "use strict";
@@ -134,7 +133,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
         return ast_expression.CallExpression.create(null, y, [x]);
     }));
     var singleCompose = (function(f, g) {
-        var x = identifier("x", unique());
+        var x = identifier("z", unique());
         return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
                 null, null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression
             .create(null, f, [ast_expression.CallExpression.create(null, g, [x])])), "closure", [getUid(
@@ -142,7 +141,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern", "khepri-a
     });
     registerBinary("<\\", "__compose", singleCompose);
     registerBinary("\\>", "__rcompose", (function(x, y) {
-        var x0 = identifier("x", unique());
+        var x0 = identifier("z", unique());
         return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
             .create(null, null, [ast_pattern.IdentifierPattern.create(null, x0)]), ast_expression.CallExpression
             .create(null, y, [ast_expression.CallExpression.create(null, x, [x0])])), "closure", [
