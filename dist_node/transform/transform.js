@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
@@ -58,8 +59,8 @@ var M = TreeZipperT(StateT(Unique)),
     cons = liftM2.bind(null, concat),
     enumeration = fun.foldr.bind(null, flip(cons), M.of([])),
     extract = M.lift(M.inner.get),
-    modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
-        return x(y(x0));
+    modifyState = ((x = M.lift), (y = M.inner.modify), (function(z) {
+        return x(y(z));
     })),
     inspectStateWith = M.chain.bind(null, extract),
     node = M.node,
@@ -67,13 +68,13 @@ var M = TreeZipperT(StateT(Unique)),
     modify = M.modifyNode,
     set = M.setNode,
     inspectScope = (function(f) {
-        return extract.map((function(x0) {
-            return f(x0.scope);
+        return extract.map((function(z) {
+            return f(z.scope);
         }));
     }),
     inspectScopeWith = (function(f) {
-        return extract.chain((function(x0) {
-            return f(x0.scope);
+        return extract.chain((function(z) {
+            return f(z.scope);
         }));
     }),
     packageManager = extract.map((function(x0) {
@@ -118,9 +119,9 @@ var M = TreeZipperT(StateT(Unique)),
     getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o3) {
         var uid = __o3[1];
         return getMapping(uid);
-    }))), (function(x1) {
-        var x2 = x1.bindings[0];
-        return x0(y0(x2));
+    }))), (function(z) {
+        var z0 = z.bindings[0];
+        return x0(y0(z0));
     })))),
     _trans, _transform = withNode((function(node0) {
         return _trans(node0);
@@ -135,13 +136,13 @@ var M = TreeZipperT(StateT(Unique)),
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
     unpack = ((y1 = fun.map.bind(null, (function(x1) {
         return variableDeclarator(null, x1.pattern.id, x1.value);
-    }))), (function(x1) {
-        return y1(innerPattern(x1.value, x1.pattern));
+    }))), (function(z) {
+        return y1(innerPattern(z.value, z.pattern));
     })),
     unpackAssign = ((y2 = fun.map.bind(null, (function(x1) {
         return ecma_expression.AssignmentExpression.create(null, "=", x1.pattern, x1.value);
-    }))), (function(x1) {
-        return y2(innerPattern(x1.value, x1.pattern));
+    }))), (function(z) {
+        return y2(innerPattern(z.value, z.pattern));
     })),
     unpackArgumentsPattern = (function(parameters) {
         var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
@@ -180,17 +181,17 @@ var M = TreeZipperT(StateT(Unique)),
             identifier(null, "bind")), concat(nullLiteral(null), args));
     }),
     packageBlock = (function(packageManager0, loc, exports0, body) {
-        var x1, imports = ((type(body) === "WithStatement") ? filter(((x1 = type), (function(x2) {
-                var y3 = x1(x2);
+        var x1, x2, imports = ((type(body) === "WithStatement") ? filter(((x1 = type), (function(z) {
+                var y3 = x1(z);
                 return ("ImportPattern" === y3);
             })), body.bindings) : []),
             targets = fun.reduce(imports, (function(p, c) {
                 (p[c.from.value] = c.pattern);
                 return p;
             }), ({})),
-            x2, fBody = ((type(body) === "WithStatement") ? khepri_statement.WithStatement.create(null, filter(((x2 =
-                type), (function(x3) {
-                var y3 = x2(x3);
+            fBody = ((type(body) === "WithStatement") ? khepri_statement.WithStatement.create(null, filter(((x2 =
+                type), (function(z) {
+                var y3 = x2(z);
                 return ("ImportPattern" !== y3);
             })), body.bindings), body.body) : body);
         return packageManager0.definePackage(loc, exports0, imports, targets, fBody);

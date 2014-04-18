@@ -2,55 +2,30 @@
  * THIS FILE IS AUTO GENERATED from 'lib/reachable.kep'
  * DO NOT EDIT
 */"use strict";
-var record = require("bes")["record"],
-    hamt = require("hamt"),
-    zipper = require("neith")["zipper"],
-    __o = require("khepri-ast")["node"],
-    Node = __o["Node"],
-    setData = __o["setData"],
-    __o0 = require("akh")["base"],
-    next = __o0["next"],
-    seq = __o0["sequence"],
-    seqa = __o0["sequencea"],
+var hamt = require("hamt"),
+    __o = require("akh")["base"],
+    next = __o["next"],
+    seq = __o["sequence"],
+    seqa = __o["sequencea"],
     StateM = require("akh")["state"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
-    __o1 = require("./ast"),
-    type = __o1["type"],
-    getUid = __o1["getUid"],
-    optimize, x, y, consequent, x0, State = record.declare(null, ["bindings"]);
-(State.empty = State.create(hamt.empty));
-(State.prototype.setReference = (function(uid, count) {
-    var __o2 = this,
-        bindings = __o2["bindings"];
-    return State.create(hamt.set(uid, count, bindings));
-}));
-(State.prototype.addReference = (function(uid) {
-    var __o2 = this,
-        bindings = __o2["bindings"];
-    return State.create(hamt.modify(uid, (function(x) {
+    __o0 = require("./ast"),
+    type = __o0["type"],
+    getUid = __o0["getUid"],
+    optimize, inc, x, y, consequent, x0, stateEmpty = hamt.empty,
+    stateAddReference = ((inc = (function(x) {
         return ((x + 1) || 1);
-    }), bindings));
-}));
-(State.prototype.getCount = (function(uid) {
-    var __o2 = this,
-        bindings = __o2["bindings"];
-    return hamt.get(uid, bindings);
-}));
-(State.prototype.isReachable = State.prototype.getCount);
-var _check, M = TreeZipperT(StateM),
+    })), (function(uid, bindings) {
+        return hamt.modify(uid, inc, bindings);
+    })),
+    stateIsReachable = (function(uid, bindings) {
+        return hamt.get(uid, bindings);
+    }),
+    _check, M = TreeZipperT(StateM),
     run = (function(c, ctx) {
-        return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), State.empty);
+        return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), stateEmpty);
     }),
     pass = M.of(null),
-    getState = M.lift(M.inner.get),
-    modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
-        return x(y(x0));
-    })),
-    isReachable = (function(uid, yes, no) {
-        return (uid ? getState.chain((function(s) {
-            return (s.isReachable(uid) ? yes : no);
-        })) : yes);
-    }),
     extractCtx = M.get,
     extract = M.chain.bind(null, M.node),
     set = M.setNode,
@@ -63,6 +38,15 @@ var _check, M = TreeZipperT(StateM),
         var __args = arguments,
             actions = [].slice.call(__args, 1);
         return seq(moveChild(edge), seqa(actions), up);
+    }),
+    getState = M.lift(M.inner.get),
+    modifyState = ((x = M.lift), (y = M.inner.modify), (function(x0) {
+        return x(y(x0));
+    })),
+    isReachable = (function(uid, yes, no) {
+        return (uid ? getState.chain((function(s) {
+            return (stateIsReachable(uid, s) ? yes : no);
+        })) : yes);
     }),
     checkTop = extract((function(x0) {
         return _check(x0);
@@ -118,9 +102,7 @@ addRewrite("ObjectExpression", child("properties", checkTop));
 addRewrite("ObjectValue", child("value", checkTop));
 addRewrite("Identifier", extract(((x0 = getUid), (function(x1) {
     var uid = x0(x1);
-    return (uid ? modifyState((function(s) {
-        return s.addReference(uid);
-    })) : pass);
+    return (uid ? modifyState(stateAddReference.bind(null, uid)) : pass);
 }))));
 (_check = (function(node) {
     if (Array.isArray(node)) {
@@ -129,8 +111,7 @@ addRewrite("Identifier", extract(((x0 = getUid), (function(x1) {
             return next(p, (i ? next(checkTop, left) : checkTop));
         }), pass), up);
     }
-    if (((node instanceof Node) && peepholes[node.type])) return peepholes[node.type];
-    return pass;
+    return (peepholes[type(node)] || pass);
 }));
 (optimize = (function(ast, data) {
     return run(next(checkTop, extractCtx.chain((function(node) {

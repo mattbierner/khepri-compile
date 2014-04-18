@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     ast_statement = require("khepri-ast")["statement"],
@@ -36,8 +37,8 @@ var __o = require("khepri-ast")["node"],
             default:
                 return x0.ud.id;
         }
-    }))), (function(x0) {
-        return x(y(x0));
+    }))), (function(z) {
+        return x(y(z));
     })),
     peepholes = new(Rewriter)(),
     always = (function(_) {

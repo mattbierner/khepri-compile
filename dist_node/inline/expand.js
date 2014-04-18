@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -20,17 +21,16 @@ var ast_declaration = require("khepri-ast")["declaration"],
     builtins = __o3["builtins"],
     expandCallee, expandCurry;
 (expandCallee = (function(uid, callee, args) {
-    var target = ((callee.type === "LetExpression") ? callee.body : callee),
+    var arg, target = ((callee.type === "LetExpression") ? callee.body : callee),
         closure = ((target.ud && target.ud.locals) || []),
         parameters = target.params,
         bindings = map((function(x, i) {
             return ast_declaration.Binding.create(null, rename(uid, closure, x), (args[i] || builtins.undefined));
         }), parameters.elements),
-        arg, argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(null,
-            rename(uid, closure, arg), ast_expression.ArrayExpression.create(null, args.map((function(x,
-                i) {
-                return (bindings[i] ? bindings[i].pattern.id : x);
-            }))))) : []),
+        argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(null, rename(
+            uid, closure, arg), ast_expression.ArrayExpression.create(null, args.map((function(x, i) {
+            return (bindings[i] ? bindings[i].pattern.id : x);
+        }))))) : []),
         bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings, argBinding);
     return ast_expression.LetExpression.create(null, bindings0, rename(uid, closure, target.body));
 }));

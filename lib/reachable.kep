@@ -4,13 +4,7 @@
 package (
     optimize)
 with
-    import 'bes::record' record,
-
     import 'hamt' hamt,
-    
-    import 'neith::zipper' zipper,
-    
-    import 'khepri-ast::node' {Node setData},
     
     import 'akh::base' {
         next
@@ -28,21 +22,18 @@ in {
 
 /* State
  ******************************************************************************/
-var State = record.declare(null, [
-    'bindings']);
+var stateEmpty = hamt.empty;
 
-State.empty = State.create(hamt.empty);
+var stateAddReference = let
+    inc = \x -> (x + 1 || 1)
+in
+    \uid bindings ->
+        hamt.modify(uid, inc, bindings);
 
-State.prototype.setReference = \uid count={bindings}->
-    State.create(
-        hamt.set(uid, count, bindings));
-
-State.prototype.addReference = \uid ={bindings}->
-    State.create(
-        hamt.modify(uid, \x -> (x + 1 || 1), bindings));
-
-State.prototype.isReachable = State.prototype.getCount = \uid ={bindings}->
+var stateGetCount = \uid bindings ->
     hamt.get(uid, bindings);
+
+var stateIsReachable = stateGetCount;
 
 /* Forward
  ******************************************************************************/
@@ -53,40 +44,9 @@ var M = TreeZipperT (StateM);
 var run = \c ctx ->
     StateM.evalState(
         TreeZipperT.runTreeZipperT(c, ctx),
-        State.empty);
+        stateEmpty);
 
 var pass = M.of null;
-
-// State Operations
-////////////////////////////////////////
-var getState := M.lift (M.inner.get);
-
-var modifyState := M.lift <\ M.inner.modify;
-
-// Bindings Operations
-////////////////////////////////////////
-var addReference = \uid ->
-    ?uid
-        :modifyState \ s ->
-            s.addReference(uid)
-        :pass;
-
-var setCount = \uid count ->
-    ?uid
-        :modifyState \ s ->
-            s.setReference(uid, count)
-        :pass;
-
-var getCount = \uid yes no ->
-    ?uid
-        :getState.map \ s -> s.getCount(uid)
-    :M.of 0;
-
-var isReachable = \uid yes no ->
-    ?uid
-        :getState.chain \ s ->
-            ?s.isReachable(uid) : yes : no
-    :yes;
 
 // Movement
 ////////////////////////////////////////
@@ -94,7 +54,6 @@ var extractCtx := M.get;
 
 var extract := M.chain @ M.node;
 
-var modify := M.modifyNode;
 var set := M.setNode;
 
 var up := M.up;
@@ -106,6 +65,15 @@ var rightmost := M.rightmost;
 var moveChild := M.child;
 
 /**
+ * Move to a child along `edge` and perform a list of operations. Return to parent.
+ */
+var child = \edge ...actions ->
+    seq(
+        moveChild edge,
+        seqa actions,
+        up);
+
+/**
  * When `test` is true for current node, evaluate consequent. Otherwise evaluate
  * alternate.
  */
@@ -115,17 +83,41 @@ var when := \test consequent alternate ->
             :consequent
             :(alternate || pass);
 
-/*
- ******************************************************************************/
-/**
- * Move to a child along `edge` and perform a list of operations. Return to parent.
- */
-var child = \edge ...actions ->
-    seq(
-        moveChild edge,
-        seqa actions,
-        up);
+// State Operations
+////////////////////////////////////////
+var getState := M.lift (M.inner.get);
 
+var modifyState := M.lift <\ M.inner.modify;
+
+// Bindings Operations
+////////////////////////////////////////
+/**
+ * Increment the reference count for `uid`.
+ */
+var addReference = \uid ->
+    ?uid
+        :modifyState (stateAddReference @ uid)
+        :pass;
+
+/**
+ * Get the reference count for `uid`.
+ */
+var getCount = \uid ->
+    ?uid
+        :getState.map (stateGetCount @ uid)
+    :M.of 0;
+
+/**
+ * If `uid` is reacahble (reference count > 0), execute `yes`. Otherwise do `no`.
+ */
+var isReachable = \uid yes no ->
+    ?uid
+        :getState.chain \ s ->
+            ?stateIsReachable(uid, s) : yes : no
+    :yes;
+
+// Check Operations
+////////////////////////////////////////
 /**
  * Rewrite the current node.
  */
@@ -302,10 +294,7 @@ _check = \node -> {
             up);
     }
     
-    if (node instanceof Node && peepholes.(node.type))
-        return peepholes.(node.type);
-    
-    return pass;
+    return (peepholes.(type node) || pass);
 };
 
 /**
