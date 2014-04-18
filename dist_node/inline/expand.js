@@ -8,6 +8,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
     ast_value = require("khepri-ast")["value"],
     __o = require("khepri-ast")["node"],
     setData = __o["setData"],
+    modify = __o["modify"],
     __o0 = require("../ast"),
     getUid = __o0["getUid"],
     __o1 = require("../fun"),
@@ -26,7 +27,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
             return ast_declaration.Binding.create(null, rename(uid, closure, x), (args[i] || builtins.undefined));
         }), parameters.elements),
         arg, argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(null,
-            rename(uid, [], arg), ast_expression.ArrayExpression.create(null, args.map((function(x, i) {
+            rename(uid, closure, arg), ast_expression.ArrayExpression.create(null, args.map((function(x,
+                i) {
                 return (bindings[i] ? bindings[i].pattern.id : x);
             }))))) : []),
         bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings, argBinding);
@@ -35,12 +37,14 @@ var ast_declaration = require("khepri-ast")["declaration"],
 (expandCurry = (function(uid, base, args) {
     var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
     return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest = target.params
-        .elements.slice(1)), (closure = ((target.ud && target.ud.locals) || [])), (body =
-        ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-            null, rename(uid, closure, rest), target.params.self), rename(uid, closure, target.body))), (
-        (first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
-            "ObjectPattern"))) ? ast_expression.LetExpression.create(null, concat(base.bindings,
-            ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])), body) : body)));
+        .elements.slice(1)), (closure = ((target.ud && target.ud.locals) || [])), (body = modify(target, ({
+        id: null,
+        params: ast_pattern.ArgumentsPattern.create(null, null, rename(uid, closure, rest),
+            target.params.self),
+        body: rename(uid, closure, target.body)
+    }))), ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
+        "ObjectPattern"))) ? ast_expression.LetExpression.create(null, concat(base.bindings,
+        ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])), body) : body)));
 }));
 (exports["expandCallee"] = expandCallee);
 (exports["expandCurry"] = expandCurry);

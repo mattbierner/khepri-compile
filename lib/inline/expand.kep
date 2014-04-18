@@ -6,7 +6,7 @@ with
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-    import 'khepri-ast::node' {setData},
+    import 'khepri-ast::node' {setData modify},
 
     import '../ast' {
         getUid},
@@ -31,9 +31,9 @@ var argsToBindings := \uid parameters args closure ->
 /**
  * Convert the arguments unpack of an arguments unpack to a binding.
  */
-var argsBinding := \uid arg bindings args ->
+var argsBinding := \uid arg bindings args closure ->
     ast_declaration.Binding.create(null,
-        rename(uid, [], arg),
+        rename(uid, closure, arg),
         ast_expression.ArrayExpression.create(null,
             args.map \ x i ->
                 ?bindings.(i)
@@ -54,7 +54,7 @@ expandCallee = \uid callee args -> let
     bindings = argsToBindings(uid, target.params, args, closure),
     
     argBinding = ?target.params.id
-        :argsBinding(uid, target.params.id, bindings, args)
+        :argsBinding(uid, target.params.id, bindings, args, closure)
         :[],
     
     bindings = concat(
@@ -83,11 +83,13 @@ in
         
         closure = ((target.ud && target.ud.locals) || []),
         
-        body = ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null,
+        body = modify(target, {
+            id: null,
+            params: ast_pattern.ArgumentsPattern.create(null, null,
                 rename(uid, closure, rest),
                 target.params.self),
-            rename(uid, closure, target.body))
+            body: rename(uid, closure, target.body)
+        })
     in
         ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,

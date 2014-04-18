@@ -62,10 +62,13 @@ with
     unary = \op -> let
         xArg = identifier('x', unique())
     in
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null, xArg)]),
-            op(xArg)),
+        setData(
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null, xArg)]),
+                op(xArg)),
+            'locals',
+            [getUid xArg]),
     
     unaryOp = \op ->
         unary\x ->
@@ -91,18 +94,21 @@ with
         yArg = identifier('y', unique()),
         zArg = identifier('z', unique())
     in
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null,
-                    xArg),
-                ast_pattern.IdentifierPattern.create(null,
-                    yArg),
+        setData(
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null,
-                    zArg)]),
-            ast_expression.ConditionalExpression.create(null,
-                xArg,
-                yArg,
-                zArg))
+                        xArg),
+                    ast_pattern.IdentifierPattern.create(null,
+                        yArg),
+                        ast_pattern.IdentifierPattern.create(null,
+                        zArg)]),
+                ast_expression.ConditionalExpression.create(null,
+                    xArg,
+                    yArg,
+                    zArg)),
+            'locals',
+            [getUid xArg, getUid yArg, getUid zArg])
 in {
     registerAliasedSymbol('?', '__cond',
         ternaryOperator);
@@ -114,11 +120,14 @@ var binary = \op -> let
     xArg = identifier('x', unique()),
     yArg = identifier('y', unique())
 in
-    ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg),
-            ast_pattern.IdentifierPattern.create(null, yArg)]),
-        op(xArg, yArg));
+    setData(
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null, xArg),
+                ast_pattern.IdentifierPattern.create(null, yArg)]),
+            op(xArg, yArg)),
+        'locals',
+        [getUid xArg, getUid yArg]);
 
 var registerBinary = \op name impl -> {
     registerAliasedSymbol(op, name,
@@ -212,8 +221,8 @@ with
                         ast_expression.CallExpression.create(null,
                             g,
                             [x])])),
-            'closure',
-            [getUid f, getUid g])
+            'locals',
+            [getUid x])
 in {
     registerBinary('<\\', '__compose', singleCompose);
     registerBinary('\\>', '__rcompose',  flip singleCompose);
@@ -233,8 +242,8 @@ with
                                  identifier('apply')),
                              [ast_value.Literal.create(null, 'null'),
                              identifier('arguments')])])),
-             'closure',
-             [getUid f, getUid g])
+             'locals',
+             [])
 in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);
@@ -248,9 +257,11 @@ in {
 member = \id uid -> let
     xArg = identifier('x', uid)
 in
-    ast_expression.FunctionExpression.create(null, null,
-        ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg)]),
-        ast_expression.MemberExpression.create(null, xArg, identifier id, false));
-        
+    setData(
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null, xArg)]),
+            ast_expression.MemberExpression.create(null, xArg, identifier id, false)),
+        'locals',
+        [getUid xArg]);
 }

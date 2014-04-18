@@ -79,10 +79,10 @@ exports.inline_does_not_mess_up_local_closure = function(test) {
                    "var w := \\t ->  t 2;" +
                    "" +
                    "var z = \\c k -> \\x -> c(k(x));" +
-                   "var zz = \ce ke -> \xx -> ce(ke(xx));" +
+                   "var zz = \\ce ke -> \\xx -> ce(ke(xx));" +
                    "" +
                    "w ( z(h, zz(f, g)));"),
-        8);
+        33);
     
     test.done();
 };

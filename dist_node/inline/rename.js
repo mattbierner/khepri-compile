@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/rename.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/rename.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("neith")["walk"],

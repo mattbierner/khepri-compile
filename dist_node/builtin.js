@@ -47,9 +47,10 @@ var uid2 = unique();
 ].forEach((function(__o0) {
     var xArg, op = __o0[0],
         name = __o0[1];
-    registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), ast_expression.FunctionExpression.create(
-        null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
-            null, xArg)]), ast_expression.UnaryExpression.create(null, op, xArg))));
+    registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), setData(ast_expression.FunctionExpression
+        .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
+            .create(null, xArg)
+        ]), ast_expression.UnaryExpression.create(null, op, xArg)), "locals", [getUid(xArg)])));
 }));
 var uid3 = unique(),
     xArg = setData(ast_value.Identifier.create(null, "x"), "uid", uid3),
@@ -57,17 +58,17 @@ var uid3 = unique(),
     yArg = setData(ast_value.Identifier.create(null, "y"), "uid", uid4),
     uid5 = unique(),
     zArg = setData(ast_value.Identifier.create(null, "z"), "uid", uid5),
-    ternaryOperator = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-        null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg),
-            ast_pattern.IdentifierPattern.create(null, zArg)
-        ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg));
+    ternaryOperator = setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+            null, null, [ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(
+                null, yArg), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression
+        .create(null, xArg, yArg, zArg)), "locals", [getUid(xArg), getUid(yArg), getUid(zArg)]);
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(op) {
     var xArg0 = identifier("x", unique()),
         yArg0 = identifier("y", unique());
-    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern.create(null, yArg0)
-    ]), op(xArg0, yArg0));
+    return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+        null, [ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern.create(null,
+            yArg0)]), op(xArg0, yArg0)), "locals", [getUid(xArg0), getUid(yArg0)]);
 }),
     registerBinary = (function(op, name, impl) {
         registerAliasedSymbol(op, name, binary(impl));
@@ -136,20 +137,20 @@ var singleCompose = (function(f, g) {
     var x = identifier("z", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
         null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression.create(null,
-        f, [ast_expression.CallExpression.create(null, g, [x])])), "closure", [getUid(f), getUid(g)]);
+        f, [ast_expression.CallExpression.create(null, g, [x])])), "locals", [getUid(x)]);
 });
 registerBinary("<\\", "__compose", singleCompose);
 registerBinary("\\>", "__rcompose", (function(x, y) {
     var x0 = identifier("z", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
         null, null, [ast_pattern.IdentifierPattern.create(null, x0)]), ast_expression.CallExpression.create(
-        null, y, [ast_expression.CallExpression.create(null, x, [x0])])), "closure", [getUid(y), getUid(x)]);
+        null, y, [ast_expression.CallExpression.create(null, x, [x0])])), "locals", [getUid(x0)]);
 }));
 var multiCompose = (function(f, g) {
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
         null, []), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null,
         ast_expression.MemberExpression.create(null, g, identifier("apply")), [ast_value.Literal.create(
-            null, "null"), identifier("arguments")])])), "closure", [getUid(f), getUid(g)]);
+            null, "null"), identifier("arguments")])])), "locals", []);
 });
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", (function(x, y) {
@@ -157,13 +158,13 @@ registerBinary("\\>>", "__rcomposen", (function(x, y) {
         null, null, []), ast_expression.CallExpression.create(null, y, [ast_expression.CallExpression.create(
         null, ast_expression.MemberExpression.create(null, x, identifier("apply")), [ast_value.Literal
             .create(null, "null"), identifier("arguments")
-        ])])), "closure", [getUid(y), getUid(x)]);
+        ])])), "locals", []);
 }));
 (member = (function(id, uid6) {
     var xArg0 = identifier("x", uid6);
-    return ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg0)
-    ]), ast_expression.MemberExpression.create(null, xArg0, identifier(id), false));
+    return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+            null, null, [ast_pattern.IdentifierPattern.create(null, xArg0)]), ast_expression.MemberExpression
+        .create(null, xArg0, identifier(id), false)), "locals", [getUid(xArg0)]);
 }));
 (exports["builtins"] = builtins);
 (exports["definitions"] = definitions);

@@ -6,6 +6,7 @@
 ], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, __o2, __o3) {
     "use strict";
     var setData = __o["setData"],
+        modify = __o["modify"],
         getUid = __o0["getUid"],
         concat = __o1["concat"],
         map = __o1["map"],
@@ -21,8 +22,8 @@
                     builtins.undefined));
             }), parameters.elements),
             arg, argBinding = (target.params.id ? ((arg = target.params.id), ast_declaration.Binding.create(
-                null, rename(uid, [], arg), ast_expression.ArrayExpression.create(null, args.map(
-                    (function(x, i) {
+                null, rename(uid, closure, arg), ast_expression.ArrayExpression.create(null,
+                    args.map((function(x, i) {
                         return (bindings[i] ? bindings[i].pattern.id : x);
                     }))))) : []),
             bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings,
@@ -33,12 +34,15 @@
         var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
         return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest =
             target.params.elements.slice(1)), (closure = ((target.ud && target.ud.locals) || [])), (
-            body = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, rename(uid, closure, rest), target.params.self), rename(uid,
-                    closure, target.body))), ((first && (((first.type === "IdentifierPattern") ||
-                (first.type === "AsPattern")) || (first.type === "ObjectPattern"))) ?
-            ast_expression.LetExpression.create(null, concat(base.bindings, ast_declaration.Binding
-                .create(null, rename(uid, closure, first), args[0])), body) : body)));
+            body = modify(target, ({
+                id: null,
+                params: ast_pattern.ArgumentsPattern.create(null, null, rename(uid,
+                    closure, rest), target.params.self),
+                body: rename(uid, closure, target.body)
+            }))), ((first && (((first.type === "IdentifierPattern") || (first.type ===
+                "AsPattern")) || (first.type === "ObjectPattern"))) ? ast_expression.LetExpression
+            .create(null, concat(base.bindings, ast_declaration.Binding.create(null, rename(uid,
+                closure, first), args[0])), body) : body)));
     }));
     (exports["expandCallee"] = expandCallee);
     (exports["expandCurry"] = expandCurry);
