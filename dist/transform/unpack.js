@@ -12,7 +12,8 @@
         map = __o0["map"],
         innerPattern = __o1["innerPattern"],
         unpackParameters = __o1["unpackParameters"],
-        expandBinding, expandBindings, identifier = ast_value.Identifier.create.bind(null, null),
+        expandBinding, expandBindings, expandArgumentsPattern, identifier = ast_value.Identifier.create.bind(
+            null, null),
         number = ast_value.Literal.create.bind(null, null, "number"),
         relativeUnpack = (function(target, start, indx, pattern) {
             return innerPattern(ast_expression.MemberExpression.create(null, target, ast_expression.BinaryExpression
@@ -50,6 +51,13 @@
     (expandBinding = (function(binding) {
         return expandBindings(binding.value, binding.pattern);
     }));
+    (expandArgumentsPattern = (function(parameters, thisObj) {
+        var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
+            selfPrefix = (parameters.self ? expandBindings(thisObj, parameters.self) : []),
+            argumentsPrefix = (parameters.id ? expandBindings(identifier("arguments"), parameters.id) : []);
+        return flatten(concat(argumentsPrefix, elementsPrefix, selfPrefix));
+    }));
     (exports["expandBinding"] = expandBinding);
     (exports["expandBindings"] = expandBindings);
+    (exports["expandArgumentsPattern"] = expandArgumentsPattern);
 }));

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
     hamt = require("hamt"),
     __o = require("khepri-ast")["node"],
@@ -183,6 +182,15 @@ var markExpansion = (function(id, count, target) {
             return (binding.getBinding(uid, bindings) || binding.getBinding(uid, working));
         })) : pass);
     }),
+    tryPrune = (function(id) {
+        var uid = getUid(id);
+        return getBinding(uid)
+            .chain((function(binding0) {
+                return ((((binding0 && binding0.simple) && (!getExpansion(binding0.value))) && (isPrimitive(
+                        binding0.value) || (binding0.immutable && isIdentifier(binding0.value)))) ? set([]) :
+                    pass);
+            }));
+    }),
     push = modifyState((function(s) {
         return s.push();
     })),
@@ -288,15 +296,15 @@ addRewrite("VariableDeclaration", ((__args5 = ["declarations", checkTop]), (ops5
     moveChild("declarations"), seqa(ops5), up)));
 addRewrite("VariableDeclarator", seq(((__args6 = ["init", checkTop]), (ops6 = [].slice.call(__args6, 1)), seq(moveChild(
     "init"), seqa(ops6), up)), ((consequent0 = extract((function(node) {
-    return (node.immutable ? addBindingForNode(node.id, node.init) : addWorking(getUid(node.id),
-        node.init, ((isPrimitive(node.init) || isIdentifier(node.init)) || isLambda(node.init))
-    ));
+    return (node.immutable ? seq(addBindingForNode(node.id, node.init), tryPrune(node.id)) :
+        addWorking(getUid(node.id), node.init, ((isPrimitive(node.init) || isIdentifier(node.init)) ||
+            isLambda(node.init))));
 }))), extract((function(node) {
     return (node.init ? consequent0 : (undefined || pass));
 })))));
 addRewrite("Binding", seq(((__args7 = ["value", checkTop]), (ops7 = [].slice.call(__args7, 1)), seq(moveChild("value"),
     seqa(ops7), up)), ((consequent1 = extract((function(node) {
-    return addBindingForNode(node.pattern.id, node.value);
+    return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern.id));
 }))), extract((function(node) {
     return (((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id)) ? consequent1 :
         (undefined || pass));

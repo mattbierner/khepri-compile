@@ -5,12 +5,11 @@
     "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value",
     "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "zipper-m/walk", "../ast",
-    "../lexical/scope", "../fun", "../builtin", "../inline/unpack", "./unpack", "./package_manager/amd",
-    "./package_manager/node"
+    "../lexical/scope", "../fun", "../builtin", "./unpack", "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_node, khepri_pattern,
-    khepri_statement, khepri_value, Unique, StateT, __o, TreeZipperT, walk, __o0, scope, fun, __o1, __o2, __o3,
-    _, _0) {
+    khepri_statement, khepri_value, Unique, StateT, __o, TreeZipperT, walk, __o0, scope, fun, __o1, __o2, _, _0
+) {
     "use strict";
     var setData = khepri_node["setData"],
         liftM2 = __o["liftM2"],
@@ -24,15 +23,11 @@
         flip = fun["flip"],
         filter = fun["filter"],
         builtins = __o1["builtins"],
-        definitions = __o1["definitions"],
-        unpackParameters = __o2["unpackParameters"],
-        expandBinding = __o3["expandBinding"],
-        expandBindings = __o3["expandBindings"],
-        transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, identifier = (function(loc, name) {
+        expandBinding = __o2["expandBinding"],
+        expandBindings = __o2["expandBindings"],
+        expandArgumentsPattern = __o2["expandArgumentsPattern"],
+        transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, uid, uid0, identifier = (function(loc, name) {
             return ecma_value.Identifier.create(loc, name);
-        }),
-        nullLiteral = (function(loc) {
-            return ecma_value.Literal.create(loc, "null", null);
         }),
         variableDeclaration = khepri_declaration.VariableDeclaration.create,
         variableDeclarator = ecma_declaration.VariableDeclarator.create,
@@ -107,8 +102,8 @@
             }));
         }),
         getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (
-            function(__o4) {
-                var uid = __o4[1];
+            function(__o3) {
+                var uid = __o3[1];
                 return getMapping(uid);
             }))), (function(z) {
             var z0 = z.bindings[0];
@@ -118,7 +113,7 @@
             return _trans(node0);
         })),
         unpack = ((x1 = expandBinding), (y1 = fun.map.bind(null, (function(x2) {
-            return variableDeclarator(null, x2.pattern.id, x2.value);
+            return variableDeclarator(null, x2.pattern, x2.value);
         }))), (function(z) {
             return y1(x1(z));
         })),
@@ -127,14 +122,6 @@
         }))), (function(z) {
             return y2(x2(z));
         })),
-        unpackArgumentsPattern = (function(parameters) {
-            var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
-                selfPrefix = (parameters.self ? expandBindings(ecma_expression.ThisExpression.create(null),
-                    parameters.self) : []),
-                argumentsPrefix = (parameters.id ? expandBindings(identifier(null, "arguments"), parameters
-                    .id) : []);
-            return flatten(concat(argumentsPrefix, elementsPrefix, selfPrefix));
-        }),
         withStatementNoImport = (function(loc, bindings, body) {
             var vars = flatten(fun.map(unpack, bindings)),
                 prefix = variableDeclaration(null, vars);
@@ -151,7 +138,7 @@
             var params = parameters.elements,
                 bindings = fun.map((function(x3) {
                     return variableDeclarator(null, x3.pattern, x3.value);
-                }), unpackArgumentsPattern(parameters)),
+                }), expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))),
                 body = ((type(functionBody) === "BlockStatement") ? functionBody : khepri_statement.BlockStatement
                     .create(null, khepri_statement.ReturnStatement.create(null, functionBody)));
             return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement
@@ -164,7 +151,8 @@
         }),
         curryExpression = (function(loc, base, args) {
             return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(
-                null, base, identifier(null, "bind")), concat(nullLiteral(null), args));
+                null, base, identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null",
+                null), args));
         }),
         packageBlock = (function(packageManager0, loc, exports0, body) {
             var x3, x4, imports = ((type(body) === "WithStatement") ? filter(((x3 = type), (function(z) {
@@ -192,16 +180,16 @@
                 post: post
             }));
         });
-    addTransform("VariableDeclaration", null, modify((function(__o4) {
-        var loc = __o4["loc"],
-            declarations = __o4["declarations"];
+    addTransform("VariableDeclaration", null, modify((function(__o3) {
+        var loc = __o3["loc"],
+            declarations = __o3["declarations"];
         return ecma_declaration.VariableDeclaration.create(loc, declarations);
     })));
     addTransform("VariableDeclarator", null, modify((function(node0) {
         return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
     })));
-    addTransform("StaticDeclaration", modify((function(__o4) {
-        var loc = __o4["loc"];
+    addTransform("StaticDeclaration", modify((function(__o3) {
+        var loc = __o3["loc"];
         return ecma_statement.EmptyStatement.create(loc);
     })));
     addTransform("CatchClause", null, modify((function(node0) {
@@ -357,17 +345,28 @@
         var t;
         return ((node0 instanceof khepri_node.Node) ? ((t = transformers[type(node0)]), ((t && t.post) ||
             pass)) : pass);
-    }));
+    })),
+        rewrite = walk(M, _transform, _transformPost),
+        transformProgram = seq(((uid = getUid(builtins.require)), extract.chain((function(z) {
+            var name, s = z.scope;
+            return (s.hasMapping(uid) ? setScope(scope.addMutableBinding(s, "require")) : ((
+                name = s.getUnusedId("require")), setScope(scope.addMapping(scope.addMutableBinding(
+                s, name), uid, name))));
+        }))), ((uid0 = getUid(builtins.exports)), extract.chain((function(z) {
+            var name, s = z.scope;
+            return (s.hasMapping(uid0) ? setScope(scope.addMutableBinding(s, "exports")) : ((
+                name = s.getUnusedId("exports")), setScope(scope.addMapping(scope.addMutableBinding(
+                s, name), uid0, name))));
+        }))), rewrite, node),
+        getPackageManager = (function(manager) {
+            var amd_manager = require("./package_manager/amd"),
+                node_manager = require("./package_manager/node");
+            return ((manager === "node") ? node_manager : amd_manager);
+        });
     (transform = (function(ast, manager) {
-        var amd_manager = require("./package_manager/amd"),
-            node_manager = require("./package_manager/node"),
-            packageManager0 = amd_manager;
-        if ((manager === "node")) {
-            (packageManager0 = node_manager);
-        }
-        var s = State.empty.setPackageManager(packageManager0);
-        return run(seq(addVar("require", getUid(builtins.require)), addVar("exports", getUid(builtins.exports)),
-            walk(M, _transform, _transformPost), node), s, ast);
+        var packageManager0 = getPackageManager(manager),
+            s = State.empty.setPackageManager(packageManager0);
+        return run(transformProgram, s, ast);
     }));
     (exports["transform"] = transform);
 }));

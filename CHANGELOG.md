@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.5.9 - April 19, 2014
+* Restored limited pruning of bindings in inline stage so curry expressions are
+  better inlined. 
+
 ## 0.5.8 - April 17, 2014
 * Prune arguments binding if unused.
 

@@ -38,9 +38,11 @@ with
         flatten
         flip
         filter},
-    import '../builtin' {builtins definitions},
-    import '../inline/unpack' {unpackParameters},
-    import './unpack' {expandBinding expandBindings},
+    import '../builtin' {builtins},
+    import './unpack' {
+        expandBinding
+        expandBindings
+        expandArgumentsPattern},
 
     import './package_manager/amd' _,
     import './package_manager/node' _
@@ -50,9 +52,6 @@ in {
  ******************************************************************************/
 var identifier = \loc, name ->
     ecma_value.Identifier.create(loc, name);
-
-var nullLiteral = \loc ->
-    ecma_value.Literal.create(loc, 'null', null);
 
 /* Declaration
  ******************************************************************************/
@@ -183,7 +182,7 @@ var addBindings = \bindings ->
  */
 var getBindings = M.chain @ inspectStateWith(
     enumeration
-    <\ (fun.map @ \[name uid] -> getMapping(uid))
+    <\ (fun.map @ \[_ uid] -> getMapping(uid))
     <\ \s -> s.bindings.(0));
 
 /* Forward
@@ -195,43 +194,20 @@ var _transform = withNode \node -> _trans(node); // Late
 /* Unpacks
  ******************************************************************************/
 /**
- * Expand a binding to a list of simple variable declarations.
+ * Expand a binding to a list of variable declarations.
  */
 var unpack =
     expandBinding
     \> fun.map @ \x ->
-        variableDeclarator(null, x.pattern.id, x.value);
+        variableDeclarator(null, x.pattern, x.value);
 
 /**
- * Expand an binding to a list of assignment expressions.
+ * Expand an binding to a list of assignments.
  */
 var unpackAssign =
     expandBinding
     \> fun.map @ \x ->
         ecma_expression.AssignmentExpression.create(null, '=', x.pattern, x.value);
-
-/**
- * Expand an arguments pattern to a list of bindings.
- */
-var unpackArgumentsPattern = \parameters -> let
-    elementsPrefix = unpackParameters(parameters.id, parameters.elements),
-    
-    selfPrefix = ?parameters.self
-        :expandBindings(
-            ecma_expression.ThisExpression.create(null),
-            parameters.self)
-        :[],
-    
-    argumentsPrefix = ?parameters.id
-        :expandBindings(
-            identifier(null, 'arguments'),
-            parameters.id)
-        :[]
-in
-    flatten <| concat(
-        argumentsPrefix,
-        elementsPrefix,
-        selfPrefix);
 
 /* Statements
  ******************************************************************************/
@@ -271,7 +247,7 @@ in
 var functionExpression = \loc id parameters functionBody prefix -> let
     params = parameters.elements,
         
-    bindings = unpackArgumentsPattern(parameters)
+    bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
         |> fun.map @ \x -> variableDeclarator(null, x.pattern, x.value),
     
     body = ?type functionBody === "BlockStatement"
@@ -308,7 +284,7 @@ var curryExpression = \loc base args ->
             base,
             identifier(null, 'bind')),
         concat(
-            nullLiteral(null),
+            ecma_value.Literal.create(null, 'null', null),
             args));
 
 /* Package
@@ -679,10 +655,27 @@ var _transp = \node ->
             (t && t.post) || pass
     :pass;
 
-var _transformPost = withNode _transp;
+var _transformPost := withNode _transp;
+
+var rewrite := walk(M, _transform, _transformPost);
+
+var transformProgram := seq(
+    addVar('require', getUid(builtins.require)),
+    addVar('exports', getUid(builtins.exports)),
+    rewrite,
+    node);
 
 /* API
  *****************************************************************************/
+var getPackageManager = \manager -> {
+    with 
+        import './package_manager/amd' amd_manager,
+        import './package_manager/node' node_manager
+    in {
+        return ?manager === 'node' : node_manager : amd_manager;
+    }
+};
+
 /**
  * Rewrite a Khepri zippered program to an ECMAScript program.
  * 
@@ -691,27 +684,12 @@ var _transformPost = withNode _transp;
  * @param ast Zippered khepri program.
  * @param manager Package manager to use for rewrite.
  */
-transform = \ast manager -> {
-    with 
-        import './package_manager/amd' amd_manager,
-        import './package_manager/node' node_manager
-    in {
-        var packageManager = amd_manager;
-        if (manager === 'node')
-            packageManager = node_manager;
-        
-        var s = State.empty
-            .setPackageManager(packageManager);
-        
-        return run(
-            seq(
-                addVar('require', getUid(builtins.require)),
-                addVar('exports', getUid(builtins.exports)),
-                walk(M, _transform, _transformPost),
-                node),
-            s,
-            ast);
-    }
-};
+transform = \ast manager -> let
+    packageManager = getPackageManager manager,
+
+    s = State.empty
+        .setPackageManager(packageManager)
+in
+    run(transformProgram, s, ast);
 
 }

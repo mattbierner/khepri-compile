@@ -221,6 +221,16 @@ var getBinding = \uid ->
             (binding.getBinding(uid, bindings) || binding.getBinding(uid, working))
         :pass;
 
+/**
+ * 
+ */
+var tryPrune = \id ->
+    let uid = getUid id in
+        getBinding(uid).chain \ binding ->
+            ?binding && binding.simple && !isExpansion binding.value && (isPrimitive binding.value || (binding.immutable && isIdentifier binding.value))
+                :set []
+                :pass;
+
 // Scoping operations
 ////////////////////////////////////////
 /**
@@ -452,7 +462,9 @@ addRewrite@'VariableDeclarator' <| seq(
         
         extract \ node ->
             ?node.immutable
-                :addBindingForNode(node.id, node.init)
+                :seq(
+                    addBindingForNode(node.id, node.init),
+                    tryPrune(node.id))
                 :addWorking(
                     getUid(node.id),
                     node.init,
@@ -476,7 +488,9 @@ addRewrite@'Binding' <| seq(
             && getUid node.pattern.id),
         
         extract \ node ->
-            addBindingForNode(node.pattern.id, node.value)),
+            seq(
+                addBindingForNode(node.pattern.id, node.value),
+                tryPrune(node.pattern.id))),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level

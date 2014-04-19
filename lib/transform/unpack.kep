@@ -1,9 +1,11 @@
 /**
- * @fileOverview Unpack binding transformation
+ * @fileOverview Unpack binding transformations
  */
 package (
     expandBinding
-    expandBindings)
+    expandBindings
+    
+    expandArgumentsPattern)
 with 
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
@@ -23,7 +25,8 @@ var identifier := ast_value.Identifier.create @ null;
 
 var number := ast_value.Literal.create @ null @ 'number';
 
-
+/* Pattern expansions
+ *****************************************************************************/
 /**
  * Create unpack relative to the end of `target`.
  * 
@@ -69,30 +72,61 @@ var sliceUnpack = \target id from to ->
       id);
 
 var expandSlice = map @ \node -> {
-        switch (type node.value) {
-        case 'RelativeUnpack':
-            return relativeUnpack(
-                node.value.target,
-                node.value.min,
-                node.value.index,
-                node.value.pattern);
-        case 'SliceUnpack':
-            return sliceUnpack(
-                node.value.target,
-                node.value.pattern,
-                node.value.from,
-                node.value.to);
-        default:
-            return node;
-        }
-    };
+    switch (type node.value) {
+    case 'RelativeUnpack':
+        return relativeUnpack(
+            node.value.target,
+            node.value.min,
+            node.value.index,
+            node.value.pattern);
+    case 'SliceUnpack':
+        return sliceUnpack(
+            node.value.target,
+            node.value.pattern,
+            node.value.from,
+            node.value.to);
+    default:
+        return node;
+    }
+};
 
-expandBindings = innerPattern \>> expandSlice \> flatten;
-
+/* Binding Expansions
+ *****************************************************************************/
 /**
  * 
  */
+expandBindings = innerPattern \>> expandSlice \> flatten;
+
+/**
+ * Rewrite a potentially complex binding to a list of simple bindings
+ */
 expandBinding = \binding ->
-    expandBindings(binding.value, binding.pattern);
+    expandBindings(
+        binding.value,
+        binding.pattern);
+
+
+/**
+ * Expand an arguments pattern to a list of bindings.
+ */
+expandArgumentsPattern = \parameters thisObj -> let
+    elementsPrefix = unpackParameters(parameters.id, parameters.elements),
+    
+    selfPrefix = ?parameters.self
+        :expandBindings(
+            thisObj,
+            parameters.self)
+        :[],
+    
+    argumentsPrefix = ?parameters.id
+        :expandBindings(
+            identifier 'arguments',
+            parameters.id)
+        :[]
+in
+    flatten <| concat(
+        argumentsPrefix,
+        elementsPrefix,
+        selfPrefix);
 
 }

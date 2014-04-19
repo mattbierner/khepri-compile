@@ -37,19 +37,14 @@ var record = require("bes")["record"],
     filter = fun["filter"],
     __o1 = require("../builtin"),
     builtins = __o1["builtins"],
-    definitions = __o1["definitions"],
-    __o2 = require("../inline/unpack"),
-    unpackParameters = __o2["unpackParameters"],
-    __o3 = require("./unpack"),
-    expandBinding = __o3["expandBinding"],
-    expandBindings = __o3["expandBindings"],
+    __o2 = require("./unpack"),
+    expandBinding = __o2["expandBinding"],
+    expandBindings = __o2["expandBindings"],
+    expandArgumentsPattern = __o2["expandArgumentsPattern"],
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
-    transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, identifier = (function(loc, name) {
+    transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, uid, uid0, identifier = (function(loc, name) {
         return ecma_value.Identifier.create(loc, name);
-    }),
-    nullLiteral = (function(loc) {
-        return ecma_value.Literal.create(loc, "null", null);
     }),
     variableDeclaration = khepri_declaration.VariableDeclaration.create,
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
@@ -122,8 +117,8 @@ var M = TreeZipperT(StateT(Unique)),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
-    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o4) {
-        var uid = __o4[1];
+    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o3) {
+        var uid = __o3[1];
         return getMapping(uid);
     }))), (function(z) {
         var z0 = z.bindings[0];
@@ -133,7 +128,7 @@ var M = TreeZipperT(StateT(Unique)),
         return _trans(node0);
     })),
     unpack = ((x1 = expandBinding), (y1 = fun.map.bind(null, (function(x2) {
-        return variableDeclarator(null, x2.pattern.id, x2.value);
+        return variableDeclarator(null, x2.pattern, x2.value);
     }))), (function(z) {
         return y1(x1(z));
     })),
@@ -142,12 +137,6 @@ var M = TreeZipperT(StateT(Unique)),
     }))), (function(z) {
         return y2(x2(z));
     })),
-    unpackArgumentsPattern = (function(parameters) {
-        var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
-            selfPrefix = (parameters.self ? expandBindings(ecma_expression.ThisExpression.create(null), parameters.self) : []),
-            argumentsPrefix = (parameters.id ? expandBindings(identifier(null, "arguments"), parameters.id) : []);
-        return flatten(concat(argumentsPrefix, elementsPrefix, selfPrefix));
-    }),
     withStatementNoImport = (function(loc, bindings, body) {
         var vars = flatten(fun.map(unpack, bindings)),
             prefix = variableDeclaration(null, vars);
@@ -164,7 +153,7 @@ var M = TreeZipperT(StateT(Unique)),
         var params = parameters.elements,
             bindings = fun.map((function(x3) {
                 return variableDeclarator(null, x3.pattern, x3.value);
-            }), unpackArgumentsPattern(parameters)),
+            }), expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))),
             body = ((type(functionBody) === "BlockStatement") ? functionBody : khepri_statement.BlockStatement.create(
                 null, khepri_statement.ReturnStatement.create(null, functionBody)));
         return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
@@ -176,7 +165,7 @@ var M = TreeZipperT(StateT(Unique)),
     }),
     curryExpression = (function(loc, base, args) {
         return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(null, base,
-            identifier(null, "bind")), concat(nullLiteral(null), args));
+            identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
     }),
     packageBlock = (function(packageManager0, loc, exports0, body) {
         var x3, x4, imports = ((type(body) === "WithStatement") ? filter(((x3 = type), (function(z) {
@@ -204,16 +193,16 @@ var M = TreeZipperT(StateT(Unique)),
             post: post
         }));
     });
-addTransform("VariableDeclaration", null, modify((function(__o4) {
-    var loc = __o4["loc"],
-        declarations = __o4["declarations"];
+addTransform("VariableDeclaration", null, modify((function(__o3) {
+    var loc = __o3["loc"],
+        declarations = __o3["declarations"];
     return ecma_declaration.VariableDeclaration.create(loc, declarations);
 })));
 addTransform("VariableDeclarator", null, modify((function(node0) {
     return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
 })));
-addTransform("StaticDeclaration", modify((function(__o4) {
-    var loc = __o4["loc"];
+addTransform("StaticDeclaration", modify((function(__o3) {
+    var loc = __o3["loc"];
     return ecma_statement.EmptyStatement.create(loc);
 })));
 addTransform("CatchClause", null, modify((function(node0) {
@@ -361,16 +350,25 @@ var _transformPost = withNode((function(node0) {
     var t;
     return ((node0 instanceof khepri_node.Node) ? ((t = transformers[type(node0)]), ((t && t.post) || pass)) :
         pass);
-}));
+})),
+    rewrite = walk(M, _transform, _transformPost),
+    transformProgram = seq(((uid = getUid(builtins.require)), extract.chain((function(z) {
+        var name, s = z.scope;
+        return (s.hasMapping(uid) ? setScope(scope.addMutableBinding(s, "require")) : ((name = s.getUnusedId(
+            "require")), setScope(scope.addMapping(scope.addMutableBinding(s, name), uid, name))));
+    }))), ((uid0 = getUid(builtins.exports)), extract.chain((function(z) {
+        var name, s = z.scope;
+        return (s.hasMapping(uid0) ? setScope(scope.addMutableBinding(s, "exports")) : ((name = s.getUnusedId(
+            "exports")), setScope(scope.addMapping(scope.addMutableBinding(s, name), uid0, name))));
+    }))), rewrite, node),
+    getPackageManager = (function(manager) {
+        var amd_manager = require("./package_manager/amd"),
+            node_manager = require("./package_manager/node");
+        return ((manager === "node") ? node_manager : amd_manager);
+    });
 (transform = (function(ast, manager) {
-    var amd_manager = require("./package_manager/amd"),
-        node_manager = require("./package_manager/node"),
-        packageManager0 = amd_manager;
-    if ((manager === "node")) {
-        (packageManager0 = node_manager);
-    }
-    var s = State.empty.setPackageManager(packageManager0);
-    return run(seq(addVar("require", getUid(builtins.require)), addVar("exports", getUid(builtins.exports)),
-        walk(M, _transform, _transformPost), node), s, ast);
+    var packageManager0 = getPackageManager(manager),
+        s = State.empty.setPackageManager(packageManager0);
+    return run(transformProgram, s, ast);
 }));
 (exports["transform"] = transform);
