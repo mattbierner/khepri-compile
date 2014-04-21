@@ -1,3 +1,7 @@
+/*
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/lexical.kep'
+ * DO NOT EDIT
+*/
 define(["require", "exports", "khepri-ast/node", "akh/base", "akh/trans/statei", "akh/error", "akh/trans/error",
     "akh/unique", "zipper-m/trans/tree", "../ast", "../fun", "./scope"
 ], (function(require, exports, __o, __o0, StateT, Error, ErrorT, Unique, TreeZipperT, __o1, __o2, scope) {

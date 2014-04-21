@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda,
         isLambdaWithoutArgs, getUd, getUid;
 (type = (function(node) {
@@ -45,7 +46,9 @@ var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, is
 (getUd = (function(name, node) {
     return ((node && node.ud) && node.ud[name]);
 }));
-(getUid = getUd.bind(null, "uid"));
+(getUid = (function(node) {
+    return ((node && node.ud) && node.ud["uid"]);
+}));
 (exports["type"] = type);
 (exports["isIdentifier"] = isIdentifier);
 (exports["isLiteral"] = isLiteral);

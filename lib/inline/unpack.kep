@@ -54,27 +54,25 @@ var sliceUnpack = \target id from to ->
  * Expand an object unpack member to bindings.
  */
 var expandObjectElement = let
-     objectElement = \innerBase pattern key recursive ->
+     objectElement = \innerBase pattern key ->
         ?pattern
             :flatten <| innerPattern(innerBase, pattern)
         
         :ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null,
                 ast_value.Identifier.create(null, key.value)),
-            innerBase,
-            recursive)
+            innerBase)
 in
-    \base pattern key recursive ->
+    \base pattern key ->
         objectElement(
             ast_expression.MemberExpression.create(null, base, key, true),
             pattern,
-            key,
-            recursive);
+            key);
 
 /**
  * Expand an object unpack to bindings.
  */
-var expandObject = \base pattern recursive ->
+var expandObject = \base pattern ->
     pattern.elements
         |> (map @ \node ->
             ?type node === 'SliceUnpack'
@@ -94,18 +92,17 @@ var expandObject = \base pattern recursive ->
             :expandObjectElement(
                 pattern.ud.id.id,
                 node.target,
-                node.key,
-                recursive))
+                node.key))
         
         |> flattenr;
 
 /**
  * Expand an as unpack to a binding list.
  */
-var expandAs = \base pattern recursive ->
+var expandAs = \base pattern ->
     concat(
         innerPattern(base, pattern.id),
-        flatten <| innerPattern(pattern.id, pattern.target, recursive));
+        flatten <| innerPattern(pattern.id, pattern.target));
 
 /**
  * Expand a complex binding to a list of identifier bindings.
@@ -113,20 +110,19 @@ var expandAs = \base pattern recursive ->
  * @param base Value being unpacked.
  * @param pattern Pattern unpacking base value.
  */
-innerPattern = \base pattern recursive -> {
+innerPattern = \base pattern -> {
     switch (pattern.type) {
     case 'IdentifierPattern':
         return [
             ast_declaration.Binding.create(null,
                 pattern,
-                base,
-                recursive)];
+                base)];
     
     case 'AsPattern':
-        return expandAs(base, pattern, recursive);
+        return expandAs(base, pattern);
     
     case 'ObjectPattern':
-        return expandObject(base, pattern, recursive);
+        return expandObject(base, pattern);
     
     default:
         return [];

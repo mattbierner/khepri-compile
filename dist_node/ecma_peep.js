@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
     __o0 = require("ecma-ast")["node"],
@@ -21,8 +22,8 @@ var __o = require("ecma-ast-zipper"),
     optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
         return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) === "BlockStatement") ? x0
             .body : x0));
-    }))), (y = flatten), (function(x0) {
-        return y(x(x0));
+    }))), (y = flatten), (function(z) {
+        return y(x(z));
     })),
     mergeBlockDeclarations = foldr.bind(null, (function(p, c) {
         return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ? concat(modify(
@@ -59,7 +60,7 @@ peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
 }));
 var x0 = ecmaZipper,
     y0 = rewrite.bind(null, peepholes);
-(optimize = (function(x1) {
-    return y0(x0(x1));
+(optimize = (function(z) {
+    return y0(x0(z));
 }));
 (exports["optimize"] = optimize);

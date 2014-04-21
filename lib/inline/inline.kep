@@ -598,11 +598,6 @@ addRewrite@'AssignmentExpression' <| seq(
                 :addWorkingForNode(left, right)
                 :addBindingForNode(left, right)));
 
-/**
- * Combine binary arithmetic operations on primitive literals.
- * 
- * TODO: Shortcircuit expansion for logical ops.
- */
 addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
     arithmetic = {
         '+': (+),
@@ -619,20 +614,42 @@ addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
         '>=': (>=),
         '||': (||),
         '&&': (&&)}
-in
-    seq(
-        visitChild 'left',
-        visitChild 'right',
-        when(
-            \{operator left right} ->
-                (  arithmetic.(operator)
-                && isPrimitive(left)
-                && isPrimitive(right)),
-            
-            modify \ {operator left right} -> let
-                value = arithmetic.(operator)(left.value, right.value)
-            in
-                ast_value.Literal.create(null, typeof value, value)));
+in seq(
+    visitChild 'left',
+    visitChild 'right',
+    
+    /**
+     * Combine binary arithmetic operations on primitive literals.
+     * 
+     * TODO: Shortcircuit expansion for logical ops.
+     */
+    when(
+        \{operator left right} ->
+            (  arithmetic.(operator)
+            && isPrimitive(left)
+            && isPrimitive(right)),
+        
+        modify \ {operator left right} -> let
+            value = arithmetic.(operator)(left.value, right.value)
+        in
+            ast_value.Literal.create(null, typeof value, value)),
+    
+    /**
+     * Rewrite compose to use builtin compose code.
+     */
+    when(
+        \{operator} ->
+            (  operator === '\\>'
+            || operator === '\\>>'
+            || operator === '<\\'
+            || operator === '<<\\'),
+        
+        extract \ {operator left right} -> seq(
+            addGlobal(operator),
+            set <| ast_expression.CallExpression.create(null,
+                builtins.(operator),
+                [left, right]),
+            checkTop)));
 
 addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',

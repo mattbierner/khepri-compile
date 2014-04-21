@@ -1,11 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/pre_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     setData = __o["setData"],
+    getData = __o["getData"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_package = require("khepri-ast")["package"],
@@ -35,8 +35,10 @@ var __o = require("khepri-ast")["node"],
 peepholes.add("PackageExport", UP, (function(z) {
     var x = z.alias;
     return (!x);
-}), (function(node) {
-    return ast_package.PackageExport.create(node.loc, node.id, string(node.id.name));
+}), (function(__o4) {
+    var id = __o4["id"],
+        loc = __o4["loc"];
+    return ast_package.PackageExport.create(loc, id, string(id.name));
 }));
 peepholes.add("LetExpression", UP, (function(node) {
     return (node.bindings.length > 1);
@@ -113,12 +115,12 @@ peepholes.add("ObjectPatternElement", DOWN, (function(z) {
     }
 }));
 peepholes.add("AsPattern", DOWN, (function(node) {
-    return ((!node.target.ud) || (!node.target.ud.id));
+    return (!getData(node.target, "id"));
 }), (function(node) {
     return ast_pattern.AsPattern.create(node.loc, node.id, setData(node.target, "id", node.id));
 }));
 peepholes.add("ObjectPattern", UP, (function(node) {
-    return ((!node.ud) || (!node.ud.id));
+    return (!getData(node, "id"));
 }), (function(node) {
     var node0 = ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, "__o")),
         id = setData(node0, "reserved", true);

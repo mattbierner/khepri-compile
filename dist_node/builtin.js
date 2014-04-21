@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_node = require("khepri-ast")["node"],
     setData = ast_node["setData"],
     setUserData = ast_node["setUserData"],
@@ -148,18 +147,21 @@ registerBinary("\\>", "__rcompose", (function(x, y) {
         null, y, [ast_expression.CallExpression.create(null, x, [x0])])), "locals", [getUid(x0)]);
 }));
 var multiCompose = (function(f, g) {
+    var args = identifier("args", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-        null, []), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null,
-        ast_expression.MemberExpression.create(null, g, identifier("apply")), [ast_value.Literal.create(
-            null, "null"), identifier("arguments")])])), "locals", []);
+        ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression.create(
+        null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(null, g,
+            identifier("apply")), [ast_value.Literal.create(null, "null"), args])])), "locals", [getUid(args)]);
 });
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", (function(x, y) {
+    var args = identifier("args", unique());
     return setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-        null, null, []), ast_expression.CallExpression.create(null, y, [ast_expression.CallExpression.create(
-        null, ast_expression.MemberExpression.create(null, x, identifier("apply")), [ast_value.Literal
-            .create(null, "null"), identifier("arguments")
-        ])])), "locals", []);
+            null, ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression
+        .create(null, y, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(
+            null, x, identifier("apply")), [ast_value.Literal.create(null, "null"), args])])), "locals", [
+        getUid(args)
+    ]);
 }));
 (member = (function(id, uid6) {
     var xArg0 = identifier("x", uid6);

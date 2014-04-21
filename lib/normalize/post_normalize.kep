@@ -36,7 +36,7 @@ in {
 
 var getParameterNames := 
     flattenr <\ map @ \x -> {
-        switch (x.type) {
+        switch (type x) {
         case 'IdentifierPattern': return x;
         case 'AsPattern': return x.id;
         case 'SliceUnpack':
@@ -64,11 +64,11 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
         expandBinding = \binding ->
             ?type binding === 'ImportPattern'
                 :binding
-                :innerPattern(binding.value, binding.pattern, binding.recursive)
+                :innerPattern(binding.value, binding.pattern)
     in
         \node ->
             modify(node, {
-                'bindings': flattenr <| map(expandBinding, node.bindings)
+                bindings: flattenr map(expandBinding, node.bindings)
             }));
 
 /**
@@ -94,14 +94,14 @@ peepholes.add('FunctionExpression', UP,
                 node.body)
     in
         modify(node, {
-            params: modify(node.params, {'elements': params}),
+            params: modify(node.params, { elements: params }),
             body: body
         }));
 
 /* Expression Conversion
  ******************************************************************************/
 var expandAssignment := \node ->
-    ?node.right.type === 'AssignmentExpression'
+    ?type node.right === 'AssignmentExpression'
         :let right = expandAssignment(node.right) in
             concat(
                 right,
@@ -112,59 +112,47 @@ var expandAssignment := \node ->
 
 /**
  * Rewrite a potentially compound assignment expression to a list of single
- * assignments.
+ * assignments in a block.
  */
 peepholes.add('ExpressionStatement', UP,
-    \{expression} ->
-        (expression.type === 'AssignmentExpression'),
+    (.expression) \> type \> (===, 'AssignmentExpression'),
     
-    \node ->
-        ast_statement.BlockStatement.create(null,
-            expandAssignment(node.expression)
-                |> flattenr
-                |> map @ (ast_statement.ExpressionStatement.create@null)));
+    (.expression)
+        \> expandAssignment
+        \> flattenr
+        \> map @ (ast_statement.ExpressionStatement.create @ null)
+        \> ast_statement.BlockStatement.create @ null);
+
+var pipe := \loc callee arg ->
+    ast_expression.CallExpression.create(null,
+        callee,
+        [arg]);
 
 /**
  * Rewrite left pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    \node ->
-        (node.operator === '|>'),
+    (.operator) \> (===, '|>'),
     
-    \{left right} ->
-        ast_expression.CallExpression.create(null,
-            right,
-            [left]));
+    \{loc left right} ->
+        pipe(loc, right, left));
 
 /**
  * Rewrite right pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    \node->
-        (node.operator === '<|'),
+    (.operator) \> (===, '<|'),
     
-    \{left right} ->
-        ast_expression.CallExpression.create(null,
-            left,
-            [right]));
-
-/**
- * Rewrite compose to use builtin compose code.
- */
-peepholes.add('BinaryExpression', UP,
-    \node->
-        (  node.operator === '\\>'
-        || node.operator === '\\>>'
-        || node.operator === '<\\'
-        || node.operator === '<<\\'),
-    
-    \{operator left right} ->
-        ast_expression.CallExpression.create(null,
-            definitions.(operator),
-            [left, right]));
+    \{loc left right} ->
+        pipe(loc, left, right));
 
 /* Interface
  ******************************************************************************/
+/**
+ * Pre normalize a Khepri AST.
+ * 
+ * @param ast Zippered Khepri AST.
+ */
 normalize = rewrite @ peepholes;
 
 }

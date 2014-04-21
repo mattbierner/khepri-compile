@@ -314,7 +314,7 @@ in
         targets,
         fBody);
 
-/* Transform
+/* Transforms
  ******************************************************************************/
 var transformers = {};
 

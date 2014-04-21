@@ -1,13 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/pre_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun", "../rewriter"
 ], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";
     var modify = __o["modify"],
         setData = __o["setData"],
+        getData = __o["getData"],
         SliceUnpack = __o0["SliceUnpack"],
         RelativeUnpack = __o0["RelativeUnpack"],
         type = __o1["type"],
@@ -26,11 +26,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             return true;
         }),
         peepholes = new(Rewriter)();
-    peepholes.add("PackageExport", UP, (function(x) {
-        var x0 = x.alias;
-        return (!x0);
-    }), (function(node) {
-        return ast_package.PackageExport.create(node.loc, node.id, string(node.id.name));
+    peepholes.add("PackageExport", UP, (function(z) {
+        var x = z.alias;
+        return (!x);
+    }), (function(__o4) {
+        var id = __o4["id"],
+            loc = __o4["loc"];
+        return ast_package.PackageExport.create(loc, id, string(id.name));
     }));
     peepholes.add("LetExpression", UP, (function(node) {
         return (node.bindings.length > 1);
@@ -53,9 +55,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     peepholes.add("ArrayPattern", DOWN, (function(_) {
         return true;
     }), (function(__o4) {
-        var loc = __o4["loc"],
+        var pre0, loc = __o4["loc"],
             elements = __o4["elements"],
-            pre0, indx = elements.map(type)
+            indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
             __o5 = ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx],
                 elements.slice((indx + 1))
@@ -75,7 +77,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         return (node.elements.map(type)
             .indexOf("EllipsisPattern") >= 0);
     }), (function(node) {
-        var elements = node.elements,
+        var node0, elements = node.elements,
             indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
             __o4 = ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx],
@@ -84,8 +86,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             pre = __o4[0],
             mid = __o4[1],
             post = __o4[2],
-            node0, id = (node.id || ((node0 = ast_pattern.IdentifierPattern.create(null, ast_value.Identifier
-                .create(null, "__args"))), setData(node0, "reserved", true)));
+            id = (node.id || ((node0 = ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(
+                null, "__args"))), setData(node0, "reserved", true)));
         return modify(node, ({
             "id": id,
             "elements": concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null,
@@ -95,9 +97,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             }), post))
         }));
     }));
-    peepholes.add("ObjectPatternElement", DOWN, (function(x) {
-        var x0 = x.target;
-        return (!x0);
+    peepholes.add("ObjectPatternElement", DOWN, (function(z) {
+        var x = z.target;
+        return (!x);
     }), (function(node) {
         var key = node["key"];
         switch (key.type) {
@@ -110,12 +112,12 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         }
     }));
     peepholes.add("AsPattern", DOWN, (function(node) {
-        return ((!node.target.ud) || (!node.target.ud.id));
+        return (!getData(node.target, "id"));
     }), (function(node) {
         return ast_pattern.AsPattern.create(node.loc, node.id, setData(node.target, "id", node.id));
     }));
     peepholes.add("ObjectPattern", UP, (function(node) {
-        return ((!node.ud) || (!node.ud.id));
+        return (!getData(node, "id"));
     }), (function(node) {
         var node0 = ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, "__o")),
             id = setData(node0, "reserved", true);

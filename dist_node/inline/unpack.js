@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -23,31 +22,31 @@ var ast_expression = require("khepri-ast")["expression"],
     sliceUnpack = (function(target, id, from, to) {
         return innerPattern(SliceUnpack.create(null, id, target, from, to), id);
     }),
-    expandObjectElement = (function(base, pattern, key, recursive) {
+    expandObjectElement = (function(base, pattern, key) {
         var innerBase = ast_expression.MemberExpression.create(null, base, key, true);
         return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
-            ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase,
-            recursive));
+            ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
+        ));
     }),
-    expandObject = (function(base, pattern, recursive) {
+    expandObject = (function(base, pattern) {
         return flattenr(map((function(node) {
             return ((type(node) === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern, node.from,
                 node.to) : ((type(node) === "RelativeUnpack") ? relativeUnpack(pattern.ud.id.id,
                 node.min, node.index, node.pattern) : expandObjectElement(pattern.ud.id.id,
-                node.target, node.key, recursive)));
+                node.target, node.key)));
         }), pattern.elements));
     }),
-    expandAs = (function(base, pattern, recursive) {
-        return concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target, recursive)));
+    expandAs = (function(base, pattern) {
+        return concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target)));
     });
-(innerPattern = (function(base, pattern, recursive) {
+(innerPattern = (function(base, pattern) {
     switch (pattern.type) {
         case "IdentifierPattern":
-            return [ast_declaration.Binding.create(null, pattern, base, recursive)];
+            return [ast_declaration.Binding.create(null, pattern, base)];
         case "AsPattern":
-            return expandAs(base, pattern, recursive);
+            return expandAs(base, pattern);
         case "ObjectPattern":
-            return expandObject(base, pattern, recursive);
+            return expandObject(base, pattern);
         default:
             return [];
     }

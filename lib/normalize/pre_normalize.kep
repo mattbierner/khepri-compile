@@ -7,7 +7,7 @@
 package (
     normalize)
 with
-    import 'khepri-ast::node' {modify setData},
+    import 'khepri-ast::node' {modify setData getData},
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::package' ast_package,
@@ -40,6 +40,30 @@ var markReserved := \node ->
         'reserved',
         true);
 
+/**
+ * Split a list of unpacks around an ellipsis.
+ */
+var splitUnpackList := \elements -> let
+    indx = elements.map(type).indexOf('EllipsisPattern')
+in
+    ?indx < 0
+        :[elements, null, []]
+        :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
+
+/**
+ * Rejoin a split argument list into slice and relative unpacks.
+ */
+var createUnpackList := \pre mid post ->
+    concat(
+        pre,
+        ?mid && mid.id
+            :SliceUnpack.create(null, mid.id, null, pre.length, post.length)
+            :[],
+        map(
+            \x i -> RelativeUnpack.create(null, x, null, post.length - i, post.length + pre.length),
+            post));
+
+
 var always := \_ -> true;
 
 var peepholes := new Rewriter();
@@ -52,10 +76,10 @@ var peepholes := new Rewriter();
 peepholes.add('PackageExport', UP,
     (!) <\ (.alias),
     
-    \node ->
-        ast_package.PackageExport.create(node.loc,
-            node.id,
-            string(node.id.name)));
+    \{id loc} ->
+        ast_package.PackageExport.create(loc,
+            id,
+            string id.name));
 
 /* Expression Expansions
  ******************************************************************************/
@@ -89,29 +113,6 @@ peepholes.add('CurryExpression', DOWN,
 
 /* Pattern Normalizations
  ******************************************************************************/
-/**
- * Split a list of unpacks around an ellipsis.
- */
-var splitUnpackList := \elements -> let
-    indx = elements.map(type).indexOf('EllipsisPattern')
-in
-    ?indx < 0
-        :[elements, null, []]
-        :[elements.slice(0, indx), elements.(indx), elements.slice(indx + 1)];
-
-/**
- * Rejoin a split argument list into slice and relative unpacks.
- */
-var createUnpackList := \pre mid post ->
-    concat(
-        pre,
-        ?mid && mid.id
-            :SliceUnpack.create(null, mid.id, null, pre.length, post.length)
-            :[],
-        map(
-            \x i -> RelativeUnpack.create(null, x, null, post.length - i, post.length + pre.length),
-            post));
-
 /**
  * Convert array pattern to object pattern.
  * 
@@ -182,7 +183,7 @@ peepholes.add('ObjectPatternElement', DOWN,
  */
 peepholes.add('AsPattern', DOWN,
     \node ->
-        !node.target.ud || !node.target.ud.id,
+        !getData(node.target, 'id'),
     
     \node ->
         ast_pattern.AsPattern.create(node.loc,
@@ -197,7 +198,7 @@ peepholes.add('AsPattern', DOWN,
  */
 peepholes.add('ObjectPattern', UP,
     \node ->
-        !node.ud || !node.ud.id,
+        !getData(node, 'id'),
     
     \node -> let
         id = markReserved <| 

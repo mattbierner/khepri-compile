@@ -230,10 +230,15 @@ in {
 
 // ComposeN
 with
-    multiCompose = \f g ->
+    multiCompose = \f g -> let
+        args = identifier('args', unique())
+    in
         setData(
             ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, []),
+                ast_pattern.ArgumentsPattern.create(null,
+                    ast_pattern.IdentifierPattern.create(null, args),
+                    [],
+                    null),
                 ast_expression.CallExpression.create(null,
                     f, [
                         ast_expression.CallExpression.create(null,
@@ -241,9 +246,9 @@ with
                                  g,
                                  identifier('apply')),
                              [ast_value.Literal.create(null, 'null'),
-                             identifier('arguments')])])),
+                             args])])),
              'locals',
-             [])
+             [getUid args])
 in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);
