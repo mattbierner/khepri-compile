@@ -1,0 +1,41 @@
+/**
+ * @fileOverview Simple reachability tracker.
+ * 
+ * Maps uids to reference count.
+ */
+package (
+    empty
+    
+    addReference
+    getCount
+    isReachable)
+with
+    import 'hamt' hamt
+in {
+
+/**
+ * 
+ */
+empty = hamt.empty;
+
+/**
+ * 
+ */
+addReference = let
+    inc = \x -> (x + 1 || 1)
+in
+    \uid bindings ->
+        hamt.modify(uid, inc, bindings);
+
+/**
+ * 
+ */
+getCount := \uid bindings ->
+    (hamt.get(uid, bindings) || 0);
+
+/**
+ * 
+ */
+isReachable := getCount;
+
+}

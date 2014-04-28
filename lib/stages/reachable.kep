@@ -6,7 +6,7 @@ with
     
     import 'akh::error' Error,
     
-    import '../reachable' reachable
+    import '../reachable/reachable' reachable
 in {
 
 /**

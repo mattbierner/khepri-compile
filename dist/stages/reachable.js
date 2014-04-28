@@ -1,9 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/reachable.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/object", "akh/error", "../reachable"], (function(require, exports, __o, Error,
-    reachable) {
+*/define(["require", "exports", "bes/object", "akh/error", "../reachable/reachable"], (function(require, exports, __o,
+    Error, reachable) {
     "use strict";
     var setProperty = __o["setProperty"],
         optimize;

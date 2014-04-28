@@ -9,44 +9,28 @@
 package (
     optimize)
 with
-    import 'hamt' hamt,
-    
     import 'khepri-ast::node' {modify},
     
     import 'akh::base' {
-        next
         'sequence': seq
-        'sequencea': seqa},
+        sequencea},
     import 'akh::state' StateM,
 
     import 'zipper-m::trans::tree' TreeZipperT,
     
-    import './fun' {
+    import '../fun' {
         flip
         map},
-    import './ast' {
+    import '../ast' {
         type
-        getUid}
+        getUid},
+    
+    import './state' state
 in {
 
 /* Forward
  ******************************************************************************/
 var _check;
-
-/* State
- ******************************************************************************/
-var stateEmpty = hamt.empty;
-
-var stateAddReference = let
-    inc = \x -> (x + 1 || 1)
-in
-    \uid bindings ->
-        hamt.modify(uid, inc, bindings);
-
-var stateGetCount = \uid bindings ->
-    hamt.get(uid, bindings);
-
-var stateIsReachable = stateGetCount;
 
 /* Monad
  ******************************************************************************/
@@ -55,7 +39,7 @@ var M = TreeZipperT (StateM);
 var run = \c ctx ->
     StateM.evalState(
         TreeZipperT.runTreeZipperT(c, ctx),
-        stateEmpty);
+        state.Empty);
 
 var pass = M.of null;
 
@@ -83,7 +67,7 @@ var moveChild := M.child;
 var child = \edge ...actions ->
     seq(
         moveChild edge,
-        seqa actions,
+        sequencea actions,
         up);
 
 /**
@@ -109,26 +93,22 @@ var modifyState := M.lift <\ M.inner.modify;
  */
 var addReference = \uid ->
     ?uid
-        :modifyState (stateAddReference @ uid)
+        :modifyState (state.addReference @ uid)
         :pass;
 
 /**
  * Get the reference count for `uid`.
  */
 var getCount = \uid ->
-    ?uid
-        :getState.map (stateGetCount @ uid)
-    :M.of 0;
+    getState.map (state.GetCount @ uid);
 
 /**
  * If `uid` is reacahble (reference count > 0), execute `yes`. Otherwise do `no`.
  */
 var isReachable = \test yes no ->
     test.chain \ uid ->
-        ?uid
-            :getState.chain \ s ->
-                ?stateIsReachable(uid, s) : yes : no
-        :yes;
+        getState.chain \ s ->
+            ?state.isReachable(uid, s) : yes : no;
 
 /**
  * Remove a binding
@@ -155,7 +135,7 @@ var visitChild := \edge ->
 var visitArray := let
     move = \x i ->
         ?i
-            :next(checkTop, left)
+            :seq(checkTop, left)
             :checkTop
 in
     \node ->
@@ -163,7 +143,7 @@ in
             :seq(
                 down,
                 rightmost,
-                seqa map(move, node).reverse(),
+                sequencea map(move, node).reverse(),
                 up)
         :pass;
 
@@ -328,12 +308,12 @@ _check = \node ->
  * Traverse Khepri zipper `ast`, removing any bindings that are not reachable.
  * 
  * Outputs rewritten zipper.
+ * 
+ * @param ast Khepri zipper.
  */
-optimize = \ast ->
-    run(
-        next(
-            checkTop,
-            extractCtx.map \ node -> ({ tree: node })),
-        ast);
+optimize = let
+    finish = extractCtx.map \ node -> ({ tree: node })
+in
+    run @ seq(checkTop, finish);
 
 }

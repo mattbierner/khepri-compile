@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/reachable.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("bes")["object"],
     setProperty = __o["setProperty"],
     Error = require("akh")["error"],
-    reachable = require("../reachable"),
+    reachable = require("../reachable/reachable"),
     optimize;
 (optimize = (function(input) {
     var tree = input["tree"],

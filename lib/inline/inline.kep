@@ -459,7 +459,7 @@ addRewrite@'Binding' <| seq(
         
         extract \ node -> let
             bindings =
-                fun.flatten <| concat(
+                flatten <| concat(
                    node.value.bindings,
                    ast_declaration.Binding.create(null,
                        node.pattern,
@@ -774,7 +774,7 @@ addRewrite@'LetExpression' <| seq(
      */
     modify \ {loc bindings body} ->
         ast_expression.LetExpression.create(loc,
-            flattenr(bindings),
+            flattenr bindings,
             body),
     
     /**
@@ -794,7 +794,10 @@ addRewrite@'ArgumentsPattern' <| seq(
 
 addRewrite@'IdentifierPattern' <|
     extract \ node ->
-        addBinding(getUid node.id, null, true);
+        addBinding(
+            getUid node.id,
+            null,
+            true);
 
 // Value
 addRewrite@'ArrayExpression' <|

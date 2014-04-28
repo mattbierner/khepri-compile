@@ -1,5 +1,5 @@
 /**
- * 
+ * @fileOverview Binding record.
  */
 package (
     Binding
@@ -11,7 +11,11 @@ with
 in {
 
 /**
+ * Binding record.
  * 
+ * @member value Value bound.
+ * @member immutable Is the binding immutable?
+ * @member simple is the bound value simple?
  */
 Binding := record.declare(null, [
     'value',
