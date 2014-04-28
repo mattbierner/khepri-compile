@@ -1,4 +1,5 @@
 /**
+ * @fileOverview Remove unreachable bindings compiler stage.
  */
 package optimize
 with
@@ -6,15 +7,16 @@ with
     
     import 'akh::error' Error,
     
-    import '../reachable/reachable' reachable
+    import '../reachable/reachable' removeUnreachable
 in {
 
 /**
  * 
  */
-optimize = \input#{tree data} -> let
-    out = reachable.optimize(tree, data)
-in
-    Error.of <| setProperty(input, 'tree', out.tree);
+optimize = Error.of <\ \input#{tree} ->
+    setProperty(
+        input,
+        'tree',
+        removeUnreachable tree);
 
 }

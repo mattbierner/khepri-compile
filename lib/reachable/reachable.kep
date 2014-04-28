@@ -6,8 +6,7 @@
  * propogation phase, which makes many bindings unreachable but does not have
  * enough knowledge to be able to safely prune these.
  */
-package (
-    optimize)
+package removeUnreachable
 with
     import 'khepri-ast::node' {modify},
     
@@ -311,9 +310,6 @@ _check = \node ->
  * 
  * @param ast Khepri zipper.
  */
-optimize = let
-    finish = extractCtx.map \ node -> ({ tree: node })
-in
-    run @ seq(checkTop, finish);
+removeUnreachable = run @ seq(checkTop, extractCtx);
 
 }

@@ -2,30 +2,32 @@
  * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
 */define(["require", "exports", "bes/record", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression",
-    "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration",
-    "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value",
-    "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "zipper-m/walk", "../ast",
-    "../lexical/scope", "../fun", "../builtin", "./unpack", "./package_manager/amd", "./package_manager/node"
+    "ecma-ast/node", "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "ecma-ast-zipper",
+    "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/node", "khepri-ast/pattern",
+    "khepri-ast/statement", "khepri-ast/value", "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree",
+    "zipper-m/walk", "../ast", "../lexical/scope", "../fun", "../builtin", "./unpack", "./package_manager/amd",
+    "./package_manager/node"
 ], (function(require, exports, record, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
-    ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_node, khepri_pattern,
-    khepri_statement, khepri_value, Unique, StateT, __o, TreeZipperT, walk, __o0, scope, fun, __o1, __o2, _, _0
-) {
+    ecma_statement, ecma_value, __o, khepri_declaration, khepri_expression, khepri_node, khepri_pattern,
+    khepri_statement, khepri_value, Unique, StateT, __o0, TreeZipperT, walk, __o1, scope, fun, __o2, __o3, _,
+    _0) {
     "use strict";
-    var setData = khepri_node["setData"],
-        liftM2 = __o["liftM2"],
-        next = __o["next"],
-        seq = __o["sequence"],
-        type = __o0["type"],
-        getUid = __o0["getUid"],
+    var ecmaZipper = __o["ecmaZipper"],
+        setData = khepri_node["setData"],
+        liftM2 = __o0["liftM2"],
+        next = __o0["next"],
+        seq = __o0["sequence"],
+        type = __o1["type"],
+        getUid = __o1["getUid"],
         Scope = scope["Scope"],
         concat = fun["concat"],
         flatten = fun["flatten"],
         flip = fun["flip"],
         filter = fun["filter"],
-        builtins = __o1["builtins"],
-        expandBinding = __o2["expandBinding"],
-        expandBindings = __o2["expandBindings"],
-        expandArgumentsPattern = __o2["expandArgumentsPattern"],
+        builtins = __o2["builtins"],
+        expandBinding = __o3["expandBinding"],
+        expandBindings = __o3["expandBindings"],
+        expandArgumentsPattern = __o3["expandArgumentsPattern"],
         transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, uid, uid0, identifier = (function(loc, name) {
             return ecma_value.Identifier.create(loc, name);
         }),
@@ -102,8 +104,8 @@
             }));
         }),
         getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (
-            function(__o3) {
-                var uid = __o3[1];
+            function(__o4) {
+                var uid = __o4[1];
                 return getMapping(uid);
             }))), (function(z) {
             var z0 = z.bindings[0];
@@ -181,16 +183,16 @@
                 post: post
             }));
         });
-    addTransform("VariableDeclaration", null, modify((function(__o3) {
-        var loc = __o3["loc"],
-            declarations = __o3["declarations"];
+    addTransform("VariableDeclaration", null, modify((function(__o4) {
+        var loc = __o4["loc"],
+            declarations = __o4["declarations"];
         return ecma_declaration.VariableDeclaration.create(loc, declarations);
     })));
     addTransform("VariableDeclarator", null, modify((function(node0) {
         return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
     })));
-    addTransform("StaticDeclaration", modify((function(__o3) {
-        var loc = __o3["loc"];
+    addTransform("StaticDeclaration", modify((function(__o4) {
+        var loc = __o4["loc"];
         return ecma_statement.EmptyStatement.create(loc);
     })));
     addTransform("CatchClause", null, modify((function(node0) {
@@ -358,7 +360,7 @@
             return (s.hasMapping(uid0) ? setScope(scope.addMutableBinding(s, "exports")) : ((
                 name = s.getUnusedId("exports")), setScope(scope.addMapping(scope.addMutableBinding(
                 s, name), uid0, name))));
-        }))), rewrite, node),
+        }))), rewrite, node.map(ecmaZipper)),
         getPackageManager = (function(manager) {
             var amd_manager = require("./package_manager/amd"),
                 node_manager = require("./package_manager/node");

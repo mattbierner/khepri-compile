@@ -5,12 +5,10 @@
 var __o = require("bes")["object"],
     setProperty = __o["setProperty"],
     Error = require("akh")["error"],
-    reachable = require("../reachable/reachable"),
-    optimize;
-(optimize = (function(input) {
-    var tree = input["tree"],
-        data = input["data"],
-        out = reachable.optimize(tree, data);
-    return Error.of(setProperty(input, "tree", out.tree));
+    removeUnreachable = require("../reachable/reachable"),
+    optimize, x = Error.of;
+(optimize = (function(z) {
+    var tree;
+    return x(((tree = z["tree"]), setProperty(z, "tree", removeUnreachable(tree))));
 }));
 (module.exports = optimize);

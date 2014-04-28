@@ -33,8 +33,7 @@ type := \node ->
 /**
  * Is a node an identifier?
  */
-isIdentifier = \node ->
-    (type node === 'Identifier');
+isIdentifier = type \> (===, 'Identifier');
 
 /* Literal
  ******************************************************************************/
@@ -43,8 +42,7 @@ isIdentifier = \node ->
  * 
  * This includes regular expressions.
  */
-isLiteral = \node ->
-    (type node === 'Literal');
+isLiteral = type \> (===, 'Literal');
 
 /**
  * Can a node be treated as a number?

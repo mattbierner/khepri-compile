@@ -8,11 +8,11 @@ var hamt = require("hamt"),
 var inc = (function(x) {
     return ((x + 1) || 1);
 });
-(addReference = (function(uid, bindings) {
-    return hamt.modify(uid, inc, bindings);
+(addReference = (function(uid, s) {
+    return hamt.modify(uid, inc, s);
 }));
-(getCount = (function(uid, bindings) {
-    return (hamt.get(uid, bindings) || 0);
+(getCount = (function(uid, s) {
+    return (hamt.get(uid, s) || 0);
 }));
 (isReachable = getCount);
 (exports["empty"] = empty);

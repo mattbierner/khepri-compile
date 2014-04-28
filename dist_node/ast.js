@@ -7,11 +7,13 @@ var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, is
 (type = (function(node) {
     return (node && node.type);
 }));
-(isIdentifier = (function(node) {
-    return ((node && node.type) === "Identifier");
+(isIdentifier = (function(z) {
+    var y = (z && z.type);
+    return ("Identifier" === y);
 }));
-(isLiteral = (function(node) {
-    return ((node && node.type) === "Literal");
+(isLiteral = (function(z) {
+    var y = (z && z.type);
+    return ("Literal" === y);
 }));
 (isNumberish = (function(node) {
     return (isPrimitive(node) && (!isNaN(node.value)));

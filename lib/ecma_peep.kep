@@ -4,8 +4,6 @@
 package (
     optimize)
 with
-    import 'ecma-ast-zipper' {ecmaZipper},
-    
     import 'ecma-ast::node' {modify},
     
     import './ast' {type},
@@ -105,8 +103,8 @@ peepholes.add(['Program', 'BlockStatement'], UP,
 /**
  * Peephole optimize an ECMAScript ast.
  * 
- * @param ast ECMAScript ast
+ * @param ast ECMAScript zipper.
  */
-optimize = ecmaZipper \> rewrite @ peepholes;
+optimize = rewrite @ peepholes;
 
 }

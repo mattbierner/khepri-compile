@@ -1,20 +1,19 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require,
-    exports, __o, __o0, __o1, __o2, __o3) {
+*/define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require, exports, __o, __o0,
+    __o1, __o2) {
     "use strict";
-    var ecmaZipper = __o["ecmaZipper"],
-        modify = __o0["modify"],
-        type = __o1["type"],
-        concat = __o2["concat"],
-        flatten = __o2["flatten"],
-        map = __o2["map"],
-        foldr = __o2["foldr"],
-        UP = __o3["UP"],
-        DOWN = __o3["DOWN"],
-        Rewriter = __o3["Rewriter"],
-        rewrite = __o3["rewrite"],
+    var modify = __o["modify"],
+        type = __o0["type"],
+        concat = __o1["concat"],
+        flatten = __o1["flatten"],
+        map = __o1["map"],
+        foldr = __o1["foldr"],
+        UP = __o2["UP"],
+        DOWN = __o2["DOWN"],
+        Rewriter = __o2["Rewriter"],
+        rewrite = __o2["rewrite"],
         optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
             return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) ===
                 "BlockStatement") ? x0.body : x0));
@@ -54,10 +53,6 @@
             body: mergeBlockDeclarations(node.body)
         }));
     }));
-    var x0 = ecmaZipper,
-        y0 = rewrite.bind(null, peepholes);
-    (optimize = (function(z) {
-        return y0(x0(z));
-    }));
+    (optimize = rewrite.bind(null, peepholes));
     (exports["optimize"] = optimize);
 }));

@@ -14,6 +14,8 @@ with
     import 'ecma-ast::statement' ecma_statement,
     import 'ecma-ast::value'ecma_value,
     
+    import 'ecma-ast-zipper' {ecmaZipper},
+    
     import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
     import 'khepri-ast::node' khepri_node#{setData},
@@ -662,7 +664,7 @@ var transformProgram := seq(
     addVar('require', getUid(builtins.require)),
     addVar('exports', getUid(builtins.exports)),
     rewrite,
-    node);
+    node.map (ecmaZipper));
 
 /* API
  *****************************************************************************/

@@ -10,6 +10,8 @@ var record = require("bes")["record"],
     ecma_program = require("ecma-ast")["program"],
     ecma_statement = require("ecma-ast")["statement"],
     ecma_value = require("ecma-ast")["value"],
+    __o = require("ecma-ast-zipper"),
+    ecmaZipper = __o["ecmaZipper"],
     khepri_declaration = require("khepri-ast")["declaration"],
     khepri_expression = require("khepri-ast")["expression"],
     khepri_node = require("khepri-ast")["node"],
@@ -19,15 +21,15 @@ var record = require("bes")["record"],
     khepri_value = require("khepri-ast")["value"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["statei"],
-    __o = require("akh")["base"],
-    liftM2 = __o["liftM2"],
-    next = __o["next"],
-    seq = __o["sequence"],
+    __o0 = require("akh")["base"],
+    liftM2 = __o0["liftM2"],
+    next = __o0["next"],
+    seq = __o0["sequence"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
     walk = require("zipper-m")["walk"],
-    __o0 = require("../ast"),
-    type = __o0["type"],
-    getUid = __o0["getUid"],
+    __o1 = require("../ast"),
+    type = __o1["type"],
+    getUid = __o1["getUid"],
     scope = require("../lexical/scope"),
     Scope = scope["Scope"],
     fun = require("../fun"),
@@ -35,12 +37,12 @@ var record = require("bes")["record"],
     flatten = fun["flatten"],
     flip = fun["flip"],
     filter = fun["filter"],
-    __o1 = require("../builtin"),
-    builtins = __o1["builtins"],
-    __o2 = require("./unpack"),
-    expandBinding = __o2["expandBinding"],
-    expandBindings = __o2["expandBindings"],
-    expandArgumentsPattern = __o2["expandArgumentsPattern"],
+    __o2 = require("../builtin"),
+    builtins = __o2["builtins"],
+    __o3 = require("./unpack"),
+    expandBinding = __o3["expandBinding"],
+    expandBindings = __o3["expandBindings"],
+    expandArgumentsPattern = __o3["expandArgumentsPattern"],
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
     transform, x, y, f, f0, x0, y0, x1, y1, x2, y2, useStrict, uid, uid0, identifier = (function(loc, name) {
@@ -117,8 +119,8 @@ var M = TreeZipperT(StateT(Unique)),
             return s.setBindings([s.bindings[0].concat(bindings), s.bindings[1]]);
         }));
     }),
-    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o3) {
-        var uid = __o3[1];
+    getBindings = M.chain.bind(null, inspectStateWith(((x0 = enumeration), (y0 = fun.map.bind(null, (function(__o4) {
+        var uid = __o4[1];
         return getMapping(uid);
     }))), (function(z) {
         var z0 = z.bindings[0];
@@ -194,16 +196,16 @@ var M = TreeZipperT(StateT(Unique)),
             post: post
         }));
     });
-addTransform("VariableDeclaration", null, modify((function(__o3) {
-    var loc = __o3["loc"],
-        declarations = __o3["declarations"];
+addTransform("VariableDeclaration", null, modify((function(__o4) {
+    var loc = __o4["loc"],
+        declarations = __o4["declarations"];
     return ecma_declaration.VariableDeclaration.create(loc, declarations);
 })));
 addTransform("VariableDeclarator", null, modify((function(node0) {
     return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
 })));
-addTransform("StaticDeclaration", modify((function(__o3) {
-    var loc = __o3["loc"];
+addTransform("StaticDeclaration", modify((function(__o4) {
+    var loc = __o4["loc"];
     return ecma_statement.EmptyStatement.create(loc);
 })));
 addTransform("CatchClause", null, modify((function(node0) {
@@ -361,7 +363,7 @@ var _transformPost = withNode((function(node0) {
         var name, s = z.scope;
         return (s.hasMapping(uid0) ? setScope(scope.addMutableBinding(s, "exports")) : ((name = s.getUnusedId(
             "exports")), setScope(scope.addMapping(scope.addMutableBinding(s, name), uid0, name))));
-    }))), rewrite, node),
+    }))), rewrite, node.map(ecmaZipper)),
     getPackageManager = (function(manager) {
         var amd_manager = require("./package_manager/amd"),
             node_manager = require("./package_manager/node");

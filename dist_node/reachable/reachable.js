@@ -16,18 +16,18 @@ var __o = require("khepri-ast")["node"],
     type = __o2["type"],
     getUid = __o2["getUid"],
     state = require("./state"),
-    optimize, x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3, actions3,
-        __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8, test, __args9,
-        actions9, yes, no, y0, test0, __args10, actions10, yes0, no0, y1, __args11, actions11, __args12, actions12,
-        __args13, actions13, __args14, actions14, __args15, actions15, __args16, actions16, __args17, actions17,
-        __args18, actions18, __args19, actions19, __args20, actions20, __args21, actions21, __args22, actions22,
-        __args23, actions23, __args24, actions24, __args25, actions25, __args26, actions26, __args27, actions27,
-        __args28, actions28, __args29, actions29, __args30, actions30, __args31, actions31, __args32, actions32,
-        __args33, actions33, __args34, actions34, __args35, actions35, __args36, actions36, __args37, actions37,
-        __args38, actions38, __args39, actions39, consequent, __args40, actions40, __args41, actions41, __args42,
-        actions42, __args43, actions43, __args44, actions44, __args45, actions45, __args46, actions46, __args47,
-        actions47, __args48, actions48, test1, yes1, no1, consequent0, y2, __args49, actions49, __args50, actions50,
-        __args51, actions51, x0, _check, M = TreeZipperT(StateM),
+    removeUnreachable, x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3,
+        actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8, test,
+        __args9, actions9, yes, no, y0, test0, __args10, actions10, yes0, no0, y1, __args11, actions11, __args12,
+        actions12, __args13, actions13, __args14, actions14, __args15, actions15, __args16, actions16, __args17,
+        actions17, __args18, actions18, __args19, actions19, __args20, actions20, __args21, actions21, __args22,
+        actions22, __args23, actions23, __args24, actions24, __args25, actions25, __args26, actions26, __args27,
+        actions27, __args28, actions28, __args29, actions29, __args30, actions30, __args31, actions31, __args32,
+        actions32, __args33, actions33, __args34, actions34, __args35, actions35, __args36, actions36, __args37,
+        actions37, __args38, actions38, __args39, actions39, consequent, __args40, actions40, __args41, actions41,
+        __args42, actions42, __args43, actions43, __args44, actions44, __args45, actions45, __args46, actions46,
+        __args47, actions47, __args48, actions48, test1, yes1, no1, consequent0, y2, __args49, actions49, __args50,
+        actions50, __args51, actions51, x0, _check, M = TreeZipperT(StateM),
     pass = M.of(null),
     extractCtx = M.get,
     inspect = flip(M.map)
@@ -185,13 +185,8 @@ addRewrite("Identifier", extract(((x0 = getUid), (function(z) {
 (_check = (function(node) {
     return (Array.isArray(node) ? visitArray(node) : (peepholes[type(node)] || pass));
 }));
-var finish = extractCtx.map((function(node) {
-    return ({
-        tree: node
-    });
-})),
-    c = seq(checkTop, finish);
-(optimize = (function(ctx) {
+var c = seq(checkTop, extractCtx);
+(removeUnreachable = (function(ctx) {
     return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), state.Empty);
 }));
-(exports["optimize"] = optimize);
+(module.exports = removeUnreachable);

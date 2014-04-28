@@ -14,27 +14,36 @@ with
 in {
 
 /**
- * 
+ * Empty state.
  */
 empty = hamt.empty;
 
 /**
+ * Increment  reference count to `uid`.
  * 
+ * @param uid Key
+ * @param s State.
  */
 addReference = let
     inc = \x -> (x + 1 || 1)
 in
-    \uid bindings ->
-        hamt.modify(uid, inc, bindings);
+    \uid s ->
+        hamt.modify(uid, inc, s);
 
 /**
+ * Get the reference count for `uid`.
  * 
+ * @param uid Key
+ * @param s State.
  */
-getCount := \uid bindings ->
-    (hamt.get(uid, bindings) || 0);
+getCount := \uid s ->
+    (hamt.get(uid, s) || 0);
 
 /**
+ * Is `uid` reachable?
  * 
+ * @param uid Key
+ * @param s State.
  */
 isReachable := getCount;
 
