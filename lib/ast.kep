@@ -18,9 +18,15 @@ package (
     isLambda
     isLambdaWithoutArgs
 
+    tryGetUd
     getUd
-    getUid)
-{
+    setUd
+    
+    getUid
+    setUid)
+with
+    import 'khepri-ast::node' {setData}
+in{
 
 /**
  * Safe node type getter
@@ -113,20 +119,40 @@ isLambda = \node ->
  */
 isLambdaWithoutArgs = \node ->
     (  isLambda node
-    && !node.params.id
-    && !(node.params.ud && node.params.ud.arguments));
+    && !node.params.id);
 
-/* UID
+/* User Data
  ******************************************************************************/
 /**
- * Get some user data or return null.
+ * Get the user data `key` or return null.
  */
-getUd = \name node ->
-    (node && node.ud && node.ud.(name));
+tryGetUd := \def key node ->
+    ?node && node.ud && node.ud.hasOwnProperty(key)
+        :node.ud.(key)
+        :def;
+
+/**
+ * Get the user data `key` or return null.
+ */
+getUd := tryGetUd @ null;
+
+/**
+ * Set the user data for `key` to `value` on `node`.
+ */
+setUd := \key value node ->
+    setData(node, key, value);
 
 /**
  * Get the uid of a node or null.
  */
-getUid = getUd @ 'uid';
+getUid := getUd @ 'uid';
+
+/**
+ * Set the uid of a node.
+ * 
+ * @param uid
+ * @param node
+ */
+setUid := setUd @ 'uid';
 
 }

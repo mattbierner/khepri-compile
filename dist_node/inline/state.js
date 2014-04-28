@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/state.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     hamt = require("hamt"),
     __o = require("./binding"),

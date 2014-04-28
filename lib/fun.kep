@@ -2,13 +2,15 @@
  * @fileOverview
  */
 package (
+    id
     constant
     
     flip
     
+    isArray
+    
     reduce
     reduceRight
-    
     foldl
     foldr
     
@@ -17,33 +19,67 @@ package (
     map
     
     flatten
-    flattenr)
+    flattenr
+    
+    contains)
 {
 
-constant = \x -> \() -> x;
+/* 
+ ******************************************************************************/
+/**
+ * Identity function
+ */
+id := \x -> x;
 
+/**
+ * Create function that returns `x`.
+ */
+constant = \x -> \ -> x;
+
+/**
+ * Flip binary function `f`.
+ */
 flip = \f -> \x y -> f(y, x);
 
-
-reduce = Function.prototype.call.bind(Array.prototype.reduce);
-reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
-
-foldl = \f z a -> reduce(a, f, z);
-foldr = \f z a -> reduceRight(a, f, z);
+/* Array Ops
+ ******************************************************************************/
+isArray := Array.isArray;
 
 concat =  Array.prototype.concat.bind([]);
 
-filter = \f, a -> Array.prototype.filter.call(a, f);
-map = \f, a ->  Array.prototype.map.call(a, f);
+reduce = Function.prototype.call.bind(Array.prototype.reduce);
 
+reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
+
+foldl = \f z a -> reduce(a, f, z);
+
+foldr = \f z a -> reduceRight(a, f, z);
+
+filter = \f a -> Array.prototype.filter.call(a, f);
+
+map = \f a ->  Array.prototype.map.call(a, f);
+
+/**
+ * Flatten `x`.
+ * 
+ * Single pass, returns `x` if not array.
+ */
 flatten = \x ->
-    ?Array.isArray(x)
-        :Array.prototype.concat.apply([], x.filter(\x -> !!x))
+    ?isArray x
+        :Array.prototype.concat.apply([], x.filter(id))
         :x;
 
+/**
+ * Recursively flatten `x`.
+ */
 flattenr = \x ->
-    ?Array.isArray(x)
+    ?isArray x
         :flatten <| x.map(flattenr)
         :x;
 
+/**
+ * Does array `a` contain `x`?
+ */
+contains := \a x ->
+    a.indexOf(x) >= 0;
 }

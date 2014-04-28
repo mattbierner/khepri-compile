@@ -1,10 +1,14 @@
 package (
     markExpansion
+    incrementCount
+    
     getExpansion
     isExpansion
     
     expandNode)
 with
+    import 'bes::record' record,
+    
     import 'khepri-ast::node' {
         setData},
     
@@ -12,6 +16,10 @@ with
         getUid
         getUd}
 in {
+
+var Expansion := record.declare(null, [
+    'count',
+    'value']);
 
 var MAX_EXPANSION_DEPTH := 1;
 
@@ -40,11 +48,24 @@ isExpansion := getExpansion;
  * Mark `node` as an expansion.
  * 
  * @param node AST node.
- * @param count Number of times node has already been expanded.
+ * @param count Number of times node has been expanded.
  * @param target Expansion value.
  */
-markExpansion := \node count target ->
-    setExpansion(node, {'count': count, 'value': target});
+markExpansion := \node count value ->
+    setExpansion(
+        node,
+        Expansion.create(count, value));
+
+/**
+ * 
+ */
+incrementCount := \node count value -> let
+    exp = getExpansion node
+in
+    markExpansion(
+        node,
+         ((exp && exp.count) || count) + 1,
+         value);
 
 /**
  * Try to expand `node`.

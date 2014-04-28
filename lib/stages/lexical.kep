@@ -8,8 +8,10 @@ with
     import '../lexical/lexical' lexical
 in {
 
-
-var builtins = [
+/**
+ * Default set of builtins
+ */
+var builtins := [
     'Array',
     'Boolean',
     'Date',
@@ -49,7 +51,7 @@ check = \{options tree data} ->
         tree,
         ((options && options.globals) || builtins),
         data)
-    .map \{tree data} -> ({
+    .map \ {tree data} -> ({
         'tree': tree,
         'data': data,
         'options': options

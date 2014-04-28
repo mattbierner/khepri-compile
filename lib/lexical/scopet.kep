@@ -1,0 +1,34 @@
+/**
+ * @fileOverview
+ */
+package ScopeT
+with
+    import 'akh::trans::statei' StateT,
+    
+    import './scope' scope#{Scope}
+in {
+
+var ScopeMonad := \Instance -> {
+    Instance.extractScope = Instance.get;
+
+    Instance.examineScope = Instance.chain @ Instance.extractScope;
+    
+    Instance.modifyScope = Instance.modify;
+    
+    Instance.push = Instance.modifyScope scope.push;
+    
+    Instance.pop = Instance.modifyScope scope.pop;
+    
+    Instance.getClosure = Instance.chain @ (Instance.extractScope.map (scope.getClosure));
+
+    return Instance;
+};
+
+/* 
+ ******************************************************************************/
+/**
+ * 
+ */
+ScopeT := StateT \> ScopeMonad;
+
+}

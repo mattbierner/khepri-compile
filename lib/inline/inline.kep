@@ -776,14 +776,14 @@ addRewrite@'ObjectValue' <|
     visitChild 'value';
 
 addRewrite@'Identifier' <|
+    /**
+     * Replace identifier with simple values.
+     */
     when(
         \node ->
             (  getUid node
             && !isExpansion node),
         
-        /**
-         * Replace identifier with simple values.
-         */
         extract \ node ->
             getBinding(getUid node).chain \ binding ->
                 ?binding && binding.value && binding.simple
@@ -806,8 +806,17 @@ _check = \node -> {
             up);
     }
     
-    return peepholes.(type node) || pass;
+    return (peepholes.(type node) || pass);
 };
+
+var inline := seq(
+    checkTop,
+    extractCtx.chain \ node ->
+    unique \ unique ->
+        M.of {
+            tree: node,
+            data: {unique: unique}
+        });
 
 var initialState = foldl(
     \s name -> let
@@ -827,14 +836,7 @@ var initialState = foldl(
  */
 optimize = \ast data ->
     run(
-        next(
-            checkTop,
-            extractCtx.chain \ node ->
-            unique \ unique ->
-                M.of{
-                    'tree': node,
-                    'data': {'unique': unique}
-                }),
+        inline,
         ast,
         initialState,
         data.unique);

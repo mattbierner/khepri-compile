@@ -9,19 +9,33 @@ with
     
     import 'khepri-ast::node' {setData},
     
-    import '../ast' {type getUid}
+    import '../fun' {
+        contains},
+    import '../ast' {
+        type
+        tryGetUd
+        getUd
+        getUid
+        setUid},
+    import './expansion' {
+        incrementCount}
 in {
 
+var prefixUid := \prefix uid ->
+    prefix + '-' + uid;
+
 var updateClosure = \node prefix list -> let
-    closure = (node.ud && node.ud.closure) || [],
+    closure = tryGetUd([], 'closure', node),
     
     closure = closure.map \ x ->
-        ?list.indexOf(x) >= 0
-            :prefix + '-' + x
+        ?contains(list, x)
+            :prefixUid(prefix, x)
             :x
 in
     setData(node, 'closure', closure);
 
+/*
+ ******************************************************************************/
 /**
  * Rename all identifier instances in an AST.
  * 
@@ -35,9 +49,9 @@ rename = \prefix list root ->
             node = tree.node(ctx),
             uid = getUid(node)
         in
-            ?uid && list.indexOf(uid) >= 0
+            ?contains(list, uid)
                 :tree.setNode(
-                    setData(node, 'uid', prefix + '-' + uid),
+                    setUid(prefixUid(prefix, uid), node),
                     ctx)
             
             :?type node === 'FunctionExpression'
@@ -49,21 +63,19 @@ rename = \prefix list root ->
         khepriZipper root);
 
 /**
+ * 
  */
 incCount = \target count value root ->
     tree.node <| preWalk(
-        \ctx -> {with
+        \ctx -> let
             node = tree.node(ctx),
-            uid = getUid(node),
-            exp = node && node.ud && node.ud.expand
-        in {
-            if (target && node && target === uid) {
-                return tree.setNode(
-                    setData(node, 'expand', {'count': ((exp && exp.count) || count) + 1, 'value': value}),
-                    ctx);
-            }
-            return ctx;
-        }},
+            uid = getUid(node)
+        in
+            ?node && target === uid
+                :tree.setNode(
+                    incrementCount(node, count, value),
+                    ctx)
+                :ctx,
         khepriZipper root);
 
 }

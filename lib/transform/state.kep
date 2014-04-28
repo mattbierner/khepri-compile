@@ -1,0 +1,54 @@
+/**
+ * @fileOverview Transformer state
+ */
+package (
+    State
+    
+    getBindings
+    addBindings
+    pushBindings
+    popBindings)
+with 
+    import 'bes::record' record,
+    
+    import '../fun' {
+        concat},
+    import '../lexical/scope' scope#{Scope}
+in {
+
+/* State
+ ******************************************************************************/
+State = record.declare(null, [
+    'scope',    
+    'packageManager',
+    'bindings']);
+
+State.empty = State.create(
+    Scope.empty,
+    null,
+    [[], null]);
+
+
+/* Binding Operations
+ ******************************************************************************/
+/**
+ * 
+ */
+getBindings := \s -> 
+    s.bindings.(0);
+
+/**
+ * 
+ */
+addBindings := \bindings s ->
+    s.setBindings[
+        concat(s.bindings.(0), bindings),
+        s.bindings.(1)];
+
+pushBindings = \s ->
+    s.setBindings([[], s.bindings]);
+
+popBindings := \s ->
+    s.setBindings(s.bindings.(1));
+
+}

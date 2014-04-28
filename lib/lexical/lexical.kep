@@ -22,7 +22,8 @@ with
         type
         isIdentifier},
     import '../fun' {foldl},
-    import './scope' scope#{Scope}
+    import './scope' scope#{Scope},
+    import './scopet' ScopeT
 in {
 
 var reserved = \node ->
@@ -34,7 +35,7 @@ var _check;
 
 /* Monad
  ******************************************************************************/
-var M = ErrorT (TreeZipperT (StateT (Unique)));
+var M = ErrorT (TreeZipperT (ScopeT (Unique)));
 
 var run = \p s ctx ok err->
     Unique.runUnique(
@@ -56,14 +57,14 @@ var unique = M.chain @ (M.liftInner.liftInner (Unique.unique));
 
 // Scope Operations
 ////////////////////////////////////////
-var extractScope = M.liftInner (M.inner.inner.get);
+var extractScope = M.liftInner (M.inner.inner.extractScope);
 
 var examineScope = M.chain @ extractScope;
 
 var modifyScope = M.liftInner <\ M.inner.inner.modify;
 
-var push = modifyScope scope.push;
-var pop = modifyScope scope.pop;
+var push = M.liftInner (M.inner.inner.push);
+var pop =  M.liftInner (M.inner.inner.pop);
 
 var getClosure = M.chain @ (extractScope.map (scope.getClosure));
 
@@ -75,27 +76,27 @@ var extract = lift (M.inner.node);
 
 var inspect = M.chain @ extract;
 
-var up = lift (M.inner.up);
-var down = lift (M.inner.down);
-var left = lift (M.inner.left);
-var right = lift (M.inner.right);
+var up := lift (M.inner.up);
+var down := lift (M.inner.down);
+var left := lift (M.inner.left);
+var right := lift (M.inner.right);
 
-var root = lift (M.inner.root);
+var root := lift (M.inner.root);
 
 var moveChild =  lift <\ M.inner.child;
 
 var modifyNode = lift <\ M.inner.modifyNode;
 var setNode = lift <\ M.inner.setNode;
 
-var checkTop = inspect \ x -> _check x; // forward
-
-var child = \edge ...actions ->
+var child := \edge ...actions ->
     seq(
         moveChild edge,
         seqa actions,
         up);
 
-var checkChild = \edge ->
+var checkTop := inspect \ x -> _check x; // forward
+
+var checkChild := \edge ->
     child(edge,
         checkTop);
 

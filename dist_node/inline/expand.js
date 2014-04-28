@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -12,6 +11,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
     modify = __o["modify"],
     __o0 = require("../ast"),
     getUid = __o0["getUid"],
+    tryGetUd = __o0["tryGetUd"],
     __o1 = require("../fun"),
     concat = __o1["concat"],
     map = __o1["map"],
@@ -19,10 +19,10 @@ var ast_declaration = require("khepri-ast")["declaration"],
     rename = __o2["rename"],
     __o3 = require("../builtin"),
     builtins = __o3["builtins"],
-    expandCallee, expandCurry;
+    expandCallee, expandCurry, getLocals = tryGetUd.bind(null, [], "locals");
 (expandCallee = (function(uid, callee, args) {
     var arg, target = ((callee.type === "LetExpression") ? callee.body : callee),
-        closure = ((target.ud && target.ud.locals) || []),
+        closure = getLocals(target),
         parameters = target.params,
         bindings = map((function(x, i) {
             return ast_declaration.Binding.create(null, rename(uid, closure, x), (args[i] || builtins.undefined));
@@ -37,7 +37,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
 (expandCurry = (function(uid, base, args) {
     var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
     return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest = target.params
-        .elements.slice(1)), (closure = ((target.ud && target.ud.locals) || [])), (body = modify(target, ({
+        .elements.slice(1)), (closure = getLocals(target)), (body = modify(target, ({
         id: null,
         params: ast_pattern.ArgumentsPattern.create(null, null, rename(uid, closure, rest),
             target.params.self),

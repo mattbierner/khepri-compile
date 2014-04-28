@@ -4,8 +4,6 @@
 package (
     transform)
 with 
-    import 'bes::record' record,
-
     import 'ecma-ast::clause' ecma_clause,
     import 'ecma-ast::declaration' ecma_declaration,
     import 'ecma-ast::expression' ecma_expression,
@@ -19,7 +17,6 @@ with
     import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
     import 'khepri-ast::node' khepri_node#{setData},
-    import 'khepri-ast::pattern' khepri_pattern,
     import 'khepri-ast::statement' khepri_statement,
     import 'khepri-ast::value' khepri_value,
     
@@ -27,51 +24,36 @@ with
     import 'akh::trans::statei' StateT,
     import 'akh::base' {
         liftM2
-        next
         'sequence': seq},
     
     import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
     
-    import '../ast' {type getUid},
+    import '../ast' {
+        type
+        tryGetUd
+        getUd
+        getUid},
     import '../lexical/scope' scope#{Scope},
     import '../fun' fun#{
         concat
         flatten
         flip
-        filter},
+        filter
+        foldr
+        map
+        reduce},
     import '../builtin' {builtins},
     import './unpack' {
         expandBinding
         expandBindings
         expandArgumentsPattern},
 
+    import './state' state#{State},
+    
     import './package_manager/amd' _,
     import './package_manager/node' _
 in {
-
-/* Values
- ******************************************************************************/
-var identifier = \loc, name ->
-    ecma_value.Identifier.create(loc, name);
-
-/* Declaration
- ******************************************************************************/
-var variableDeclaration = khepri_declaration.VariableDeclaration.create;
-
-var variableDeclarator = ecma_declaration.VariableDeclarator.create;
-
-/* State
- ******************************************************************************/
-var State = record.declare(null, [
-    'scope',
-    'packageManager',
-    'bindings']);
-
-State.empty = State.create(
-    Scope.empty,
-    null,
-    [[], null]);
 
 /* Monad
  ******************************************************************************/
@@ -88,7 +70,7 @@ var pass = M.of null;
 
 var cons = liftM2 @ concat;
 
-var enumeration = fun.foldr@(flip cons, M.of []);
+var enumeration = foldr@(flip cons, M.of []);
 
 /* Operations
  ******************************************************************************/
@@ -101,6 +83,8 @@ var setState = M.lift <\ M.inner.put;
 var modifyState = M.lift <\ M.inner.modify;
 
 var inspectStateWith = M.chain @ extract;
+
+var packageManager = extract.map (.packageManager);
 
 // Zipper Operations
 ////////////////////////////////////////
@@ -116,8 +100,6 @@ var set = M.setNode;
 var inspectScope = \f -> extract.map (f <\ (.scope));
 
 var inspectScopeWith = \f -> extract.chain(f <\ (.scope));
-
-var packageManager = extract.map (.packageManager);
 
 var setScope = \scope ->
     modifyState \ s ->
@@ -165,33 +147,43 @@ var addVar = \id uid ->
 
 // Bindings Operations
 ////////////////////////////////////////
-var setBindings = \bindings ->
-    modifyState \ s ->
-        s.setBindings(bindings);
+var pushBindings = modifyState (state.pushBindings);
 
-var pushBindings = modifyState \ s ->
-    s.setBindings [[], s.bindings];
-
-var popBindings = modifyState \ s ->
-    s.setBindings(s.bindings.(1));
+var popBindings = modifyState (state.popBindings);
 
 var addBindings = \bindings ->
-    modifyState \ s ->
-        s.setBindings [s.bindings.(0).concat(bindings), s.bindings.(1)];
+    modifyState (state.addBindings @ bindings);
 
 /**
  * Get all bindings in the current scope.
  */
 var getBindings = M.chain @ inspectStateWith(
     enumeration
-    <\ (fun.map @ \[_ uid] -> getMapping(uid))
-    <\ \s -> s.bindings.(0));
+        <\ map @ getMapping
+        <\ state.getBindings);
 
 /* Forward
  ******************************************************************************/
 var _trans;
 
 var _transform = withNode \node -> _trans(node); // Late
+
+/* Values
+ ******************************************************************************/
+var identifier = \loc, name ->
+    ecma_value.Identifier.create(loc, name);
+
+/* Declaration
+ ******************************************************************************/
+var variableDeclaration = khepri_declaration.VariableDeclaration.create;
+
+var variableDeclarator = ecma_declaration.VariableDeclarator.create;
+
+var idsToDeclarators :=
+    map @ \x ->
+        ecma_declaration.VariableDeclarator.create(null,
+            identifier(null, x)) §
+    \> ecma_declaration.VariableDeclaration.create @ null;
 
 /* Unpacks
  ******************************************************************************/
@@ -206,14 +198,14 @@ var bindingToDeclarator = \x ->
 /**
  * Expand a binding to a list of variable declarations.
  */
-var unpack = expandBinding \> fun.map @ bindingToDeclarator;
+var unpack = expandBinding \> map @ bindingToDeclarator;
 
 /**
  * Expand an binding to a list of assignments.
  */
 var unpackAssign =
     expandBinding
-    \> fun.map @ \x ->
+    \> map @ \x ->
         ecma_expression.AssignmentExpression.create(null, '=', x.pattern, x.value);
 
 /* Statements
@@ -222,7 +214,7 @@ var unpackAssign =
  * With statement translation.
  */
 var withStatementNoImport = \loc bindings body -> let
-    vars = flatten <| fun.map(unpack, bindings),
+    vars = flatten <| map(unpack, bindings),
     
     prefix = variableDeclaration(null, vars)
 in
@@ -243,7 +235,7 @@ var withStatement = \packageManager, loc, bindings, body -> let
             :imp
 in
     withStatementNoImport(loc,
-        fun.map(flattenImport, bindings),
+        map(flattenImport, bindings),
         body);
 
 /* Expressions
@@ -255,7 +247,7 @@ var functionExpression = \loc id parameters functionBody prefix -> let
     params = parameters.elements,
     
     bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
-        |> fun.map @ bindingToDeclarator,
+        |> map @ bindingToDeclarator,
     
     body = ?type functionBody === "BlockStatement"
         :functionBody.body
@@ -276,7 +268,7 @@ in
 var letExpression = \loc bindings body ->
     ecma_expression.SequenceExpression.create(null,
         flatten concat(
-            fun.map(unpackAssign, bindings),
+            map(unpackAssign, bindings),
             body));
 
 /**
@@ -300,7 +292,7 @@ var packageBlock = \packageManager loc exports body -> let
             :[],
     
     targets =
-        fun.reduce(imports, \p c -> {
+        reduce(imports, \p c -> {
             p.(c.from.value) = c.pattern;
             return p;
         }, {}),
@@ -370,10 +362,7 @@ addTransform('BlockStatement',
             modify \ node ->
                 ecma_statement.BlockStatement.create(node.loc,
                     concat(
-                        ecma_declaration.VariableDeclaration.create(null,
-                            bindings.map(\x ->
-                                ecma_declaration.VariableDeclarator.create(null,
-                                    identifier(null, x)))),
+                        idsToDeclarators(bindings),
                         node.body)),
         popBindings));
 
@@ -392,7 +381,7 @@ addTransform('IfStatement',
             node.alternate));
 
 addTransform('WithStatement',
-    next(
+    seq(
         packageManager.chain \ packageManager -> 
             modify \ node ->
                 withStatement(
@@ -531,8 +520,8 @@ addTransform('MemberExpression',
 addTransform('LetExpression',
     seq(
         withNode \ node -> let
-            bindings = flatten <| fun.map(\x -> ?x : expandBindings(null, x.pattern) : [], node.bindings),
-            identifiers = fun.map(\x -> [x.pattern.id.name, getUid(x.pattern.id)], bindings)
+            bindings = flatten <| map(\x -> ?x : expandBindings(null, x.pattern) : [], node.bindings),
+            identifiers = map(\x -> getUid(x.pattern.id), bindings)
         in
             addBindings(identifiers),
         
@@ -555,7 +544,7 @@ addTransform('FunctionExpression',
                 node.id,
                 node.params,
                 node.body,
-                node.ud && node.ud.prefix)),
+                getUd('prefix', node))),
     seq(
         modify \ node ->
             ecma_expression.FunctionExpression.create(null,
@@ -590,8 +579,7 @@ addTransform(['IdentifierPattern', 'AsPattern', 'ArgumentsPattern'],
 
 addTransform(['ObjectPattern', 'EllipsisPattern', 'SinkPattern'],
     null,
-    modify \ node ->
-        (node.ud && node.ud.id));
+    modify (getUd @ 'id'));
 
 // Program
 addTransform('Program',
@@ -611,11 +599,8 @@ addTransform('Program',
     modify \ node ->
         ecma_program.Program.create(node.loc,
             concat(
-                ?node.ud && node.ud.prefix :node.ud.prefix :[],
-                ecma_declaration.VariableDeclaration.create(null,
-                    bindings.map\x ->
-                        ecma_declaration.VariableDeclarator.create(null,
-                            identifier(null, x))),
+                ?tryGetUd([], 'prefix', node),
+                idsToDeclarators(bindings),
                 node.body)));
 
 // Package
@@ -634,7 +619,7 @@ addTransform('Identifier',
     withNode \ node ->
         ?getUid node
             // When node has uid, get mapped name for uid.
-            :next(
+            :seq(
                 addVar(node.name, getUid node),
                 getMapping(getUid node).chain \ name ->
                     set <| identifier(node.loc, name))

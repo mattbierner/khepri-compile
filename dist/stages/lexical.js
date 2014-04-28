@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/stages/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/stages/lexical.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "../lexical/lexical"], (function(require, exports, Error, lexical) {
+*/define(["require", "exports", "akh/error", "../lexical/lexical"], (function(require, exports, Error, lexical) {
     "use strict";
     var check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI",
             "encodeURIComponent", "Error", "eval", "EvalError", "Function", "Infinity", "isFinite", "isNaN",

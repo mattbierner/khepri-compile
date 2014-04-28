@@ -512,21 +512,22 @@ addRewrite("Identifier", ((consequent18 = extract((function(node) {
     }
     return (peepholes[type(node)] || pass);
 }));
-var initialState = foldl((function(s, name) {
-    var id = builtins[name],
-        def = definitions[name];
-    return state.addBinding(getUid(id), markExpansion(id, 0, def), true, s);
-}), State.empty, Object.keys(builtins));
-(optimize = (function(ast, data) {
-    return run(next(checkTop, extractCtx.chain((function(node) {
-        return unique((function(unique0) {
-            return M.of(({
-                "tree": node,
-                "data": ({
-                    "unique": unique0
-                })
-            }));
+var inline = seq(checkTop, extractCtx.chain((function(node) {
+    return unique((function(unique0) {
+        return M.of(({
+            tree: node,
+            data: ({
+                unique: unique0
+            })
         }));
-    }))), ast, initialState, data.unique);
+    }));
+}))),
+    initialState = foldl((function(s, name) {
+        var id = builtins[name],
+            def = definitions[name];
+        return state.addBinding(getUid(id), markExpansion(id, 0, def), true, s);
+    }), State.empty, Object.keys(builtins));
+(optimize = (function(ast, data) {
+    return run(inline, ast, initialState, data.unique);
 }));
 (exports["optimize"] = optimize);
