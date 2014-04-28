@@ -1,0 +1,60 @@
+package (
+    markExpansion
+    getExpansion
+    isExpansion
+    
+    expandNode)
+with
+    import 'khepri-ast::node' {
+        setData},
+    
+    import '../ast' {
+        getUid
+        getUd}
+in {
+
+var MAX_EXPANSION_DEPTH := 1;
+
+var canExpand := \exp -> 
+    exp.count < MAX_EXPANSION_DEPTH;
+
+var setExpansion := \node expansion ->
+    setData(node, 'expand', expansion);
+
+
+/**
+ * Get the expansion for `node`.
+ * 
+ * @param node AST node.
+ */
+getExpansion := getUd @ 'expand';
+
+/**
+ * Is `node` an expansion?
+ * 
+ * @param node AST node.
+ */
+isExpansion := getExpansion;
+
+/**
+ * Mark `node` as an expansion.
+ * 
+ * @param node AST node.
+ * @param count Number of times node has already been expanded.
+ * @param target Expansion value.
+ */
+markExpansion := \node count target ->
+    setExpansion(node, {'count': count, 'value': target});
+
+/**
+ * Try to expand `node`.
+ */
+expandNode := \node ->
+    ?isExpansion node
+        :let exp = getExpansion node in
+            ?canExpand exp
+                :exp.value
+                :setExpansion(node, null)
+        :node;
+
+}

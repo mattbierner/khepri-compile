@@ -8,17 +8,9 @@ var record = require("bes")["record"],
     Binding = __o["Binding"],
     MUTABLE = __o["MUTABLE"],
     IMMUTABLE = __o["IMMUTABLE"],
-    State, getBinding, push, pop, getGlobals, addGlobal;
+    State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal;
 (State = record.declare(null, ["bindings", "working", "globals", "outer"]));
 (State.empty = new(State)(hamt.empty, hamt.empty, hamt.empty, null));
-(State.prototype.addBinding = (function(uid, target, simple) {
-    var s = this;
-    return s.setBindings(hamt.set(uid, Binding.create(target, IMMUTABLE, simple), s.bindings));
-}));
-(State.prototype.addWorking = (function(uid, target, simple) {
-    var s = this;
-    return s.setWorking(hamt.set(uid, Binding.create(target, MUTABLE, simple), s.working));
-}));
 (push = (function(s) {
     return s.setOuter(s)
         .setWorking(hamt.empty);
@@ -35,6 +27,14 @@ var nullWorking = hamt.fold.bind(null, (function(p, __o0) {
 (getBinding = (function(uid, s) {
     return (hamt.get(uid, s.bindings) || hamt.get(uid, s.working));
 }));
+(addBinding = (function(uid, value, simple, s) {
+    var binding = Binding.create(value, IMMUTABLE, simple);
+    return s.setBindings(hamt.set(uid, binding, s.bindings));
+}));
+(addWorking = (function(uid, value, simple, s) {
+    var binding = Binding.create(value, MUTABLE, simple);
+    return s.setWorking(hamt.set(uid, binding, s.working));
+}));
 var y = hamt.keys;
 (getGlobals = (function(z) {
     return y(z.globals);
@@ -44,6 +44,8 @@ var y = hamt.keys;
 }));
 (exports["State"] = State);
 (exports["getBinding"] = getBinding);
+(exports["addBinding"] = addBinding);
+(exports["addWorking"] = addWorking);
 (exports["push"] = push);
 (exports["pop"] = pop);
 (exports["getGlobals"] = getGlobals);

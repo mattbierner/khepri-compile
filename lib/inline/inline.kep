@@ -12,7 +12,7 @@
 package (
     optimize)
 with
-    import 'khepri-ast::node' {setData 'modify': modifyNode},
+    import 'khepri-ast::node' {'modify': modifyNode},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -27,19 +27,17 @@ with
     import 'akh::trans::state' StateT,
 
     import 'zipper-m::trans::tree' TreeZipperT,
-    import 'zipper-m::walk' walk,
     
     import '../ast' {
         type
         isIdentifier
-        getUd
         getUid
         isLambda
         isLambdaWithoutArgs
         isPrimitive
         isNumberish
         isTruthy},
-    import '../builtin' builtin#{builtins definitions },
+    import '../builtin' builtin#{builtins definitions},
     import '../fun' {
         flattenr
         flatten
@@ -50,42 +48,19 @@ with
     import './expand' {
         expandCallee
         expandCurry},
-    import './rename' {rename incCount}
+    import './expansion' {
+        markExpansion
+        getExpansion
+        isExpansion
+        expandNode},
+    import './rename' {
+        rename
+        incCount}
 in {
-
-/* Config
- ******************************************************************************/
-var MAX_EXPANSION_DEPTH := 1;
 
 /* Forward
  ******************************************************************************/
 var _check;
-
-/* Expansion
- ******************************************************************************/
-var markExpansion = \id count target ->
-    setData(
-        id,
-        'expand',
-        {'count': count, 'value': target});
-
-var getExpansion := getUd @ 'expand';
-
-var isExpansion := getExpansion;
-
-var canExpand := \exp -> 
-    exp.count < MAX_EXPANSION_DEPTH;
-
-/**
- * Try to expand `node`.
- */
-var expandNode = \node ->
-    ?isExpansion node
-        :let uid = getUid node, exp = getExpansion node in
-            ?canExpand exp
-                :exp.value
-                :setData(node, 'expand', null)
-        :node;
 
 /* Monad
  ******************************************************************************/
@@ -142,8 +117,7 @@ var expand = \exp f ->
  * @param value Value bound.
  */
 var addBinding = \uid value simple ->
-    modifyState \ s ->
-        s.addBinding(uid, value, simple);
+    modifyState state.addBinding@(uid, value, simple);
 
 /**
  * Set the working value of a binding.
@@ -155,8 +129,7 @@ var addBinding = \uid value simple ->
  * @param value Value bound.
  */
 var addWorking = \uid value simple ->
-    modifyState \ s ->
-        s.addWorking(uid, value, simple);
+    modifyState state.addWorking@(uid, value, simple);
 
 /**
  * Get the value of the current binding for `uid`.
@@ -169,7 +142,6 @@ var getBinding = \uid ->
     ?uid
         :getState.map (state.getBinding @ uid)
         :pass;
-
 
 /**
  * 
@@ -224,6 +196,7 @@ var createGlobalDeclarations = \g ->
             ast_declaration.VariableDeclarator.create(null,
                 builtins.(x),
                 definitions.(x)));
+
 /*
  ******************************************************************************/
 /**
@@ -476,24 +449,21 @@ addRewrite@'BlockStatement' <|
 addRewrite@'ExpressionStatement' <|
     visitChild 'expression';
 
-addRewrite@'WithStatement' <|
-     seq(
-        visitChild 'bindings',
-        visitChild 'body');
+addRewrite@'WithStatement' <| seq(
+    visitChild 'bindings',
+    visitChild 'body');
 
-addRewrite@'SwitchStatement' <|
-    seq(
-        visitChild 'discriminant',
-        visitChild 'cases');
+addRewrite@'SwitchStatement' <| seq(
+    visitChild 'discriminant',
+    visitChild 'cases');
 
 addRewrite@['ReturnStatement', 'ThrowStatement'] <|
     visitChild 'argument';
 
-addRewrite@'TryStatement' <|
-    seq(
-        visitChild 'block',
-        visitChild 'handler',
-        visitChild 'finalizer');
+addRewrite@'TryStatement' <| seq(
+    visitChild 'block',
+    visitChild 'handler',
+    visitChild 'finalizer');
 
 addRewrite@'WhileStatement' <|
     block(
@@ -505,13 +475,12 @@ addRewrite@'DoWhileStatement' <|
         visitChild 'body',
         visitChild 'test');
 
-addRewrite@'ForStatement' <|
-    seq(
-        visitChild 'init',
-        block(
-            visitChild 'test',
-            visitChild 'update',
-            visitChild 'body'));
+addRewrite@'ForStatement' <| seq(
+    visitChild 'init',
+    block(
+        visitChild 'test',
+        visitChild 'update',
+        visitChild 'body'));
 
 // Expression
 addRewrite@'FunctionExpression' <|
@@ -542,18 +511,6 @@ in seq(
             value = arithmetic.(operator)(argument.value)
         in
             ast_value.Literal.create(loc, typeof value, value)));
-
-addRewrite@'AssignmentExpression' <| seq(
-    visitChild 'right',
-    
-    /**
-     * Update the working value of a binding.
-     */
-    when((.left) \> type \> (===, 'Identifier'),
-        extract \ {operator left right} ->
-            ?operator === '='
-                :setWorkingForNode(left, right)
-                :addBindingForNode(left, right)));
 
 addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
     arithmetic = {
@@ -608,19 +565,29 @@ in seq(
                 [left, right]),
             checkTop)));
 
+addRewrite@'AssignmentExpression' <| seq(
+    visitChild 'right',
+    
+    /**
+     * Update the working value of a binding.
+     */
+    when((.left) \> type \> (===, 'Identifier'),
+        extract \ {operator left right} ->
+            ?operator === '='
+                :setWorkingForNode(left, right)
+                :addBindingForNode(left, right)));
+
 addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',
     
     /**
      * Reduce conditionals with constant test.
      */
-    when(
-        (.test) \> isPrimitive,
+    when((.test) \> isPrimitive,
         
-        extract \ {test consequent alternate} ->
-            seq(
-                set ?isTruthy test : consequent : alternate,
-                checkTop),
+        extract \ {test consequent alternate} -> seq(
+            set ?isTruthy test : consequent : alternate,
+            checkTop),
         
         seq(
             visitChild 'consequent',
@@ -628,8 +595,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
-    when(
-        (.computed),
+    when((.computed),
         visitChild 'property'),
     
     /**
@@ -848,10 +814,11 @@ var initialState = foldl(
         id = builtins.(name),
         def = definitions.(name)
     in
-        s.addBinding(
+        state.addBinding(
             getUid id,
             markExpansion(id, 0, def),
-            true),
+            true,
+            s),
     State.empty,
     Object.keys(builtins));
 
@@ -863,12 +830,11 @@ optimize = \ast data ->
         next(
             checkTop,
             extractCtx.chain \ node ->
-            globals \ g ->
             unique \ unique ->
-                M.of({
+                M.of{
                     'tree': node,
-                    'data': {'globals': g, 'unique': unique}
-                })),
+                    'data': {'unique': unique}
+                }),
         ast,
         initialState,
         data.unique);

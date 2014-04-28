@@ -7,6 +7,8 @@ package (
     State
     
     getBinding
+    addBinding
+    addWorking
     
     push
     pop
@@ -46,25 +48,13 @@ State.empty = new State(
     hamt.empty,
     null);
 
-/**
- * 
- */
-State.prototype.addBinding = \uid target simple =s->
+var putBinding := \key binding s ->
     s.setBindings(
-        hamt.set(
-            uid,
-            Binding.create(target, IMMUTABLE, simple),
-            s.bindings));
+        hamt.set(key, binding, s.bindings));
 
-/**
- * 
- */
-State.prototype.addWorking = \uid target simple =s->
+var putWorking := \key binding s ->
     s.setWorking(
-        hamt.set(
-            uid,
-            Binding.create(target, MUTABLE, simple),
-            s.working));
+        hamt.set(key, binding, s.working));
 
 /* Scope Operations
  ******************************************************************************/
@@ -99,12 +89,43 @@ in
 /* Binding Operations
  ******************************************************************************/
 /**
+ * Get current binding for `uid`.
  * 
+ * @param uid Unique id.
+ * @param s State.
  */
 getBinding := \uid s -> 
     (  hamt.get(uid, s.bindings)
     || hamt.get(uid, s.working));
 
+/**
+ * Add an immutable binding for `uid`.
+ * 
+ * @param uid Unique id.
+ * @param value Bound value.
+ * @param simple Is the bound value simple?
+ * @param s State.
+ */
+addBinding = \uid value simple s ->
+    putBinding(
+        uid,
+        Binding.create(value, IMMUTABLE, simple),
+        s);
+
+/**
+ * Set the working binding for `uid`.
+ * 
+ * @param uid Unique id.
+ * @param value Bound value.
+ * @param simple Is the bound value simple?
+ * @param s State.
+ */
+addWorking = \uid value simple s ->
+    putWorking(
+        uid,
+        Binding.create(value, MUTABLE, simple),
+        s);
+    
 /* Globals Operations
  ******************************************************************************/
 /**

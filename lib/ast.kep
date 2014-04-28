@@ -3,7 +3,7 @@
  */
 package (
     type
-        
+    
     isIdentifier
     
     isLiteral
@@ -78,7 +78,7 @@ isSimple = \node ->
 isPod = \node ->
     (  isPrimitive node
     || type node === 'ArrayExpression' && node.elements.every(isPod)
-    || type type === 'ObjectExpression' && node.elements.every(\x -> isPod(x.value)));
+    || type type === 'ObjectExpression' && node.elements.every((.value) \> isPod));
 
 /* Value
  ******************************************************************************/

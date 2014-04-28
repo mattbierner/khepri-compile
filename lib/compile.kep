@@ -2,9 +2,6 @@
  * @fileOverview Main khepri compiler function.
  * 
  * Translates Khepri source to ECMAScript.
- * 
- * TODO: Use Error monad for each stage instead of direct composition with 
- * throwing functions.
  */
 package compile
 with
@@ -39,7 +36,7 @@ var compiler := \x ->
  * @param [options] Map of options specifying behavior of compiler.
  * @param [err] Error callback.
  */
-compile = let
+compile := let
     extract = \{tree} -> tree,
     thr = \x -> { throw x; }
 in

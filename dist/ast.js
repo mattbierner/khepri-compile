@@ -28,11 +28,12 @@
             "ObjectExpression"));
     }));
     (isPod = (function(node) {
+        var y;
         return (((isPrimitive(node) || ((node && node.type) === "ArrayExpression")) && (node.elements.every(
-            isPod) || ((type && type.type) === "ObjectExpression"))) && node.elements.every((
-            function(x) {
-                return isPod(x.value);
-            })));
+            isPod) || ((type && type.type) === "ObjectExpression"))) && node.elements.every(((y =
+            isPod), (function(z) {
+            return y(z.value);
+        }))));
     }));
     (isTruthy = (function(node) {
         return (isPrimitive(node) && (!(!node.value)));

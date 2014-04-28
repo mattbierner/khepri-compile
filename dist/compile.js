@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_normalize", "./stages/lexical",
+*/define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_normalize", "./stages/lexical",
     "./stages/reachable", "./stages/post_normalize", "./stages/inline", "./stages/khepri_peep",
     "./stages/transform", "./stages/ecma_peep"
 ], (function(require, exports, Error, __o, pre_normalize, lexical, reachable, post_normalize, inline, khepri_peep,
