@@ -40,7 +40,11 @@ with
         isNumberish
         isTruthy},
     import '../builtin' builtin#{builtins definitions },
-    import '../fun' fun#{flattenr flatten concat},
+    import '../fun' {
+        flattenr
+        flatten
+        foldl
+        concat},
     
     import './state' state#{State},
     import './expand' {
@@ -836,12 +840,15 @@ _check = \node -> {
     return peepholes.(type node) || pass;
 };
 
-var initialState = fun.foldl(
+var initialState = foldl(
     \s name -> let
         id = builtins.(name),
         def = definitions.(name)
     in
-        s.addBinding(getUid id, markExpansion(id, 0, def), true),
+        s.addBinding(
+            getUid id,
+            markExpansion(id, 0, def),
+            true),
     State.empty,
     Object.keys(builtins));
 

@@ -18,8 +18,10 @@ with
 
     import 'hamt' hamt,
     
-    import './bindings' binding,
-    import './binding' {Binding MUTABLE IMMUTABLE}
+    import './binding' {
+        Binding
+        MUTABLE
+        IMMUTABLE}
 in {
 
 /* Record
@@ -39,8 +41,8 @@ State := record.declare(null, [
     'outer']);
 
 State.empty = new State(
-    binding.empty,
-    binding.empty,
+    hamt.empty,
+    hamt.empty,
     hamt.empty,
     null);
 
@@ -49,7 +51,7 @@ State.empty = new State(
  */
 State.prototype.addBinding = \uid target simple =s->
     s.setBindings(
-        binding.setBinding(
+        hamt.set(
             uid,
             Binding.create(target, IMMUTABLE, simple),
             s.bindings));
@@ -59,7 +61,7 @@ State.prototype.addBinding = \uid target simple =s->
  */
 State.prototype.addWorking = \uid target simple =s->
     s.setWorking(
-        binding.setBinding(
+        hamt.set(
             uid,
             Binding.create(target, MUTABLE, simple),
             s.working));
@@ -67,26 +69,32 @@ State.prototype.addWorking = \uid target simple =s->
 /* Scope Operations
  ******************************************************************************/
 /**
+ * Enter an new scope.
  * 
+ * @param s State.
  */
-push = \s->
-    s.setOuter(s)
-        .setWorking(binding.empty);
+push = \s ->
+    s
+        .setOuter(s)
+        .setWorking(hamt.empty);
 
 /**
+ * Exit the current scope.
  * 
+ * @param s State.
  */
-pop = \s->
-    s.outer
-        .setBindings(s.bindings)
-        .setGlobals(s.globals)
-        .setWorking(
-            // Delete working bindings modified in inner from outer scope.
-            hamt.fold(
-                \p {key} ->
-                    hamt.set(key, null, p),
-                s.outer.working,
-                s.working));
+pop = let
+    nullWorking =
+        hamt.fold @ \p {key} ->
+            hamt.set(key, null, p)
+in
+    \s ->
+        s.outer
+            .setBindings(s.bindings)
+            .setGlobals(s.globals)
+            .setWorking(
+                // Delete working bindings modified in inner from outer scope.
+                nullWorking(s.outer.working, s.working));
 
 /* Binding Operations
  ******************************************************************************/
@@ -94,8 +102,8 @@ pop = \s->
  * 
  */
 getBinding := \uid s -> 
-    (  binding.getBinding(uid, s.bindings)
-    || binding.getBinding(uid, s.working));
+    (  hamt.get(uid, s.bindings)
+    || hamt.get(uid, s.working));
 
 /* Globals Operations
  ******************************************************************************/
