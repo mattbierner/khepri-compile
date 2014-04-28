@@ -19,7 +19,7 @@ in {
 /* State
  ******************************************************************************/
 State = record.declare(null, [
-    'scope',    
+    'scope',
     'packageManager',
     'bindings']);
 
@@ -27,7 +27,6 @@ State.empty = State.create(
     Scope.empty,
     null,
     [[], null]);
-
 
 /* Binding Operations
  ******************************************************************************/
@@ -41,7 +40,7 @@ getBindings := \s ->
  * 
  */
 addBindings := \bindings s ->
-    s.setBindings[
+    s.setBindings [
         concat(s.bindings.(0), bindings),
         s.bindings.(1)];
 

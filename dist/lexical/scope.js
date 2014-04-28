@@ -4,7 +4,7 @@
 */define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
-            getClosure, push, pop;
+            getClosure, push, pop, addVar;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "mutated"]));
     (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
@@ -88,6 +88,11 @@
     (pop = (function(x) {
         return x.outer;
     }));
+    (addVar = (function(id, uid, s) {
+        var name;
+        return (s.hasMapping(uid) ? addMutableBinding(s, id) : ((name = s.getUnusedId(id)), addMapping(
+            addMutableBinding(s, name), uid, name)));
+    }));
     (exports["Scope"] = Scope);
     (exports["addUid"] = addUid);
     (exports["addBinding"] = addBinding);
@@ -98,4 +103,5 @@
     (exports["getClosure"] = getClosure);
     (exports["push"] = push);
     (exports["pop"] = pop);
+    (exports["addVar"] = addVar);
 }));

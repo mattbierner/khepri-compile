@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/fun.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/fun.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten, flattenr, contains;
 (id = (function(x) {
     return x;

@@ -5,7 +5,7 @@
 var record = require("bes")["record"],
     hamt = require("hamt"),
     Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping, getClosure,
-        push, pop;
+        push, pop, addVar;
 (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "mutated"]));
 (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty));
 (Scope.prototype.hasOwnBinding = (function(id) {
@@ -88,6 +88,11 @@ var y = hamt.values;
 (pop = (function(x) {
     return x.outer;
 }));
+(addVar = (function(id, uid, s) {
+    var name;
+    return (s.hasMapping(uid) ? addMutableBinding(s, id) : ((name = s.getUnusedId(id)), addMapping(
+        addMutableBinding(s, name), uid, name)));
+}));
 (exports["Scope"] = Scope);
 (exports["addUid"] = addUid);
 (exports["addBinding"] = addBinding);
@@ -98,3 +103,4 @@ var y = hamt.values;
 (exports["getClosure"] = getClosure);
 (exports["push"] = push);
 (exports["pop"] = pop);
+(exports["addVar"] = addVar);

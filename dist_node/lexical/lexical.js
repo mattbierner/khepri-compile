@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/lexical.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast")["node"],
     setData = __o["setData"],
     getData = __o["getData"],

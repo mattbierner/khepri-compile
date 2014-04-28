@@ -14,7 +14,9 @@ package (
     getClosure
     
     push
-    pop)
+    pop
+    
+    addVar)
 with
     import 'bes::record' record,
     
@@ -219,10 +221,26 @@ push = \s ->
         .setDefinitions(s.definitions);
 
 /**
- * Pop a scope.
+ * Pop scope.
  * 
  * @param s Scope.
  */
 pop = (.outer);
 
+/**
+ * Add a new identifier to scope `s`.
+ * 
+ * @param id Source id name.
+ * @param uid Unique id.
+ * @param s Scope.
+ */
+addVar = \id uid s ->
+    ?s.hasMapping(uid)
+        :addMutableBinding(s, id)
+    
+    :let name = s.getUnusedId(id) in
+        addMapping(
+            addMutableBinding(s, name),
+            uid,
+            name);
 }

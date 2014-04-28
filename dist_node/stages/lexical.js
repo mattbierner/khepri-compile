@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/lexical.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Error = require("akh")["error"],
     lexical = require("../lexical/lexical"),
     check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
