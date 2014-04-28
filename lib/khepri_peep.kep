@@ -10,8 +10,9 @@ with
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::value' ast_value,
     
+    import './ast' {
+        type},
     import './fun' {
         concat
         flattenr},
@@ -33,8 +34,7 @@ var always := \_ -> true;
  * Flatten let with let body.
  */
 peepholes.add('LetExpression', UP,
-    \node ->
-        (node.body.type === 'LetExpression'),
+    (.body) \> type \> (===, 'LetExpression'),
     
     \node ->
         ast_expression.LetExpression.create(node.loc,
@@ -47,8 +47,7 @@ peepholes.add('LetExpression', UP,
  * Flatten curry of curry.
  */
 peepholes.add('CurryExpression', UP,
-    \node ->
-        (node.base.type === 'CurryExpression'),
+    (.base) \> type \> (===, 'CurryExpression'),
     
     \node ->
         ast_expression.CurryExpression.create(node.loc,
@@ -61,8 +60,7 @@ peepholes.add('CurryExpression', UP,
  * Flatten call of curry to call.
  */
 peepholes.add('CallExpression', UP,
-    \node ->
-        (node.callee.type === 'CurryExpression'),
+    (.callee) \> type \> (===, 'CurryExpression'),
     
     \node ->
         ast_expression.CallExpression.create(node.loc,
@@ -81,7 +79,7 @@ peepholes.add('VariableDeclaration', UP,
     always,
     
     \{loc declarations} ->
-        let bound = flattenr <| declarations in
+        let bound = flattenr declarations in
             ?bound.length
                 :ast_declaration.VariableDeclaration.create(loc, bound)
                 :null);
@@ -118,8 +116,7 @@ peepholes.add('WithStatement', UP,
  * Rewrite `return let` to a with statement.
  */
 peepholes.add('ReturnStatement', false,
-    \node ->
-        (node.argument && node.argument.type === 'LetExpression'),
+    (.argument) \> (type) \> (===, 'LetExpression'),
     
     \node ->
         ast_statement.WithStatement.create(null,
@@ -131,8 +128,7 @@ peepholes.add('ReturnStatement', false,
  * Rewrite `\...-> let` to a with statement.
  */
 peepholes.add('FunctionExpression', DOWN,
-    \node ->
-        (node.body.type === 'LetExpression'),
+    (.body) \> (type) \> (===, 'LetExpression'),
     
     \node ->
         ast_expression.FunctionExpression.create(null,
@@ -148,8 +144,7 @@ peepholes.add('FunctionExpression', DOWN,
  * Rewrite top level let expressions to with statements.
  */
 peepholes.add('ExpressionStatement', UP,
-    \node ->
-        (node.expression && node.expression.type === 'LetExpression'),
+    (.expression) \> (type) \> (===, 'LetExpression'),
     
     \node ->
         ast_statement.WithStatement.create(null,

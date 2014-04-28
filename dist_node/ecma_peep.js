@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
     __o0 = require("ecma-ast")["node"],
@@ -40,7 +39,7 @@ peepholes.add("VariableDeclaration", DOWN, always, (function(node) {
         return (!(!x0));
     }));
     return modify(node, ({
-        "declarations": declarations
+        declarations: declarations
     }));
 }));
 peepholes.add("VariableDeclaration", UP, (function(node) {
@@ -50,12 +49,12 @@ peepholes.add("VariableDeclaration", UP, (function(node) {
 }));
 peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
     return modify(node, ({
-        "body": flattenBlockBody(node.body)
+        body: flattenBlockBody(node.body)
     }));
 }));
 peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
     return modify(node, ({
-        "body": mergeBlockDeclarations(node.body)
+        body: mergeBlockDeclarations(node.body)
     }));
 }));
 var x0 = ecmaZipper,

@@ -194,12 +194,17 @@ var _transform = withNode \node -> _trans(node); // Late
 /* Unpacks
  ******************************************************************************/
 /**
+ * Convert a binding to a variable declarator.
+ */
+var bindingToDeclarator = \x ->
+    variableDeclarator(null,
+        x.pattern,
+        x.value);
+
+/**
  * Expand a binding to a list of variable declarations.
  */
-var unpack =
-    expandBinding
-    \> fun.map @ \x ->
-        variableDeclarator(null, x.pattern, x.value);
+var unpack = expandBinding \> fun.map @ bindingToDeclarator;
 
 /**
  * Expand an binding to a list of assignments.
@@ -246,14 +251,13 @@ in
  */
 var functionExpression = \loc id parameters functionBody prefix -> let
     params = parameters.elements,
-        
+    
     bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
-        |> fun.map @ \x -> variableDeclarator(null, x.pattern, x.value),
+        |> fun.map @ bindingToDeclarator,
     
     body = ?type functionBody === "BlockStatement"
-        :functionBody
-        :khepri_statement.BlockStatement.create(null,
-            khepri_statement.ReturnStatement.create(null, functionBody))
+        :functionBody.body
+        :khepri_statement.ReturnStatement.create(null, functionBody)
 in
     khepri_expression.FunctionExpression.create(loc,
         id,
@@ -261,10 +265,8 @@ in
         khepri_statement.BlockStatement.create(body.loc,
             concat(
                 (prefix || []),
-                ?bindings.length
-                    :variableDeclaration(null, bindings)
-                    :[],
-                body.body)));
+                variableDeclaration(null, bindings),
+                body)));
 
 /**
  * Let expression normalization.
@@ -322,10 +324,7 @@ var addTransform = \type pre post -> {
     if (Array.isArray(type))
         return type.map \ x -> addTransform(x, pre, post);
     
-   transformers.(type) = {
-        pre: pre,
-        post: post
-    };
+   transformers.(type) = { pre: pre, post: post };
 };
 
 // Declarations

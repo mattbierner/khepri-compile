@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package (
+    Binding
+    
+    IMMUTABLE
+    MUTABLE)
+with
+    import 'bes::record' record
+in {
+
+/**
+ * 
+ */
+Binding := record.declare(null, [
+    'value',
+    'immutable',
+    'simple']);
+
+IMMUTABLE := true;
+MUTABLE := false;
+
+}

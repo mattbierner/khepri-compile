@@ -12,17 +12,10 @@
 package (
     optimize)
 with
-    import 'bes::record' record,
-
-    import 'hamt' hamt,
-    
-    import 'khepri-ast::node' {Node setData 'modify': modifyNode},
+    import 'khepri-ast::node' {setData 'modify': modifyNode},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::pattern' ast_pattern,
-    import 'khepri-ast::package' ast_package,
-    import 'khepri-ast::program' ast_program,
     import 'khepri-ast::value' ast_value,
     
     import 'akh::base' {
@@ -48,7 +41,8 @@ with
         isTruthy},
     import '../builtin' builtin#{builtins definitions },
     import '../fun' fun#{flattenr flatten concat},
-    import './bindings' binding,
+    
+    import './state' state#{State},
     import './expand' {
         expandCallee
         expandCurry},
@@ -63,54 +57,6 @@ var MAX_EXPANSION_DEPTH := 1;
  ******************************************************************************/
 var _check;
 
-/* Binding
- ******************************************************************************/
-var Binding = record.declare(null, [
-    'value',
-    'immutable',
-    'simple']);
-
-var IMMUTABLE := true,
-    MUTABLE := false;
-
-/* State
- ******************************************************************************/
-var State := record.declare(null, [
-    'bindings',
-    'working',
-    'globals',
-    'outer']);
-
-State.empty = new State(
-    binding.empty,
-    binding.empty,
-    hamt.empty,
-    null);
-
-State.prototype.addBinding = \uid target simple =s->
-    s.setBindings(
-        binding.setBinding(uid, Binding.create(target, IMMUTABLE, simple), s.bindings));
-
-State.prototype.addWorking = \uid target simple =s->
-    s.setWorking(
-        binding.setBinding(uid, Binding.create(target, MUTABLE, simple), s.working));
-
-State.prototype.push = \=s->
-    s.setOuter(s)
-        .setWorking(binding.empty);
-
-State.prototype.pop = \=s->
-    s.outer
-        .setBindings(s.bindings)
-        .setGlobals(s.globals)
-        .setWorking(
-            // Delete working bindings modified in inner from outer scope.
-            hamt.fold(
-                \p {key} ->
-                    hamt.set(key, null, p),
-                s.outer.working,
-                s.working));
- 
 /* Expansion
  ******************************************************************************/
 var markExpansion = \id count target ->
@@ -215,11 +161,11 @@ var addWorking = \uid value simple ->
  * 
  * @param uid Identifier unique id.
  */
-var getBinding = \uid ->
+var getBinding = \uid -> 
     ?uid
-        :getState.map \ {bindings working} ->
-            (binding.getBinding(uid, bindings) || binding.getBinding(uid, working))
+        :getState.map (state.getBinding @ uid)
         :pass;
+
 
 /**
  * 
@@ -236,12 +182,12 @@ var tryPrune = \id ->
 /**
  * Enter a new scoping block.
  */
-var push = modifyState \ s -> s.push();
+var push = modifyState (state.push);
 
 /**
  * Exit the current the current scoping block.
  */
-var pop = modifyState \ s -> s.pop();
+var pop = modifyState (state.pop);
 
 /**
  * Evaluate `body` in a new scoping block.
@@ -257,14 +203,13 @@ var block = \body(...) ->
 /**
  * Get globals.
  */
-var globals = M.chain @ (getState.map \ s -> hamt.keys(s.globals));
+var globals = M.chain @ (getState.map (state.getGlobals));
 
 /**
  * Add a new global.
  */
 var addGlobal = \name ->
-    modifyState \ s ->
-        s.setGlobals(hamt.set(name, name, s.globals));
+    modifyState (state.addGlobal @ name);
 
 /**
  * 
@@ -353,6 +298,12 @@ var addWorkingForNode = \id value ->
         
         :addWorking(uid, value, false);
 
+var setWorkingForNode = \id value ->
+    getBinding(getUid id).chain \ binding ->
+        ?(!binding || binding.value)
+            :addWorkingForNode(id, value)
+            :pass;
+
 /*
  ******************************************************************************/
 var peepholes = {};
@@ -404,18 +355,20 @@ addRewrite@'TernaryOperatorExpression' <| seq(
 /* 
  ******************************************************************************/
 // Program and Packages
+
 addRewrite@'Program' <| seq(
     visitChild 'body',
     
     when(
-        \node -> node.body.type !== 'Package',
+        (.body) \> type \> (!==, 'Package'),
         
         globals \ globals ->
         modify \ node ->
-            ast_program.Program.create(node.loc,
-                concat(
+            modifyNode(node, {
+                body: concat(
                     createGlobalDeclarations(globals),
-                    node.body))));
+                    node.body)
+            })));
 
 addRewrite@'Package' <| seq(
     visitChild 'body',
@@ -423,7 +376,7 @@ addRewrite@'Package' <| seq(
     globals \ globals ->
     modify \ node ->
         modifyNode(node, {
-            'body': ?node.body.type === 'WithStatement'
+            'body': ?type node.body === 'WithStatement'
                 :ast_statement.WithStatement.create(node.body.loc,
                     node.body.bindings,
                     ast_statement.BlockStatement.create(null,
@@ -595,7 +548,7 @@ addRewrite@'AssignmentExpression' <| seq(
     when((.left) \> type \> (===, 'Identifier'),
         extract \ {operator left right} ->
             ?operator === '='
-                :addWorkingForNode(left, right)
+                :setWorkingForNode(left, right)
                 :addBindingForNode(left, right)));
 
 addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
@@ -880,10 +833,7 @@ _check = \node -> {
             up);
     }
     
-    if (node instanceof Node && peepholes.(node.type))
-        return peepholes.(node.type);
-    
-    return pass;
+    return peepholes.(type node) || pass;
 };
 
 var initialState = fun.foldl(

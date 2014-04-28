@@ -66,14 +66,14 @@ var createUnpackList := \pre mid post ->
 
 var always := \_ -> true;
 
-var peepholes := new Rewriter();
+var rewrites := new Rewriter();
 
 /* Package Normalizations
  ******************************************************************************/
 /**
  * Add aliases to all package exports
  */
-peepholes.add('PackageExport', UP,
+rewrites.add('PackageExport', UP,
     (!) <\ (.alias),
     
     \{id loc} ->
@@ -86,7 +86,7 @@ peepholes.add('PackageExport', UP,
 /**
  * Convert multiple binding let expression to nested single binding let expressions.
  */
-peepholes.add('LetExpression', UP,
+rewrites.add('LetExpression', UP,
     \node ->
         node.bindings.length > 1,
     
@@ -100,7 +100,7 @@ peepholes.add('LetExpression', UP,
 /**
  * Expand currying with multiple args to nested single arg curries.
  */
-peepholes.add('CurryExpression', DOWN,
+rewrites.add('CurryExpression', DOWN,
     \node ->
         node.args.length > 1,
     
@@ -118,7 +118,7 @@ peepholes.add('CurryExpression', DOWN,
  * 
  * Also generate slice and relative unpacks if ellipsis pattern used.
  */
-peepholes.add('ArrayPattern', DOWN,
+rewrites.add('ArrayPattern', DOWN,
     \_ -> true,
     
     \{loc elements} -> let
@@ -137,7 +137,7 @@ peepholes.add('ArrayPattern', DOWN,
  * 
  * Also ensure arguments patterns with an ellipsis have an argument name.
  */
-peepholes.add('ArgumentsPattern', UP,
+rewrites.add('ArgumentsPattern', UP,
     \node ->
        node.elements.map(type).indexOf('EllipsisPattern') >= 0,
     
@@ -157,11 +157,11 @@ peepholes.add('ArgumentsPattern', UP,
 /**
  * Normalize object patterns to ('key': pattern) form.
  */
-peepholes.add('ObjectPatternElement', DOWN,
+rewrites.add('ObjectPatternElement', DOWN,
     (!) <\ (.target),
     
     \node#{key} -> {
-        switch(key.type) {
+        switch(type key) {
         case 'IdentifierPattern':
             return ast_pattern.ObjectPatternElement.create(node.loc,
                 string(key.id.name),
@@ -181,7 +181,7 @@ peepholes.add('ObjectPatternElement', DOWN,
  * When generating unpacks lists, we want to use the 
  * as pattern name if possible instead of the auto generated name.
  */
-peepholes.add('AsPattern', DOWN,
+rewrites.add('AsPattern', DOWN,
     \node ->
         !getData(node.target, 'id'),
     
@@ -196,7 +196,7 @@ peepholes.add('AsPattern', DOWN,
  * This uses the identifier `__o`, which is marked reserved so the lexical check
  * does not complain if it is not unique.
  */
-peepholes.add('ObjectPattern', UP,
+rewrites.add('ObjectPattern', UP,
     \node ->
         !getData(node, 'id'),
     
@@ -212,16 +212,21 @@ peepholes.add('ObjectPattern', UP,
 /**
  * Rewrite sink patterns to identifier patterns.
  */
-peepholes.add('SinkPattern', DOWN,
+rewrites.add('SinkPattern', DOWN,
     always,
     
-    \{loc} ->
+    \node#{loc} ->
         markReserved <|
             ast_pattern.IdentifierPattern.create(loc,
                 ast_value.Identifier.create(null, '_')));
 
 /* Interface
  ******************************************************************************/
-normalize = rewrite @ peepholes;
+/**
+ * Pre normalize a Khepri AST.
+ * 
+ * @param ast Zippered Khepri AST.
+ */
+normalize = rewrite @ rewrites;
 
 }

@@ -112,6 +112,9 @@
         _trans, _transform = withNode((function(node0) {
             return _trans(node0);
         })),
+        bindingToDeclarator = (function(x1) {
+            return variableDeclarator(null, x1.pattern, x1.value);
+        }),
         unpack = ((x1 = expandBinding), (y1 = fun.map.bind(null, (function(x2) {
             return variableDeclarator(null, x2.pattern, x2.value);
         }))), (function(z) {
@@ -136,14 +139,12 @@
         }),
         functionExpression = (function(loc, id, parameters, functionBody, prefix) {
             var params = parameters.elements,
-                bindings = fun.map((function(x3) {
-                    return variableDeclarator(null, x3.pattern, x3.value);
-                }), expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))),
-                body = ((type(functionBody) === "BlockStatement") ? functionBody : khepri_statement.BlockStatement
-                    .create(null, khepri_statement.ReturnStatement.create(null, functionBody)));
+                bindings = fun.map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression
+                    .create(null))),
+                body = ((type(functionBody) === "BlockStatement") ? functionBody.body : khepri_statement.ReturnStatement
+                    .create(null, functionBody));
             return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement
-                .create(body.loc, concat((prefix || []), (bindings.length ? variableDeclaration(null,
-                    bindings) : []), body.body)));
+                .create(body.loc, concat((prefix || []), variableDeclaration(null, bindings), body)));
         }),
         letExpression = (function(loc, bindings, body) {
             return ecma_expression.SequenceExpression.create(null, flatten(concat(fun.map(unpackAssign,

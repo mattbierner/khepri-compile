@@ -25,7 +25,7 @@ package (
 /**
  * Safe node type getter
  */
-type = \node ->
+type := \node ->
     (node && node.type);
 
 /* Identifier
@@ -68,8 +68,8 @@ isPrimitive = \node ->
  */
 isSimple = \node ->
     (  isLiteral node 
-    || node.type === 'ArrayExpression'
-    || node.type === 'ObjectExpression');
+    || type node === 'ArrayExpression'
+    || type type === 'ObjectExpression');
 
 /**
  * Is a node plain old data?
@@ -79,8 +79,8 @@ isSimple = \node ->
  */
 isPod = \node ->
     (  isPrimitive node
-    || node.type === 'ArrayExpression' && node.elements.every(isPod)
-    || node.type === 'ObjectExpression' && node.elements.every(\x -> isPod(x.value)));
+    || type node === 'ArrayExpression' && node.elements.every(isPod)
+    || type type === 'ObjectExpression' && node.elements.every(\x -> isPod(x.value)));
 
 /* Value
  ******************************************************************************/

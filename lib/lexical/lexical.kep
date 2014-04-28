@@ -130,8 +130,7 @@ var block = \body(...) ->
  */
 var addUid = \id ->
     unique \ uid ->
-        modifyScope \ s ->
-            scope.addUid(s, id, uid);
+        modifyScope (scope.addUid@(id, uid));
 
 /**
  * Get the uid of an identifier.
@@ -171,6 +170,18 @@ var checkCanAssign = \id, loc ->
         ?s.hasMutableBinding(id)
             :pass
         :error("Assign to immutable variable:'" + id + "' at:" + loc.start);
+
+/**
+ * Mark an assignment `id` as immutable.
+ * 
+ * This must take place in the same scope the variable was declared in.
+ */
+var markAssignment = \id loc ->
+    examineScope \ s ->
+        ?s.hasOwnBinding id
+            :modifyScope \ s ->
+                scope.setBindingMutability(s, id, false)
+            :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
 
 /**
  * Mark existing binding for `id` as immutable.
@@ -380,26 +391,26 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-        inspect \ {id} ->
-            ?id
-                :addImmutableBinding(id.name, id.loc)
-                :pass,
-        checkChild 'id',
+        when((.id), seq(
+            inspect \ {id} ->
+                addImmutableBinding(id.name, id.loc),
+            checkChild 'id')),
         
         // Attach closure data.
         // This must include the function's id
         getClosure \ closure ->
        
         seq(
-        checkChild 'params',
-        // Evaluate body in same scope
-        child('body',
-            when(type \> (===, 'BlockStatement'),
-                checkChild 'body',
-                checkTop)),
+            checkChild 'params',
+            // Evaluate body in same scope
+            child('body',
+                when(type \> (===, 'BlockStatement'),
+                    checkChild 'body',
+                    checkTop)),
+            
         getClosure \ locals ->
-         modifyNode \ node ->
-           setData(node, 'locals', locals.filter(\x -> closure.indexOf(x) < 0))));
+        modifyNode \ node ->
+            setData(node, 'locals', locals.filter(\x -> closure.indexOf(x) < 0))));
 
 addCheck@'UnaryExpression' <|
     checkChild 'argument';
@@ -490,11 +501,10 @@ addCheck@'ObjectValue' <|
     checkChild 'value';
 
 addCheck@'Identifier' <|
-    inspect \ node#{loc name} ->
-        seq(
-            examineScope \ s ->
-                 setNode <| setData(node, 'uid', s.getUid(name)),
-            checkHasBinding(name, loc));
+    inspect \ node#{loc name} -> seq(
+        examineScope \ s ->
+             setNode <| setData(node, 'uid', s.getUid(name)),
+        checkHasBinding(name, loc));
 
 /*
  ******************************************************************************/
@@ -527,8 +537,12 @@ check = \ast globals seed ->
             root,
             extractCtx.chain \ x ->
             unique \ unique ->
-            extractScope.map \ s ->
-                ({'tree': x , 'data': {'unique': unique}})),
+            extractScope.map \ s -> ({
+                tree: x,
+                data: {
+                    unique: unique
+                }
+            })),
         addBindings(globals || []),
         ast,
         Error.of,

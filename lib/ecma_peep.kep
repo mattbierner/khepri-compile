@@ -64,7 +64,7 @@ peepholes.add('VariableDeclaration', DOWN,
         declarations = node.declarations.filter\x -> !!x
     in
         modify(node, {
-            'declarations': declarations
+            declarations: declarations
         }));
 
 /**
@@ -86,21 +86,27 @@ peepholes.add(['Program', 'BlockStatement'], UP,
     
     \node ->
         modify(node, {
-            'body': flattenBlockBody(node.body)
+            body: flattenBlockBody(node.body)
         }));
 
 /**
- * Merge neighboring var  declarations
+ * Merge neighboring var declarations.
  */
 peepholes.add(['Program', 'BlockStatement'], UP,
     always,
+    
     \node ->
         modify(node, {
-            'body': mergeBlockDeclarations(node.body)
-            }));
+            body: mergeBlockDeclarations(node.body)
+        }));
 
 /* Interface
  ******************************************************************************/
+/**
+ * Peephole optimize an ECMAScript ast.
+ * 
+ * @param ast ECMAScript ast
+ */
 optimize = ecmaZipper \> rewrite @ peepholes;
 
 }

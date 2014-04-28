@@ -86,3 +86,18 @@ exports.inline_does_not_mess_up_local_closure = function(test) {
     
     test.done();
 };
+
+
+exports.const_prop_closure = function(test) {
+    test.equal(
+        evalParser("var a = 0;" +
+                   "var f = \\ -> { a = a + 10; };"+
+                   "f();"+
+                   "a = 2;" +
+                   "f();"+
+                   "a;"),
+        12);
+    
+    test.done();
+};
+

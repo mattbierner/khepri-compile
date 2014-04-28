@@ -21,7 +21,9 @@ with
 
     import 'zipper-m::trans::tree' TreeZipperT,
     
-    import './fun' {map},
+    import './fun' {
+        flip
+        map},
     import './ast' {
         type
         getUid}
@@ -60,6 +62,8 @@ var pass = M.of null;
 // Movement
 ////////////////////////////////////////
 var extractCtx := M.get;
+
+var inspect := (flip M.map) @ M.node;
 
 var extract := M.chain @ M.node;
 
@@ -119,11 +123,12 @@ var getCount = \uid ->
 /**
  * If `uid` is reacahble (reference count > 0), execute `yes`. Otherwise do `no`.
  */
-var isReachable = \uid yes no ->
-    ?uid
-        :getState.chain \ s ->
-            ?stateIsReachable(uid, s) : yes : no
-    :yes;
+var isReachable = \test yes no ->
+    test.chain \ uid ->
+        ?uid
+            :getState.chain \ s ->
+                ?stateIsReachable(uid, s) : yes : no
+        :yes;
 
 /**
  * Remove a binding
@@ -203,16 +208,14 @@ addRewrite@'VariableDeclaration' <|
     visitChild 'declarations';
 
 addRewrite@'VariableDeclarator' <|
-    extract \ node ->
-        isReachable(getUid node.id,
-            visitChild 'init',
-            removeBinding);
+    isReachable(inspect ((.id) \> getUid),
+        visitChild 'init',
+        removeBinding);
 
 addRewrite@'Binding' <|
-    extract \ node ->
-        isReachable(getUid node.pattern.id,
-            visitChild 'value',
-            removeBinding);
+    isReachable(inspect ((.pattern) \> (.id) \> getUid),
+        visitChild 'value',
+        removeBinding);
 
 // Statement
 addRewrite@'BlockStatement' <|
@@ -294,12 +297,12 @@ addRewrite@['SliceUnpack', 'RelativeUnpack'] <|
     visitChild 'target';
 
 addRewrite@'ArgumentsPattern' <|
-    // Prune the arguments binding if possible
+    // Try to prune the arguments binding.
     when((.id),
-        extract \ node -> seq(
-            isReachable(getUid node.id.id,
-                pass,
-                set modify(node, { id: null }))));
+        isReachable(inspect ((.id) \> (.id) \> getUid),
+            pass,
+            extract \ node ->
+                set modify(node, { id: null })));
 
 // Value
 addRewrite@'ArrayExpression' <|

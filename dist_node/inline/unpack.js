@@ -40,7 +40,7 @@ var ast_expression = require("khepri-ast")["expression"],
         return concat(innerPattern(base, pattern.id), flatten(innerPattern(pattern.id, pattern.target)));
     });
 (innerPattern = (function(base, pattern) {
-    switch (pattern.type) {
+    switch (type(pattern)) {
         case "IdentifierPattern":
             return [ast_declaration.Binding.create(null, pattern, base)];
         case "AsPattern":
@@ -53,7 +53,7 @@ var ast_expression = require("khepri-ast")["expression"],
 }));
 (unpackParameters = (function(args, elements) {
     return flatten(map((function(x) {
-        switch (x.type) {
+        switch (type(x)) {
             case "SinkPattern":
             case "IdentifierPattern":
                 return [];

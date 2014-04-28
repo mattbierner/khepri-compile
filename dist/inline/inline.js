@@ -1,16 +1,13 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "hamt", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
-    "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package", "khepri-ast/program", "khepri-ast/value",
-    "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree", "zipper-m/walk", "../ast", "../builtin",
-    "../fun", "./bindings", "./expand", "./rename"
-], (function(require, exports, record, hamt, __o, ast_declaration, ast_statement, ast_expression, ast_pattern,
-    ast_package, ast_program, ast_value, __o0, Unique, StateT, TreeZipperT, walk, __o1, builtin, fun, binding,
-    __o2, __o3) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
+    "khepri-ast/expression", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree",
+    "zipper-m/walk", "../ast", "../builtin", "../fun", "./state", "./expand", "./rename"
+], (function(require, exports, __o, ast_declaration, ast_statement, ast_expression, ast_value, __o0, Unique, StateT,
+    TreeZipperT, walk, __o1, builtin, fun, state, __o2, __o3) {
     "use strict";
-    var Node = __o["Node"],
-        setData = __o["setData"],
+    var setData = __o["setData"],
         modifyNode = __o["modify"],
         next = __o0["next"],
         seq = __o0["sequence"],
@@ -29,22 +26,23 @@
         flattenr = fun["flattenr"],
         flatten = fun["flatten"],
         concat = fun["concat"],
+        State = state["State"],
         expandCallee = __o2["expandCallee"],
         expandCurry = __o2["expandCurry"],
         rename = __o3["rename"],
         incCount = __o3["incCount"],
-        optimize, x, y, __args, ops, consequent, __args0, ops0, __args1, ops1, __args2, ops2, __args3, ops3,
+        optimize, x, y, __args, ops, x0, consequent, __args0, ops0, __args1, ops1, __args2, ops2, __args3, ops3,
             __args4, ops4, __args5, ops5, __args6, ops6, consequent0, __args7, ops7, consequent1, consequent2,
             __args8, ops8, __args9, ops9, __args10, ops10, __args11, ops11, __args12, ops12, __args13, ops13,
             __args14, ops14, __args15, ops15, __args16, ops16, __args17, ops17, body, __args18, ops18, __args19,
             ops19, body0, __args20, ops20, __args21, ops21, __args22, ops22, body1, __args23, ops23, __args24,
             ops24, __args25, ops25, body2, __args26, ops26, __args27, ops27, __args28, ops28, arithmetic,
-            __args29, ops29, consequent3, __args30, ops30, x0, consequent4, arithmetic0, __args31, ops31,
+            __args29, ops29, consequent3, __args30, ops30, x1, consequent4, arithmetic0, __args31, ops31,
             __args32, ops32, consequent5, consequent6, __args33, ops33, y0, consequent7, alternate, __args34,
             ops34, __args35, ops35, __args36, ops36, __args37, ops37, consequent8, consequent9, consequent10,
             consequent11, __args38, ops38, __args39, ops39, __args40, ops40, __args41, ops41, exp, consequent12,
             consequent13, __args42, ops42, __args43, ops43, exp0, consequent14, consequent15, __args44, ops44,
-            __args45, ops45, x1, consequent16, consequent17, __args46, ops46, __args47, ops47, __args48, ops48,
+            __args45, ops45, x2, consequent16, consequent17, __args46, ops46, __args47, ops47, __args48, ops48,
             __args49, ops49, __args50, ops50, __args51, ops51, consequent18, __and = (function(x, y) {
                 return (x && y);
             }),
@@ -102,41 +100,16 @@
         __gte = (function(x, y) {
             return (x >= y);
         }),
-        _check, Binding = record.declare(null, ["value", "immutable", "simple"]),
-        State = record.declare(null, ["bindings", "working", "globals", "outer"]);
-    (State.empty = new(State)(binding.empty, binding.empty, hamt.empty, null));
-    (State.prototype.addBinding = (function(uid, target, simple) {
-        var s = this;
-        return s.setBindings(binding.setBinding(uid, Binding.create(target, true, simple), s.bindings));
-    }));
-    (State.prototype.addWorking = (function(uid, target, simple) {
-        var s = this;
-        return s.setWorking(binding.setBinding(uid, Binding.create(target, false, simple), s.working));
-    }));
-    (State.prototype.push = (function() {
-        var s = this;
-        return s.setOuter(s)
-            .setWorking(binding.empty);
-    }));
-    (State.prototype.pop = (function() {
-        var s = this;
-        return s.outer.setBindings(s.bindings)
-            .setGlobals(s.globals)
-            .setWorking(hamt.fold((function(p, __o4) {
-                var key = __o4["key"];
-                return hamt.set(key, null, p);
-            }), s.outer.working, s.working));
-    }));
-    var markExpansion = (function(id, count, target) {
-        return setData(id, "expand", ({
-            "count": count,
-            "value": target
-        }));
-    }),
+        _check, markExpansion = (function(id, count, target) {
+            return setData(id, "expand", ({
+                "count": count,
+                "value": target
+            }));
+        }),
         getExpansion = getUd.bind(null, "expand"),
         M = TreeZipperT(StateT(Unique)),
-        run = (function(c, ctx, state, seed) {
-            return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state), seed);
+        run = (function(c, ctx, state0, seed) {
+            return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state0), seed);
         }),
         pass = M.of(null),
         unique = M.chain.bind(null, M.liftInner(Unique.unique)),
@@ -163,34 +136,22 @@
             }));
         }),
         getBinding = (function(uid) {
-            return (uid ? getState.map((function(__o4) {
-                var bindings = __o4["bindings"],
-                    working = __o4["working"];
-                return (binding.getBinding(uid, bindings) || binding.getBinding(uid, working));
-            })) : pass);
+            return (uid ? getState.map(state.getBinding.bind(null, uid)) : pass);
         }),
         tryPrune = (function(id) {
             var uid = getUid(id);
             return getBinding(uid)
-                .chain((function(binding0) {
-                    return ((((binding0 && binding0.simple) && (!getExpansion(binding0.value))) &&
-                        (isPrimitive(binding0.value) || (binding0.immutable && isIdentifier(
-                            binding0.value)))) ? set([]) : pass);
+                .chain((function(binding) {
+                    return ((((binding && binding.simple) && (!getExpansion(binding.value))) && (
+                        isPrimitive(binding.value) || (binding.immutable && isIdentifier(
+                            binding.value)))) ? set([]) : pass);
                 }));
         }),
-        push = modifyState((function(s) {
-            return s.push();
-        })),
-        pop = modifyState((function(s) {
-            return s.pop();
-        })),
-        globals = M.chain.bind(null, getState.map((function(s) {
-            return hamt.keys(s.globals);
-        }))),
+        push = modifyState(state.push),
+        pop = modifyState(state.pop),
+        globals = M.chain.bind(null, getState.map(state.getGlobals)),
         addGlobal = (function(name) {
-            return modifyState((function(s) {
-                return s.setGlobals(hamt.set(name, name, s.globals));
-            }));
+            return modifyState(state.addGlobal.bind(null, name));
         }),
         createGlobalDeclarations = (function(g) {
             return ast_declaration.VariableDeclaration.create(null, g.map((function(x0) {
@@ -213,21 +174,27 @@
             var uid = getUid(id);
             return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
                 markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
-                .chain((function(binding0) {
-                    return ((binding0 && binding0.immutable) ? addBinding(uid, ((binding0.simple &&
-                        binding0.value) ? binding0.value : value), true) : addBinding(
-                        uid, value, false));
+                .chain((function(binding) {
+                    return ((binding && binding.immutable) ? addBinding(uid, ((binding.simple &&
+                        binding.value) ? binding.value : value), true) : addBinding(uid,
+                        value, false));
                 })) : addBinding(uid, value, false))));
         }),
         addWorkingForNode = (function(id, value) {
             var uid = getUid(id);
             return (isPrimitive(value) ? addWorking(uid, value, true) : (isLambda(value) ? addWorking(uid,
                 markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
-                .chain((function(binding0) {
-                    return ((binding0 && binding0.immutable) ? addWorking(uid, ((binding0.simple &&
-                        binding0.value) ? binding0.value : value), true) : addWorking(
-                        uid, value, false));
+                .chain((function(binding) {
+                    return ((binding && binding.immutable) ? addWorking(uid, ((binding.simple &&
+                        binding.value) ? binding.value : value), true) : addWorking(uid,
+                        value, false));
                 })) : addWorking(uid, value, false))));
+        }),
+        setWorkingForNode = (function(id, value) {
+            return getBinding(getUid(id))
+                .chain((function(binding) {
+                    return (((!binding) || binding.value) ? addWorkingForNode(id, value) : pass);
+                }));
         }),
         peepholes = ({}),
         addRewrite = (function(type0, f) {
@@ -250,23 +217,25 @@
             name = (flipped ? ("_" + op) : op);
         return seq(addGlobal(name), set(builtins[name]));
     })), checkTop));
-    addRewrite("TernaryOperatorExpression", seq(modifyState((function(s) {
-        return s.setGlobals(hamt.set("?", "?", s.globals));
-    })), set(builtins["?"]), checkTop));
+    addRewrite("TernaryOperatorExpression", seq(modifyState(state.addGlobal.bind(null, "?")), set(builtins["?"]),
+        checkTop));
     addRewrite("Program", seq(((__args = ["body", checkTop]), (ops = [].slice.call(__args, 1)), seq(moveChild(
-        "body"), seqa(ops), up)), ((consequent = globals((function(globals0) {
+        "body"), seqa(ops), up)), ((x0 = type), (consequent = globals((function(globals0) {
         return modify((function(node) {
-            return ast_program.Program.create(node.loc, concat(
-                createGlobalDeclarations(globals0), node.body));
+            return modifyNode(node, ({
+                body: concat(createGlobalDeclarations(globals0), node.body)
+            }));
         }));
     }))), extract((function(node) {
-        return ((node.body.type !== "Package") ? consequent : (undefined || pass));
+        var z, y0;
+        return (((z = node.body), (y0 = x0(z)), ("Package" !== y0)) ? consequent : (
+            undefined || pass));
     })))));
     addRewrite("Package", seq(((__args0 = ["body", checkTop]), (ops0 = [].slice.call(__args0, 1)), seq(
         moveChild("body"), seqa(ops0), up)), globals((function(globals0) {
         return modify((function(node) {
             return modifyNode(node, ({
-                "body": ((node.body.type === "WithStatement") ? ast_statement.WithStatement
+                "body": ((type(node.body) === "WithStatement") ? ast_statement.WithStatement
                     .create(node.body.loc, node.body.bindings, ast_statement.BlockStatement
                         .create(null, concat(createGlobalDeclarations(globals0),
                             node.body.body.body))) : concat(
@@ -362,16 +331,16 @@
             undefined || pass));
     }))))));
     addRewrite("AssignmentExpression", seq(((__args30 = ["right", checkTop]), (ops30 = [].slice.call(__args30,
-        1)), seq(moveChild("right"), seqa(ops30), up)), ((x0 = type), (consequent4 = extract((function(
+        1)), seq(moveChild("right"), seqa(ops30), up)), ((x1 = type), (consequent4 = extract((function(
         __o4) {
         var operator = __o4["operator"],
             left = __o4["left"],
             right0 = __o4["right"];
-        return ((operator === "=") ? addWorkingForNode(left, right0) :
+        return ((operator === "=") ? setWorkingForNode(left, right0) :
             addBindingForNode(left, right0));
     }))), extract((function(node) {
         var z, y0;
-        return (((z = node.left), (y0 = x0(z)), ("Identifier" === y0)) ? consequent4 : (
+        return (((z = node.left), (y0 = x1(z)), ("Identifier" === y0)) ? consequent4 : (
             undefined || pass));
     })))));
     addRewrite(["LogicalExpression", "BinaryExpression"], ((arithmetic0 = ({
@@ -464,8 +433,8 @@
         .call(__args39, 1)), seq(moveChild("args"), seqa(ops39), up))));
     addRewrite("CallExpression", seq(((__args40 = ["callee", checkTop]), (ops40 = [].slice.call(__args40, 1)),
         seq(moveChild("callee"), seqa(ops40), up)), ((__args41 = ["args", checkTop]), (ops41 = [].slice
-        .call(__args41, 1)), seq(moveChild("args"), seqa(ops41), up)), ((exp = M.node.map((function(x1) {
-        return x1.callee;
+        .call(__args41, 1)), seq(moveChild("args"), seqa(ops41), up)), ((exp = M.node.map((function(x2) {
+        return x2.callee;
     }))), (consequent12 = exp.chain((function(z) {
         var exp0, callee = (getExpansion(z) ? ((exp0 = getExpansion(z)), ((exp0.count <
                 1) ? exp0.value : setData(z, "expand", null))) : z);
@@ -487,8 +456,8 @@
     })))));
     addRewrite("CurryExpression", seq(((__args42 = ["base", checkTop]), (ops42 = [].slice.call(__args42, 1)),
         seq(moveChild("base"), seqa(ops42), up)), ((__args43 = ["args", checkTop]), (ops43 = [].slice.call(
-        __args43, 1)), seq(moveChild("args"), seqa(ops43), up)), ((exp0 = M.node.map((function(x1) {
-        return x1.base;
+        __args43, 1)), seq(moveChild("args"), seqa(ops43), up)), ((exp0 = M.node.map((function(x2) {
+        return x2.base;
     }))), (consequent14 = exp0.chain((function(z) {
         var exp1, base = (getExpansion(z) ? ((exp1 = getExpansion(z)), ((exp1.count < 1) ?
                 exp1.value : setData(z, "expand", null))) : z);
@@ -510,7 +479,7 @@
     })))));
     addRewrite("LetExpression", seq(((__args44 = ["bindings", checkTop]), (ops44 = [].slice.call(__args44, 1)),
         seq(moveChild("bindings"), seqa(ops44), up)), ((__args45 = ["body", checkTop]), (ops45 = [].slice
-        .call(__args45, 1)), seq(moveChild("body"), seqa(ops45), up)), ((x1 = type), (consequent16 =
+        .call(__args45, 1)), seq(moveChild("body"), seqa(ops45), up)), ((x2 = type), (consequent16 =
         modify((function(__o4) {
             var loc = __o4["loc"],
                 bindings = __o4["bindings"],
@@ -519,15 +488,15 @@
                 body3.body);
         }))), extract((function(node) {
         var z, y1;
-        return (((z = node.body), (y1 = x1(z)), ("LetExpression" === y1)) ? consequent16 :
+        return (((z = node.body), (y1 = x2(z)), ("LetExpression" === y1)) ? consequent16 :
             (undefined || pass));
     }))), modify((function(__o4) {
         var loc = __o4["loc"],
             bindings = __o4["bindings"],
             body3 = __o4["body"];
         return ast_expression.LetExpression.create(loc, flattenr(bindings), body3);
-    })), ((consequent17 = modify((function(x2) {
-        return x2.body;
+    })), ((consequent17 = modify((function(x3) {
+        return x3.body;
     }))), extract((function(node) {
         var bindings;
         return (((bindings = node["bindings"]), (!bindings.length)) ? consequent17 : (
@@ -549,9 +518,9 @@
         moveChild("value"), seqa(ops51), up)));
     addRewrite("Identifier", ((consequent18 = extract((function(node) {
         return getBinding(getUid(node))
-            .chain((function(binding0) {
-                return (((binding0 && binding0.value) && binding0.simple) ? set(
-                    binding0.value) : pass);
+            .chain((function(binding) {
+                return (((binding && binding.value) && binding.simple) ? set(
+                    binding.value) : pass);
             }));
     }))), extract((function(node) {
         return ((getUid(node) && (!getExpansion(node))) ? consequent18 : (undefined || pass));
@@ -563,8 +532,7 @@
                 return ((i === (node.length - 1)) ? checkTop : next(checkTop, right));
             }))), up);
         }
-        if (((node instanceof Node) && peepholes[node.type])) return peepholes[node.type];
-        return pass;
+        return (peepholes[type(node)] || pass);
     }));
     var initialState = fun.foldl((function(s, name) {
         var id = builtins[name],

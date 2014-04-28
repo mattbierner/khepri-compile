@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 0.5.10 - April 23, 2014
+* Fixed composen potentially be inlined incorrectly when it is not the first
+  function called.
+* Fixed an inlining issue.
+
 ## 0.5.9 - April 19, 2014
 * Restored limited pruning of bindings in inline stage so curry expressions are
   better inlined. 

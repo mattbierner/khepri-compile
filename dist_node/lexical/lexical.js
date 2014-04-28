@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/lexical.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/lexical.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     setData = __o["setData"],
     getData = __o["getData"],
@@ -32,13 +31,13 @@ var __o = require("khepri-ast")["node"],
         __args29, actions29, __args30, actions30, body6, __args31, actions31, body7, __args32, actions32, body8,
         __args33, actions33, __args34, actions35, __args35, actions34, __args36, actions36, body9, __args37, actions37,
         body10, __args38, actions38, __args39, actions39, body11, __args40, actions40, __args41, actions41, __args42,
-        actions42, body12, __args43, actions43, body13, __args44, actions44, __args45, actions45, __args46, actions46,
-        __args47, actions47, __args48, actions48, __args49, actions49, __args50, actions50, __args51, actions51,
-        __args52, actions52, __args53, actions53, __args54, actions54, __args55, actions55, __args56, actions56,
-        consequent2, __args57, actions57, __args58, actions58, body14, __args59, actions59, __args60, actions60,
-        __args61, actions61, __args62, actions62, __args63, actions63, __args64, actions64, __args65, actions65,
-        __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69, __args70, actions70,
-        __args71, actions71, __args72, actions72, __args73, actions73, reserved = (function(node) {
+        actions42, body12, __args43, actions43, body13, consequent2, __args44, actions44, __args45, actions45, __args46,
+        actions46, __args47, actions47, __args48, actions48, __args49, actions49, __args50, actions50, __args51,
+        actions51, __args52, actions52, __args53, actions53, __args54, actions54, __args55, actions55, __args56,
+        actions56, consequent3, __args57, actions57, __args58, actions58, body14, __args59, actions59, __args60,
+        actions60, __args61, actions61, __args62, actions62, __args63, actions63, __args64, actions64, __args65,
+        actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69, __args70,
+        actions70, __args71, actions71, __args72, actions72, __args73, actions73, reserved = (function(node) {
             return getData(node, "reserved");
         }),
     _check, M = ErrorT(TreeZipperT(StateT(Unique))),
@@ -97,9 +96,7 @@ var __o = require("khepri-ast")["node"],
     }),
     addUid = (function(id) {
         return unique((function(uid) {
-            return modifyScope((function(s) {
-                return scope.addUid(s, id, uid);
-            }));
+            return modifyScope(scope.addUid.bind(null, id, uid));
         }));
     }),
     checkHasBinding = (function(id, loc) {
@@ -265,11 +262,13 @@ addCheck("ForStatement", ((body11 = [((__args40 = ["init", checkTop]), (actions4
     ((__args43 = ["body", checkTop]), (actions43 = [].slice.call(__args43, 1)), seq(moveChild(
         "body"), seqa(actions43), up))
 ]), seq(push, seqa(body12), pop))]), seq(push, seqa(body11), pop)));
-addCheck("FunctionExpression", ((body13 = [inspect((function(__o3) {
+addCheck("FunctionExpression", ((body13 = [((consequent2 = seq(inspect((function(__o3) {
     var id = __o3["id"];
-    return (id ? addImmutableBinding(id.name, id.loc) : pass);
-})), ((__args44 = ["id", checkTop]), (actions44 = [].slice.call(__args44, 1)), seq(moveChild("id"),
-    seqa(actions44), up)), getClosure((function(closure) {
+    return addImmutableBinding(id.name, id.loc);
+})), ((__args44 = ["id", checkTop]), (actions44 = [].slice.call(__args44, 1)), seq(
+    moveChild("id"), seqa(actions44), up)))), inspect((function(node) {
+    return (node.id ? consequent2 : (undefined || pass));
+}))), getClosure((function(closure) {
     var x4;
     return seq(checkChild("params"), child("body", when(((x4 = type), (function(z) {
         var y3 = x4(z);
@@ -304,8 +303,8 @@ addCheck(["CallExpression", "NewExpression"], seq(((__args53 = ["callee", checkT
     .slice.call(__args54, 1)), seq(moveChild("args"), seqa(actions54), up))));
 addCheck("MemberExpression", seq(((__args55 = ["object", checkTop]), (actions55 = [].slice.call(__args55, 1)), seq(
     moveChild("object"), seqa(actions55), up)), ((__args56 = ["property", checkTop]), (actions56 = [].slice.call(
-    __args56, 1)), (consequent2 = seq(moveChild("property"), seqa(actions56), up)), inspect((function(node) {
-    return (node.computed ? consequent2 : (undefined || pass));
+    __args56, 1)), (consequent3 = seq(moveChild("property"), seqa(actions56), up)), inspect((function(node) {
+    return (node.computed ? consequent3 : (undefined || pass));
 })))));
 addCheck("ArrayExpression", ((__args57 = ["elements", checkTop]), (actions57 = [].slice.call(__args57, 1)), seq(
     moveChild("elements"), seqa(actions57), up)));
@@ -367,9 +366,9 @@ var addBindings = foldl.bind(null, scope.addImmutableBinding, Scope.empty);
         return unique((function(unique0) {
             return extractScope.map((function(s) {
                 return ({
-                    "tree": x4,
-                    "data": ({
-                        "unique": unique0
+                    tree: x4,
+                    data: ({
+                        unique: unique0
                     })
                 });
             }));

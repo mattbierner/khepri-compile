@@ -24,9 +24,6 @@ with
     import '../inline/unpack' {
         innerPattern
         unpackParameters},
-    import '../builtin' {
-        builtins
-        definitions},
     import '../rewriter' {
         UP
         DOWN

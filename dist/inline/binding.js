@@ -1,14 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/binding.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/binding.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "hashtrie"], (function(require, exports, hashtrie) {
+*/define(["require", "exports", "bes/record"], (function(require, exports, record) {
     "use strict";
-    var empty, setBinding, getBinding;
-    (empty = hashtrie.empty);
-    (setBinding = hashtrie.set);
-    (getBinding = hashtrie.get);
-    (exports["empty"] = empty);
-    (exports["setBinding"] = setBinding);
-    (exports["getBinding"] = getBinding);
+    var Binding, IMMUTABLE, MUTABLE;
+    (Binding = record.declare(null, ["value", "immutable", "simple"]));
+    (IMMUTABLE = true);
+    (MUTABLE = false);
+    (exports["Binding"] = Binding);
+    (exports["IMMUTABLE"] = IMMUTABLE);
+    (exports["MUTABLE"] = MUTABLE);
 }));

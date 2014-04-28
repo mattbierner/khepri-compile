@@ -111,7 +111,7 @@ var expandAs = \base pattern ->
  * @param pattern Pattern unpacking base value.
  */
 innerPattern = \base pattern -> {
-    switch (pattern.type) {
+    switch (type pattern) {
     case 'IdentifierPattern':
         return [
             ast_declaration.Binding.create(null,
@@ -135,7 +135,7 @@ innerPattern = \base pattern -> {
 unpackParameters = \args elements ->
     elements
         |> map @ \x -> {
-            switch (x.type) {
+            switch (type x) {
             // Avoid generating redundant unpacks for parameters names.
             case 'SinkPattern':
             case 'IdentifierPattern':

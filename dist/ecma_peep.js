@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require,
+*/define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require,
     exports, __o, __o0, __o1, __o2, __o3) {
     "use strict";
     var ecmaZipper = __o["ecmaZipper"],
@@ -37,7 +36,7 @@ define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "./ast", "./fu
             return (!(!x0));
         }));
         return modify(node, ({
-            "declarations": declarations
+            declarations: declarations
         }));
     }));
     peepholes.add("VariableDeclaration", UP, (function(node) {
@@ -47,12 +46,12 @@ define(["require", "exports", "ecma-ast-zipper", "ecma-ast/node", "./ast", "./fu
     }));
     peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
         return modify(node, ({
-            "body": flattenBlockBody(node.body)
+            body: flattenBlockBody(node.body)
         }));
     }));
     peepholes.add(["Program", "BlockStatement"], UP, always, (function(node) {
         return modify(node, ({
-            "body": mergeBlockDeclarations(node.body)
+            body: mergeBlockDeclarations(node.body)
         }));
     }));
     var x0 = ecmaZipper,

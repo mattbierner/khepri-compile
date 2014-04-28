@@ -1,0 +1,119 @@
+/**
+ * @fileOverview Inlining state record.
+ * 
+ * @TODO: split into inlining scope and state.
+ */
+package (
+    State
+    
+    getBinding
+    
+    push
+    pop
+    
+    getGlobals
+    addGlobal)
+with
+    import 'bes::record' record,
+
+    import 'hamt' hamt,
+    
+    import './bindings' binding,
+    import './binding' {Binding MUTABLE IMMUTABLE}
+in {
+
+/* Record
+ ******************************************************************************/
+/**
+ * Inlining state record.
+ * 
+ * @member bindings Map of unique ids to immutable bindings.
+ * @member bindings Map of unique ids to working values.
+ * @member globals List of globals.
+ * @member outer Outer state.
+ */
+State := record.declare(null, [
+    'bindings',
+    'working',
+    'globals',
+    'outer']);
+
+State.empty = new State(
+    binding.empty,
+    binding.empty,
+    hamt.empty,
+    null);
+
+/**
+ * 
+ */
+State.prototype.addBinding = \uid target simple =s->
+    s.setBindings(
+        binding.setBinding(
+            uid,
+            Binding.create(target, IMMUTABLE, simple),
+            s.bindings));
+
+/**
+ * 
+ */
+State.prototype.addWorking = \uid target simple =s->
+    s.setWorking(
+        binding.setBinding(
+            uid,
+            Binding.create(target, MUTABLE, simple),
+            s.working));
+
+/* Scope Operations
+ ******************************************************************************/
+/**
+ * 
+ */
+push = \s->
+    s.setOuter(s)
+        .setWorking(binding.empty);
+
+/**
+ * 
+ */
+pop = \s->
+    s.outer
+        .setBindings(s.bindings)
+        .setGlobals(s.globals)
+        .setWorking(
+            // Delete working bindings modified in inner from outer scope.
+            hamt.fold(
+                \p {key} ->
+                    hamt.set(key, null, p),
+                s.outer.working,
+                s.working));
+
+/* Binding Operations
+ ******************************************************************************/
+/**
+ * 
+ */
+getBinding := \uid s -> 
+    (  binding.getBinding(uid, s.bindings)
+    || binding.getBinding(uid, s.working));
+
+/* Globals Operations
+ ******************************************************************************/
+/**
+ * Get list of global symbols.
+ * 
+ * @param s State.
+ */
+getGlobals := (.globals) \> hamt.keys;
+
+/**
+ * Register a new global.
+ * 
+ * @param name Global symbol name.
+ * @param s State.
+ */
+addGlobal := \name s ->
+    s.setGlobals(
+        hamt.set(name, name, s.globals));
+
+}

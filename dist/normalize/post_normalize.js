@@ -2,8 +2,8 @@
  * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression", "../ast", "../fun",
-    "../inline/unpack", "../builtin", "../rewriter"
-], (function(require, exports, __o, ast_statement, ast_expression, __o0, __o1, __o2, __o3, __o4) {
+    "../inline/unpack", "../rewriter"
+], (function(require, exports, __o, ast_statement, ast_expression, __o0, __o1, __o2, __o3) {
     "use strict";
     var modify = __o["modify"],
         type = __o0["type"],
@@ -13,12 +13,10 @@
         map = __o1["map"],
         innerPattern = __o2["innerPattern"],
         unpackParameters = __o2["unpackParameters"],
-        builtins = __o3["builtins"],
-        definitions = __o3["definitions"],
-        UP = __o4["UP"],
-        DOWN = __o4["DOWN"],
-        Rewriter = __o4["Rewriter"],
-        rewrite = __o4["rewrite"],
+        UP = __o3["UP"],
+        DOWN = __o3["DOWN"],
+        Rewriter = __o3["Rewriter"],
+        rewrite = __o3["rewrite"],
         normalize, x, y, expandBinding, x0, x1, x2, y0, getParameterNames = ((x = flattenr), (y = map.bind(null, (
             function(x0) {
                 switch (type(x0)) {
@@ -82,17 +80,17 @@
     peepholes.add("BinaryExpression", UP, (function(z) {
         var y1 = z.operator;
         return ("|>" === y1);
-    }), (function(__o5) {
-        var left = __o5["left"],
-            right = __o5["right"];
+    }), (function(__o4) {
+        var left = __o4["left"],
+            right = __o4["right"];
         return ast_expression.CallExpression.create(null, right, [left]);
     }));
     peepholes.add("BinaryExpression", UP, (function(z) {
         var y1 = z.operator;
         return ("<|" === y1);
-    }), (function(__o5) {
-        var left = __o5["left"],
-            right = __o5["right"];
+    }), (function(__o4) {
+        var left = __o4["left"],
+            right = __o4["right"];
         return ast_expression.CallExpression.create(null, left, [right]);
     }));
     (normalize = rewrite.bind(null, peepholes));

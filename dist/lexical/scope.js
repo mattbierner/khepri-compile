@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
+*/define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
             getClosure, push, pop;
-    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions"]));
-    (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty));
+    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "mutated"]));
+    (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
         var self = this;
         return hamt.has(id, self.record);
@@ -50,7 +49,7 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
             (i = (i + 1)))
             if ((!self.hasBinding((id + i)))) return (id + i);
     }));
-    (addUid = (function(s, id, uid) {
+    (addUid = (function(id, uid, s) {
         return s.setDefinitions(hamt.set(id, uid, s.definitions));
     }));
     (addBinding = (function(s, id, info) {
@@ -69,25 +68,25 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         }));
     }));
     (setBindingMutability = (function(s, id, mutable) {
-        return (s.hasOwnBinding(id) ? s.setRecord(hamt.modify(id, (function(binding) {
-            return ({
-                "loc": binding.loc,
-                "mutable": (mutable ? 1 : 0)
-            });
-        }), s.record)) : (s.outer && s.setOuter(setBindingMutability(s.outer, id, mutable))));
+        return (s.hasOwnBinding(id) ? addBinding(s, id, ({
+            loc: s.getBinding(id)
+                .loc,
+            mutable: (mutable ? 1 : 0)
+        })) : (s.outer && s.setOuter(setBindingMutability(s.outer, id, mutable))));
     }));
     (addMapping = (function(s, from, to) {
         return s.setMapping(hamt.set(from, to, s.mapping));
     }));
-    (getClosure = (function(s) {
-        return (s ? hamt.values(s.definitions) : []);
+    var y = hamt.values;
+    (getClosure = (function(z) {
+        return y(z.definitions);
     }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)
             .setDefinitions(s.definitions);
     }));
-    (pop = (function(s) {
-        return s.outer;
+    (pop = (function(x) {
+        return x.outer;
     }));
     (exports["Scope"] = Scope);
     (exports["addUid"] = addUid);
