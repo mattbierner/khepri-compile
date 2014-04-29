@@ -173,7 +173,7 @@ var ecma_clause = require("ecma-ast")["clause"],
         return ecma_expression.SequenceExpression.create(null, flatten(concat(map(unpackAssign, bindings), body)));
     }),
     curryExpression = (function(loc, base, args) {
-        return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(null, base,
+        return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null, base,
             identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
     }),
     packageBlock = ((filterImports = filter.bind(null, ((x6 = type), (function(z) {

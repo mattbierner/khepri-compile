@@ -159,9 +159,9 @@
                 bindings), body)));
         }),
         curryExpression = (function(loc, base, args) {
-            return khepri_expression.CallExpression.create(loc, khepri_expression.MemberExpression.create(
-                null, base, identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null",
-                null), args));
+            return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null,
+                base, identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null),
+                args));
         }),
         packageBlock = ((filterImports = filter.bind(null, ((x6 = type), (function(z) {
             var z0 = z.value,

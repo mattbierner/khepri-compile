@@ -228,7 +228,7 @@ var unpackAssign =
     \> map @ \x ->
         ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
 
-/* Statements
+/* Translations
  ******************************************************************************/
 /**
  * With statement translation.
@@ -243,8 +243,6 @@ in
             prefix,
             body.body));
 
-/* Expressions
- ******************************************************************************/
 /**
  * Function Expression Normalization.
  */
@@ -280,8 +278,8 @@ var letExpression = \loc bindings body ->
  * Curry expression translation.
  */
 var curryExpression = \loc base args ->
-    khepri_expression.CallExpression.create(loc,
-        khepri_expression.MemberExpression.create(null,
+    ecma_expression.CallExpression.create(loc,
+        ecma_expression.MemberExpression.create(null,
             base,
             identifier(null, 'bind')),
         concat(
@@ -490,7 +488,7 @@ addTransform@'AssignmentExpression' <| seq(
             node.left,
             node.right));
 
-addTransform@'UnaryExpression' <|  seq(
+addTransform@'UnaryExpression' <| seq(
     checkChild 'argument',
     modify \ node ->
         ecma_expression.UnaryExpression.create(node.loc,
