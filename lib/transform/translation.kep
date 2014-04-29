@@ -13,12 +13,23 @@ package (
     callExpression
     memberExpression
     
-    blockStatement
-    withStatement
-    
     functionExpression
     letExpression
     curryExpression
+    
+    blockStatement
+    withStatement
+    expressionStatement
+    returnStatement
+    throwStatement
+    breakStatement
+    continueStatement
+    ifStatement
+    switchStatement
+    forStatement
+    doWhileStatement
+    whileStatement
+    tryStatement
     
     packageBlock)
 with 
@@ -71,6 +82,30 @@ var idsToDeclarators :=
             identifier(null, x)) §
     \> ecma_declaration.VariableDeclaration.create @ null;
 
+/* Unpacks
+ ******************************************************************************/
+/**
+ * Convert a binding to a variable declarator.
+ */
+var bindingToDeclarator = \x ->
+    variableDeclarator(null,
+        x.pattern.id,
+        x.value);
+
+/**
+ * Expand a binding to a list of variable declarations.
+ */
+var unpack = expandBinding \> map @ bindingToDeclarator;
+
+/**
+ * Expand an binding to a list of assignments.
+ */
+var unpackAssign =
+    expandBinding
+    \> map @ \x ->
+        ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
+
+        
 /* Program
  ******************************************************************************/
 program := \bindings node ->
@@ -82,6 +117,9 @@ program := \bindings node ->
     
 /* Program
  ******************************************************************************/
+/**
+ * 
+ */
 assignmentExpression := \node ->
     ecma_expression.AssignmentExpression.create(node.loc,
         '=',
@@ -156,29 +194,28 @@ memberExpression := \node ->
         node.object,
         node.property,
         node.computed);
-    
-/* Unpacks
- ******************************************************************************/
-/**
- * Convert a binding to a variable declarator.
- */
-var bindingToDeclarator = \x ->
-    variableDeclarator(null,
-        x.pattern.id,
-        x.value);
 
 /**
- * Expand a binding to a list of variable declarations.
+ * Let expression translation.
  */
-var unpack = expandBinding \> map @ bindingToDeclarator;
+letExpression = \loc bindings body ->
+    ecma_expression.SequenceExpression.create(null,
+        flatten concat(
+            map(unpackAssign, bindings),
+            body));
 
 /**
- * Expand an binding to a list of assignments.
+ * Curry expression translation.
  */
-var unpackAssign =
-    expandBinding
-    \> map @ \x ->
-        ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
+curryExpression = \loc base args ->
+    ecma_expression.CallExpression.create(loc,
+        ecma_expression.MemberExpression.create(null,
+            base,
+            identifier(null, 'bind')),
+        concat(
+            ecma_value.Literal.create(null, 'null', null),
+            args));
+
 
 /* Translations
  ******************************************************************************/
@@ -226,26 +263,59 @@ in
                 variableDeclaration(null, bindings),
                 body)));
 
-/**
- * Let expression normalization.
- */
-letExpression = \loc bindings body ->
-    ecma_expression.SequenceExpression.create(null,
-        flatten concat(
-            map(unpackAssign, bindings),
-            body));
+expressionStatement := \node ->
+    ecma_statement.ExpressionStatement.create(node.loc,
+        node.expression);
 
-/**
- * Curry expression translation.
- */
-curryExpression = \loc base args ->
-    ecma_expression.CallExpression.create(loc,
-        ecma_expression.MemberExpression.create(null,
-            base,
-            identifier(null, 'bind')),
-        concat(
-            ecma_value.Literal.create(null, 'null', null),
-            args));
+ifStatement := \node ->
+    ecma_statement.IfStatement.create(node.loc,
+        node.test,
+        node.consequent,
+        node.alternate);
+
+switchStatement := \node ->
+    ecma_statement.SwitchStatement.create(node.loc,
+        node.discriminant,
+        node.cases);
+
+returnStatement := \node ->
+    ecma_statement.ReturnStatement.create(node.loc,
+        node.argument);
+
+throwStatement := \node ->
+    ecma_statement.ThrowStatement.create(node.loc,
+        node.argument);
+
+breakStatement := \node ->
+    ecma_statement.BreakStatement.create(node.loc,
+        null);
+
+continueStatement := \node ->
+    ecma_statement.ContinueStatement.create(node.loc,
+        null);
+
+tryStatement := \node ->
+    ecma_statement.TryStatement.create(node.loc,
+        node.block,
+        node.handler,
+        node.finalizer);
+
+whileStatement := \node ->
+    ecma_statement.WhileStatement.create(node.loc,
+        node.test,
+        node.body);
+
+doWhileStatement := \node ->
+    ecma_statement.DoWhileStatement.create(node.loc,
+        node.body,
+        node.test);
+
+forStatement := \node ->
+    ecma_statement.ForStatement.create(node.loc,
+        node.init,
+        node.test,
+        node.update,
+        node.body);
 
 /* Package
  ******************************************************************************/

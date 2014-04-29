@@ -133,6 +133,15 @@ var enterBlock = modifyScope (scope.push);
 var exitBlock = modifyScope (scope.pop);
 
 /**
+ * Perform `actions` in an new real block.
+ */
+var realBlock := \actions(...) ->
+    seq(
+    enterBlock,
+    sequencea actions,
+    exitBlock);
+
+/**
  * Get the identifier name for `uid`.
  */
 var getMapping = \uid ->
@@ -248,19 +257,13 @@ addTransform@'BlockStatement' <| seq(
 
 addTransform@'ExpressionStatement' <| seq(
     checkChild 'expression',
-    modify \ node ->
-        ecma_statement.ExpressionStatement.create(node.loc,
-            node.expression));
+    modify (translation.expressionStatement));
 
 addTransform@'IfStatement' <| seq(
     checkChild 'test',
     checkChild 'consequent',
     checkChild 'alternate',
-    modify \ node ->
-        ecma_statement.IfStatement.create(node.loc,
-            node.test,
-            node.consequent,
-            node.alternate));
+    modify (translation.ifStatement));
 
 addTransform@'WithStatement' <| seq(
     checkChild 'bindings',
@@ -274,70 +277,44 @@ addTransform@'WithStatement' <| seq(
 addTransform@'SwitchStatement' <| seq(
     checkChild 'discriminant',
     checkChild 'cases',
-    modify \ node ->
-        ecma_statement.SwitchStatement.create(node.loc,
-            node.discriminant,
-            node.cases));
+    modify (translation.switchStatement));
 
 addTransform@'ReturnStatement' <| seq(
     checkChild 'argument',
-    modify \ node ->
-        ecma_statement.ReturnStatement.create(node.loc,
-            node.argument));
+    modify (translation.returnStatement));;
 
 addTransform@'ThrowStatement' <| seq(
     checkChild 'argument',
-    modify \ node ->
-        ecma_statement.ThrowStatement.create(node.loc,
-            node.argument));
+    modify (translation.throwStatement));
 
 addTransform@'BreakStatement' <|
-    modify \ node ->
-        ecma_statement.BreakStatement.create(node.loc,
-            null);
+    modify (translation.breakStatement);
 
 addTransform@'ContinueStatement' <|
-    modify \ node ->
-        ecma_statement.ContinueStatement.create(node.loc,
-            null);
+    modify (translation.continueStatement);
 
 addTransform@'TryStatement' <| seq(
     checkChild 'block',
     checkChild 'handler',
     checkChild 'finalizer',
-    modify \ node ->
-        ecma_statement.TryStatement.create(node.loc,
-            node.block,
-            node.handler,
-            node.finalizer));
+    modify (translation.tryStatement));
 
 addTransform@'WhileStatement' <| seq(
     checkChild 'test',
     checkChild 'body',
-    modify \ node ->
-        ecma_statement.WhileStatement.create(node.loc,
-            node.test,
-            node.body));
+    modify (translation.whileStatement));
 
 addTransform@'DoWhileStatement' <| seq(
     checkChild 'body',
     checkChild 'test',
-    modify \ node ->
-        ecma_statement.DoWhileStatement.create(node.loc,
-            node.body,
-            node.test));
+    modify (translation.doWhileStatement));
 
 addTransform@'ForStatement' <| seq(
     checkChild 'init',
     checkChild 'test',
     checkChild 'update',
     checkChild 'body',
-    modify \ node ->
-        ecma_statement.ForStatement.create(node.loc,
-            node.init,
-            node.test,
-            node.update,
-            node.body));
+    modify (translation.forStatement));
 
 // Expression
 addTransform@'AssignmentExpression' <| seq(
@@ -397,25 +374,24 @@ addTransform@'CurryExpression' <| seq(
             node.base,
             node.args));
 
-addTransform@'FunctionExpression' <| seq(
-    enterBlock,
-    checkChild 'id',
-    modify \ node ->
-        translation.functionExpression(node.loc,
-            node.id,
-            node.params,
-            node.body,
-            getUd('prefix', node)),
-    
-    checkChild 'params',
-    checkChild 'body',
-    
-    modify \ node ->
-        ecma_expression.FunctionExpression.create(null,
-            node.id,
-            node.params,
-            node.body),
-    exitBlock);
+addTransform@'FunctionExpression' <|
+    realBlock(
+        checkChild 'id',
+        modify \ node ->
+            translation.functionExpression(node.loc,
+                node.id,
+                node.params,
+                node.body,
+                getUd('prefix', node)),
+        
+        checkChild 'params',
+        checkChild 'body',
+        
+        modify \ node ->
+            ecma_expression.FunctionExpression.create(null,
+                node.id,
+                node.params,
+                node.body));
 
 addTransform@'ArrayExpression' <| seq(
     checkChild 'elements',
@@ -504,22 +480,30 @@ addTransform@'Identifier' <|
 
 /*
  *****************************************************************************/
-_trans  = \node -> {
-    if (Array.isArray(node)) {
-        if (!node.length)
-            return pass;
-        
-        return seq(
-            down,
-            sequencea(node.map\_ i -> 
-                ?i === node.length - 1
-                    :checkTop
-                    :seq(checkTop, right)),
-            up);
-    }
-    
-    return (transformers.(type node) || pass);
-};
+/**
+ * Visit an array node.
+ */
+var visitArray := let
+    move = \x i a ->
+        ?i === a.length - 1
+            :checkTop
+            :seq(checkTop, right)
+in
+    \node ->
+        ?node.length
+            :seq(
+                down,
+                sequencea map(move, node),
+                up)
+        :pass;
+
+/**
+ * 
+ */
+_trans  = \node ->
+    ?Array.isArray node
+        :visitArray node
+        :(transformers.(type node) || pass);
 
 var rewrite := checkTop;
 

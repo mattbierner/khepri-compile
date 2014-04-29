@@ -30,8 +30,10 @@ var ecma_clause = require("ecma-ast")["clause"],
     expandBinding = __o0["expandBinding"],
     expandArgumentsPattern = __o0["expandArgumentsPattern"],
     program, assignmentExpression, unaryExpression, binaryExpression, logicalExpression, conditionalExpression,
-        newExpression, callExpression, memberExpression, blockStatement, withStatement, functionExpression,
-        letExpression, curryExpression, packageBlock, x, y, x0, y0, x1, y1, identifier = (function(loc, name, uid) {
+        newExpression, callExpression, memberExpression, functionExpression, letExpression, curryExpression,
+        blockStatement, withStatement, expressionStatement, returnStatement, throwStatement, breakStatement,
+        continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement,
+        packageBlock, x, y, x0, y0, x1, y1, identifier = (function(loc, name, uid) {
             return setUid(uid, ecma_value.Identifier.create(loc, name));
         }),
     variableDeclaration = ecma_declaration.VariableDeclaration.create,
@@ -40,6 +42,19 @@ var ecma_clause = require("ecma-ast")["clause"],
         return (x0 && ecma_declaration.VariableDeclarator.create(null, identifier(null, x0)));
     }))), (y = ecma_declaration.VariableDeclaration.create.bind(null, null)), (function(z) {
         return y(x(z));
+    })),
+    bindingToDeclarator = (function(x0) {
+        return variableDeclarator(null, x0.pattern.id, x0.value);
+    }),
+    unpack = ((x0 = expandBinding), (y0 = map.bind(null, (function(x1) {
+        return variableDeclarator(null, x1.pattern.id, x1.value);
+    }))), (function(z) {
+        return y0(x0(z));
+    })),
+    unpackAssign = ((x1 = expandBinding), (y1 = map.bind(null, (function(x2) {
+        return ecma_expression.AssignmentExpression.create(null, "=", x2.pattern.id, x2.value);
+    }))), (function(z) {
+        return y1(x1(z));
     }));
 (program = (function(bindings, node) {
     return ecma_program.Program.create(node.loc, concat(tryGetUd([], "prefix", node), idsToDeclarators(bindings),
@@ -79,19 +94,13 @@ var mapOp = (function(op) {
 (memberExpression = (function(node) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
 }));
-var bindingToDeclarator = (function(x0) {
-    return variableDeclarator(null, x0.pattern.id, x0.value);
-}),
-    unpack = ((x0 = expandBinding), (y0 = map.bind(null, (function(x1) {
-        return variableDeclarator(null, x1.pattern.id, x1.value);
-    }))), (function(z) {
-        return y0(x0(z));
-    })),
-    unpackAssign = ((x1 = expandBinding), (y1 = map.bind(null, (function(x2) {
-        return ecma_expression.AssignmentExpression.create(null, "=", x2.pattern.id, x2.value);
-    }))), (function(z) {
-        return y1(x1(z));
-    }));
+(letExpression = (function(loc, bindings, body) {
+    return ecma_expression.SequenceExpression.create(null, flatten(concat(map(unpackAssign, bindings), body)));
+}));
+(curryExpression = (function(loc, base, args) {
+    return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null, base,
+        identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
+}));
 (blockStatement = (function(bindings, node) {
     return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
 }));
@@ -109,12 +118,38 @@ var bindingToDeclarator = (function(x0) {
     return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
         body.loc, concat((prefix || []), variableDeclaration(null, bindings), body)));
 }));
-(letExpression = (function(loc, bindings, body) {
-    return ecma_expression.SequenceExpression.create(null, flatten(concat(map(unpackAssign, bindings), body)));
+(expressionStatement = (function(node) {
+    return ecma_statement.ExpressionStatement.create(node.loc, node.expression);
 }));
-(curryExpression = (function(loc, base, args) {
-    return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null, base,
-        identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
+(ifStatement = (function(node) {
+    return ecma_statement.IfStatement.create(node.loc, node.test, node.consequent, node.alternate);
+}));
+(switchStatement = (function(node) {
+    return ecma_statement.SwitchStatement.create(node.loc, node.discriminant, node.cases);
+}));
+(returnStatement = (function(node) {
+    return ecma_statement.ReturnStatement.create(node.loc, node.argument);
+}));
+(throwStatement = (function(node) {
+    return ecma_statement.ThrowStatement.create(node.loc, node.argument);
+}));
+(breakStatement = (function(node) {
+    return ecma_statement.BreakStatement.create(node.loc, null);
+}));
+(continueStatement = (function(node) {
+    return ecma_statement.ContinueStatement.create(node.loc, null);
+}));
+(tryStatement = (function(node) {
+    return ecma_statement.TryStatement.create(node.loc, node.block, node.handler, node.finalizer);
+}));
+(whileStatement = (function(node) {
+    return ecma_statement.WhileStatement.create(node.loc, node.test, node.body);
+}));
+(doWhileStatement = (function(node) {
+    return ecma_statement.DoWhileStatement.create(node.loc, node.body, node.test);
+}));
+(forStatement = (function(node) {
+    return ecma_statement.ForStatement.create(node.loc, node.init, node.test, node.update, node.body);
 }));
 var x2, x3, filterImports = filter.bind(null, ((x2 = type), (function(z) {
         var z0 = z.value,
@@ -145,9 +180,20 @@ var x2, x3, filterImports = filter.bind(null, ((x2 = type), (function(z) {
 (exports["newExpression"] = newExpression);
 (exports["callExpression"] = callExpression);
 (exports["memberExpression"] = memberExpression);
-(exports["blockStatement"] = blockStatement);
-(exports["withStatement"] = withStatement);
 (exports["functionExpression"] = functionExpression);
 (exports["letExpression"] = letExpression);
 (exports["curryExpression"] = curryExpression);
+(exports["blockStatement"] = blockStatement);
+(exports["withStatement"] = withStatement);
+(exports["expressionStatement"] = expressionStatement);
+(exports["returnStatement"] = returnStatement);
+(exports["throwStatement"] = throwStatement);
+(exports["breakStatement"] = breakStatement);
+(exports["continueStatement"] = continueStatement);
+(exports["ifStatement"] = ifStatement);
+(exports["switchStatement"] = switchStatement);
+(exports["forStatement"] = forStatement);
+(exports["doWhileStatement"] = doWhileStatement);
+(exports["whileStatement"] = whileStatement);
+(exports["tryStatement"] = tryStatement);
 (exports["packageBlock"] = packageBlock);

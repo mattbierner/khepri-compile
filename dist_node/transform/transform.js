@@ -47,10 +47,10 @@ var ecma_clause = require("ecma-ast")["clause"],
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
+        __args, actions, __args, actions, __args, actions, actions1, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
-        actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
-        __args, actions, __args, actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(
-            Unique)),
+        actions, __args, actions, __args, actions, useStrict, __args, actions, move, uid, f1, uid0, f2, _trans, M =
+        TreeZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
     }),
@@ -170,15 +170,11 @@ addTransform("BlockStatement", seq(pushBindings, ((__args = ["body", checkTop]),
     return modify(translation.blockStatement.bind(null, bindings));
 })), popBindings));
 addTransform("ExpressionStatement", seq(((__args = ["expression", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("expression"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.ExpressionStatement.create(node0.loc, node0.expression);
-}))));
+    moveChild("expression"), sequencea(actions), up)), modify(translation.expressionStatement)));
 addTransform("IfStatement", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "test"), sequencea(actions), up)), ((__args = ["consequent", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("consequent"), sequencea(actions), up)), ((__args = ["alternate", checkTop]), (actions = [].slice
-    .call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.IfStatement.create(node0.loc, node0.test, node0.consequent, node0.alternate);
-}))));
+    .call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(translation.ifStatement)));
 addTransform("WithStatement", seq(((__args = ["bindings", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("bindings"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify((function(node0) {
@@ -186,46 +182,28 @@ addTransform("WithStatement", seq(((__args = ["bindings", checkTop]), (actions =
 }))));
 addTransform("SwitchStatement", seq(((__args = ["discriminant", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("discriminant"), sequencea(actions), up)), ((__args = ["cases", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("cases"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.SwitchStatement.create(node0.loc, node0.discriminant, node0.cases);
-}))));
+    __args, 1)), seq(moveChild("cases"), sequencea(actions), up)), modify(translation.switchStatement)));
 addTransform("ReturnStatement", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.ReturnStatement.create(node0.loc, node0.argument);
-}))));
+    moveChild("argument"), sequencea(actions), up)), modify(translation.returnStatement)));
 addTransform("ThrowStatement", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.ThrowStatement.create(node0.loc, node0.argument);
-}))));
-addTransform("BreakStatement", modify((function(node0) {
-    return ecma_statement.BreakStatement.create(node0.loc, null);
-})));
-addTransform("ContinueStatement", modify((function(node0) {
-    return ecma_statement.ContinueStatement.create(node0.loc, null);
-})));
+    moveChild("argument"), sequencea(actions), up)), modify(translation.throwStatement)));
+addTransform("BreakStatement", modify(translation.breakStatement));
+addTransform("ContinueStatement", modify(translation.continueStatement));
 addTransform("TryStatement", seq(((__args = ["block", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "block"), sequencea(actions), up)), ((__args = ["handler", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("handler"), sequencea(actions), up)), ((__args = ["finalizer", checkTop]), (actions = [].slice
-    .call(__args, 1)), seq(moveChild("finalizer"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.TryStatement.create(node0.loc, node0.block, node0.handler, node0.finalizer);
-}))));
+    .call(__args, 1)), seq(moveChild("finalizer"), sequencea(actions), up)), modify(translation.tryStatement)));
 addTransform("WhileStatement", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "test"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("body"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.WhileStatement.create(node0.loc, node0.test, node0.body);
-}))));
+    seq(moveChild("body"), sequencea(actions), up)), modify(translation.whileStatement)));
 addTransform("DoWhileStatement", seq(((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("body"), sequencea(actions), up)), ((__args = ["test", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("test"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.DoWhileStatement.create(node0.loc, node0.body, node0.test);
-}))));
+    __args, 1)), seq(moveChild("test"), sequencea(actions), up)), modify(translation.doWhileStatement)));
 addTransform("ForStatement", seq(((__args = ["init", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "init"), sequencea(actions), up)), ((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("test"), sequencea(actions), up)), ((__args = ["update", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("update"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = []
-    .slice.call(__args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_statement.ForStatement.create(node0.loc, node0.init, node0.test, node0.update, node0.body);
-}))));
+    .slice.call(__args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify(translation.forStatement)));
 addTransform("AssignmentExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.assignmentExpression)));
@@ -263,15 +241,15 @@ addTransform("CurryExpression", seq(((__args = ["base", checkTop]), (actions = [
     seq(moveChild("args"), sequencea(actions), up)), modify((function(node0) {
     return translation.curryExpression(node0.loc, node0.base, node0.args);
 }))));
-addTransform("FunctionExpression", seq(enterBlock, ((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
+addTransform("FunctionExpression", ((actions1 = [((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("id"), sequencea(actions), up)), modify((function(node0) {
-    return translation.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd("prefix",
-        node0));
-})), ((__args = ["params", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("params"), sequencea(
-    actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"),
-    sequencea(actions), up)), modify((function(node0) {
+    return translation.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
+        "prefix", node0));
+})), ((__args = ["params", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("params"),
+    sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(
+    moveChild("body"), sequencea(actions), up)), modify((function(node0) {
     return ecma_expression.FunctionExpression.create(null, node0.id, node0.params, node0.body);
-})), exitBlock));
+}))]), seq(enterBlock, sequencea(actions1), exitBlock)));
 addTransform("ArrayExpression", seq(((__args = ["elements", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("elements"), sequencea(actions), up)), modify((function(node0) {
     return ecma_expression.ArrayExpression.create(node0.loc, node0.elements);
@@ -320,14 +298,13 @@ addTransform("Identifier", withNode((function(node0) {
             return set(identifier(node0.loc, name, getUid(node0)));
         }))) : set(identifier(node0.loc, node0.name)));
 })));
+var visitArray = ((move = (function(x3, i, a) {
+    return ((i === (a.length - 1)) ? checkTop : seq(checkTop, right));
+})), (function(node0) {
+    return (node0.length ? seq(down, sequencea(map(move, node0)), up) : pass);
+}));
 (_trans = (function(node0) {
-    if (Array.isArray(node0)) {
-        if ((!node0.length)) return pass;
-        return seq(down, sequencea(node0.map((function(_1, i) {
-            return ((i === (node0.length - 1)) ? checkTop : seq(checkTop, right));
-        }))), up);
-    }
-    return (transformers[type(node0)] || pass);
+    return (Array.isArray(node0) ? visitArray(node0) : (transformers[type(node0)] || pass));
 }));
 var transformProgram = seq(((uid = getUid(builtins.require)), (f1 = scope.addVar.bind(null, "require", uid)),
     modifyState((function(s) {
