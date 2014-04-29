@@ -29,6 +29,7 @@ var ecma_clause = require("ecma-ast")["clause"],
     tryGetUd = __o1["tryGetUd"],
     getUd = __o1["getUd"],
     getUid = __o1["getUid"],
+    setUid = __o1["setUid"],
     scope = require("../lexical/scope"),
     Scope = scope["Scope"],
     fun = require("../fun"),
@@ -50,7 +51,7 @@ var ecma_clause = require("ecma-ast")["clause"],
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
     transform, x, y, f, f0, y0, y1, x0, x1, x2, y2, y3, x3, y4, x4, y5, x5, y6, filterImports, getImports, x6, x7,
-        __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
+        __args, actions, __args0, actions0, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
@@ -59,7 +60,8 @@ var ecma_clause = require("ecma-ast")["clause"],
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
-        actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
+        actions, __args, actions, __args, actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M =
+        TreeZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
     }),
@@ -130,8 +132,8 @@ var ecma_clause = require("ecma-ast")["clause"],
             bindings = x2(z1);
         return modifyState(state.addBindings.bind(null, bindings));
     })),
-    identifier = (function(loc, name) {
-        return ecma_value.Identifier.create(loc, name);
+    identifier = (function(loc, name, uid) {
+        return setUid(uid, ecma_value.Identifier.create(loc, name));
     }),
     variableDeclaration = khepri_declaration.VariableDeclaration.create,
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
@@ -210,8 +212,10 @@ addTransform("VariableDeclaration", seq(((__args = ["declarations", checkTop]), 
         declarations = __o4["declarations"];
     return ecma_declaration.VariableDeclaration.create(loc, declarations);
 }))));
-addTransform("Binding", ((__args = ["value", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("value"),
-    sequencea(actions), up)));
+addTransform("Binding", seq(((__args0 = ["pattern", ((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
+    seq(moveChild("id"), sequencea(actions), up))]), (actions0 = [].slice.call(__args0, 1)), seq(moveChild(
+    "pattern"), sequencea(actions0), up)), ((__args = ["value", checkTop]), (actions = [].slice.call(__args, 1)),
+    seq(moveChild("value"), sequencea(actions), up))));
 addTransform("VariableDeclarator", seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("id"), sequencea(actions), up)), ((__args = ["init", checkTop]), (actions = [].slice.call(__args,
     1)), seq(moveChild("init"), sequencea(actions), up)), modify((function(node0) {
@@ -400,7 +404,7 @@ addTransform("Import", packageManager.chain((function(packageManager0) {
 addTransform("Identifier", withNode((function(node0) {
     return (getUid(node0) ? seq(addVar(node0.name, getUid(node0)), getMapping(getUid(node0))
         .chain((function(name) {
-            return set(identifier(node0.loc, name));
+            return set(identifier(node0.loc, name, getUid(node0)));
         }))) : set(identifier(node0.loc, node0.name)));
 })));
 (_trans = (function(node0) {

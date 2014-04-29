@@ -85,8 +85,8 @@ var y = hamt.values;
     return Scope.empty.setOuter(s)
         .setDefinitions(s.definitions);
 }));
-(pop = (function(s) {
-    return s.outer.setMapping(s.mapping);
+(pop = (function(x) {
+    return x.outer;
 }));
 (addVar = (function(id, uid, s) {
     var name;

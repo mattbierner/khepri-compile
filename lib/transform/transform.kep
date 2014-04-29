@@ -33,7 +33,8 @@ with
         type
         tryGetUd
         getUd
-        getUid},
+        getUid
+        setUid},
     import '../lexical/scope' scope#{Scope},
     import '../fun' fun#{
         concat
@@ -187,8 +188,10 @@ var addBindingsForBindingsList :=
 
 /* Values
  ******************************************************************************/
-var identifier = \loc, name ->
-    ecma_value.Identifier.create(loc, name);
+var identifier = \loc, name uid ->
+    setUid(
+        uid,
+        ecma_value.Identifier.create(loc, name));
 
 /* Declaration
  ******************************************************************************/
@@ -339,8 +342,10 @@ addTransform@'VariableDeclaration' <| seq(
         ecma_declaration.VariableDeclaration.create(loc,
             declarations));
 
-addTransform@'Binding' <|
-    checkChild 'value';
+addTransform@'Binding' <| seq(
+    child('pattern',
+        checkChild 'id'),
+    checkChild 'value');
 
 addTransform@'VariableDeclarator' <| seq(
     checkChild 'id',
@@ -666,7 +671,7 @@ addTransform@'Identifier' <|
             :seq(
                 addVar(node.name, getUid node),
                 getMapping(getUid node).chain \ name ->
-                    set <| identifier(node.loc, name))
+                    set <| identifier(node.loc, name, getUid node))
         
         // When node has no uid, don't rename
         :set <| identifier(node.loc, node.name);
@@ -686,8 +691,6 @@ _trans  = \node -> {
                     :seq(checkTop, right)),
             up);
     }
-    
-    //if (!(node instanceof khepri_node.Node)) return pass;
     
     return (transformers.(type node) || pass);
 };
