@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable/reachable.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     __o0 = require("akh")["base"],
@@ -15,11 +14,12 @@ var __o = require("khepri-ast")["node"],
     map = __o1["map"],
     __o2 = require("../ast"),
     type = __o2["type"],
+    getUd = __o2["getUd"],
     getUid = __o2["getUid"],
     state = require("./state"),
     removeUnreachable, x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3,
         actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8, test,
-        __args9, actions9, yes, no, y0, x0, __args10, actions10, consequent, test0, __args11, actions11, yes0, no0,
+        __args9, actions9, yes, no, y0, __args10, actions10, consequent, test0, __args11, actions11, yes0, no0,
         alternate, y1, __args12, actions12, __args13, actions13, __args14, actions14, __args15, actions15, __args16,
         actions16, __args17, actions17, __args18, actions18, __args19, actions19, __args20, actions20, __args21,
         actions21, __args22, actions22, __args23, actions23, __args24, actions24, __args25, actions25, __args26,
@@ -28,8 +28,9 @@ var __o = require("khepri-ast")["node"],
         actions36, __args37, actions37, __args38, actions38, __args39, actions39, __args40, actions40, consequent0,
         __args41, actions41, __args42, actions42, __args43, actions43, __args44, actions44, __args45, actions45,
         __args46, actions46, __args47, actions47, __args48, actions48, __args49, actions49, test1, yes1, no1,
-        consequent1, y2, __args50, actions50, __args51, actions51, __args52, actions52, x1, _check, M = TreeZipperT(
-            StateM),
+        consequent1, y2, __args50, actions50, __args51, actions51, __args52, actions52, x0, _check, isReserved = getUd.bind(
+            null, "reserved"),
+    M = TreeZipperT(StateM),
     pass = M.of(null),
     extractCtx = M.get,
     inspect = flip(M.map)
@@ -89,9 +90,8 @@ addRewrite("VariableDeclarator", ((test = inspect(((y0 = getUid), (function(z) {
         return (state.isReachable(uid, s) ? yes : no);
     }));
 }))));
-addRewrite("Binding", ((x0 = type), (__args10 = ["value", checkTop]), (actions10 = [].slice.call(__args10, 1)), (
-    consequent = seq(moveChild("value"), sequencea(actions10), up)), (test0 = inspect(((y1 = getUid), (function(
-    z) {
+addRewrite("Binding", ((__args10 = ["value", checkTop]), (actions10 = [].slice.call(__args10, 1)), (consequent = seq(
+    moveChild("value"), sequencea(actions10), up)), (test0 = inspect(((y1 = getUid), (function(z) {
     var z0 = z.pattern;
     return y1(z0.id);
 })))), (__args11 = ["value", checkTop]), (actions11 = [].slice.call(__args11, 1)), (yes0 = seq(moveChild(
@@ -100,8 +100,7 @@ addRewrite("Binding", ((x0 = type), (__args10 = ["value", checkTop]), (actions10
         return (state.isReachable(uid, s) ? yes0 : no0);
     }));
 }))), extract((function(node) {
-    var z, y2;
-    return (((z = node.value), (y2 = x0(z)), ("Import" === y2)) ? consequent : (alternate || pass));
+    return (isReserved(node) ? consequent : (alternate || pass));
 }))));
 addRewrite("BlockStatement", ((__args12 = ["body", checkTop]), (actions12 = [].slice.call(__args12, 1)), seq(moveChild(
     "body"), sequencea(actions12), up)));
@@ -185,8 +184,8 @@ addRewrite("ObjectExpression", ((__args51 = ["properties", checkTop]), (actions5
     moveChild("properties"), sequencea(actions51), up)));
 addRewrite("ObjectValue", ((__args52 = ["value", checkTop]), (actions52 = [].slice.call(__args52, 1)), seq(moveChild(
     "value"), sequencea(actions52), up)));
-addRewrite("Identifier", extract(((x1 = getUid), (function(z) {
-    var uid = x1(z);
+addRewrite("Identifier", extract(((x0 = getUid), (function(z) {
+    var uid = x0(z);
     return (uid ? modifyState(state.addReference.bind(null, uid)) : pass);
 }))));
 (_check = (function(node) {

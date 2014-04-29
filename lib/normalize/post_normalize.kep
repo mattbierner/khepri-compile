@@ -1,22 +1,23 @@
 /**
  * @fileOverview Post-lexical check tree normalization.
  * 
- * This stage is run once after identifiers have been assigned uids by lexical
- * check.
- * 
- * It rewrites complex Khepri statements to simplified forms that can be 
- * better optimized and transformed by later stages.
+ * Rewrites complex Khepri statements to simplified forms in restricted Khepri.
+ * Restrict form code can be better optimized and transformed by later stages.
  */
 package (
     normalize)
 with
     import 'khepri-ast::node' {modify},
+    import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     
+    import '../pseudo/pattern' {
+        Import},
     import '../ast' {
         type
-        isBlockFunction},
+        isBlockFunction
+        setUd},
     import '../fun' {
         concat
         flattenr
@@ -31,6 +32,8 @@ with
         Rewriter
         rewrite}
 in {
+
+var markReserved := setUd @ 'reserved' @ true;
 
 var getParameterNames := 
     flattenr <\ map @ \x -> {
@@ -49,25 +52,38 @@ var peepholes = new Rewriter();
 
 var always := \_ -> true;
 
+
 /* Binding Expansion
  ******************************************************************************/
 /**
- * Expand potentially complex  bindings patterns to a list of simple
+ * Expand import patterns to a binding to an import.
+ */
+peepholes.add('ImportPattern', UP,
+    always,
+    
+    \{pattern from} ->
+        markReserved <| ast_declaration.Binding.create(null,
+            pattern,
+            Import.create(null, from.value)));
+
+/**
+ * Expand a potentially complex bindings pattern to a list of simple
  * identifier bindings.
+ */
+peepholes.add('Binding', UP,
+    always,
+    
+    \binding ->
+        innerPattern(binding.value, binding.pattern));
+
+/**
+ * Flatten previously expanded binding lists.
  */
 peepholes.add(['LetExpression', 'WithStatement'], UP,
     always,
     
-    let
-        expandBinding = \binding ->
-            ?type binding === 'ImportPattern'
-                :expandImport(binding)
-                :innerPattern(binding.value, binding.pattern)
-    in
-        \node ->
-            modify(node, {
-                bindings: flattenr map(expandBinding, node.bindings)
-            }));
+    \node ->
+        modify(node, { bindings: flattenr node.bindings }));
 
 /**
  * Expand potentially complex parameter patterns in a function to simple

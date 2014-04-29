@@ -87,6 +87,17 @@ exports.inline_does_not_mess_up_local_closure = function(test) {
     test.done();
 };
 
+// ensure that the inner `y` is correctly duplicated after inlining.
+exports.inline_with_local_bindings = function(test) {
+    test.deepEqual(
+        evalParser("var f = \\x -> let y = [x * 2] in x * y.(0);" +
+                   "f(1) + f(10);"),
+        202);
+    
+    test.done();
+};
+
+
 
 exports.const_prop_closure = function(test) {
     test.equal(

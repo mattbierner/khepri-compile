@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
+*/
+define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "khepri-ast/node", "../ast", "../fun", "./rename", "../builtin"
 ], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, ren, __o2) {
     "use strict";

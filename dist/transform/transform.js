@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
+*/
+define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
     "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "ecma-ast-zipper", "khepri-ast/declaration",
     "khepri-ast/expression", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/pattern", "khepri-ast/value",
     "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "../ast", "../lexical/scope", "../fun",

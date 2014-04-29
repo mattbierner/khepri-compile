@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/state.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (function(require, exports, record, hamt,
+*/
+define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (function(require, exports, record, hamt,
     __o, __o0) {
     "use strict";
     var concat = __o["concat"],

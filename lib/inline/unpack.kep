@@ -5,15 +5,16 @@
  */
 package (
     innerPattern
-    unpackParameters
-    expandImport)
+    unpackParameters)
 with
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
-    import '../pseudo/pattern' {SliceUnpack RelativeUnpack Import},
+    import '../pseudo/pattern' {
+        SliceUnpack
+        RelativeUnpack},
     
     import '../ast' {type},
     import '../fun' fun#{
@@ -156,10 +157,5 @@ unpackParameters = \args elements ->
             }
         }
         |> flatten;
-
-expandImport = \imp ->
-    flatten innerPattern(
-        Import.create(null, imp.from.value),
-        imp.pattern);
 
 }

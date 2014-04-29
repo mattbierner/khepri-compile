@@ -22,6 +22,7 @@ with
         map},
     import '../ast' {
         type
+        getUd
         getUid},
     
     import './state' state
@@ -30,6 +31,9 @@ in {
 /* Forward
  ******************************************************************************/
 var _check;
+
+
+var isReserved := getUd @ 'reserved';
 
 /* Monad
  ******************************************************************************/
@@ -192,8 +196,8 @@ addRewrite@'VariableDeclarator' <|
         removeBinding);
 
 addRewrite@'Binding' <|
-    when((.value) \> type \> (===, 'Import'),
-        // Never prune imports.
+    when(isReserved,
+        // Never prune reserved bindings.
         visitChild 'value',
         
         isReachable(inspect ((.pattern) \> (.id) \> getUid),

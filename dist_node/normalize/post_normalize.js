@@ -1,30 +1,33 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
+    ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
-    __o0 = require("../ast"),
-    type = __o0["type"],
-    isBlockFunction = __o0["isBlockFunction"],
-    __o1 = require("../fun"),
-    concat = __o1["concat"],
-    flattenr = __o1["flattenr"],
-    map = __o1["map"],
-    __o2 = require("../inline/unpack"),
-    innerPattern = __o2["innerPattern"],
-    expandImport = __o2["expandImport"],
-    unpackParameters = __o2["unpackParameters"],
-    __o3 = require("../rewriter"),
-    UP = __o3["UP"],
-    DOWN = __o3["DOWN"],
-    Rewriter = __o3["Rewriter"],
-    rewrite = __o3["rewrite"],
-    normalize, x, y, expandBinding, x0, x1, x2, y0, getParameterNames = ((x = flattenr), (y = map.bind(null, (function(
-        x0) {
+    __o0 = require("../pseudo/pattern"),
+    Import = __o0["Import"],
+    __o1 = require("../ast"),
+    type = __o1["type"],
+    isBlockFunction = __o1["isBlockFunction"],
+    setUd = __o1["setUd"],
+    __o2 = require("../fun"),
+    concat = __o2["concat"],
+    flattenr = __o2["flattenr"],
+    map = __o2["map"],
+    __o3 = require("../inline/unpack"),
+    innerPattern = __o3["innerPattern"],
+    expandImport = __o3["expandImport"],
+    unpackParameters = __o3["unpackParameters"],
+    __o4 = require("../rewriter"),
+    UP = __o4["UP"],
+    DOWN = __o4["DOWN"],
+    Rewriter = __o4["Rewriter"],
+    rewrite = __o4["rewrite"],
+    normalize, x, y, x0, x1, x2, y0, markReserved = setUd.bind(null, "reserved", true),
+    getParameterNames = ((x = flattenr), (y = map.bind(null, (function(x0) {
         switch (type(x0)) {
             case "IdentifierPattern":
                 return x0;
@@ -43,14 +46,19 @@ var __o = require("khepri-ast")["node"],
     always = (function(_) {
         return true;
     });
-peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-    return ((type(binding) === "ImportPattern") ? expandImport(binding) : innerPattern(binding.value,
-        binding.pattern));
-})), (function(node) {
+peepholes.add("ImportPattern", UP, always, (function(__o5) {
+    var pattern = __o5["pattern"],
+        from = __o5["from"];
+    return markReserved(ast_declaration.Binding.create(null, pattern, Import.create(null, from.value)));
+}));
+peepholes.add("Binding", UP, always, (function(binding) {
+    return innerPattern(binding.value, binding.pattern);
+}));
+peepholes.add(["LetExpression", "WithStatement"], UP, always, (function(node) {
     return modify(node, ({
-        bindings: flattenr(map(expandBinding, node.bindings))
+        bindings: flattenr(node.bindings)
     }));
-})));
+}));
 peepholes.add("FunctionExpression", UP, always, (function(node) {
     var params = getParameterNames(node.params.elements),
         bindings = unpackParameters(node.params.id, node.params.elements),
@@ -86,17 +94,17 @@ peepholes.add("ExpressionStatement", UP, ((x0 = type), (function(z) {
 peepholes.add("BinaryExpression", UP, (function(z) {
     var y1 = z.operator;
     return ("|>" === y1);
-}), (function(__o4) {
-    var left = __o4["left"],
-        right = __o4["right"];
+}), (function(__o5) {
+    var left = __o5["left"],
+        right = __o5["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add("BinaryExpression", UP, (function(z) {
     var y1 = z.operator;
     return ("<|" === y1);
-}), (function(__o4) {
-    var left = __o4["left"],
-        right = __o4["right"];
+}), (function(__o5) {
+    var left = __o5["left"],
+        right = __o5["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 (normalize = rewrite.bind(null, peepholes));

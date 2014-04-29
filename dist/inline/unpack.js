@@ -1,20 +1,18 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, fun) {
     "use strict";
     var SliceUnpack = __o["SliceUnpack"],
         RelativeUnpack = __o["RelativeUnpack"],
-        Import = __o["Import"],
         type = __o0["type"],
         concat = fun["concat"],
         flatten = fun["flatten"],
         flattenr = fun["flattenr"],
         map = fun["map"],
-        innerPattern, unpackParameters, expandImport, relativeUnpack = (function(target, start, indx, pattern) {
+        innerPattern, unpackParameters, relativeUnpack = (function(target, start, indx, pattern) {
             return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
         }),
         sliceUnpack = (function(target, id, from, to) {
@@ -66,10 +64,6 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
             }
         }), elements));
     }));
-    (expandImport = (function(imp) {
-        return flatten(innerPattern(Import.create(null, imp.from.value), imp.pattern));
-    }));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);
-    (exports["expandImport"] = expandImport);
 }));

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/stages/lexical.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/stages/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], (function(require, exports, Error, __o,
+*/
+define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], (function(require, exports, Error, __o,
     lexical) {
     "use strict";
     var setProperty = __o["setProperty"],

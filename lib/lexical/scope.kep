@@ -32,9 +32,11 @@ var IMMUTABLE := 0,
 /**
  * Holds information about a lexical scope.
  * 
- * @param record Maps identifiers to binding information for this scope.
- * @param outer Parent scope.
- * @param mapping Maps identifiers to their actual names in this scope.
+ * @member record Maps identifiers to binding information for this scope.
+ * @member outer Parent scope.
+ * @member mapping Maps identifiers to their actual names in this scope.
+ * @member definitions Maps identifiers to unique ids.
+ * @member locals Set of all unique ids.
  */
 Scope = record.declare(null, [
     'record',

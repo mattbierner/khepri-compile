@@ -48,7 +48,7 @@
             exp, consequent12, x2, consequent13, __args42, ops42, __args43, ops43, y2, exp0, consequent14, x2,
             consequent15, __args44, ops44, __args45, ops45, x3, consequent16, consequent17, __args46, ops46,
             __args47, ops47, __args48, ops48, __args49, ops49, __args50, ops50, __args51, ops51, __args52,
-            ops52, __args53, ops53, __args54, ops54, consequent18, __and = (function(x, y) {
+            ops52, __args53, ops53, consequent18, __and = (function(x, y) {
                 return (x && y);
             }),
         __plus = (function(x) {
@@ -506,25 +506,23 @@
         return (((bindings = node["bindings"]), (!bindings.length)) ? consequent17 : (
             undefined || pass));
     })))));
-    addRewrite(["ImportPattern"], ((__args46 = ["pattern", checkTop]), (ops46 = [].slice.call(__args46, 1)),
-        seq(moveChild("pattern"), seqa(ops46), up)));
-    addRewrite(["SliceUnpack", "RelativeUnpack"], seq(((__args47 = ["pattern", checkTop]), (ops47 = [].slice.call(
-        __args47, 1)), seq(moveChild("pattern"), seqa(ops47), up)), ((__args48 = ["target", checkTop]), (
-        ops48 = [].slice.call(__args48, 1)), seq(moveChild("target"), seqa(ops48), up))));
-    addRewrite("ArgumentsPattern", seq(((__args49 = ["id", checkTop]), (ops49 = [].slice.call(__args49, 1)),
-        seq(moveChild("id"), seqa(ops49), up)), ((__args50 = ["elements", checkTop]), (ops50 = [].slice
-        .call(__args50, 1)), seq(moveChild("elements"), seqa(ops50), up)), ((__args51 = ["self",
+    addRewrite(["SliceUnpack", "RelativeUnpack"], seq(((__args46 = ["pattern", checkTop]), (ops46 = [].slice.call(
+        __args46, 1)), seq(moveChild("pattern"), seqa(ops46), up)), ((__args47 = ["target", checkTop]), (
+        ops47 = [].slice.call(__args47, 1)), seq(moveChild("target"), seqa(ops47), up))));
+    addRewrite("ArgumentsPattern", seq(((__args48 = ["id", checkTop]), (ops48 = [].slice.call(__args48, 1)),
+        seq(moveChild("id"), seqa(ops48), up)), ((__args49 = ["elements", checkTop]), (ops49 = [].slice
+        .call(__args49, 1)), seq(moveChild("elements"), seqa(ops49), up)), ((__args50 = ["self",
         checkTop
-    ]), (ops51 = [].slice.call(__args51, 1)), seq(moveChild("self"), seqa(ops51), up))));
+    ]), (ops50 = [].slice.call(__args50, 1)), seq(moveChild("self"), seqa(ops50), up))));
     addRewrite("IdentifierPattern", extract((function(node) {
         return addBinding(getUid(node.id), null, true);
     })));
-    addRewrite("ArrayExpression", ((__args52 = ["elements", checkTop]), (ops52 = [].slice.call(__args52, 1)),
-        seq(moveChild("elements"), seqa(ops52), up)));
-    addRewrite("ObjectExpression", ((__args53 = ["properties", checkTop]), (ops53 = [].slice.call(__args53, 1)),
-        seq(moveChild("properties"), seqa(ops53), up)));
-    addRewrite("ObjectValue", ((__args54 = ["value", checkTop]), (ops54 = [].slice.call(__args54, 1)), seq(
-        moveChild("value"), seqa(ops54), up)));
+    addRewrite("ArrayExpression", ((__args51 = ["elements", checkTop]), (ops51 = [].slice.call(__args51, 1)),
+        seq(moveChild("elements"), seqa(ops51), up)));
+    addRewrite("ObjectExpression", ((__args52 = ["properties", checkTop]), (ops52 = [].slice.call(__args52, 1)),
+        seq(moveChild("properties"), seqa(ops52), up)));
+    addRewrite("ObjectValue", ((__args53 = ["value", checkTop]), (ops53 = [].slice.call(__args53, 1)), seq(
+        moveChild("value"), seqa(ops53), up)));
     addRewrite("Identifier", ((consequent18 = extract((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding) {

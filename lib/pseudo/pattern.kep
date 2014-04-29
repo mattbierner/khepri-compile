@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Pseudo AST nodes.
+ * 
+ * These nodes cannot be created in regular Khepri code, but are used in the restricted form
+ * to represent specific behavior.
+ */
 package (
     RelativeUnpack
     SliceUnpack
@@ -20,6 +26,9 @@ RelativeUnpack = defineNode(Pattern, 'RelativeUnpack',
         self.min = min;
     });
 
+/**
+ * 
+ */
 SliceUnpack = defineNode(Pattern, 'SliceUnpack',
     ['pattern', 'target'],
     ['from', 'to'],
@@ -31,6 +40,11 @@ SliceUnpack = defineNode(Pattern, 'SliceUnpack',
         self.to = to;
     });
 
+/**
+ * Package import.
+ * 
+ * @param from Package name.
+ */
 Import = defineNode(Pattern, 'Import',
     [],
     ['from'],

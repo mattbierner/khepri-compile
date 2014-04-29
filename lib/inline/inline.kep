@@ -772,9 +772,6 @@ addRewrite@'LetExpression' <| seq(
         modify (.body)));
 
 // Pattern
-addRewrite@['ImportPattern'] <|
-    visitChild 'pattern';
-
 addRewrite@['SliceUnpack', 'RelativeUnpack'] <| seq(
     visitChild 'pattern',
     visitChild 'target');
