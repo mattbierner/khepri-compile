@@ -85,7 +85,7 @@ in
             map(imports, \x ->
                 ast_declaration.Binding.create(null,
                     x.pattern,
-                    importPackage(x.from.value))),
+                    importPackage(x.value.from))),
             ast_statement.BlockStatement.create(null,
                 concat(
                     exportHeader,

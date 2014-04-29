@@ -79,7 +79,7 @@ definePackage = \loc exports imports targets body -> let
                         builtins.require),
                     ast_pattern.IdentifierPattern.create(null,
                         builtins.exports),
-                    map(imports, \x -> targets.(x.from.value)))),
+                    map(imports, \x -> targets.(x.value.from)))),
             ast_statement.BlockStatement.create(body.loc,
                 concat(
                     exportHeader,
@@ -97,7 +97,7 @@ in
                     ast_value.Literal.create(null, 'string', 'require'),
                     ast_value.Literal.create(null, 'string', 'exports'),
                     map(imports, \x ->
-                        ast_value.Literal.create(null, 'string', path(x.from.value))))),
+                        ast_value.Literal.create(null, 'string', path(x.value.from))))),
                 packageBody]));
 
 }

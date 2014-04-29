@@ -7,16 +7,25 @@ package (
     
     member)
 with
-    import 'khepri-ast::node' ast_node#{setData setUserData},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::expression' ast_expression,
-    
     import 'khepri-ast::value' ast_value,
     
-    import './ast' {getUid}
+    import './ast' {
+        setUd
+        getUid
+        setUid},
+    import './fun' {
+        flip}
 in {
 
-var flip := \f -> \x y -> f(y, x);
+var setLocals := \node locals ->
+    setUd('locals', locals, node);
+
+var identifier = \name uid ->
+    setUid(
+        uid,
+        ast_value.Identifier.create(null, name));
 
 var unique = (\-> {
     var x = 0;
@@ -26,16 +35,10 @@ var unique = (\-> {
     };
 }());
 
-var identifier = \name uid ->
-    setData(
-        ast_value.Identifier.create(null, name),
-        'uid',
-        uid);
-
 /* Exports
  ******************************************************************************/
-definitions = {};
-builtins = {};
+definitions := {};
+builtins := {};
 
 var addSymbol = \name id def -> {
     builtins.(name) = id;
@@ -62,12 +65,11 @@ with
     unary = \op -> let
         xArg = identifier('x', unique())
     in
-        setData(
+        setLocals(
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null, xArg)]),
                 op(xArg)),
-            'locals',
             [getUid xArg]),
     
     unaryOp = \op ->
@@ -94,7 +96,7 @@ with
         yArg = identifier('y', unique()),
         zArg = identifier('z', unique())
     in
-        setData(
+        setLocals(
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null,
@@ -107,7 +109,6 @@ with
                     xArg,
                     yArg,
                     zArg)),
-            'locals',
             [getUid xArg, getUid yArg, getUid zArg])
 in {
     registerAliasedSymbol('?', '__cond',
@@ -120,13 +121,12 @@ var binary = \op -> let
     xArg = identifier('x', unique()),
     yArg = identifier('y', unique())
 in
-    setData(
+    setLocals(
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
                 ast_pattern.IdentifierPattern.create(null, xArg),
                 ast_pattern.IdentifierPattern.create(null, yArg)]),
             op(xArg, yArg)),
-        'locals',
         [getUid xArg, getUid yArg]);
 
 var registerBinary = \op name impl -> {
@@ -211,7 +211,7 @@ with
     singleCompose = \f g -> let
         x = identifier('z', unique())
     in
-        setData(
+        setLocals(
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null, null, [
                     ast_pattern.IdentifierPattern.create(null,
@@ -221,7 +221,6 @@ with
                         ast_expression.CallExpression.create(null,
                             g,
                             [x])])),
-            'locals',
             [getUid x])
 in {
     registerBinary('<\\', '__compose', singleCompose);
@@ -233,7 +232,7 @@ with
     multiCompose = \f g -> let
         args = identifier('args', unique())
     in
-        setData(
+        setLocals(
             ast_expression.FunctionExpression.create(null, null,
                 ast_pattern.ArgumentsPattern.create(null,
                     ast_pattern.IdentifierPattern.create(null, args),
@@ -247,7 +246,6 @@ with
                                  identifier('apply')),
                              [ast_value.Literal.create(null, 'null'),
                              args])])),
-             'locals',
              [getUid args])
 in {
     registerBinary('<<\\', '__composen', multiCompose);
@@ -262,11 +260,10 @@ in {
 member = \id uid -> let
     xArg = identifier('x', uid)
 in
-    setData(
+    setLocals(
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
                 ast_pattern.IdentifierPattern.create(null, xArg)]),
             ast_expression.MemberExpression.create(null, xArg, identifier id, false)),
-        'locals',
         [getUid xArg]);
 }

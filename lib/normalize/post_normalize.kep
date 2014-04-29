@@ -23,6 +23,7 @@ with
         map},
     import '../inline/unpack' {
         innerPattern
+        expandImport
         unpackParameters},
     import '../rewriter' {
         UP
@@ -60,7 +61,7 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
     let
         expandBinding = \binding ->
             ?type binding === 'ImportPattern'
-                :binding
+                :expandImport(binding)
                 :innerPattern(binding.value, binding.pattern)
     in
         \node ->

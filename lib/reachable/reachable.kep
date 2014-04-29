@@ -192,9 +192,13 @@ addRewrite@'VariableDeclarator' <|
         removeBinding);
 
 addRewrite@'Binding' <|
-    isReachable(inspect ((.pattern) \> (.id) \> getUid),
+    when((.value) \> type \> (===, 'Import'),
+        // Never prune imports.
         visitChild 'value',
-        removeBinding);
+        
+        isReachable(inspect ((.pattern) \> (.id) \> getUid),
+            visitChild 'value',
+            removeBinding));
 
 // Statement
 addRewrite@'BlockStatement' <|

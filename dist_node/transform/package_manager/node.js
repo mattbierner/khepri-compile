@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/node.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/node.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_statement = require("khepri-ast")["statement"],
@@ -44,7 +43,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
     return ast_statement.BlockStatement.create(loc, [ast_statement.ExpressionStatement.create(null, ast_value.Literal
         .create(null, "string", "use strict")), ast_statement.WithStatement.create(null, map(imports, (
         function(x) {
-            return ast_declaration.Binding.create(null, x.pattern, importPackage(x.from.value));
+            return ast_declaration.Binding.create(null, x.pattern, importPackage(x.value.from));
         })), ast_statement.BlockStatement.create(null, concat(exportHeader, body, exportBody)))]);
 }));
 (exports["definePackage"] = definePackage);

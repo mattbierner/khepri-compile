@@ -15,6 +15,7 @@ var __o = require("khepri-ast")["node"],
     map = __o1["map"],
     __o2 = require("../inline/unpack"),
     innerPattern = __o2["innerPattern"],
+    expandImport = __o2["expandImport"],
     unpackParameters = __o2["unpackParameters"],
     __o3 = require("../rewriter"),
     UP = __o3["UP"],
@@ -42,7 +43,8 @@ var __o = require("khepri-ast")["node"],
         return true;
     });
 peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-    return ((type(binding) === "ImportPattern") ? binding : innerPattern(binding.value, binding.pattern));
+    return ((type(binding) === "ImportPattern") ? expandImport(binding) : innerPattern(binding.value,
+        binding.pattern));
 })), (function(node) {
     return modify(node, ({
         bindings: flattenr(map(expandBinding, node.bindings))

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/state.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "../fun", "../lexical/scope"], (function(require, exports, record, __o,
+*/
+define(["require", "exports", "bes/record", "../fun", "../lexical/scope"], (function(require, exports, record, __o,
     scope) {
     "use strict";
     var concat = __o["concat"],

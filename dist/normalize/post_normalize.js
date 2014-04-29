@@ -12,6 +12,7 @@
         flattenr = __o1["flattenr"],
         map = __o1["map"],
         innerPattern = __o2["innerPattern"],
+        expandImport = __o2["expandImport"],
         unpackParameters = __o2["unpackParameters"],
         UP = __o3["UP"],
         DOWN = __o3["DOWN"],
@@ -38,8 +39,8 @@
             return true;
         });
     peepholes.add(["LetExpression", "WithStatement"], UP, always, ((expandBinding = (function(binding) {
-        return ((type(binding) === "ImportPattern") ? binding : innerPattern(binding.value,
-            binding.pattern));
+        return ((type(binding) === "ImportPattern") ? expandImport(binding) : innerPattern(
+            binding.value, binding.pattern));
     })), (function(node) {
         return modify(node, ({
             bindings: flattenr(map(expandBinding, node.bindings))

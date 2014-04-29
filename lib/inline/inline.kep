@@ -753,6 +753,9 @@ addRewrite@'LetExpression' <| seq(
         modify (.body)));
 
 // Pattern
+addRewrite@'ImportPattern' <|
+    visitChild 'pattern';
+
 addRewrite@'ArgumentsPattern' <| seq(
     visitChild 'id',
     visitChild 'elements',

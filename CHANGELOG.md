@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.5.11 - April 28, 2014
+* Fixed arguments and self unpacks not being properly renamed during transform.
+
 ## 0.5.10 - April 23, 2014
 * Fixed composen potentially be inlined incorrectly when it is not the first
   function called.

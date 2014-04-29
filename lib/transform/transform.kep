@@ -24,7 +24,8 @@ with
     import 'akh::trans::statei' StateT,
     import 'akh::base' {
         liftM2
-        'sequence': seq},
+        'sequence': seq,
+        sequencea},
     
     import 'zipper-m::trans::tree' TreeZipperT,
     import 'zipper-m::walk' walk,
@@ -48,16 +49,19 @@ with
         expandBinding
         expandBindings
         expandArgumentsPattern},
-
     import './state' state#{State},
     
     import './package_manager/amd' _,
     import './package_manager/node' _
 in {
 
+/* Forward
+ ******************************************************************************/
+var _trans;
+
 /* Monad
  ******************************************************************************/
-var M = TreeZipperT (StateT Unique);
+var M := TreeZipperT (StateT Unique);
 
 var run = \m s ctx seed ->
     Unique.runUnique(
@@ -66,11 +70,11 @@ var run = \m s ctx seed ->
             s),
         seed);
 
-var pass = M.of null;
+var pass := M.of null;
 
-var cons = liftM2 @ concat;
+var cons := liftM2 @ concat;
 
-var enumeration = foldr@(flip cons, M.of []);
+var enumeration := foldr@(flip cons, M.of []);
 
 /* Operations
  ******************************************************************************/
@@ -94,6 +98,24 @@ var withNode = M.chain @ node;
 
 var modify = M.modifyNode;
 var set = M.setNode;
+
+var up = M.up;
+var down = M.down;
+var right = M.right;
+
+var moveChild = M.child;
+
+var child := \edge ...actions ->
+    seq(
+        moveChild edge,
+        sequencea actions,
+        up);
+
+var checkTop := node.chain \ x -> _trans x; // forward
+
+var checkChild := \edge ->
+    child(edge,
+        checkTop);
 
 // Scoping Operations
 ////////////////////////////////////////
@@ -164,12 +186,6 @@ var addBindingsForBindingsList :=
     \> map @ ((.pattern) \> (.id) \> getUid)
     \> addBindings;
 
-/* Forward
- ******************************************************************************/
-var _trans;
-
-var _transform = withNode \node -> _trans(node); // Late
-
 /* Values
  ******************************************************************************/
 var identifier = \loc, name ->
@@ -194,7 +210,7 @@ var idsToDeclarators :=
  */
 var bindingToDeclarator = \x ->
     variableDeclarator(null,
-        x.pattern,
+        x.pattern.id,
         x.value);
 
 /**
@@ -208,7 +224,7 @@ var unpack = expandBinding \> map @ bindingToDeclarator;
 var unpackAssign =
     expandBinding
     \> map @ \x ->
-        ecma_expression.AssignmentExpression.create(null, '=', x.pattern, x.value);
+        ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
 
 /* Statements
  ******************************************************************************/
@@ -228,16 +244,9 @@ in
 /**
  * With statement translation.
  */
-var withStatement = \packageManager, loc, bindings, body -> let
-    flattenImport = \imp ->
-        ?type imp === 'ImportPattern'
-            :khepri_declaration.Binding.create(null,
-                imp.pattern,
-                packageManager.importPackage(imp.from.value))
-            :imp
-in
+var withStatement = \packageManager, loc, bindings, body ->
     withStatementNoImport(loc,
-        map(flattenImport, bindings),
+        bindings,
         body);
 
 /* Expressions
@@ -289,10 +298,10 @@ var curryExpression = \loc base args ->
  ******************************************************************************/
 var packageBlock = let
     filterImports =
-        filter @ (type \> (===, 'ImportPattern')),
+        filter @ ((.value) \> type \> (===, 'Import')),
     
     getImports =
-        filter @ (type \> (!==, 'ImportPattern'))
+        filter @ ((.value) \> type \> (!==, 'Import'))
 in
     \packageManager loc exports body -> let
         imports =
@@ -302,7 +311,7 @@ in
         
         targets =
             reduce(imports, \p c -> {
-                p.(c.from.value) = c.pattern;
+                p.(c.value.from) = c.pattern.id;
                 return p;
             }, {}),
         
@@ -323,136 +332,150 @@ in
  ******************************************************************************/
 var transformers = {};
 
-var addTransform = \type pre post -> {
-    if (Array.isArray(type))
-        return type.map \ x -> addTransform(x, pre, post);
-    
-   transformers.(type) = { pre: pre, post: post };
+var addTransform = \type check -> {
+    if (Array.isArray type)
+        type.forEach \ x -> addTransform(x, check);
+    else
+        transformers.(type) = check;
 };
 
+var _transform = withNode \node -> _trans(node); // Late
+
 // Declarations
-addTransform('VariableDeclaration',
-    null,
+addTransform@'VariableDeclaration' <| seq(
+    checkChild 'declarations',
     modify \ {loc declarations} ->
         ecma_declaration.VariableDeclaration.create(loc,
             declarations));
 
-addTransform('VariableDeclarator',
-    null,
+addTransform@'VariableDeclarator' <| seq(
+    checkChild 'id',
+    checkChild 'init',
     modify \ node ->
         ecma_declaration.VariableDeclarator.create(node.loc,
             node.id,
             node.init));
 
-addTransform('StaticDeclaration',
+addTransform@'StaticDeclaration' <|
     modify \ {loc} ->
-        ecma_statement.EmptyStatement.create(loc));
+        ecma_statement.EmptyStatement.create(loc);
 
 // Clauses
-addTransform('CatchClause',
-    null,
+addTransform@'CatchClause' <| seq(
+    checkChild 'param',
+    checkChild 'body',
     modify \ node ->
         ecma_clause.CatchClause.create(node.loc,
             node.param,
             node.body));
 
-addTransform('SwitchCase',
-    null,
+addTransform@'SwitchCase' <| seq(
+    checkChild 'test',
+    checkChild 'consequent',
     modify \ node ->
         ecma_clause.SwitchCase.create(node.loc,
             node.test,
             node.consequent));
 
 // Statement
-addTransform('BlockStatement',
+addTransform@'BlockStatement' <| seq(
     pushBindings,
-    seq(
-        getBindings \ bindings ->
-            modify \ node ->
-                ecma_statement.BlockStatement.create(node.loc,
-                    concat(
-                        idsToDeclarators(bindings),
-                        node.body)),
-        popBindings));
+    checkChild 'body',
+    getBindings \ bindings ->
+        modify \ node ->
+            ecma_statement.BlockStatement.create(node.loc,
+                concat(
+                    idsToDeclarators(bindings),
+                    node.body)),
+    popBindings);
 
-addTransform('ExpressionStatement',
-    null,
+addTransform@'ExpressionStatement' <| seq(
+    checkChild 'expression',
     modify \ node ->
         ecma_statement.ExpressionStatement.create(node.loc,
             node.expression));
 
-addTransform('IfStatement',
-    null,
+addTransform@'IfStatement' <| seq(
+    checkChild 'test',
+    checkChild 'consequent',
+    checkChild 'alternate',
     modify \ node ->
         ecma_statement.IfStatement.create(node.loc,
             node.test,
             node.consequent,
             node.alternate));
 
-addTransform('WithStatement',
-    seq(
-        packageManager.chain \ packageManager -> 
-            modify \ node ->
-                withStatement(
-                    packageManager,
-                    node.loc,
-                    node.bindings,
-                    node.body),
-        _transform));
+addTransform@'WithStatement' <| seq(
+    packageManager.chain \ packageManager -> 
+        modify \ node ->
+            withStatement(
+                packageManager,
+                node.loc,
+                node.bindings,
+                node.body),
+    _transform);
 
-addTransform('SwitchStatement',
-    null,
+addTransform@'SwitchStatement' <| seq(
+    checkChild 'discriminant',
+    checkChild 'cases',
     modify \ node ->
         ecma_statement.SwitchStatement.create(node.loc,
             node.discriminant,
             node.cases));
 
-addTransform('ReturnStatement',
-    null,
+addTransform@'ReturnStatement' <| seq(
+    checkChild 'argument',
     modify \ node ->
         ecma_statement.ReturnStatement.create(node.loc,
             node.argument));
 
-addTransform('ThrowStatement',
-    null,
+addTransform@'ThrowStatement' <| seq(
+    checkChild 'arguments',
     modify \ node ->
         ecma_statement.ThrowStatement.create(node.loc,
             node.argument));
 
-addTransform('BreakStatement',
+addTransform@'BreakStatement' <|
     modify \ node ->
         ecma_statement.BreakStatement.create(node.loc,
-            null));
+            null);
 
-addTransform('ContinueStatement',
+addTransform@'ContinueStatement' <|
     modify \ node ->
         ecma_statement.ContinueStatement.create(node.loc,
-            null));
+            null);
 
-addTransform('TryStatement',
-    null,
+addTransform@'TryStatement' <| seq(
+    checkChild 'block',
+    checkChild 'handler',
+    checkChild 'finalizer',
     modify \ node ->
         ecma_statement.TryStatement.create(node.loc,
             node.block,
             node.handler,
             node.finalizer));
 
-addTransform('WhileStatement',
-    null,
+addTransform@'WhileStatement' <| seq(
+    checkChild 'test',
+    checkChild 'body',
     modify \ node ->
         ecma_statement.WhileStatement.create(node.loc,
             node.test,
             node.body));
 
-addTransform('DoWhileStatement',
-    null,
+addTransform@'DoWhileStatement' <| seq(
+    checkChild 'body',
+    checkChild 'test',
     modify \ node ->
         ecma_statement.DoWhileStatement.create(node.loc,
             node.body,
             node.test));
 
-addTransform('ForStatement',
-    null,
+addTransform@'ForStatement' <| seq(
+    checkChild 'init',
+    checkChild 'test',
+    checkChild 'update',
+    checkChild 'body',
     modify \ node ->
         ecma_statement.ForStatement.create(node.loc,
             node.init,
@@ -461,16 +484,17 @@ addTransform('ForStatement',
             node.body));
 
 // Expression
-addTransform('AssignmentExpression',
-    null,
+addTransform@'AssignmentExpression' <| seq(
+    checkChild 'left',
+    checkChild 'right',
     modify \ node ->
         ecma_expression.AssignmentExpression.create(node.loc,
             '=',
             node.left,
             node.right));
 
-addTransform('UnaryExpression',
-    null,
+addTransform@'UnaryExpression' <|  seq(
+    checkChild 'argument',
     modify \ node ->
         ecma_expression.UnaryExpression.create(node.loc,
             ?node.operator === '++'
@@ -480,147 +504,170 @@ addTransform('UnaryExpression',
             :node.operator,
             node.argument));
 
-addTransform('BinaryExpression',
-    null,
+addTransform@'BinaryExpression' <| seq(
+    checkChild 'left',
+    checkChild 'right',
     modify \ node ->
         ecma_expression.BinaryExpression.create(node.loc,
             node.operator,
             node.left,
             node.right));
 
-addTransform('LogicalExpression',
-    null,
+addTransform@'LogicalExpression' <| seq(
+    checkChild 'left',
+    checkChild 'right',
     modify \ node ->
         ecma_expression.LogicalExpression.create(node.loc,
             node.operator,
             node.left,
             node.right));
 
-addTransform('ConditionalExpression',
-    null,
+addTransform@'ConditionalExpression' <| seq(
+    checkChild 'test',
+    checkChild 'consequent',
+    checkChild 'alternate',
     modify \ node ->
         ecma_expression.ConditionalExpression.create(node.loc,
             node.test,
             node.consequent,
             node.alternate));
 
-addTransform('NewExpression',
-    null,
+addTransform@'NewExpression' <| seq(
+    checkChild 'callee',
+    checkChild 'args',
     modify \ node ->
         ecma_expression.NewExpression.create(node.loc,
             node.callee,
             node.args));
 
-addTransform('CallExpression',
-    null,
+addTransform@'CallExpression' <| seq(
+    checkChild 'callee',
+    checkChild 'args',
     modify \ node ->
         ecma_expression.CallExpression.create(node.loc,
             node.callee,
             node.args));
 
-addTransform('MemberExpression',
-    null,
+addTransform@'MemberExpression' <| seq(
+    checkChild 'object',
+    checkChild 'property',
     modify \ node ->
         ecma_expression.MemberExpression.create(node.loc,
             node.object,
             node.property,
             node.computed));
 
-addTransform('LetExpression',
-    seq(
-        withNode(
-            (.bindings) \> addBindingsForBindingsList),
-        modify \ node ->
-            letExpression(node.loc,
-                node.bindings,
-                node.body)));
+addTransform@'LetExpression' <| seq(
+    withNode(
+        (.bindings) \> addBindingsForBindingsList),
+    checkChild 'body',
+    modify \ node ->
+        letExpression(node.loc,
+            node.bindings,
+            node.body));
 
-addTransform('CurryExpression',
+addTransform@'CurryExpression' <| seq(
+    checkChild 'base',
+    checkChild 'args',
     modify \ node ->
         curryExpression(node.loc,
             node.base,
             node.args));
 
-addTransform('FunctionExpression',
-    seq(
-        enterBlock,
-        modify \ node ->
-            functionExpression(node.loc,
-                node.id,
-                node.params,
-                node.body,
-                getUd('prefix', node))),
-    seq(
-        modify \ node ->
-            ecma_expression.FunctionExpression.create(null,
-                node.id,
-                node.params,
-                node.body),
-        exitBlock));
+addTransform@'FunctionExpression' <| seq(
+    enterBlock,
 
-addTransform('ArrayExpression',
-    null,
+    
+    modify \ node ->
+        functionExpression(node.loc,
+            node.id,
+            node.params,
+            node.body,
+            getUd('prefix', node)),
+    
+    checkChild 'id',
+    checkChild 'params',
+    checkChild 'body',
+
+    modify \ node ->
+        ecma_expression.FunctionExpression.create(null,
+            node.id,
+            node.params,
+            node.body),
+    exitBlock);
+
+addTransform@'ArrayExpression' <| seq(
+    checkChild 'elements',
     modify \ node ->
         ecma_expression.ArrayExpression.create(node.loc,
             node.elements));
 
-addTransform('ObjectExpression',
-    null,
+addTransform@'ObjectExpression' <| seq(
+    checkChild 'properties',
     modify \ node ->
         ecma_expression.ObjectExpression.create(node.loc,
             node.properties));
 
-addTransform('ObjectValue',
-    null,
+addTransform@'ObjectValue' <| seq(
+    checkChild 'key',
+    checkChild 'value',
     modify \ node ->
         ecma_value.ObjectValue.create(node.loc,
             node.key,
             node.value));
 
 // Patterns
-addTransform(['IdentifierPattern', 'AsPattern', 'ArgumentsPattern'],
-    null,
+addTransform@'ArgumentsPattern' <| seq(
+    checkChild 'id',
+    checkChild 'elements',
+    checkChild 'self');
+
+addTransform@['IdentifierPattern', 'AsPattern'] <| seq(
+    checkChild 'id',
     modify (.id));
 
-addTransform(['ObjectPattern', 'EllipsisPattern', 'SinkPattern'],
-    null,
+addTransform@['ObjectPattern', 'EllipsisPattern'] <| seq(
     modify (getUd @ 'id'));
 
 // Program
-addTransform('Program',
+addTransform@'Program' <|
     let
         useStrict =
             khepri_statement.ExpressionStatement.create(null,
                 khepri_value.Literal.create(null, 'string', "use strict"))
-    in
-        seq(
-            pushBindings,
-            modify \ node ->
-                ?type node.body === 'Package'
-                    :node
-                    :setData(node, 'prefix', useStrict)),
-        
-    getBindings \ bindings ->
-    modify \ node ->
-        ecma_program.Program.create(node.loc,
-            concat(
-                tryGetUd([], 'prefix', node),
-                idsToDeclarators(bindings),
-                node.body)));
+    in seq(
+        pushBindings,
+        modify \ node ->
+            ?type node.body === 'Package'
+                :node
+                :setData(node, 'prefix', useStrict),
+        checkChild 'body',
+        getBindings \ bindings ->
+        modify \ node ->
+            ecma_program.Program.create(node.loc,
+                concat(
+                    tryGetUd([], 'prefix', node),
+                    idsToDeclarators(bindings),
+                    node.body)));
 
 // Package
-addTransform('Package',
+addTransform@'Package' <| seq(
     packageManager.chain \ packageManager ->
     modify \ node ->
         packageBlock(
             packageManager,
             node.loc,
             node.exports,
-            node.body));
+            node.body),
+    _transform);
+
+addTransform@'Import' <|
+    packageManager.chain \ packageManager ->
+    modify \ node ->
+    packageManager.importPackage(node.from);
 
 // Value
-addTransform('Identifier',
-    null,
+addTransform@'Identifier' <|
     withNode \ node ->
         ?getUid node
             // When node has uid, get mapped name for uid.
@@ -630,25 +677,30 @@ addTransform('Identifier',
                     set <| identifier(node.loc, name))
         
         // When node has no uid, don't rename
-        :set <| identifier(node.loc, node.name));
+        :set <| identifier(node.loc, node.name);
 
 /*
  *****************************************************************************/
-_trans = \node ->
-    ?node instanceof khepri_node.Node
-        :let t = transformers.(type node) in
-            (t && t.pre) || pass
-    :pass;
+_trans  = \node -> {
+    if (Array.isArray(node)) {
+        if (!node.length)
+            return pass;
+        
+        return seq(
+            down,
+            sequencea(node.map\_ i -> 
+                ?i === node.length - 1
+                    :checkTop
+                    :seq(checkTop, right)),
+            up);
+    }
+    
+    //if (!(node instanceof khepri_node.Node)) return pass;
+    
+    return (transformers.(type node) || pass);
+};
 
-var _transp = \node ->
-    ?node instanceof khepri_node.Node
-        :let t = transformers.(type node) in
-            (t && t.post) || pass
-    :pass;
-
-var _transformPost := withNode _transp;
-
-var rewrite := walk(M, _transform, _transformPost);
+var rewrite := checkTop;
 
 var transformProgram := seq(
     addVar('require', getUid(builtins.require)),

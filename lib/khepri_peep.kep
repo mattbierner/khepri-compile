@@ -121,7 +121,8 @@ peepholes.add('ReturnStatement', false,
         ast_statement.WithStatement.create(null,
             node.argument.bindings,
             ast_statement.BlockStatement.create(null, [
-                ast_statement.ReturnStatement.create(node.loc, node.argument.body)])));
+                ast_statement.ReturnStatement.create(node.loc,
+                    node.argument.body)])));
 
 /**
  * Rewrite `\...-> let` to a with statement.
@@ -137,7 +138,8 @@ peepholes.add('FunctionExpression', DOWN,
                 ast_statement.WithStatement.create(null,
                     node.body.bindings,
                     ast_statement.BlockStatement.create(null, [
-                        ast_statement.ReturnStatement.create(node.loc, node.body.body)]))])));
+                        ast_statement.ReturnStatement.create(node.loc,
+                            node.body.body)]))])));
 
 /**
  * Rewrite top level let expressions to with statements.
@@ -149,7 +151,8 @@ peepholes.add('ExpressionStatement', UP,
         ast_statement.WithStatement.create(null,
             node.expression.bindings,
             ast_statement.BlockStatement.create(null, [
-                ast_statement.ExpressionStatement.create(node.loc, node.expression.body)])));
+                ast_statement.ExpressionStatement.create(node.loc,
+                    node.expression.body)])));
 
 /**
  * Rewrite top level assign to let expressions to with statements.

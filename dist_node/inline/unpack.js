@@ -9,6 +9,7 @@ var ast_expression = require("khepri-ast")["expression"],
     __o = require("../pseudo/pattern"),
     SliceUnpack = __o["SliceUnpack"],
     RelativeUnpack = __o["RelativeUnpack"],
+    Import = __o["Import"],
     __o0 = require("../ast"),
     type = __o0["type"],
     fun = require("../fun"),
@@ -16,7 +17,7 @@ var ast_expression = require("khepri-ast")["expression"],
     flatten = fun["flatten"],
     flattenr = fun["flattenr"],
     map = fun["map"],
-    innerPattern, unpackParameters, relativeUnpack = (function(target, start, indx, pattern) {
+    innerPattern, unpackParameters, expandImport, relativeUnpack = (function(target, start, indx, pattern) {
         return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
     }),
     sliceUnpack = (function(target, id, from, to) {
@@ -68,5 +69,9 @@ var ast_expression = require("khepri-ast")["expression"],
         }
     }), elements));
 }));
+(expandImport = (function(imp) {
+    return flatten(innerPattern(Import.create(null, imp.from.value), imp.pattern));
+}));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);
+(exports["expandImport"] = expandImport);

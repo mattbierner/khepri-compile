@@ -7,12 +7,13 @@
     "use strict";
     var SliceUnpack = __o["SliceUnpack"],
         RelativeUnpack = __o["RelativeUnpack"],
+        Import = __o["Import"],
         type = __o0["type"],
         concat = fun["concat"],
         flatten = fun["flatten"],
         flattenr = fun["flattenr"],
         map = fun["map"],
-        innerPattern, unpackParameters, relativeUnpack = (function(target, start, indx, pattern) {
+        innerPattern, unpackParameters, expandImport, relativeUnpack = (function(target, start, indx, pattern) {
             return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
         }),
         sliceUnpack = (function(target, id, from, to) {
@@ -64,6 +65,10 @@
             }
         }), elements));
     }));
+    (expandImport = (function(imp) {
+        return flatten(innerPattern(Import.create(null, imp.from.value), imp.pattern));
+    }));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);
+    (exports["expandImport"] = expandImport);
 }));

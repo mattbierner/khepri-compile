@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/amd.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     __o = require("khepri-ast")["node"],
@@ -45,7 +44,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
         packageBody = setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
             .create(null, null, concat(ast_pattern.IdentifierPattern.create(null, builtins.require),
                 ast_pattern.IdentifierPattern.create(null, builtins.exports), map(imports, (function(x) {
-                    return targets[x.from.value];
+                    return targets[x.value.from];
                 })))), ast_statement.BlockStatement.create(body.loc, concat(exportHeader, body, exportBody))
         ), "prefix", [ast_statement.ExpressionStatement.create(null, ast_value.Literal.create(null,
             "string", "use strict"))]);
@@ -53,7 +52,7 @@ var ast_declaration = require("khepri-ast")["declaration"],
         .create(null, "define"), [ast_expression.ArrayExpression.create(null, concat(ast_value.Literal.create(
                 null, "string", "require"), ast_value.Literal.create(null, "string", "exports"),
             map(imports, (function(x) {
-                return ast_value.Literal.create(null, "string", path(x.from.value));
+                return ast_value.Literal.create(null, "string", path(x.value.from));
             })))), packageBody]));
 }));
 (exports["definePackage"] = definePackage);

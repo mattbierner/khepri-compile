@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pseudo/pattern.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pseudo/pattern.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern"], (function(require, exports, __o, __o0) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern"], (function(require, exports, __o, __o0) {
     "use strict";
     var defineNode = __o["defineNode"],
         Node = __o["Node"],
         Pattern = __o0["Pattern"],
-        RelativeUnpack, SliceUnpack;
+        RelativeUnpack, SliceUnpack, Import;
     (RelativeUnpack = defineNode(Pattern, "RelativeUnpack", ["pattern", "target"], ["index", "min"], (function(
         loc, pattern, target, index, min) {
         var self = this;
@@ -26,6 +25,12 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern"], (functio
         (self.from = from);
         (self.to = to);
     })));
+    (Import = defineNode(Pattern, "Import", [], ["from"], (function(loc, from) {
+        var self = this;
+        Node.call(self, loc);
+        (self.from = from);
+    })));
     (exports["RelativeUnpack"] = RelativeUnpack);
     (exports["SliceUnpack"] = SliceUnpack);
+    (exports["Import"] = Import);
 }));

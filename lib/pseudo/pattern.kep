@@ -1,6 +1,8 @@
 package (
     RelativeUnpack
-    SliceUnpack)
+    SliceUnpack
+    
+    Import)
 with
     import 'khepri-ast::node'{defineNode Node},
     import 'khepri-ast::pattern' {Pattern}
@@ -28,5 +30,14 @@ SliceUnpack = defineNode(Pattern, 'SliceUnpack',
         self.from = from;
         self.to = to;
     });
+
+Import = defineNode(Pattern, 'Import',
+    [],
+    ['from'],
+    function \loc from =self-> {
+        Node.call(self, loc);
+        self.from = from;
+    });
+
 
 }
