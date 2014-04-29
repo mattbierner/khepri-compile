@@ -17,7 +17,7 @@ with
         concat
         flatten
         map},
-    import '../inline/unpack' {
+    import '../normalize/unpack' {
         innerPattern
         unpackParameters}
 in {

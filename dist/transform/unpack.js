@@ -1,9 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "../ast", "../fun", "../inline/unpack"
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
+    "khepri-ast/value", "../ast", "../fun", "../normalize/unpack"
 ], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1) {
     "use strict";
     var type = __o["type"],

@@ -52,11 +52,12 @@ var peepholes = new Rewriter();
 
 var always := \_ -> true;
 
-
 /* Binding Expansion
  ******************************************************************************/
 /**
  * Expand import patterns to a binding to an import.
+ * 
+ * Imports are marked reserved so they will not be pruned.
  */
 peepholes.add('ImportPattern', UP,
     always,
