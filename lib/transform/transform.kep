@@ -1,5 +1,7 @@
 /**
  * @fileOverview
+ * 
+ * @TODO: move all translation specific logic out of this file.
  */
 package (
     transform)
@@ -7,19 +9,10 @@ with
     import 'ecma-ast::clause' ecma_clause,
     import 'ecma-ast::declaration' ecma_declaration,
     import 'ecma-ast::expression' ecma_expression,
-    import 'ecma-ast::node' ecma_node,
-    import 'ecma-ast::program' ecma_program,
     import 'ecma-ast::statement' ecma_statement,
-    import 'ecma-ast::value'ecma_value,
+    import 'ecma-ast::value' ecma_value,
     
     import 'ecma-ast-zipper' {ecmaZipper},
-    
-    import 'khepri-ast::declaration' khepri_declaration,
-    import 'khepri-ast::expression' khepri_expression,
-    import 'khepri-ast::node' khepri_node#{setData 'modify': modifyNode},
-    import 'khepri-ast::statement' khepri_statement,
-    import 'khepri-ast::pattern' khepri_pattern,
-    import 'khepri-ast::value' khepri_value,
     
     import 'akh::unique' Unique,
     import 'akh::trans::statei' StateT,
@@ -32,25 +25,22 @@ with
     
     import '../ast' {
         type
-        tryGetUd
         getUd
+        setUd
         getUid
         setUid},
     import '../lexical/scope' scope#{Scope},
-    import '../fun' fun#{
+    import '../fun' {
         concat
         flatten
         flip
-        filter
         foldr
-        map
-        reduce},
+        map},
     import '../builtin' {builtins},
     import './unpack' {
-        expandBinding
-        expandBindings
-        expandArgumentsPattern},
+        expandBindings},
     import './state' state#{State},
+    import './translation' translation,
     
     import './package_manager/amd' _,
     import './package_manager/node' _
@@ -194,133 +184,6 @@ var identifier = \loc, name uid ->
         uid,
         ecma_value.Identifier.create(loc, name));
 
-/* Declaration
- ******************************************************************************/
-var variableDeclaration = khepri_declaration.VariableDeclaration.create;
-
-var variableDeclarator = ecma_declaration.VariableDeclarator.create;
-
-var idsToDeclarators :=
-    map @ \x ->
-        x && ecma_declaration.VariableDeclarator.create(null,
-            identifier(null, x)) §
-    \> ecma_declaration.VariableDeclaration.create @ null;
-
-/* Unpacks
- ******************************************************************************/
-/**
- * Convert a binding to a variable declarator.
- */
-var bindingToDeclarator = \x ->
-    variableDeclarator(null,
-        x.pattern.id,
-        x.value);
-
-/**
- * Expand a binding to a list of variable declarations.
- */
-var unpack = expandBinding \> map @ bindingToDeclarator;
-
-/**
- * Expand an binding to a list of assignments.
- */
-var unpackAssign =
-    expandBinding
-    \> map @ \x ->
-        ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
-
-/* Translations
- ******************************************************************************/
-/**
- * With statement translation.
- */
-var withStatement = \loc bindings body -> let
-    vars = flatten <| map(unpack, bindings),
-    
-    prefix = variableDeclaration(null, vars)
-in
-    khepri_statement.BlockStatement.create(loc,
-        concat(
-            prefix,
-            body.body));
-
-/**
- * Function Expression Normalization.
- */
-var functionExpression = \loc id parameters functionBody prefix -> let
-    params = parameters.elements,
-    
-    bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
-        |> map @ bindingToDeclarator,
-    
-    body = ?type functionBody === "BlockStatement"
-        :functionBody.body
-        :khepri_statement.ReturnStatement.create(null, functionBody)
-in
-    khepri_expression.FunctionExpression.create(loc,
-        id,
-        params,
-        khepri_statement.BlockStatement.create(body.loc,
-            concat(
-                (prefix || []),
-                variableDeclaration(null, bindings),
-                body)));
-
-/**
- * Let expression normalization.
- */
-var letExpression = \loc bindings body ->
-    ecma_expression.SequenceExpression.create(null,
-        flatten concat(
-            map(unpackAssign, bindings),
-            body));
-
-/**
- * Curry expression translation.
- */
-var curryExpression = \loc base args ->
-    ecma_expression.CallExpression.create(loc,
-        ecma_expression.MemberExpression.create(null,
-            base,
-            identifier(null, 'bind')),
-        concat(
-            ecma_value.Literal.create(null, 'null', null),
-            args));
-
-/* Package
- ******************************************************************************/
-var packageBlock = let
-    filterImports =
-        filter @ ((.value) \> type \> (===, 'Import')),
-    
-    getImports =
-        filter @ ((.value) \> type \> (!==, 'Import'))
-in
-    \packageManager loc exports body -> let
-        imports =
-            ?type body === 'WithStatement'
-                :filterImports body.bindings
-                :[],
-        
-        targets =
-            reduce(imports, \p c -> {
-                p.(c.value.from) = c.pattern.id;
-                return p;
-            }, {}),
-        
-        fBody =
-            ?type body === 'WithStatement'
-                :khepri_statement.WithStatement.create(null,
-                    getImports body.bindings,
-                    body.body)
-                :body
-    in
-        packageManager.definePackage(loc,
-            exports,
-            imports,
-            targets,
-            fBody);
-
 /* Transforms
  ******************************************************************************/
 var transformers = {};
@@ -380,11 +243,7 @@ addTransform@'BlockStatement' <| seq(
     pushBindings,
     checkChild 'body',
     getBindings \ bindings ->
-        modify \ node ->
-            ecma_statement.BlockStatement.create(node.loc,
-                concat(
-                    idsToDeclarators(bindings),
-                    node.body)),
+        modify (translation.blockStatement @ bindings),
     popBindings);
 
 addTransform@'ExpressionStatement' <| seq(
@@ -404,12 +263,13 @@ addTransform@'IfStatement' <| seq(
             node.alternate));
 
 addTransform@'WithStatement' <| seq(
+    checkChild 'bindings',
+    checkChild 'body',
     modify \ node ->
-        withStatement(
+        translation.withStatement(
             node.loc,
             node.bindings,
-            node.body),
-        _transform);
+            node.body));
 
 addTransform@'SwitchStatement' <| seq(
     checkChild 'discriminant',
@@ -483,82 +343,49 @@ addTransform@'ForStatement' <| seq(
 addTransform@'AssignmentExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify \ node ->
-        ecma_expression.AssignmentExpression.create(node.loc,
-            '=',
-            node.left,
-            node.right));
+    modify (translation.assignmentExpression));
 
 addTransform@'UnaryExpression' <| seq(
     checkChild 'argument',
-    modify \ node ->
-        ecma_expression.UnaryExpression.create(node.loc,
-            ?node.operator === '++'
-                :'+'
-            :?node.operator === '--'
-                :'-'
-            :node.operator,
-            node.argument));
+    modify (translation.unaryExpression));
 
 addTransform@'BinaryExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify \ node ->
-        ecma_expression.BinaryExpression.create(node.loc,
-            node.operator,
-            node.left,
-            node.right));
+    modify (translation.binaryExpression));
 
 addTransform@'LogicalExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify \ node ->
-        ecma_expression.LogicalExpression.create(node.loc,
-            node.operator,
-            node.left,
-            node.right));
+    modify (translation.logicalExpression));
 
 addTransform@'ConditionalExpression' <| seq(
     checkChild 'test',
     checkChild 'consequent',
     checkChild 'alternate',
-    modify \ node ->
-        ecma_expression.ConditionalExpression.create(node.loc,
-            node.test,
-            node.consequent,
-            node.alternate));
+    modify (translation.conditionalExpression));
 
 addTransform@'NewExpression' <| seq(
     checkChild 'callee',
     checkChild 'args',
-    modify \ node ->
-        ecma_expression.NewExpression.create(node.loc,
-            node.callee,
-            node.args));
+    modify (translation.newExpression));
 
 addTransform@'CallExpression' <| seq(
     checkChild 'callee',
     checkChild 'args',
-    modify \ node ->
-        ecma_expression.CallExpression.create(node.loc,
-            node.callee,
-            node.args));
+    modify (translation.callExpression));
 
 addTransform@'MemberExpression' <| seq(
     checkChild 'object',
     checkChild 'property',
-    modify \ node ->
-        ecma_expression.MemberExpression.create(node.loc,
-            node.object,
-            node.property,
-            node.computed));
+    modify (translation.memberExpression));
 
 addTransform@'LetExpression' <| seq(
     checkChild 'bindings',
     withNode ((.bindings) \> addBindingsForBindingsList),
     checkChild 'body',
     modify \ node ->
-        letExpression(node.loc,
+        translation.letExpression(node.loc,
             node.bindings,
             node.body));
 
@@ -566,20 +393,20 @@ addTransform@'CurryExpression' <| seq(
     checkChild 'base',
     checkChild 'args',
     modify \ node ->
-        curryExpression(node.loc,
+        translation.curryExpression(node.loc,
             node.base,
             node.args));
 
 addTransform@'FunctionExpression' <| seq(
     enterBlock,
+    checkChild 'id',
     modify \ node ->
-        functionExpression(node.loc,
+        translation.functionExpression(node.loc,
             node.id,
             node.params,
             node.body,
             getUd('prefix', node)),
     
-    checkChild 'id',
     checkChild 'params',
     checkChild 'body',
     
@@ -611,13 +438,8 @@ addTransform@'ObjectValue' <| seq(
             node.value));
 
 // Patterns
-addTransform@['RelativeUnpack', 'SliceUnpack'] <| seq(
-    checkChild 'pattern',
-    checkChild 'target',
-    modify \ node ->
-        modifyNode(node, {
-            pattern: khepri_pattern.IdentifierPattern.create(null, node.pattern)
-        }));
+addTransform@['RelativeUnpack', 'SliceUnpack'] <|
+    checkChild 'target';
 
 addTransform@'ArgumentsPattern' <| seq(
     checkChild 'id',
@@ -635,38 +457,37 @@ addTransform@['ObjectPattern', 'EllipsisPattern'] <| seq(
 addTransform@'Program' <|
     let
         useStrict =
-            khepri_statement.ExpressionStatement.create(null,
-                khepri_value.Literal.create(null, 'string', "use strict"))
+            ecma_statement.ExpressionStatement.create(null,
+                ecma_value.Literal.create(null, 'string', "use strict"))
     in seq(
         pushBindings,
+        
+        // Add 'use strict' header to non-package programs.
         modify \ node ->
             ?type node.body === 'Package'
                 :node
-                :setData(node, 'prefix', useStrict),
+                :setUd('prefix', useStrict, node),
+        
         checkChild 'body',
         getBindings \ bindings ->
-        modify \ node ->
-            ecma_program.Program.create(node.loc,
-                concat(
-                    tryGetUd([], 'prefix', node),
-                    idsToDeclarators(bindings),
-                    node.body)));
+            modify (translation.program @ bindings));
 
 // Package
 addTransform@'Package' <| seq(
     packageManager.chain \ packageManager ->
     modify \ node ->
-        packageBlock(
+        translation.packageBlock(
             packageManager,
             node.loc,
             node.exports,
             node.body),
-    _transform);
+    
+    // the package managers are expressed in khepri code so we have to translate the output
+    _transform); 
 
 addTransform@'Import' <|
     packageManager.chain \ packageManager ->
-    modify \ node ->
-    packageManager.importPackage(node.from);
+        modify ((.from) \> packageManager.importPackage);
 
 // Value
 addTransform@'Identifier' <|

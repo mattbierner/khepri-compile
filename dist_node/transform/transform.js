@@ -5,20 +5,10 @@
 var ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
     ecma_expression = require("ecma-ast")["expression"],
-    ecma_node = require("ecma-ast")["node"],
-    ecma_program = require("ecma-ast")["program"],
     ecma_statement = require("ecma-ast")["statement"],
     ecma_value = require("ecma-ast")["value"],
     __o = require("ecma-ast-zipper"),
     ecmaZipper = __o["ecmaZipper"],
-    khepri_declaration = require("khepri-ast")["declaration"],
-    khepri_expression = require("khepri-ast")["expression"],
-    khepri_node = require("khepri-ast")["node"],
-    setData = khepri_node["setData"],
-    modifyNode = khepri_node["modify"],
-    khepri_statement = require("khepri-ast")["statement"],
-    khepri_pattern = require("khepri-ast")["pattern"],
-    khepri_value = require("khepri-ast")["value"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["statei"],
     __o0 = require("akh")["base"],
@@ -28,32 +18,28 @@ var ecma_clause = require("ecma-ast")["clause"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
     __o1 = require("../ast"),
     type = __o1["type"],
-    tryGetUd = __o1["tryGetUd"],
     getUd = __o1["getUd"],
+    setUd = __o1["setUd"],
     getUid = __o1["getUid"],
     setUid = __o1["setUid"],
     scope = require("../lexical/scope"),
     Scope = scope["Scope"],
-    fun = require("../fun"),
-    concat = fun["concat"],
-    flatten = fun["flatten"],
-    flip = fun["flip"],
-    filter = fun["filter"],
-    foldr = fun["foldr"],
-    map = fun["map"],
-    reduce = fun["reduce"],
-    __o2 = require("../builtin"),
-    builtins = __o2["builtins"],
-    __o3 = require("./unpack"),
-    expandBinding = __o3["expandBinding"],
-    expandBindings = __o3["expandBindings"],
-    expandArgumentsPattern = __o3["expandArgumentsPattern"],
+    __o2 = require("../fun"),
+    concat = __o2["concat"],
+    flatten = __o2["flatten"],
+    flip = __o2["flip"],
+    foldr = __o2["foldr"],
+    map = __o2["map"],
+    __o3 = require("../builtin"),
+    builtins = __o3["builtins"],
+    __o4 = require("./unpack"),
+    expandBindings = __o4["expandBindings"],
     state = require("./state"),
     State = state["State"],
+    translation = require("./translation"),
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
-    transform, x, y, f, f0, y0, y1, x0, x1, x2, y2, y3, x3, y4, x4, y5, x5, y6, filterImports, getImports, x6, x7,
-        __args, actions, __args0, actions0, __args, actions, __args, actions, __args, actions, __args, actions, __args,
+    transform, x, y, f, f0, y0, y1, x0, x1, x2, y2, y3, __args, actions, __args0, actions0, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
@@ -62,8 +48,9 @@ var ecma_clause = require("ecma-ast")["clause"],
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
-        actions, __args, actions, __args, actions, __args, actions, __args, actions, useStrict, __args, actions, uid,
-        f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
+        actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
+        __args, actions, __args, actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(
+            Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
     }),
@@ -137,69 +124,10 @@ var ecma_clause = require("ecma-ast")["clause"],
     identifier = (function(loc, name, uid) {
         return setUid(uid, ecma_value.Identifier.create(loc, name));
     }),
-    variableDeclaration = khepri_declaration.VariableDeclaration.create,
-    variableDeclarator = ecma_declaration.VariableDeclarator.create,
-    idsToDeclarators = ((x3 = map.bind(null, (function(x4) {
-        return (x4 && ecma_declaration.VariableDeclarator.create(null, identifier(null, x4)));
-    }))), (y4 = ecma_declaration.VariableDeclaration.create.bind(null, null)), (function(z) {
-        return y4(x3(z));
-    })),
-    bindingToDeclarator = (function(x4) {
-        return variableDeclarator(null, x4.pattern.id, x4.value);
-    }),
-    unpack = ((x4 = expandBinding), (y5 = map.bind(null, (function(x5) {
-        return variableDeclarator(null, x5.pattern.id, x5.value);
-    }))), (function(z) {
-        return y5(x4(z));
-    })),
-    unpackAssign = ((x5 = expandBinding), (y6 = map.bind(null, (function(x6) {
-        return ecma_expression.AssignmentExpression.create(null, "=", x6.pattern.id, x6.value);
-    }))), (function(z) {
-        return y6(x5(z));
-    })),
-    withStatement = (function(loc, bindings, body) {
-        var vars = flatten(map(unpack, bindings)),
-            prefix = variableDeclaration(null, vars);
-        return khepri_statement.BlockStatement.create(loc, concat(prefix, body.body));
-    }),
-    functionExpression = (function(loc, id, parameters, functionBody, prefix) {
-        var params = parameters.elements,
-            bindings = map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(
-                null))),
-            body = ((type(functionBody) === "BlockStatement") ? functionBody.body : khepri_statement.ReturnStatement
-                .create(null, functionBody));
-        return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
-            body.loc, concat((prefix || []), variableDeclaration(null, bindings), body)));
-    }),
-    letExpression = (function(loc, bindings, body) {
-        return ecma_expression.SequenceExpression.create(null, flatten(concat(map(unpackAssign, bindings), body)));
-    }),
-    curryExpression = (function(loc, base, args) {
-        return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null, base,
-            identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
-    }),
-    packageBlock = ((filterImports = filter.bind(null, ((x6 = type), (function(z) {
-        var z0 = z.value,
-            y7 = x6(z0);
-        return ("Import" === y7);
-    })))), (getImports = filter.bind(null, ((x7 = type), (function(z) {
-        var z0 = z.value,
-            y7 = x7(z0);
-        return ("Import" !== y7);
-    })))), (function(packageManager0, loc, exports0, body) {
-        var imports = ((type(body) === "WithStatement") ? filterImports(body.bindings) : []),
-            targets = reduce(imports, (function(p, c) {
-                (p[c.value.from] = c.pattern.id);
-                return p;
-            }), ({})),
-            fBody = ((type(body) === "WithStatement") ? khepri_statement.WithStatement.create(null, getImports(
-                body.bindings), body.body) : body);
-        return packageManager0.definePackage(loc, exports0, imports, targets, fBody);
-    })),
     transformers = ({}),
     addTransform = (function(type0, check) {
-        if (Array.isArray(type0)) type0.forEach((function(x8) {
-            return addTransform(x8, check);
+        if (Array.isArray(type0)) type0.forEach((function(x3) {
+            return addTransform(x3, check);
         }));
         else {
             (transformers[type0] = check);
@@ -209,9 +137,9 @@ var ecma_clause = require("ecma-ast")["clause"],
         return _trans(node0);
     }));
 addTransform("VariableDeclaration", seq(((__args = ["declarations", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("declarations"), sequencea(actions), up)), modify((function(__o4) {
-    var loc = __o4["loc"],
-        declarations = __o4["declarations"];
+    seq(moveChild("declarations"), sequencea(actions), up)), modify((function(__o5) {
+    var loc = __o5["loc"],
+        declarations = __o5["declarations"];
     return ecma_declaration.VariableDeclaration.create(loc, declarations);
 }))));
 addTransform("Binding", seq(((__args0 = ["pattern", ((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
@@ -223,8 +151,8 @@ addTransform("VariableDeclarator", seq(((__args = ["id", checkTop]), (actions = 
     1)), seq(moveChild("init"), sequencea(actions), up)), modify((function(node0) {
     return ecma_declaration.VariableDeclarator.create(node0.loc, node0.id, node0.init);
 }))));
-addTransform("StaticDeclaration", modify((function(__o4) {
-    var loc = __o4["loc"];
+addTransform("StaticDeclaration", modify((function(__o5) {
+    var loc = __o5["loc"];
     return ecma_statement.EmptyStatement.create(loc);
 })));
 addTransform("CatchClause", seq(((__args = ["param", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
@@ -239,10 +167,7 @@ addTransform("SwitchCase", seq(((__args = ["test", checkTop]), (actions = [].sli
 }))));
 addTransform("BlockStatement", seq(pushBindings, ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("body"), sequencea(actions), up)), getBindings((function(bindings) {
-    return modify((function(node0) {
-        return ecma_statement.BlockStatement.create(node0.loc, concat(idsToDeclarators(bindings),
-            node0.body));
-    }));
+    return modify(translation.blockStatement.bind(null, bindings));
 })), popBindings));
 addTransform("ExpressionStatement", seq(((__args = ["expression", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("expression"), sequencea(actions), up)), modify((function(node0) {
@@ -254,9 +179,11 @@ addTransform("IfStatement", seq(((__args = ["test", checkTop]), (actions = [].sl
     .call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify((function(node0) {
     return ecma_statement.IfStatement.create(node0.loc, node0.test, node0.consequent, node0.alternate);
 }))));
-addTransform("WithStatement", seq(modify((function(node0) {
-    return withStatement(node0.loc, node0.bindings, node0.body);
-})), _transform));
+addTransform("WithStatement", seq(((__args = ["bindings", checkTop]), (actions = [].slice.call(__args, 1)), seq(
+    moveChild("bindings"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(
+    __args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify((function(node0) {
+    return translation.withStatement(node0.loc, node0.bindings, node0.body);
+}))));
 addTransform("SwitchStatement", seq(((__args = ["discriminant", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("discriminant"), sequencea(actions), up)), ((__args = ["cases", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("cases"), sequencea(actions), up)), modify((function(node0) {
@@ -301,64 +228,48 @@ addTransform("ForStatement", seq(((__args = ["init", checkTop]), (actions = [].s
 }))));
 addTransform("AssignmentExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.AssignmentExpression.create(node0.loc, "=", node0.left, node0.right);
-}))));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.assignmentExpression)));
 addTransform("UnaryExpression", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.UnaryExpression.create(node0.loc, ((node0.operator === "++") ? "+" : ((node0
-        .operator === "--") ? "-" : node0.operator)), node0.argument);
-}))));
+    moveChild("argument"), sequencea(actions), up)), modify(translation.unaryExpression)));
 addTransform("BinaryExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.BinaryExpression.create(node0.loc, node0.operator, node0.left, node0.right);
-}))));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.binaryExpression)));
 addTransform("LogicalExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.LogicalExpression.create(node0.loc, node0.operator, node0.left, node0.right);
-}))));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.logicalExpression)));
 addTransform("ConditionalExpression", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("test"), sequencea(actions), up)), ((__args = ["consequent", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("consequent"), sequencea(actions), up)), ((__args = ["alternate", checkTop]), (
-    actions = [].slice.call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify((function(
-    node0) {
-    return ecma_expression.ConditionalExpression.create(node0.loc, node0.test, node0.consequent, node0.alternate);
-}))));
+    actions = [].slice.call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(
+    translation.conditionalExpression)));
 addTransform("NewExpression", seq(((__args = ["callee", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "callee"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("args"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.NewExpression.create(node0.loc, node0.callee, node0.args);
-}))));
+    seq(moveChild("args"), sequencea(actions), up)), modify(translation.newExpression)));
 addTransform("CallExpression", seq(((__args = ["callee", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("callee"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("args"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.CallExpression.create(node0.loc, node0.callee, node0.args);
-}))));
+    __args, 1)), seq(moveChild("args"), sequencea(actions), up)), modify(translation.callExpression)));
 addTransform("MemberExpression", seq(((__args = ["object", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("object"), sequencea(actions), up)), ((__args = ["property", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("property"), sequencea(actions), up)), modify((function(node0) {
-    return ecma_expression.MemberExpression.create(node0.loc, node0.object, node0.property, node0.computed);
-}))));
+    __args, 1)), seq(moveChild("property"), sequencea(actions), up)), modify(translation.memberExpression)));
 addTransform("LetExpression", seq(((__args = ["bindings", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("bindings"), sequencea(actions), up)), withNode((function(z) {
     return addBindingsForBindingsList(z.bindings);
 })), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"), sequencea(
     actions), up)), modify((function(node0) {
-    return letExpression(node0.loc, node0.bindings, node0.body);
+    return translation.letExpression(node0.loc, node0.bindings, node0.body);
 }))));
 addTransform("CurryExpression", seq(((__args = ["base", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "base"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("args"), sequencea(actions), up)), modify((function(node0) {
-    return curryExpression(node0.loc, node0.base, node0.args);
+    return translation.curryExpression(node0.loc, node0.base, node0.args);
 }))));
-addTransform("FunctionExpression", seq(enterBlock, modify((function(node0) {
-    return functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd("prefix", node0));
-})), ((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("id"), sequencea(actions),
-    up)), ((__args = ["params", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("params"),
-    sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("body"), sequencea(actions), up)), modify((function(node0) {
+addTransform("FunctionExpression", seq(enterBlock, ((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
+    seq(moveChild("id"), sequencea(actions), up)), modify((function(node0) {
+    return translation.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd("prefix",
+        node0));
+})), ((__args = ["params", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("params"), sequencea(
+    actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"),
+    sequencea(actions), up)), modify((function(node0) {
     return ecma_expression.FunctionExpression.create(null, node0.id, node0.params, node0.body);
 })), exitBlock));
 addTransform("ArrayExpression", seq(((__args = ["elements", checkTop]), (actions = [].slice.call(__args, 1)), seq(
@@ -374,41 +285,34 @@ addTransform("ObjectValue", seq(((__args = ["key", checkTop]), (actions = [].sli
     seq(moveChild("value"), sequencea(actions), up)), modify((function(node0) {
     return ecma_value.ObjectValue.create(node0.loc, node0.key, node0.value);
 }))));
-addTransform(["RelativeUnpack", "SliceUnpack"], seq(((__args = ["pattern", checkTop]), (actions = [].slice.call(__args,
-    1)), seq(moveChild("pattern"), sequencea(actions), up)), ((__args = ["target", checkTop]), (actions = [].slice
-    .call(__args, 1)), seq(moveChild("target"), sequencea(actions), up)), modify((function(node0) {
-    return modifyNode(node0, ({
-        pattern: khepri_pattern.IdentifierPattern.create(null, node0.pattern)
-    }));
-}))));
+addTransform(["RelativeUnpack", "SliceUnpack"], ((__args = ["target", checkTop]), (actions = [].slice.call(__args, 1)),
+    seq(moveChild("target"), sequencea(actions), up)));
 addTransform("ArgumentsPattern", seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "id"), sequencea(actions), up)), ((__args = ["elements", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("elements"), sequencea(actions), up)), ((__args = ["self", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("self"), sequencea(actions), up))));
 addTransform(["IdentifierPattern", "AsPattern"], seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("id"), sequencea(actions), up)), modify((function(x8) {
-    return x8.id;
+    seq(moveChild("id"), sequencea(actions), up)), modify((function(x3) {
+    return x3.id;
 }))));
 addTransform(["ObjectPattern", "EllipsisPattern"], seq(modify(getUd.bind(null, "id"))));
-addTransform("Program", ((useStrict = khepri_statement.ExpressionStatement.create(null, khepri_value.Literal.create(
-    null, "string", "use strict"))), seq(pushBindings, modify((function(node0) {
-    return ((type(node0.body) === "Package") ? node0 : setData(node0, "prefix", useStrict));
+addTransform("Program", ((useStrict = ecma_statement.ExpressionStatement.create(null, ecma_value.Literal.create(null,
+    "string", "use strict"))), seq(pushBindings, modify((function(node0) {
+    return ((type(node0.body) === "Package") ? node0 : setUd("prefix", useStrict, node0));
 })), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"), sequencea(
     actions), up)), getBindings((function(bindings) {
-    return modify((function(node0) {
-        return ecma_program.Program.create(node0.loc, concat(tryGetUd([], "prefix", node0),
-            idsToDeclarators(bindings), node0.body));
-    }));
+    return modify(translation.program.bind(null, bindings));
 })))));
 addTransform("Package", seq(packageManager.chain((function(packageManager0) {
     return modify((function(node0) {
-        return packageBlock(packageManager0, node0.loc, node0.exports, node0.body);
+        return translation.packageBlock(packageManager0, node0.loc, node0.exports, node0.body);
     }));
 })), _transform));
 addTransform("Import", packageManager.chain((function(packageManager0) {
-    return modify((function(node0) {
-        return packageManager0.importPackage(node0.from);
-    }));
+    var y4;
+    return modify(((y4 = packageManager0.importPackage), (function(z) {
+        return y4(z.from);
+    })));
 })));
 addTransform("Identifier", withNode((function(node0) {
     return (getUid(node0) ? seq(addVar(node0.name, getUid(node0)), getMapping(getUid(node0))

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast")["node"],
     modifyNode = __o["modify"],
     setData = __o["setData"],

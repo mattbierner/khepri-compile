@@ -1,0 +1,284 @@
+/**
+ * @fileOverview
+ */
+package (
+    program
+    
+    assignmentExpression
+    unaryExpression
+    binaryExpression
+    logicalExpression
+    conditionalExpression
+    newExpression
+    callExpression
+    memberExpression
+    
+    blockStatement
+    withStatement
+    
+    functionExpression
+    letExpression
+    curryExpression
+    
+    packageBlock)
+with 
+    import 'ecma-ast::clause' ecma_clause,
+    import 'ecma-ast::declaration' ecma_declaration,
+    import 'ecma-ast::expression' ecma_expression,
+    import 'ecma-ast::node' ecma_node,
+    import 'ecma-ast::program' ecma_program,
+    import 'ecma-ast::statement' ecma_statement,
+    import 'ecma-ast::value'ecma_value,
+    
+    import 'khepri-ast::declaration' khepri_declaration,
+    import 'khepri-ast::expression' khepri_expression,
+    import 'khepri-ast::statement' khepri_statement,
+    import 'khepri-ast::pattern' khepri_pattern,
+    import 'khepri-ast::value' khepri_value,
+    
+    import '../ast' {
+        type
+        tryGetUd
+        getUid
+        setUid},
+    import '../fun' fun#{
+        concat
+        flatten
+        flip
+        filter
+        map
+        reduce},
+    import './unpack' {
+        expandBinding
+        expandArgumentsPattern}
+in {
+/* Values
+ ******************************************************************************/
+var identifier = \loc, name uid ->
+    setUid(
+        uid,
+        ecma_value.Identifier.create(loc, name));
+
+/* Declaration
+ ******************************************************************************/
+var variableDeclaration = ecma_declaration.VariableDeclaration.create;
+
+var variableDeclarator = ecma_declaration.VariableDeclarator.create;
+
+var idsToDeclarators :=
+    map @ \x ->
+        x && ecma_declaration.VariableDeclarator.create(null,
+            identifier(null, x)) §
+    \> ecma_declaration.VariableDeclaration.create @ null;
+
+/* Program
+ ******************************************************************************/
+program := \bindings node ->
+    ecma_program.Program.create(node.loc,
+        concat(
+            tryGetUd([], 'prefix', node),
+            idsToDeclarators(bindings),
+            node.body));
+    
+/* Program
+ ******************************************************************************/
+assignmentExpression := \node ->
+    ecma_expression.AssignmentExpression.create(node.loc,
+        '=',
+        node.left,
+        node.right);
+
+/**
+ * 
+ */
+unaryExpression := let
+    mapOp := \op -> {
+        switch (op) {
+        case '++': return '+';
+        case '--': return '-';
+        default: return op;
+        }
+    }
+in
+    \node ->
+        ecma_expression.UnaryExpression.create(node.loc,
+            mapOp(node.operator),
+            node.argument);
+
+/**
+ * 
+ */
+binaryExpression := \node ->
+    ecma_expression.BinaryExpression.create(node.loc,
+        node.operator,
+        node.left,
+        node.right);
+
+/**
+ * 
+ */
+logicalExpression := \node ->
+    ecma_expression.LogicalExpression.create(node.loc,
+        node.operator,
+        node.left,
+        node.right);
+
+/**
+ * 
+ */
+conditionalExpression := \node ->
+    ecma_expression.ConditionalExpression.create(node.loc,
+        node.test,
+        node.consequent,
+        node.alternate);
+
+/**
+ * 
+ */
+newExpression := \ node ->
+    ecma_expression.NewExpression.create(node.loc,
+        node.callee,
+        node.args);
+
+/**
+ * 
+ */
+callExpression := \node ->
+    ecma_expression.CallExpression.create(node.loc,
+        node.callee,
+        node.args);
+
+/**
+ * 
+ */
+memberExpression := \node ->
+    ecma_expression.MemberExpression.create(node.loc,
+        node.object,
+        node.property,
+        node.computed);
+    
+/* Unpacks
+ ******************************************************************************/
+/**
+ * Convert a binding to a variable declarator.
+ */
+var bindingToDeclarator = \x ->
+    variableDeclarator(null,
+        x.pattern.id,
+        x.value);
+
+/**
+ * Expand a binding to a list of variable declarations.
+ */
+var unpack = expandBinding \> map @ bindingToDeclarator;
+
+/**
+ * Expand an binding to a list of assignments.
+ */
+var unpackAssign =
+    expandBinding
+    \> map @ \x ->
+        ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
+
+/* Translations
+ ******************************************************************************/
+/**
+ * 
+ */
+blockStatement := \bindings node ->
+    ecma_statement.BlockStatement.create(node.loc,
+        concat(
+            idsToDeclarators(bindings),
+            node.body));
+
+/**
+ * With statement translation.
+ */
+withStatement = \loc bindings body -> let
+    vars = flatten map(unpack, bindings),
+    
+    prefix = variableDeclaration(null, vars)
+in
+    ecma_statement.BlockStatement.create(loc,
+        concat(
+            prefix,
+            body.body));
+
+/**
+ * Function Expression Normalization.
+ */
+functionExpression = \loc id parameters functionBody prefix -> let
+    params = parameters.elements,
+    
+    bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
+        |> map @ bindingToDeclarator,
+    
+    body = ?type functionBody === "BlockStatement"
+        :functionBody.body
+        :khepri_statement.ReturnStatement.create(null, functionBody)
+in
+    khepri_expression.FunctionExpression.create(loc,
+        id,
+        params,
+        khepri_statement.BlockStatement.create(body.loc,
+            concat(
+                (prefix || []),
+                variableDeclaration(null, bindings),
+                body)));
+
+/**
+ * Let expression normalization.
+ */
+letExpression = \loc bindings body ->
+    ecma_expression.SequenceExpression.create(null,
+        flatten concat(
+            map(unpackAssign, bindings),
+            body));
+
+/**
+ * Curry expression translation.
+ */
+curryExpression = \loc base args ->
+    ecma_expression.CallExpression.create(loc,
+        ecma_expression.MemberExpression.create(null,
+            base,
+            identifier(null, 'bind')),
+        concat(
+            ecma_value.Literal.create(null, 'null', null),
+            args));
+
+/* Package
+ ******************************************************************************/
+packageBlock := let
+    filterImports =
+        filter @ ((.value) \> type \> (===, 'Import')),
+    
+    getImports =
+        filter @ ((.value) \> type \> (!==, 'Import'))
+in
+    \packageManager loc exports body -> let
+        imports =
+            ?type body === 'WithStatement'
+                :filterImports body.bindings
+                :[],
+        
+        targets =
+            reduce(imports, \p c -> {
+                p.(c.value.from) = c.pattern.id;
+                return p;
+            }, {}),
+        
+        fBody =
+            ?type body === 'WithStatement'
+                :khepri_statement.WithStatement.create(null,
+                    getImports body.bindings,
+                    body.body)
+                :body
+    in
+        packageManager.definePackage(loc,
+            exports,
+            imports,
+            targets,
+            fBody);
+
+}

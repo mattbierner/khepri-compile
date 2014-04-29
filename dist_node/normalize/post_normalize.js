@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     ast_declaration = require("khepri-ast")["declaration"],

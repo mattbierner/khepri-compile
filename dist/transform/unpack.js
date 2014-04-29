@@ -1,17 +1,15 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/transform/unpack.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
-    "khepri-ast/value", "../ast", "../fun", "../normalize/unpack"
-], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1) {
+*/define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/value", "../ast", "../fun",
+    "../normalize/unpack"
+], (function(require, exports, ast_declaration, ast_expression, ast_value, __o, __o0, __o1) {
     "use strict";
     var type = __o["type"],
-        getUid = __o["getUid"],
         concat = __o0["concat"],
         flatten = __o0["flatten"],
         map = __o0["map"],
         innerPattern = __o1["innerPattern"],
-        unpackParameters = __o1["unpackParameters"],
         expandBinding, expandBindings, expandArgumentsPattern, identifier = ast_value.Identifier.create.bind(
             null, null),
         number = ast_value.Literal.create.bind(null, null, "number"),
@@ -29,7 +27,7 @@
                 number(from)
             ] : [target, number(from), number((-to))])), id);
         }),
-        expandSlice = map.bind(null, (function(node) {
+        transformUnpacks = map.bind(null, (function(node) {
             switch (type(node.value)) {
                 case "RelativeUnpack":
                     return relativeUnpack(node.value.target, node.value.min, node.value.index, node.value
@@ -42,7 +40,7 @@
             }
         })),
         x = innerPattern,
-        x0 = expandSlice,
+        x0 = transformUnpacks,
         y = flatten;
     (expandBindings = (function() {
         var z = x.apply(null, arguments);
@@ -52,10 +50,9 @@
         return expandBindings(binding.value, binding.pattern);
     }));
     (expandArgumentsPattern = (function(parameters, thisObj) {
-        var elementsPrefix = unpackParameters(parameters.id, parameters.elements),
-            selfPrefix = (parameters.self ? expandBindings(thisObj, parameters.self) : []),
-            argumentsPrefix = (parameters.id ? expandBindings(identifier("arguments"), parameters.id) : []);
-        return flatten(concat(argumentsPrefix, elementsPrefix, selfPrefix));
+        var argumentsUnpack = (parameters.id ? expandBindings(identifier("arguments"), parameters.id) : []),
+            selfUnpack = (parameters.self ? expandBindings(thisObj, parameters.self) : []);
+        return concat(argumentsUnpack, selfUnpack);
     }));
     (exports["expandBinding"] = expandBinding);
     (exports["expandBindings"] = expandBindings);
