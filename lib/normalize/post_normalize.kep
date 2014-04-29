@@ -22,15 +22,15 @@ with
         concat
         flattenr
         map},
-    import '../inline/unpack' {
-        innerPattern
-        expandImport
-        unpackParameters},
     import '../rewriter' {
         UP
         DOWN
         Rewriter
-        rewrite}
+        rewrite},
+    import './unpack' {
+        innerPattern
+        expandImport
+        unpackParameters}
 in {
 
 var markReserved := setUd @ 'reserved' @ true;

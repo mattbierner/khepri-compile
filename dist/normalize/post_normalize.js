@@ -2,7 +2,7 @@
  * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
-    "khepri-ast/expression", "../pseudo/pattern", "../ast", "../fun", "../inline/unpack", "../rewriter"
+    "khepri-ast/expression", "../pseudo/pattern", "../ast", "../fun", "../rewriter", "./unpack"
 ], (function(require, exports, __o, ast_declaration, ast_statement, ast_expression, __o0, __o1, __o2, __o3, __o4) {
     "use strict";
     var modify = __o["modify"],
@@ -13,13 +13,13 @@
         concat = __o2["concat"],
         flattenr = __o2["flattenr"],
         map = __o2["map"],
-        innerPattern = __o3["innerPattern"],
-        expandImport = __o3["expandImport"],
-        unpackParameters = __o3["unpackParameters"],
-        UP = __o4["UP"],
-        DOWN = __o4["DOWN"],
-        Rewriter = __o4["Rewriter"],
-        rewrite = __o4["rewrite"],
+        UP = __o3["UP"],
+        DOWN = __o3["DOWN"],
+        Rewriter = __o3["Rewriter"],
+        rewrite = __o3["rewrite"],
+        innerPattern = __o4["innerPattern"],
+        expandImport = __o4["expandImport"],
+        unpackParameters = __o4["unpackParameters"],
         normalize, x, y, x0, x1, x2, y0, markReserved = setUd.bind(null, "reserved", true),
         getParameterNames = ((x = flattenr), (y = map.bind(null, (function(x0) {
             switch (type(x0)) {
