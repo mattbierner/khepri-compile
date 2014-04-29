@@ -1,0 +1,161 @@
+/**
+ * @fileOverview Unpack expansion.
+ * 
+ * TODO: Move object member access logic to transform stage
+ */
+package (
+    innerPattern
+    unpackParameters)
+with
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::declaration' ast_declaration,
+    import 'khepri-ast::pattern' ast_pattern,
+    import 'khepri-ast::value' ast_value,
+    
+    import '../pseudo/pattern' {
+        SliceUnpack
+        RelativeUnpack},
+    
+    import '../ast' {type},
+    import '../fun' fun#{
+        concat
+        flatten
+        flattenr
+        map}
+in {
+
+/* Unpack expansions
+ ******************************************************************************/
+/**
+ * Create unpack relative to the end of `target`.
+ * 
+ * @param target Parent being unpacked.
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param indx Relative indx of value.
+ * @param pattern Unpack for value.
+ */
+var relativeUnpack = \target start indx pattern ->
+    innerPattern(
+        RelativeUnpack.create(null, pattern, target, indx, start),
+        pattern);
+
+/**
+ * Unpack a range of values for `target`.
+ * 
+ * @param start {number} Minimum index the relative unpack can occupy.
+ * @param id Value unpack.
+ * @param from Start of slice.
+ * @param to End of slice, as offset from end.
+ */
+var sliceUnpack = \target id from to ->
+    innerPattern(
+        SliceUnpack.create(null, id, target, from, to),
+        id);
+
+/**
+ * Expand an object unpack member to bindings.
+ */
+var expandObjectElement = let
+     objectElement = \innerBase pattern key ->
+        ?pattern
+            :flatten <| innerPattern(innerBase, pattern)
+        
+        :ast_declaration.Binding.create(null,
+            ast_pattern.IdentifierPattern.create(null,
+                ast_value.Identifier.create(null, key.value)),
+            innerBase)
+in
+    \base pattern key ->
+        objectElement(
+            ast_expression.MemberExpression.create(null, base, key, true),
+            pattern,
+            key);
+
+/**
+ * Expand an object unpack to bindings.
+ */
+var expandObject = \base pattern ->
+    pattern.elements
+        |> (map @ \node ->
+            ?type node === 'SliceUnpack'
+                :sliceUnpack(
+                    pattern.ud.id.id,
+                    node.pattern,
+                    node.from,
+                    node.to)
+             
+            :?type node === 'RelativeUnpack'
+                :relativeUnpack(
+                    pattern.ud.id.id,
+                    node.min,
+                    node.index,
+                    node.pattern)
+            
+            :expandObjectElement(
+                pattern.ud.id.id,
+                node.target,
+                node.key))
+        
+        |> flattenr;
+
+/**
+ * Expand an as unpack to a binding list.
+ */
+var expandAs = \base pattern ->
+    concat(
+        innerPattern(base, pattern.id),
+        flatten <| innerPattern(pattern.id, pattern.target));
+
+/**
+ * Expand a complex binding to a list of identifier bindings.
+ * 
+ * @param base Value being unpacked.
+ * @param pattern Pattern unpacking base value.
+ */
+innerPattern = \base pattern -> {
+    switch (type pattern) {
+    case 'IdentifierPattern':
+        return [
+            ast_declaration.Binding.create(null,
+                pattern,
+                base)];
+    
+    case 'AsPattern':
+        return expandAs(base, pattern);
+    
+    case 'ObjectPattern':
+        return expandObject(base, pattern);
+    
+    default:
+        return [];
+    }
+};
+
+/**
+ * Expand a parameter list to a list of inner bindings.
+ */
+unpackParameters = \args elements ->
+    elements
+        |> map @ \x -> {
+            switch (type x) {
+            // Avoid generating redundant unpacks for parameters names.
+            case 'SinkPattern':
+            case 'IdentifierPattern':
+                return [];
+            
+            case 'SliceUnpack':
+                return sliceUnpack(args.id, x.pattern, x.from, x.to);
+            
+            case 'RelativeUnpack':
+                return relativeUnpack(args.id, x.min, x.index, x.pattern);
+            
+            case 'AsPattern':
+                return flatten <| innerPattern(x.id, x.target);
+            
+            default:
+                return innerPattern(x, x);
+            }
+        }
+        |> flatten;
+
+}
