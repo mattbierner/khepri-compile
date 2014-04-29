@@ -28,7 +28,6 @@ with
         sequencea},
     
     import 'zipper-m::trans::tree' TreeZipperT,
-    import 'zipper-m::walk' walk,
     
     import '../ast' {
         type
@@ -199,7 +198,7 @@ var variableDeclarator = ecma_declaration.VariableDeclarator.create;
 
 var idsToDeclarators :=
     map @ \x ->
-        ecma_declaration.VariableDeclarator.create(null,
+        x && ecma_declaration.VariableDeclarator.create(null,
             identifier(null, x)) §
     \> ecma_declaration.VariableDeclaration.create @ null;
 
@@ -231,7 +230,7 @@ var unpackAssign =
 /**
  * With statement translation.
  */
-var withStatementNoImport = \loc bindings body -> let
+var withStatement = \loc bindings body -> let
     vars = flatten <| map(unpack, bindings),
     
     prefix = variableDeclaration(null, vars)
@@ -240,14 +239,6 @@ in
         concat(
             prefix,
             body.body));
-
-/**
- * With statement translation.
- */
-var withStatement = \packageManager, loc, bindings, body ->
-    withStatementNoImport(loc,
-        bindings,
-        body);
 
 /* Expressions
  ******************************************************************************/
@@ -348,6 +339,9 @@ addTransform@'VariableDeclaration' <| seq(
         ecma_declaration.VariableDeclaration.create(loc,
             declarations));
 
+addTransform@'Binding' <|
+    checkChild 'value';
+
 addTransform@'VariableDeclarator' <| seq(
     checkChild 'id',
     checkChild 'init',
@@ -406,14 +400,12 @@ addTransform@'IfStatement' <| seq(
             node.alternate));
 
 addTransform@'WithStatement' <| seq(
-    packageManager.chain \ packageManager -> 
-        modify \ node ->
-            withStatement(
-                packageManager,
-                node.loc,
-                node.bindings,
-                node.body),
-    _transform);
+    modify \ node ->
+        withStatement(
+            node.loc,
+            node.bindings,
+            node.body),
+        _transform);
 
 addTransform@'SwitchStatement' <| seq(
     checkChild 'discriminant',
@@ -430,7 +422,7 @@ addTransform@'ReturnStatement' <| seq(
             node.argument));
 
 addTransform@'ThrowStatement' <| seq(
-    checkChild 'arguments',
+    checkChild 'argument',
     modify \ node ->
         ecma_statement.ThrowStatement.create(node.loc,
             node.argument));
@@ -558,6 +550,7 @@ addTransform@'MemberExpression' <| seq(
             node.computed));
 
 addTransform@'LetExpression' <| seq(
+    checkChild 'bindings',
     withNode(
         (.bindings) \> addBindingsForBindingsList),
     checkChild 'body',
@@ -577,7 +570,6 @@ addTransform@'CurryExpression' <| seq(
 addTransform@'FunctionExpression' <| seq(
     enterBlock,
 
-    
     modify \ node ->
         functionExpression(node.loc,
             node.id,

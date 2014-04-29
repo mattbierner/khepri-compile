@@ -225,7 +225,9 @@ push = \s ->
  * 
  * @param s Scope.
  */
-pop = (.outer);
+pop = \s ->
+    s.outer
+        .setMapping(s.mapping);
 
 /**
  * Add a new identifier to scope `s`.

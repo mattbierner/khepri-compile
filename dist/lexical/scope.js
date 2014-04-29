@@ -85,8 +85,8 @@
         return Scope.empty.setOuter(s)
             .setDefinitions(s.definitions);
     }));
-    (pop = (function(x) {
-        return x.outer;
+    (pop = (function(s) {
+        return s.outer.setMapping(s.mapping);
     }));
     (addVar = (function(id, uid, s) {
         var name;
