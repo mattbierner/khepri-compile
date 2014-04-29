@@ -1,4 +1,5 @@
 package (
+    getLocals
     rename
     incCount)
 with
@@ -24,15 +25,19 @@ in {
 var prefixUid := \prefix uid ->
     prefix + '-' + uid;
 
+getLocals := \node prefix ->
+     tryGetUd([], 'locals', node).map(prefixUid @ prefix);
+
 var updateClosure = \node prefix list -> let
-    closure = tryGetUd([], 'closure', node),
+    closure = tryGetUd([], 'locals', node),
     
     closure = closure.map \ x ->
         ?contains(list, x)
             :prefixUid(prefix, x)
             :x
 in
-    setData(node, 'closure', closure);
+    setData(node, 'locals', closure);
+
 
 /*
  ******************************************************************************/

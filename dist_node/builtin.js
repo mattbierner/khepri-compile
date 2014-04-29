@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],

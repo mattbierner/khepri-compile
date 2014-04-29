@@ -2,6 +2,10 @@
 
 ## 0.5.11 - April 28, 2014
 * Fixed arguments and self unpacks not being properly renamed during transform.
+* Fixed slice unpack of arguments unpack not being renamed during transform.
+* Better code generation when using import patterns.
+* Fixed inling issue where locals were not updated correctly after multiple passes
+  inling, so they were renamed incorrectly.
 
 ## 0.5.10 - April 23, 2014
 * Fixed composen potentially be inlined incorrectly when it is not the first

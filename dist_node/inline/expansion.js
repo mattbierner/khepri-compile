@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/expansion.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expansion.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     __o = require("khepri-ast")["node"],
     setData = __o["setData"],

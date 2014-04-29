@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/binding.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/binding.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record"], (function(require, exports, record) {
+*/
+define(["require", "exports", "bes/record"], (function(require, exports, record) {
     "use strict";
     var Binding, IMMUTABLE, MUTABLE;
     (Binding = record.declare(null, ["value", "immutable", "simple"]));

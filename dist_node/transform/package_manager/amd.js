@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/package_manager/amd.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/package_manager/amd.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     __o = require("khepri-ast")["node"],

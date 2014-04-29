@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/state.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var hamt = require("hamt"),
     empty, addReference, getCount, isReachable;
 (empty = hamt.empty);

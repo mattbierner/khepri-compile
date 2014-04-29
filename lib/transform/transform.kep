@@ -16,8 +16,9 @@ with
     
     import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
-    import 'khepri-ast::node' khepri_node#{setData},
+    import 'khepri-ast::node' khepri_node#{setData 'modify': modifyNode},
     import 'khepri-ast::statement' khepri_statement,
+    import 'khepri-ast::pattern' khepri_pattern,
     import 'khepri-ast::value' khepri_value,
     
     import 'akh::unique' Unique,
@@ -554,8 +555,7 @@ addTransform@'MemberExpression' <| seq(
 
 addTransform@'LetExpression' <| seq(
     checkChild 'bindings',
-    withNode(
-        (.bindings) \> addBindingsForBindingsList),
+    withNode ((.bindings) \> addBindingsForBindingsList),
     checkChild 'body',
     modify \ node ->
         letExpression(node.loc,
@@ -572,7 +572,6 @@ addTransform@'CurryExpression' <| seq(
 
 addTransform@'FunctionExpression' <| seq(
     enterBlock,
-
     modify \ node ->
         functionExpression(node.loc,
             node.id,
@@ -583,7 +582,7 @@ addTransform@'FunctionExpression' <| seq(
     checkChild 'id',
     checkChild 'params',
     checkChild 'body',
-
+    
     modify \ node ->
         ecma_expression.FunctionExpression.create(null,
             node.id,
@@ -612,6 +611,14 @@ addTransform@'ObjectValue' <| seq(
             node.value));
 
 // Patterns
+addTransform@['RelativeUnpack', 'SliceUnpack'] <| seq(
+    checkChild 'pattern',
+    checkChild 'target',
+    modify \ node ->
+        modifyNode(node, {
+            pattern: khepri_pattern.IdentifierPattern.create(null, node.pattern)
+        }));
+
 addTransform@'ArgumentsPattern' <| seq(
     checkChild 'id',
     checkChild 'elements',

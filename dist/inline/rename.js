@@ -15,13 +15,20 @@
         getUid = __o3["getUid"],
         setUid = __o3["setUid"],
         incrementCount = __o4["incrementCount"],
-        rename, incCount, updateClosure = (function(node, prefix, list) {
-            var closure = tryGetUd([], "closure", node),
-                closure0 = closure.map((function(x) {
-                    return (contains(list, x) ? ((prefix + "-") + x) : x);
-                }));
-            return setData(node, "closure", closure0);
-        });
+        getLocals, rename, incCount;
+    (getLocals = (function(node, prefix) {
+        return tryGetUd([], "locals", node)
+            .map((function(uid) {
+                return ((prefix + "-") + uid);
+            }));
+    }));
+    var updateClosure = (function(node, prefix, list) {
+        var closure = tryGetUd([], "locals", node),
+            closure0 = closure.map((function(x) {
+                return (contains(list, x) ? ((prefix + "-") + x) : x);
+            }));
+        return setData(node, "locals", closure0);
+    });
     (rename = (function(prefix, list, root) {
         return tree.node(preWalk((function(ctx) {
             var node = tree.node(ctx),
@@ -39,6 +46,7 @@
                 value), ctx) : ctx);
         }), khepriZipper(root)));
     }));
+    (exports["getLocals"] = getLocals);
     (exports["rename"] = rename);
     (exports["incCount"] = incCount);
 }));

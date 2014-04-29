@@ -15,7 +15,9 @@ var ecma_clause = require("ecma-ast")["clause"],
     khepri_expression = require("khepri-ast")["expression"],
     khepri_node = require("khepri-ast")["node"],
     setData = khepri_node["setData"],
+    modifyNode = khepri_node["modify"],
     khepri_statement = require("khepri-ast")["statement"],
+    khepri_pattern = require("khepri-ast")["pattern"],
     khepri_value = require("khepri-ast")["value"],
     Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["statei"],
@@ -60,8 +62,8 @@ var ecma_clause = require("ecma-ast")["clause"],
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
         actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
         __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
-        actions, __args, actions, __args, actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M =
-        TreeZipperT(StateT(Unique)),
+        actions, __args, actions, __args, actions, __args, actions, __args, actions, useStrict, __args, actions, uid,
+        f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
     run = (function(m, s, ctx, seed) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
     }),
@@ -371,6 +373,13 @@ addTransform("ObjectValue", seq(((__args = ["key", checkTop]), (actions = [].sli
     "key"), sequencea(actions), up)), ((__args = ["value", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("value"), sequencea(actions), up)), modify((function(node0) {
     return ecma_value.ObjectValue.create(node0.loc, node0.key, node0.value);
+}))));
+addTransform(["RelativeUnpack", "SliceUnpack"], seq(((__args = ["pattern", checkTop]), (actions = [].slice.call(__args,
+    1)), seq(moveChild("pattern"), sequencea(actions), up)), ((__args = ["target", checkTop]), (actions = [].slice
+    .call(__args, 1)), seq(moveChild("target"), sequencea(actions), up)), modify((function(node0) {
+    return modifyNode(node0, ({
+        pattern: khepri_pattern.IdentifierPattern.create(null, node0.pattern)
+    }));
 }))));
 addTransform("ArgumentsPattern", seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "id"), sequencea(actions), up)), ((__args = ["elements", checkTop]), (actions = [].slice.call(__args, 1)),

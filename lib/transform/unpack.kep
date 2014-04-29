@@ -9,6 +9,7 @@ package (
 with 
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
     
     import '../ast' {type getUid},

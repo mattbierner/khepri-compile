@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value", "./ast", "./fun"], (
+*/
+define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value", "./ast", "./fun"], (
     function(require, exports, ast_pattern, ast_expression, ast_value, __o, __o0) {
         "use strict";
         var setUd = __o["setUd"],

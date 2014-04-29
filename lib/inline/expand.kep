@@ -9,12 +9,14 @@ with
     import 'khepri-ast::node' {setData modify},
 
     import '../ast' {
+        type
         getUid
         tryGetUd},
     import '../fun' {
         concat
         map},
-    import './rename' {rename},
+    import './rename' ren#{
+        rename},
     import '../builtin' {builtins}
 in{
 
@@ -50,7 +52,7 @@ var argsBinding := \uid arg bindings args closure ->
  * to a let expression.
  */
 expandCallee = \uid callee args -> let
-    target = ?callee.type === 'LetExpression' : callee.body : callee,
+    target = ?type callee === 'LetExpression' : callee.body : callee,
     
     closure = getLocals target,
     
@@ -65,11 +67,17 @@ expandCallee = \uid callee args -> let
             :rename(uid, closure, callee.bindings)
             :[],
         bindings,
-        argBinding)
-in
+        argBinding),
+        
+    locals = concat(
+        bindings.map \ x -> getUid x.pattern.id,
+        ren.getLocals(target, uid),
+        closure)
+in [
+    locals,
     ast_expression.LetExpression.create(null,
         bindings,
-        rename(uid, closure, target.body));
+        rename(uid, closure, target.body))];
 
 /**
  * Expand a curry of a lambda expression of let expression with curry body

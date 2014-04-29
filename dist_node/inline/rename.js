@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/rename.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/rename.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast-zipper"),
     khepriZipper = __o["khepriZipper"],
     __o0 = require("neith")["walk"],
@@ -20,13 +19,20 @@ var __o = require("khepri-ast-zipper"),
     setUid = __o3["setUid"],
     __o4 = require("./expansion"),
     incrementCount = __o4["incrementCount"],
-    rename, incCount, updateClosure = (function(node, prefix, list) {
-        var closure = tryGetUd([], "closure", node),
-            closure0 = closure.map((function(x) {
-                return (contains(list, x) ? ((prefix + "-") + x) : x);
-            }));
-        return setData(node, "closure", closure0);
-    });
+    getLocals, rename, incCount;
+(getLocals = (function(node, prefix) {
+    return tryGetUd([], "locals", node)
+        .map((function(uid) {
+            return ((prefix + "-") + uid);
+        }));
+}));
+var updateClosure = (function(node, prefix, list) {
+    var closure = tryGetUd([], "locals", node),
+        closure0 = closure.map((function(x) {
+            return (contains(list, x) ? ((prefix + "-") + x) : x);
+        }));
+    return setData(node, "locals", closure0);
+});
 (rename = (function(prefix, list, root) {
     return tree.node(preWalk((function(ctx) {
         var node = tree.node(ctx),
@@ -44,5 +50,6 @@ var __o = require("khepri-ast-zipper"),
             ctx);
     }), khepriZipper(root)));
 }));
+(exports["getLocals"] = getLocals);
 (exports["rename"] = rename);
 (exports["incCount"] = incCount);

@@ -4,6 +4,7 @@
 */"use strict";
 var __o = require("khepri-ast")["node"],
     modifyNode = __o["modify"],
+    setData = __o["setData"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
@@ -56,7 +57,8 @@ var __o = require("khepri-ast")["node"],
         consequent10, consequent11, __args38, ops38, __args39, ops39, __args40, ops40, __args41, ops41, y1, exp,
         consequent12, x2, consequent13, __args42, ops42, __args43, ops43, y2, exp0, consequent14, x2, consequent15,
         __args44, ops44, __args45, ops45, x3, consequent16, consequent17, __args46, ops46, __args47, ops47, __args48,
-        ops48, __args49, ops49, __args50, ops50, __args51, ops51, __args52, ops52, consequent18, __and = (function(x, y) {
+        ops48, __args49, ops49, __args50, ops50, __args51, ops51, __args52, ops52, __args53, ops53, __args54, ops54,
+        consequent18, __and = (function(x, y) {
             return (x && y);
         }),
     __plus = (function(x) {
@@ -160,6 +162,9 @@ var __o = require("khepri-ast")["node"],
             return ast_declaration.VariableDeclarator.create(null, builtins[x0], definitions[x0]);
         })));
     }),
+    getLocals = getState.map(state.getLocals),
+    pushLocals = modifyState(state.pushLocals),
+    popLocals = modifyState(state.popLocals),
     child = (function(edge) {
         var __args = arguments,
             ops = [].slice.call(__args, 1);
@@ -300,10 +305,15 @@ addRewrite("ForStatement", seq(((__args22 = ["init", checkTop]), (ops22 = [].sli
     .call(__args24, 1)), seq(moveChild("update"), seqa(ops24), up)), ((__args25 = ["body", checkTop]), (
     ops25 = [].slice.call(__args25, 1)), seq(moveChild("body"), seqa(ops25), up))]), seq(push, seqa(body1),
     pop))));
-addRewrite("FunctionExpression", ((body2 = [((__args26 = ["id", checkTop]), (ops26 = [].slice.call(__args26, 1)), seq(
-    moveChild("id"), seqa(ops26), up)), ((__args27 = ["params", checkTop]), (ops27 = [].slice.call(
+addRewrite("FunctionExpression", ((body2 = [pushLocals, ((__args26 = ["id", checkTop]), (ops26 = [].slice.call(__args26,
+    1)), seq(moveChild("id"), seqa(ops26), up)), ((__args27 = ["params", checkTop]), (ops27 = [].slice.call(
     __args27, 1)), seq(moveChild("params"), seqa(ops27), up)), ((__args28 = ["body", checkTop]), (ops28 = []
-    .slice.call(__args28, 1)), seq(moveChild("body"), seqa(ops28), up))]), seq(push, seqa(body2), pop)));
+    .slice.call(__args28, 1)), seq(moveChild("body"), seqa(ops28), up)), getLocals.chain((function(
+    locals) {
+    return modify((function(node) {
+        return setData(node, "locals", concat(node.ud.locals, locals));
+    }));
+})), popLocals]), seq(push, seqa(body2), pop)));
 addRewrite("UnaryExpression", ((arithmetic = ({
     "!": __lnot,
     "~": __bnot,
@@ -430,8 +440,11 @@ addRewrite("CallExpression", seq(((__args40 = ["callee", checkTop]), (ops40 = []
 })))), extract((function(node) {
     return (y1(node.callee) ? consequent12 : (undefined || pass));
 }))), ((consequent13 = seq(unique((function(uid) {
-    return modify((function(node) {
-        return expandCallee(uid, node.callee, node.args);
+    return extract((function(node) {
+        var __o6 = expandCallee(uid, node.callee, node.args),
+            locals = __o6[0],
+            node0 = __o6[1];
+        return seq(modifyState(state.addLocals.bind(null, locals)), set(node0));
     }));
 })), checkTop)), extract((function(node) {
     return ((isLambda(node.callee) || ((node.callee.type === "LetExpression") && isLambda(node.callee
@@ -481,21 +494,24 @@ addRewrite("LetExpression", seq(((__args44 = ["bindings", checkTop]), (ops44 = [
     var bindings;
     return (((bindings = node["bindings"]), (!bindings.length)) ? consequent17 : (undefined || pass));
 })))));
-addRewrite("ImportPattern", ((__args46 = ["pattern", checkTop]), (ops46 = [].slice.call(__args46, 1)), seq(moveChild(
+addRewrite(["ImportPattern"], ((__args46 = ["pattern", checkTop]), (ops46 = [].slice.call(__args46, 1)), seq(moveChild(
     "pattern"), seqa(ops46), up)));
-addRewrite("ArgumentsPattern", seq(((__args47 = ["id", checkTop]), (ops47 = [].slice.call(__args47, 1)), seq(moveChild(
-    "id"), seqa(ops47), up)), ((__args48 = ["elements", checkTop]), (ops48 = [].slice.call(__args48, 1)), seq(
-    moveChild("elements"), seqa(ops48), up)), ((__args49 = ["self", checkTop]), (ops49 = [].slice.call(__args49,
-    1)), seq(moveChild("self"), seqa(ops49), up))));
+addRewrite(["SliceUnpack", "RelativeUnpack"], seq(((__args47 = ["pattern", checkTop]), (ops47 = [].slice.call(__args47,
+    1)), seq(moveChild("pattern"), seqa(ops47), up)), ((__args48 = ["target", checkTop]), (ops48 = [].slice.call(
+    __args48, 1)), seq(moveChild("target"), seqa(ops48), up))));
+addRewrite("ArgumentsPattern", seq(((__args49 = ["id", checkTop]), (ops49 = [].slice.call(__args49, 1)), seq(moveChild(
+    "id"), seqa(ops49), up)), ((__args50 = ["elements", checkTop]), (ops50 = [].slice.call(__args50, 1)), seq(
+    moveChild("elements"), seqa(ops50), up)), ((__args51 = ["self", checkTop]), (ops51 = [].slice.call(__args51,
+    1)), seq(moveChild("self"), seqa(ops51), up))));
 addRewrite("IdentifierPattern", extract((function(node) {
     return addBinding(getUid(node.id), null, true);
 })));
-addRewrite("ArrayExpression", ((__args50 = ["elements", checkTop]), (ops50 = [].slice.call(__args50, 1)), seq(moveChild(
-    "elements"), seqa(ops50), up)));
-addRewrite("ObjectExpression", ((__args51 = ["properties", checkTop]), (ops51 = [].slice.call(__args51, 1)), seq(
-    moveChild("properties"), seqa(ops51), up)));
-addRewrite("ObjectValue", ((__args52 = ["value", checkTop]), (ops52 = [].slice.call(__args52, 1)), seq(moveChild(
-    "value"), seqa(ops52), up)));
+addRewrite("ArrayExpression", ((__args52 = ["elements", checkTop]), (ops52 = [].slice.call(__args52, 1)), seq(moveChild(
+    "elements"), seqa(ops52), up)));
+addRewrite("ObjectExpression", ((__args53 = ["properties", checkTop]), (ops53 = [].slice.call(__args53, 1)), seq(
+    moveChild("properties"), seqa(ops53), up)));
+addRewrite("ObjectValue", ((__args54 = ["value", checkTop]), (ops54 = [].slice.call(__args54, 1)), seq(moveChild(
+    "value"), seqa(ops54), up)));
 addRewrite("Identifier", ((consequent18 = extract((function(node) {
     return getBinding(getUid(node))
         .chain((function(binding) {

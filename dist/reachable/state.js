@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/reachable/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/state.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "hamt"], (function(require, exports, hamt) {
+*/
+define(["require", "exports", "hamt"], (function(require, exports, hamt) {
     "use strict";
     var empty, addReference, getCount, isReachable;
     (empty = hamt.empty);

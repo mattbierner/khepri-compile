@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/expansion.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expansion.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "khepri-ast/node", "../ast"], (function(require, exports, record, __o, __o0) {
+*/
+define(["require", "exports", "bes/record", "khepri-ast/node", "../ast"], (function(require, exports, record, __o, __o0) {
     "use strict";
     var setData = __o["setData"],
         getUid = __o0["getUid"],

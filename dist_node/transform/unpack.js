@@ -1,10 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
+    ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../ast"),
     type = __o["type"],

@@ -5,7 +5,7 @@
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
             getClosure, push, pop, addVar;
-    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "mutated"]));
+    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals"]));
     (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
         var self = this;
@@ -50,7 +50,8 @@
             if ((!self.hasBinding((id + i)))) return (id + i);
     }));
     (addUid = (function(id, uid, s) {
-        return s.setDefinitions(hamt.set(id, uid, s.definitions));
+        return s.setDefinitions(hamt.set(id, uid, s.definitions))
+            .setLocals(hamt.set(uid, id, s.locals));
     }));
     (addBinding = (function(s, id, info) {
         return s.setRecord(hamt.set(id, info, s.record));
@@ -77,16 +78,21 @@
     (addMapping = (function(s, from, to) {
         return s.setMapping(hamt.set(from, to, s.mapping));
     }));
-    var y = hamt.values;
+    var y = hamt.keys;
     (getClosure = (function(z) {
-        return y(z.definitions);
+        return y(z.locals);
     }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)
             .setDefinitions(s.definitions);
     }));
-    (pop = (function(x) {
-        return x.outer;
+    var mergeLocals = hamt.fold.bind(null, (function(p, __o) {
+        var key = __o["key"],
+            value = __o["value"];
+        return hamt.set(key, value, p);
+    }));
+    (pop = (function(s) {
+        return s.outer.setLocals(mergeLocals(s.outer.locals, s.locals));
     }));
     (addVar = (function(id, uid, s) {
         var name;

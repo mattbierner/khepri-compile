@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ast.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ast.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node"], (function(require, exports, __o) {
+*/
+define(["require", "exports", "khepri-ast/node"], (function(require, exports, __o) {
     "use strict";
     var setData = __o["setData"],
         type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,

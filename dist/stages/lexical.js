@@ -1,17 +1,19 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/stages/lexical.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/error", "../lexical/lexical"], (function(require, exports, Error, lexical) {
+*/define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], (function(require, exports, Error, __o,
+    lexical) {
     "use strict";
-    var check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI",
+    var setProperty = __o["setProperty"],
+        check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI",
             "encodeURIComponent", "Error", "eval", "EvalError", "Function", "Infinity", "isFinite", "isNaN",
             "JSON", "Math", "NaN", "Number", "Object", "parseInt", "parseFloat", "RangeError", "ReferenceError",
             "RegExp", "String", "SyntaxError", "TypeError", "undefined", "URIError"
         ];
-    (check = (function(__o) {
-        var options = __o["options"],
-            tree = __o["tree"],
-            data = __o["data"];
+    (check = (function(input) {
+        var options = input["options"],
+            tree = input["tree"],
+            data = input["data"];
         return lexical.check(tree, ((options && options.globals) || builtins), data)
             .map((function(__o0) {
                 var tree0 = __o0["tree"],

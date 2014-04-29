@@ -14,12 +14,19 @@ package (
     pop
     
     getGlobals
-    addGlobal)
+    addGlobal
+    
+    addLocals
+    getLocals
+    pushLocals
+    popLocals)
 with
     import 'bes::record' record,
 
     import 'hamt' hamt,
     
+    import '../fun' {
+        concat},
     import './binding' {
         Binding
         MUTABLE
@@ -40,13 +47,15 @@ State := record.declare(null, [
     'bindings',
     'working',
     'globals',
-    'outer']);
+    'outer',
+    'locals']);
 
 State.empty = new State(
     hamt.empty,
     hamt.empty,
     hamt.empty,
-    null);
+    null,
+    [[], null]);
 
 var putBinding := \key binding s ->
     s.setBindings(
@@ -125,7 +134,7 @@ addWorking = \uid value simple s ->
         uid,
         Binding.create(value, MUTABLE, simple),
         s);
-    
+
 /* Globals Operations
  ******************************************************************************/
 /**
@@ -144,5 +153,22 @@ getGlobals := (.globals) \> hamt.keys;
 addGlobal := \name s ->
     s.setGlobals(
         hamt.set(name, name, s.globals));
+
+/* Local Operations
+ ******************************************************************************/
+addLocals := \locals s ->
+    s.setLocals(
+        [concat(
+            locals,
+            s.locals.(0)), s.locals.(1)]);
+
+getLocals := \s ->
+    s.locals.(0);
+
+pushLocals := \s ->
+    s.setLocals([[], s.locals]);
+
+popLocals := \s ->
+    s.setLocals(s.locals.(1));
 
 }

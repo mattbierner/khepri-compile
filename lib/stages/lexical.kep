@@ -4,6 +4,8 @@
 package check
 with
     import 'akh::error' Error,
+    
+    import 'bes::object' {setProperty},
 
     import '../lexical/lexical' lexical
 in {
@@ -46,7 +48,7 @@ var builtins := [
 /**
  * 
  */
-check = \{options tree data} ->
+check = \input#{options tree data} ->
     lexical.check(
         tree,
         ((options && options.globals) || builtins),

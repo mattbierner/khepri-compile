@@ -41,7 +41,7 @@ Scope = record.declare(null, [
     'outer',
     'mapping',
     'definitions',
-    'mutated']);
+    'locals']);
 
 Scope.empty = Scope.create(
     hamt.empty,
@@ -135,8 +135,11 @@ Scope.prototype.getUnusedId = \id =self-> {
  * @param s Scope.
  */
 addUid = \id uid s ->
-    s.setDefinitions <|
-        hamt.set(id, uid, s.definitions);
+    s
+        .setDefinitions(
+            hamt.set(id, uid, s.definitions))
+        .setLocals(
+            hamt.set(uid, id, s.locals));
 
 /**
  * Create a new modified scope with a given binding.
@@ -206,7 +209,7 @@ addMapping = \s from to ->
  * 
  * @param s Scope.
  */
-getClosure := (.definitions) \> hamt.values;
+getClosure := (.locals) \> hamt.keys;
 
 /* Operations
  ******************************************************************************/
@@ -225,7 +228,14 @@ push = \s ->
  * 
  * @param s Scope.
  */
-pop = (.outer);
+pop = let
+    mergeLocals =
+        hamt.fold @ \p {key value} -> hamt.set(key, value, p)
+in
+    \s ->
+        s.outer
+            .setLocals(
+                mergeLocals(s.outer.locals, s.locals));
 
 /**
  * Add a new identifier to scope `s`.

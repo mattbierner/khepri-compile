@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/inline/binding.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/inline/binding.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     Binding, IMMUTABLE, MUTABLE;
 (Binding = record.declare(null, ["value", "immutable", "simple"]));

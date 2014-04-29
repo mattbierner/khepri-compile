@@ -3,19 +3,20 @@
  * DO NOT EDIT
 */define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression", "khepri-ast/pattern",
     "khepri-ast/value", "khepri-ast/node", "../ast", "../fun", "./rename", "../builtin"
-], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, __o2, __o3) {
+], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, ren, __o2) {
     "use strict";
     var setData = __o["setData"],
         modify = __o["modify"],
+        type = __o0["type"],
         getUid = __o0["getUid"],
         tryGetUd = __o0["tryGetUd"],
         concat = __o1["concat"],
         map = __o1["map"],
-        rename = __o2["rename"],
-        builtins = __o3["builtins"],
+        rename = ren["rename"],
+        builtins = __o2["builtins"],
         expandCallee, expandCurry, getLocals = tryGetUd.bind(null, [], "locals");
     (expandCallee = (function(uid, callee, args) {
-        var arg, target = ((callee.type === "LetExpression") ? callee.body : callee),
+        var arg, target = ((type(callee) === "LetExpression") ? callee.body : callee),
             closure = getLocals(target),
             parameters = target.params,
             bindings = map((function(x, i) {
@@ -28,8 +29,12 @@
                         return (bindings[i] ? bindings[i].pattern.id : x);
                     }))))) : []),
             bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings,
-                argBinding);
-        return ast_expression.LetExpression.create(null, bindings0, rename(uid, closure, target.body));
+                argBinding),
+            locals = concat(bindings0.map((function(x) {
+                return getUid(x.pattern.id);
+            })), ren.getLocals(target, uid), closure);
+        return [locals, ast_expression.LetExpression.create(null, bindings0, rename(uid, closure,
+            target.body))];
     }));
     (expandCurry = (function(uid, base, args) {
         var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);

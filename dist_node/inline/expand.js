@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/expand.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/expand.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -11,18 +10,19 @@ var ast_declaration = require("khepri-ast")["declaration"],
     setData = __o["setData"],
     modify = __o["modify"],
     __o0 = require("../ast"),
+    type = __o0["type"],
     getUid = __o0["getUid"],
     tryGetUd = __o0["tryGetUd"],
     __o1 = require("../fun"),
     concat = __o1["concat"],
     map = __o1["map"],
-    __o2 = require("./rename"),
-    rename = __o2["rename"],
-    __o3 = require("../builtin"),
-    builtins = __o3["builtins"],
+    ren = require("./rename"),
+    rename = ren["rename"],
+    __o2 = require("../builtin"),
+    builtins = __o2["builtins"],
     expandCallee, expandCurry, getLocals = tryGetUd.bind(null, [], "locals");
 (expandCallee = (function(uid, callee, args) {
-    var arg, target = ((callee.type === "LetExpression") ? callee.body : callee),
+    var arg, target = ((type(callee) === "LetExpression") ? callee.body : callee),
         closure = getLocals(target),
         parameters = target.params,
         bindings = map((function(x, i) {
@@ -32,8 +32,11 @@ var ast_declaration = require("khepri-ast")["declaration"],
             uid, closure, arg), ast_expression.ArrayExpression.create(null, args.map((function(x, i) {
             return (bindings[i] ? bindings[i].pattern.id : x);
         }))))) : []),
-        bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings, argBinding);
-    return ast_expression.LetExpression.create(null, bindings0, rename(uid, closure, target.body));
+        bindings0 = concat((callee.bindings ? rename(uid, closure, callee.bindings) : []), bindings, argBinding),
+        locals = concat(bindings0.map((function(x) {
+            return getUid(x.pattern.id);
+        })), ren.getLocals(target, uid), closure);
+    return [locals, ast_expression.LetExpression.create(null, bindings0, rename(uid, closure, target.body))];
 }));
 (expandCurry = (function(uid, base, args) {
     var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);

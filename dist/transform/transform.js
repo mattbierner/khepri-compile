@@ -3,15 +3,17 @@
  * DO NOT EDIT
 */define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
     "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "ecma-ast-zipper", "khepri-ast/declaration",
-    "khepri-ast/expression", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/value", "akh/unique",
-    "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "../ast", "../lexical/scope", "../fun", "../builtin",
-    "./unpack", "./state", "./package_manager/amd", "./package_manager/node"
+    "khepri-ast/expression", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/pattern", "khepri-ast/value",
+    "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "../ast", "../lexical/scope", "../fun",
+    "../builtin", "./unpack", "./state", "./package_manager/amd", "./package_manager/node"
 ], (function(require, exports, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
     ecma_statement, ecma_value, __o, khepri_declaration, khepri_expression, khepri_node, khepri_statement,
-    khepri_value, Unique, StateT, __o0, TreeZipperT, __o1, scope, fun, __o2, __o3, state, _, _0) {
+    khepri_pattern, khepri_value, Unique, StateT, __o0, TreeZipperT, __o1, scope, fun, __o2, __o3, state, _, _0
+) {
     "use strict";
     var ecmaZipper = __o["ecmaZipper"],
         setData = khepri_node["setData"],
+        modifyNode = khepri_node["modify"],
         liftM2 = __o0["liftM2"],
         seq = __o0["sequence"],
         sequencea = __o0["sequencea"],
@@ -45,8 +47,8 @@
             actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
             __args, actions, __args, actions, __args, actions, __args, actions, __args, actions, __args,
             actions, __args, actions, __args, actions, __args, actions, __args, actions, __args, actions,
-            __args, actions, useStrict, __args, actions, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(
-                Unique)),
+            __args, actions, __args, actions, __args, actions, useStrict, __args, actions, uid, f1, uid0, f2,
+            _trans, M = TreeZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
         }),
@@ -382,6 +384,14 @@
         .call(__args, 1)), seq(moveChild("value"), sequencea(actions), up)), modify((function(node0) {
         return ecma_value.ObjectValue.create(node0.loc, node0.key, node0.value);
     }))));
+    addTransform(["RelativeUnpack", "SliceUnpack"], seq(((__args = ["pattern", checkTop]), (actions = [].slice.call(
+        __args, 1)), seq(moveChild("pattern"), sequencea(actions), up)), ((__args = ["target", checkTop]), (
+        actions = [].slice.call(__args, 1)), seq(moveChild("target"), sequencea(actions), up)), modify(
+        (function(node0) {
+            return modifyNode(node0, ({
+                pattern: khepri_pattern.IdentifierPattern.create(null, node0.pattern)
+            }));
+        }))));
     addTransform("ArgumentsPattern", seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
         seq(moveChild("id"), sequencea(actions), up)), ((__args = ["elements", checkTop]), (actions = []
         .slice.call(__args, 1)), seq(moveChild("elements"), sequencea(actions), up)), ((__args = [
