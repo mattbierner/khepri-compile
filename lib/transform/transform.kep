@@ -114,10 +114,6 @@ var inspectScope = \f -> extract.map (f <\ (.scope));
 
 var inspectScopeWith = \f -> extract.chain(f <\ (.scope));
 
-var setScope = \scope ->
-    modifyState \ s ->
-        s.setScope(scope);
-
 var modifyScope = \f ->
     modifyState \ s ->
         s.setScope(f s.scope);
