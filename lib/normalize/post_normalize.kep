@@ -8,7 +8,6 @@ package (
     normalize)
 with
     import 'khepri-ast::node' {modify},
-    import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
     
@@ -29,22 +28,11 @@ with
         rewrite},
     import './unpack' {
         innerPattern
-        expandImport
-        unpackParameters}
+        unpackParameters
+        getParameterNames}
 in {
 
 var markReserved := setUd @ 'reserved' @ true;
-
-var getParameterNames := 
-    flattenr <\ map @ \x -> {
-        switch (type x) {
-        case 'IdentifierPattern': return x;
-        case 'AsPattern': return x.id;
-        case 'SliceUnpack':
-        case 'RelativeUnpack': return [];
-        default: return x.ud.id;
-        }
-    };
 
 /* Transforms
  ******************************************************************************/
@@ -55,7 +43,7 @@ var always := \_ -> true;
 /* Binding Expansion
  ******************************************************************************/
 /**
- * Expand import patterns to a binding to an import.
+ * Expand an import pattern to a binding to an import.
  * 
  * Imports are marked reserved so they will not be pruned.
  */

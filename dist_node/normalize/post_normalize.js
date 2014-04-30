@@ -4,7 +4,6 @@
 */"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
-    ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
     __o0 = require("../pseudo/pattern"),
@@ -24,24 +23,9 @@ var __o = require("khepri-ast")["node"],
     rewrite = __o3["rewrite"],
     __o4 = require("./unpack"),
     innerPattern = __o4["innerPattern"],
-    expandImport = __o4["expandImport"],
     unpackParameters = __o4["unpackParameters"],
-    normalize, x, y, x0, x1, x2, y0, markReserved = setUd.bind(null, "reserved", true),
-    getParameterNames = ((x = flattenr), (y = map.bind(null, (function(x0) {
-        switch (type(x0)) {
-            case "IdentifierPattern":
-                return x0;
-            case "AsPattern":
-                return x0.id;
-            case "SliceUnpack":
-            case "RelativeUnpack":
-                return [];
-            default:
-                return x0.ud.id;
-        }
-    }))), (function(z) {
-        return x(y(z));
-    })),
+    getParameterNames = __o4["getParameterNames"],
+    normalize, x, x0, x1, y, markReserved = setUd.bind(null, "reserved", true),
     peepholes = new(Rewriter)(),
     always = (function(_) {
         return true;
@@ -81,30 +65,30 @@ var expandAssignment = (function(node) {
         node
     ]);
 });
-peepholes.add("ExpressionStatement", UP, ((x0 = type), (function(z) {
+peepholes.add("ExpressionStatement", UP, ((x = type), (function(z) {
     var z0 = z.expression,
-        y0 = x0(z0);
-    return ("AssignmentExpression" === y0);
-})), ((x1 = flattenr), (x2 = map.bind(null, ast_statement.ExpressionStatement.create.bind(null, null))), (y0 =
+        y = x(z0);
+    return ("AssignmentExpression" === y);
+})), ((x0 = flattenr), (x1 = map.bind(null, ast_statement.ExpressionStatement.create.bind(null, null))), (y =
     ast_statement.BlockStatement.create.bind(null, null)), (function(z) {
     var right, z0 = z.expression,
         z1 = ((type(z0.right) === "AssignmentExpression") ? ((right = expandAssignment(z0.right)), concat(
             right, ast_expression.AssignmentExpression.create(null, "=", z0.left, right[(right.length -
                 1)].left))) : [z0]),
-        z2 = x1(z1);
-    return y0(x2(z2));
+        z2 = x0(z1);
+    return y(x1(z2));
 })));
 peepholes.add("BinaryExpression", UP, (function(z) {
-    var y1 = z.operator;
-    return ("|>" === y1);
+    var y0 = z.operator;
+    return ("|>" === y0);
 }), (function(__o5) {
     var left = __o5["left"],
         right = __o5["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add("BinaryExpression", UP, (function(z) {
-    var y1 = z.operator;
-    return ("<|" === y1);
+    var y0 = z.operator;
+    return ("<|" === y0);
 }), (function(__o5) {
     var left = __o5["left"],
         right = __o5["right"];

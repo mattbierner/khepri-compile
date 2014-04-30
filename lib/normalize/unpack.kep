@@ -5,7 +5,9 @@
  */
 package (
     innerPattern
-    unpackParameters)
+    
+    unpackParameters
+    getParameterNames)
 with
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::declaration' ast_declaration,
@@ -158,4 +160,14 @@ unpackParameters = \args elements ->
         }
         |> flatten;
 
+getParameterNames := 
+    flattenr <\ map @ \x -> {
+        switch (type x) {
+        case 'IdentifierPattern': return x;
+        case 'AsPattern': return x.id;
+        case 'SliceUnpack':
+        case 'RelativeUnpack': return [];
+        default: x;
+        }
+    };
 }

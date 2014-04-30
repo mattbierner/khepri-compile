@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/unpack.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, fun) {
     "use strict";
@@ -13,7 +12,8 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
         flatten = fun["flatten"],
         flattenr = fun["flattenr"],
         map = fun["map"],
-        innerPattern, unpackParameters, relativeUnpack = (function(target, start, indx, pattern) {
+        innerPattern, unpackParameters, getParameterNames, relativeUnpack = (function(target, start, indx,
+            pattern) {
             return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
         }),
         sliceUnpack = (function(target, id, from, to) {
@@ -65,6 +65,24 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration",
             }
         }), elements));
     }));
+    var x = flattenr,
+        y = map.bind(null, (function(x0) {
+            switch (type(x0)) {
+                case "IdentifierPattern":
+                    return x0;
+                case "AsPattern":
+                    return x0.id;
+                case "SliceUnpack":
+                case "RelativeUnpack":
+                    return [];
+                default:
+                    x0;
+            }
+        }));
+    (getParameterNames = (function(z) {
+        return x(y(z));
+    }));
     (exports["innerPattern"] = innerPattern);
     (exports["unpackParameters"] = unpackParameters);
+    (exports["getParameterNames"] = getParameterNames);
 }));
