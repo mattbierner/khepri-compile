@@ -57,14 +57,6 @@ var ecma_clause = require("ecma-ast")["clause"],
     pass = M.of(null),
     cons = liftM2.bind(null, concat),
     enumeration = foldr.bind(null, flip(cons), M.of([])),
-    extract = M.lift(M.inner.get),
-    modifyState = ((x = M.lift), (y = M.inner.modify), (function(z) {
-        return x(y(z));
-    })),
-    inspectStateWith = M.chain.bind(null, extract),
-    packageManager = extract.map((function(x0) {
-        return x0.packageManager;
-    })),
     node = M.node,
     withNode = M.chain.bind(null, node),
     modify = M.modifyNode,
@@ -73,8 +65,16 @@ var ecma_clause = require("ecma-ast")["clause"],
     down = M.down,
     right = M.right,
     moveChild = M.child,
-    checkTop = node.chain((function(x0) {
-        return _trans(x0);
+    checkTop = node.chain((function(x) {
+        return _trans(x);
+    })),
+    extract = M.lift(M.inner.get),
+    modifyState = ((x = M.lift), (y = M.inner.modify), (function(z) {
+        return x(y(z));
+    })),
+    inspectStateWith = M.chain.bind(null, extract),
+    packageManager = extract.map((function(x0) {
+        return x0.packageManager;
     })),
     inspectScope = (function(f) {
         return extract.map((function(z) {
@@ -132,10 +132,7 @@ var ecma_clause = require("ecma-ast")["clause"],
         else {
             (transformers[type0] = check);
         }
-    }),
-    _transform = withNode((function(node0) {
-        return _trans(node0);
-    }));
+    });
 addTransform("VariableDeclaration", seq(((__args = ["declarations", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("declarations"), sequencea(actions), up)), modify((function(__o5) {
     var loc = __o5["loc"],
@@ -285,7 +282,7 @@ addTransform("Package", seq(packageManager.chain((function(packageManager0) {
     return modify((function(node0) {
         return translate.packageBlock(packageManager0, node0.loc, node0.exports, node0.body);
     }));
-})), _transform));
+})), checkTop));
 addTransform("Import", packageManager.chain((function(packageManager0) {
     var y4;
     return modify(((y4 = packageManager0.importPackage), (function(z) {

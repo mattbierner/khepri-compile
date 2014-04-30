@@ -62,10 +62,12 @@ var always := \_ -> true;
 peepholes.add('ImportPattern', UP,
     always,
     
-    \{pattern from} ->
-        markReserved <| ast_declaration.Binding.create(null,
-            pattern,
-            Import.create(null, from.value)));
+    \{pattern from} -> let
+        [imp ...rest] = innerPattern(Import.create(null, from.value), pattern)
+    in
+        concat(
+            markReserved imp,
+            rest));
 
 /**
  * Expand a potentially complex bindings pattern to a list of simple

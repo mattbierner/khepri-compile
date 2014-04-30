@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     modify = __o["modify"],
     ast_declaration = require("khepri-ast")["declaration"],
@@ -49,8 +48,11 @@ var __o = require("khepri-ast")["node"],
     });
 peepholes.add("ImportPattern", UP, always, (function(__o5) {
     var pattern = __o5["pattern"],
-        from = __o5["from"];
-    return markReserved(ast_declaration.Binding.create(null, pattern, Import.create(null, from.value)));
+        from = __o5["from"],
+        __o6 = innerPattern(Import.create(null, from.value), pattern),
+        imp = __o6[0],
+        rest = [].slice.call(__o6, 1);
+    return concat(markReserved(imp), rest);
 }));
 peepholes.add("Binding", UP, always, (function(binding) {
     return innerPattern(binding.value, binding.pattern);

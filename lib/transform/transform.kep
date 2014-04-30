@@ -69,18 +69,6 @@ var enumeration := foldr@(flip cons, M.of []);
 
 /* Operations
  ******************************************************************************/
-// State Operations
-////////////////////////////////////////
-var extract = M.lift (M.inner.get);
-
-var setState = M.lift <\ M.inner.put;
-
-var modifyState = M.lift <\ M.inner.modify;
-
-var inspectStateWith = M.chain @ extract;
-
-var packageManager = extract.map (.packageManager);
-
 // Zipper Operations
 ////////////////////////////////////////
 var node = M.node;
@@ -108,11 +96,21 @@ var checkChild := \edge ->
     child(edge,
         checkTop);
 
+// State Operations
+////////////////////////////////////////
+var extract = M.lift (M.inner.get);
+
+var setState = M.lift <\ M.inner.put;
+
+var modifyState = M.lift <\ M.inner.modify;
+
+var inspectStateWith = M.chain @ extract;
+
+var packageManager = extract.map (.packageManager);
+
 // Scoping Operations
 ////////////////////////////////////////
 var inspectScope = \f -> extract.map (f <\ (.scope));
-
-var inspectScopeWith = \f -> extract.chain(f <\ (.scope));
 
 var modifyScope = \f ->
     modifyState \ s ->
@@ -199,8 +197,6 @@ var addTransform = \type check -> {
     else
         transformers.(type) = check;
 };
-
-var _transform = withNode \node -> _trans(node); // Late
 
 // Declarations
 addTransform@'VariableDeclaration' <| seq(
@@ -455,7 +451,7 @@ addTransform@'Package' <| seq(
             node.body),
     
     // the package managers are expressed in khepri code so we have to translate the output
-    _transform); 
+    checkTop); 
 
 addTransform@'Import' <|
     packageManager.chain \ packageManager ->
@@ -496,17 +492,16 @@ in
 /**
  * 
  */
-_trans  = \node ->
+_trans = \node ->
     ?Array.isArray node
         :visitArray node
         :(transformers.(type node) || pass);
 
-var rewrite := checkTop;
 
 var transformProgram := seq(
     addVar('require', getUid(builtins.require)),
     addVar('exports', getUid(builtins.exports)),
-    rewrite,
+    checkTop,
     node.map (ecmaZipper));
 
 /* API
