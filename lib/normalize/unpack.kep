@@ -141,7 +141,6 @@ unpackParameters = \args elements ->
         |> map @ \x -> {
             switch (type x) {
             // Avoid generating redundant unpacks for parameters names.
-            case 'SinkPattern':
             case 'IdentifierPattern':
                 return [];
             

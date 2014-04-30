@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
@@ -55,7 +54,6 @@ var ast_expression = require("khepri-ast")["expression"],
 (unpackParameters = (function(args, elements) {
     return flatten(map((function(x) {
         switch (type(x)) {
-            case "SinkPattern":
             case "IdentifierPattern":
                 return [];
             case "SliceUnpack":

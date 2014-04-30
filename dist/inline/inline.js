@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree",
     "../ast", "../builtin", "../fun", "./state", "./expand", "./expansion", "./rename"
 ], (function(require, exports, __o, ast_declaration, ast_statement, ast_expression, ast_value, __o0, Unique, StateT,
@@ -49,7 +48,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             exp, consequent12, x2, consequent13, __args42, ops42, __args43, ops43, y2, exp0, consequent14, x2,
             consequent15, __args44, ops44, __args45, ops45, x3, consequent16, consequent17, __args46, ops46,
             __args47, ops47, __args48, ops48, __args49, ops49, __args50, ops50, __args51, ops51, __args52,
-            ops52, __args53, ops53, consequent18, __and = (function(x, y) {
+            ops52, consequent18, __and = (function(x, y) {
                 return (x && y);
             }),
         __plus = (function(x) {
@@ -507,23 +506,22 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         return (((bindings = node["bindings"]), (!bindings.length)) ? consequent17 : (
             undefined || pass));
     })))));
-    addRewrite(["SliceUnpack", "RelativeUnpack"], seq(((__args46 = ["pattern", checkTop]), (ops46 = [].slice.call(
-        __args46, 1)), seq(moveChild("pattern"), seqa(ops46), up)), ((__args47 = ["target", checkTop]), (
-        ops47 = [].slice.call(__args47, 1)), seq(moveChild("target"), seqa(ops47), up))));
-    addRewrite("ArgumentsPattern", seq(((__args48 = ["id", checkTop]), (ops48 = [].slice.call(__args48, 1)),
-        seq(moveChild("id"), seqa(ops48), up)), ((__args49 = ["elements", checkTop]), (ops49 = [].slice
-        .call(__args49, 1)), seq(moveChild("elements"), seqa(ops49), up)), ((__args50 = ["self",
+    addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args46 = ["target", checkTop]), (ops46 = [].slice.call(
+        __args46, 1)), seq(moveChild("target"), seqa(ops46), up)));
+    addRewrite("ArgumentsPattern", seq(((__args47 = ["id", checkTop]), (ops47 = [].slice.call(__args47, 1)),
+        seq(moveChild("id"), seqa(ops47), up)), ((__args48 = ["elements", checkTop]), (ops48 = [].slice
+        .call(__args48, 1)), seq(moveChild("elements"), seqa(ops48), up)), ((__args49 = ["self",
         checkTop
-    ]), (ops50 = [].slice.call(__args50, 1)), seq(moveChild("self"), seqa(ops50), up))));
+    ]), (ops49 = [].slice.call(__args49, 1)), seq(moveChild("self"), seqa(ops49), up))));
     addRewrite("IdentifierPattern", extract((function(node) {
         return addBinding(getUid(node.id), null, true);
     })));
-    addRewrite("ArrayExpression", ((__args51 = ["elements", checkTop]), (ops51 = [].slice.call(__args51, 1)),
-        seq(moveChild("elements"), seqa(ops51), up)));
-    addRewrite("ObjectExpression", ((__args52 = ["properties", checkTop]), (ops52 = [].slice.call(__args52, 1)),
-        seq(moveChild("properties"), seqa(ops52), up)));
-    addRewrite("ObjectValue", ((__args53 = ["value", checkTop]), (ops53 = [].slice.call(__args53, 1)), seq(
-        moveChild("value"), seqa(ops53), up)));
+    addRewrite("ArrayExpression", ((__args50 = ["elements", checkTop]), (ops50 = [].slice.call(__args50, 1)),
+        seq(moveChild("elements"), seqa(ops50), up)));
+    addRewrite("ObjectExpression", ((__args51 = ["properties", checkTop]), (ops51 = [].slice.call(__args51, 1)),
+        seq(moveChild("properties"), seqa(ops51), up)));
+    addRewrite("ObjectValue", ((__args52 = ["value", checkTop]), (ops52 = [].slice.call(__args52, 1)), seq(
+        moveChild("value"), seqa(ops52), up)));
     addRewrite("Identifier", ((consequent18 = extract((function(node) {
         return getBinding(getUid(node))
             .chain((function(binding) {

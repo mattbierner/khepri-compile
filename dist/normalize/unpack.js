@@ -51,7 +51,6 @@
     (unpackParameters = (function(args, elements) {
         return flatten(map((function(x) {
             switch (type(x)) {
-                case "SinkPattern":
                 case "IdentifierPattern":
                     return [];
                 case "SliceUnpack":
