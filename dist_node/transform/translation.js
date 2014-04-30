@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/translation.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/translation.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
     ecma_expression = require("ecma-ast")["expression"],

@@ -132,7 +132,10 @@
         __args, 1)), seq(moveChild("id"), sequencea(actions), up))]), (actions0 = [].slice.call(
         __args0, 1)), seq(moveChild("pattern"), sequencea(actions0), up)), ((__args = ["value",
         checkTop
-    ]), (actions = [].slice.call(__args, 1)), seq(moveChild("value"), sequencea(actions), up))));
+    ]), (actions = [].slice.call(__args, 1)), seq(moveChild("value"), sequencea(actions), up)), modify(
+        (function(node0) {
+            return node0;
+        }))));
     addTransform("VariableDeclarator", seq(((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
         seq(moveChild("id"), sequencea(actions), up)), ((__args = ["init", checkTop]), (actions = [].slice
         .call(__args, 1)), seq(moveChild("init"), sequencea(actions), up)), modify((function(node0) {

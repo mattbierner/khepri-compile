@@ -92,7 +92,7 @@ var child := \edge ...actions ->
 
 var checkTop := node.chain \ x -> _trans x; // forward
 
-var checkChild := \edge ->
+var rewriteChild := \edge ->
     child(edge,
         checkTop);
 
@@ -200,19 +200,20 @@ var addTransform = \type check -> {
 
 // Declarations
 addTransform@'VariableDeclaration' <| seq(
-    checkChild 'declarations',
+    rewriteChild 'declarations',
     modify \ {loc declarations} ->
         ecma_declaration.VariableDeclaration.create(loc,
             declarations));
 
 addTransform@'Binding' <| seq(
     child('pattern',
-        checkChild 'id'),
-    checkChild 'value');
+        rewriteChild 'id'),
+    rewriteChild 'value',
+    modify \ node -> node);
 
 addTransform@'VariableDeclarator' <| seq(
-    checkChild 'id',
-    checkChild 'init',
+    rewriteChild 'id',
+    rewriteChild 'init',
     modify \ node ->
         ecma_declaration.VariableDeclarator.create(node.loc,
             node.id,
@@ -224,16 +225,16 @@ addTransform@'StaticDeclaration' <|
 
 // Clauses
 addTransform@'CatchClause' <| seq(
-    checkChild 'param',
-    checkChild 'body',
+    rewriteChild 'param',
+    rewriteChild 'body',
     modify \ node ->
         ecma_clause.CatchClause.create(node.loc,
             node.param,
             node.body));
 
 addTransform@'SwitchCase' <| seq(
-    checkChild 'test',
-    checkChild 'consequent',
+    rewriteChild 'test',
+    rewriteChild 'consequent',
     modify \ node ->
         ecma_clause.SwitchCase.create(node.loc,
             node.test,
@@ -242,24 +243,24 @@ addTransform@'SwitchCase' <| seq(
 // Statement
 addTransform@'BlockStatement' <| seq(
     pushBindings,
-    checkChild 'body',
+    rewriteChild 'body',
     getBindings \ bindings ->
         modify (translate.blockStatement @ bindings),
     popBindings);
 
 addTransform@'ExpressionStatement' <| seq(
-    checkChild 'expression',
+    rewriteChild 'expression',
     modify (translate.expressionStatement));
 
 addTransform@'IfStatement' <| seq(
-    checkChild 'test',
-    checkChild 'consequent',
-    checkChild 'alternate',
+    rewriteChild 'test',
+    rewriteChild 'consequent',
+    rewriteChild 'alternate',
     modify (translate.ifStatement));
 
 addTransform@'WithStatement' <| seq(
-    checkChild 'bindings',
-    checkChild 'body',
+    rewriteChild 'bindings',
+    rewriteChild 'body',
     modify \ node ->
         translate.withStatement(
             node.loc,
@@ -267,16 +268,16 @@ addTransform@'WithStatement' <| seq(
             node.body));
 
 addTransform@'SwitchStatement' <| seq(
-    checkChild 'discriminant',
-    checkChild 'cases',
+    rewriteChild 'discriminant',
+    rewriteChild 'cases',
     modify (translate.switchStatement));
 
 addTransform@'ReturnStatement' <| seq(
-    checkChild 'argument',
+    rewriteChild 'argument',
     modify (translate.returnStatement));;
 
 addTransform@'ThrowStatement' <| seq(
-    checkChild 'argument',
+    rewriteChild 'argument',
     modify (translate.throwStatement));
 
 addTransform@'BreakStatement' <|
@@ -286,81 +287,81 @@ addTransform@'ContinueStatement' <|
     modify (translate.continueStatement);
 
 addTransform@'TryStatement' <| seq(
-    checkChild 'block',
-    checkChild 'handler',
-    checkChild 'finalizer',
+    rewriteChild 'block',
+    rewriteChild 'handler',
+    rewriteChild 'finalizer',
     modify (translate.tryStatement));
 
 addTransform@'WhileStatement' <| seq(
-    checkChild 'test',
-    checkChild 'body',
+    rewriteChild 'test',
+    rewriteChild 'body',
     modify (translate.whileStatement));
 
 addTransform@'DoWhileStatement' <| seq(
-    checkChild 'body',
-    checkChild 'test',
+    rewriteChild 'body',
+    rewriteChild 'test',
     modify (translate.doWhileStatement));
 
 addTransform@'ForStatement' <| seq(
-    checkChild 'init',
-    checkChild 'test',
-    checkChild 'update',
-    checkChild 'body',
+    rewriteChild 'init',
+    rewriteChild 'test',
+    rewriteChild 'update',
+    rewriteChild 'body',
     modify (translate.forStatement));
 
 // Expression
 addTransform@'AssignmentExpression' <| seq(
-    checkChild 'left',
-    checkChild 'right',
+    rewriteChild 'left',
+    rewriteChild 'right',
     modify (translate.assignmentExpression));
 
 addTransform@'UnaryExpression' <| seq(
-    checkChild 'argument',
+    rewriteChild 'argument',
     modify (translate.unaryExpression));
 
 addTransform@'BinaryExpression' <| seq(
-    checkChild 'left',
-    checkChild 'right',
+    rewriteChild 'left',
+    rewriteChild 'right',
     modify (translate.binaryExpression));
 
 addTransform@'LogicalExpression' <| seq(
-    checkChild 'left',
-    checkChild 'right',
+    rewriteChild 'left',
+    rewriteChild 'right',
     modify (translate.logicalExpression));
 
 addTransform@'ConditionalExpression' <| seq(
-    checkChild 'test',
-    checkChild 'consequent',
-    checkChild 'alternate',
+    rewriteChild 'test',
+    rewriteChild 'consequent',
+    rewriteChild 'alternate',
     modify (translate.conditionalExpression));
 
 addTransform@'NewExpression' <| seq(
-    checkChild 'callee',
-    checkChild 'args',
+    rewriteChild 'callee',
+    rewriteChild 'args',
     modify (translate.newExpression));
 
 addTransform@'CallExpression' <| seq(
-    checkChild 'callee',
-    checkChild 'args',
+    rewriteChild 'callee',
+    rewriteChild 'args',
     modify (translate.callExpression));
 
 addTransform@'MemberExpression' <| seq(
-    checkChild 'object',
-    checkChild 'property',
+    rewriteChild 'object',
+    rewriteChild 'property',
     modify (translate.memberExpression));
 
 addTransform@'LetExpression' <| seq(
-    checkChild 'bindings',
+    rewriteChild 'bindings',
     withNode ((.bindings) \> addBindingsForBindingsList),
-    checkChild 'body',
+    rewriteChild 'body',
     modify \ node ->
         translate.letExpression(node.loc,
             node.bindings,
             node.body));
 
 addTransform@'CurryExpression' <| seq(
-    checkChild 'base',
-    checkChild 'args',
+    rewriteChild 'base',
+    rewriteChild 'args',
     modify \ node ->
         translate.curryExpression(node.loc,
             node.base,
@@ -368,7 +369,7 @@ addTransform@'CurryExpression' <| seq(
 
 addTransform@'FunctionExpression' <|
     realBlock(
-        checkChild 'id',
+        rewriteChild 'id',
         modify \ node ->
             translate.functionExpression(node.loc,
                 node.id,
@@ -376,8 +377,8 @@ addTransform@'FunctionExpression' <|
                 node.body,
                 getUd('prefix', node)),
         
-        checkChild 'params',
-        checkChild 'body',
+        rewriteChild 'params',
+        rewriteChild 'body',
         
         modify \ node ->
             ecma_expression.FunctionExpression.create(null,
@@ -386,20 +387,20 @@ addTransform@'FunctionExpression' <|
                 node.body));
 
 addTransform@'ArrayExpression' <| seq(
-    checkChild 'elements',
+    rewriteChild 'elements',
     modify \ node ->
         ecma_expression.ArrayExpression.create(node.loc,
             node.elements));
 
 addTransform@'ObjectExpression' <| seq(
-    checkChild 'properties',
+    rewriteChild 'properties',
     modify \ node ->
         ecma_expression.ObjectExpression.create(node.loc,
             node.properties));
 
 addTransform@'ObjectValue' <| seq(
-    checkChild 'key',
-    checkChild 'value',
+    rewriteChild 'key',
+    rewriteChild 'value',
     modify \ node ->
         ecma_value.ObjectValue.create(node.loc,
             node.key,
@@ -407,15 +408,15 @@ addTransform@'ObjectValue' <| seq(
 
 // Patterns
 addTransform@['RelativeUnpack', 'SliceUnpack'] <|
-    checkChild 'target';
+    rewriteChild 'target';
 
 addTransform@'ArgumentsPattern' <| seq(
-    checkChild 'id',
-    checkChild 'elements',
-    checkChild 'self');
+    rewriteChild 'id',
+    rewriteChild 'elements',
+    rewriteChild 'self');
 
 addTransform@['IdentifierPattern', 'AsPattern'] <| seq(
-    checkChild 'id',
+    rewriteChild 'id',
     modify (.id));
 
 addTransform@['ObjectPattern', 'EllipsisPattern'] <| seq(
@@ -436,7 +437,7 @@ addTransform@'Program' <|
                 :node
                 :setUd('prefix', useStrict, node),
         
-        checkChild 'body',
+        rewriteChild 'body',
         getBindings \ bindings ->
             modify (translate.program @ bindings));
 

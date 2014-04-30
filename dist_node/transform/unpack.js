@@ -1,10 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
-var ast_declaration = require("khepri-ast")["declaration"],
-    ast_expression = require("khepri-ast")["expression"],
+*/"use strict";
+var ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../ast"),
     type = __o["type"],
@@ -32,9 +30,9 @@ var ast_declaration = require("khepri-ast")["declaration"],
     transformUnpacks = map.bind(null, (function(node) {
         switch (type(node.value)) {
             case "RelativeUnpack":
-                return relativeUnpack(node.value.target, node.value.min, node.value.index, node.value.pattern);
+                return relativeUnpack(node.value.target, node.value.min, node.value.index, node.pattern);
             case "SliceUnpack":
-                return sliceUnpack(node.value.target, node.value.pattern, node.value.from, node.value.to);
+                return sliceUnpack(node.value.target, node.pattern, node.value.from, node.value.to);
             default:
                 return node;
         }

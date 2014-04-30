@@ -7,7 +7,6 @@ package (
     
     expandArgumentsPattern)
 with 
-    import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::value' ast_value,
     
@@ -23,8 +22,6 @@ in {
 var identifier := ast_value.Identifier.create @ null;
 
 var number := ast_value.Literal.create @ null @ 'number';
-
-var binding := ast_declaration.Binding.create @ null;
 
 /* Pattern translation
  *****************************************************************************/
@@ -79,11 +76,11 @@ var transformUnpacks = map @ \node -> {
             node.value.target,
             node.value.min,
             node.value.index,
-            node.value.pattern);
+            node.pattern);
     case 'SliceUnpack':
         return sliceUnpack(
             node.value.target,
-            node.value.pattern,
+            node.pattern,
             node.value.from,
             node.value.to);
     default:

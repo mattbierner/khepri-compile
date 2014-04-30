@@ -97,14 +97,13 @@ var bindingToDeclarator = \x ->
 var unpack = expandBinding \> map @ bindingToDeclarator;
 
 /**
- * Expand an binding to a list of assignments.
+ * Expand a binding to a list of assignments.
  */
 var unpackAssign =
     expandBinding
     \> map @ \x ->
         ecma_expression.AssignmentExpression.create(null, '=', x.pattern.id, x.value);
 
-        
 /* Program
  ******************************************************************************/
 program := \bindings node ->
@@ -113,8 +112,8 @@ program := \bindings node ->
             tryGetUd([], 'prefix', node),
             idsToDeclarators(bindings),
             node.body));
-    
-/* Program
+
+/* Expressions
  ******************************************************************************/
 /**
  * 
@@ -236,7 +235,6 @@ in
                 (prefix || []),
                 variableDeclaration(null, bindings),
                 body)));
-
 
 /* Translations
  ******************************************************************************/
