@@ -36,7 +36,7 @@ var ecma_clause = require("ecma-ast")["clause"],
     expandBindings = __o4["expandBindings"],
     state = require("./state"),
     State = state["State"],
-    translation = require("./translation"),
+    translate = require("./translation"),
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
     transform, x, y, f, f0, y0, y1, x0, x1, x2, y2, y3, __args, actions, __args0, actions0, __args, actions, __args,
@@ -167,83 +167,83 @@ addTransform("SwitchCase", seq(((__args = ["test", checkTop]), (actions = [].sli
 }))));
 addTransform("BlockStatement", seq(pushBindings, ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("body"), sequencea(actions), up)), getBindings((function(bindings) {
-    return modify(translation.blockStatement.bind(null, bindings));
+    return modify(translate.blockStatement.bind(null, bindings));
 })), popBindings));
 addTransform("ExpressionStatement", seq(((__args = ["expression", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("expression"), sequencea(actions), up)), modify(translation.expressionStatement)));
+    moveChild("expression"), sequencea(actions), up)), modify(translate.expressionStatement)));
 addTransform("IfStatement", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "test"), sequencea(actions), up)), ((__args = ["consequent", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("consequent"), sequencea(actions), up)), ((__args = ["alternate", checkTop]), (actions = [].slice
-    .call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(translation.ifStatement)));
+    .call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(translate.ifStatement)));
 addTransform("WithStatement", seq(((__args = ["bindings", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("bindings"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify((function(node0) {
-    return translation.withStatement(node0.loc, node0.bindings, node0.body);
+    return translate.withStatement(node0.loc, node0.bindings, node0.body);
 }))));
 addTransform("SwitchStatement", seq(((__args = ["discriminant", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("discriminant"), sequencea(actions), up)), ((__args = ["cases", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("cases"), sequencea(actions), up)), modify(translation.switchStatement)));
+    __args, 1)), seq(moveChild("cases"), sequencea(actions), up)), modify(translate.switchStatement)));
 addTransform("ReturnStatement", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify(translation.returnStatement)));
+    moveChild("argument"), sequencea(actions), up)), modify(translate.returnStatement)));
 addTransform("ThrowStatement", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify(translation.throwStatement)));
-addTransform("BreakStatement", modify(translation.breakStatement));
-addTransform("ContinueStatement", modify(translation.continueStatement));
+    moveChild("argument"), sequencea(actions), up)), modify(translate.throwStatement)));
+addTransform("BreakStatement", modify(translate.breakStatement));
+addTransform("ContinueStatement", modify(translate.continueStatement));
 addTransform("TryStatement", seq(((__args = ["block", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "block"), sequencea(actions), up)), ((__args = ["handler", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("handler"), sequencea(actions), up)), ((__args = ["finalizer", checkTop]), (actions = [].slice
-    .call(__args, 1)), seq(moveChild("finalizer"), sequencea(actions), up)), modify(translation.tryStatement)));
+    .call(__args, 1)), seq(moveChild("finalizer"), sequencea(actions), up)), modify(translate.tryStatement)));
 addTransform("WhileStatement", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "test"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("body"), sequencea(actions), up)), modify(translation.whileStatement)));
+    seq(moveChild("body"), sequencea(actions), up)), modify(translate.whileStatement)));
 addTransform("DoWhileStatement", seq(((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("body"), sequencea(actions), up)), ((__args = ["test", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("test"), sequencea(actions), up)), modify(translation.doWhileStatement)));
+    __args, 1)), seq(moveChild("test"), sequencea(actions), up)), modify(translate.doWhileStatement)));
 addTransform("ForStatement", seq(((__args = ["init", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "init"), sequencea(actions), up)), ((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("test"), sequencea(actions), up)), ((__args = ["update", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("update"), sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = []
-    .slice.call(__args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify(translation.forStatement)));
+    .slice.call(__args, 1)), seq(moveChild("body"), sequencea(actions), up)), modify(translate.forStatement)));
 addTransform("AssignmentExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.assignmentExpression)));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translate.assignmentExpression)));
 addTransform("UnaryExpression", seq(((__args = ["argument", checkTop]), (actions = [].slice.call(__args, 1)), seq(
-    moveChild("argument"), sequencea(actions), up)), modify(translation.unaryExpression)));
+    moveChild("argument"), sequencea(actions), up)), modify(translate.unaryExpression)));
 addTransform("BinaryExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.binaryExpression)));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translate.binaryExpression)));
 addTransform("LogicalExpression", seq(((__args = ["left", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("left"), sequencea(actions), up)), ((__args = ["right", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translation.logicalExpression)));
+    __args, 1)), seq(moveChild("right"), sequencea(actions), up)), modify(translate.logicalExpression)));
 addTransform("ConditionalExpression", seq(((__args = ["test", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("test"), sequencea(actions), up)), ((__args = ["consequent", checkTop]), (actions = [].slice.call(
     __args, 1)), seq(moveChild("consequent"), sequencea(actions), up)), ((__args = ["alternate", checkTop]), (
-    actions = [].slice.call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(
-    translation.conditionalExpression)));
+    actions = [].slice.call(__args, 1)), seq(moveChild("alternate"), sequencea(actions), up)), modify(translate
+    .conditionalExpression)));
 addTransform("NewExpression", seq(((__args = ["callee", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "callee"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(__args, 1)),
-    seq(moveChild("args"), sequencea(actions), up)), modify(translation.newExpression)));
+    seq(moveChild("args"), sequencea(actions), up)), modify(translate.newExpression)));
 addTransform("CallExpression", seq(((__args = ["callee", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("callee"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("args"), sequencea(actions), up)), modify(translation.callExpression)));
+    __args, 1)), seq(moveChild("args"), sequencea(actions), up)), modify(translate.callExpression)));
 addTransform("MemberExpression", seq(((__args = ["object", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("object"), sequencea(actions), up)), ((__args = ["property", checkTop]), (actions = [].slice.call(
-    __args, 1)), seq(moveChild("property"), sequencea(actions), up)), modify(translation.memberExpression)));
+    __args, 1)), seq(moveChild("property"), sequencea(actions), up)), modify(translate.memberExpression)));
 addTransform("LetExpression", seq(((__args = ["bindings", checkTop]), (actions = [].slice.call(__args, 1)), seq(
     moveChild("bindings"), sequencea(actions), up)), withNode((function(z) {
     return addBindingsForBindingsList(z.bindings);
 })), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"), sequencea(
     actions), up)), modify((function(node0) {
-    return translation.letExpression(node0.loc, node0.bindings, node0.body);
+    return translate.letExpression(node0.loc, node0.bindings, node0.body);
 }))));
 addTransform("CurryExpression", seq(((__args = ["base", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild(
     "base"), sequencea(actions), up)), ((__args = ["args", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("args"), sequencea(actions), up)), modify((function(node0) {
-    return translation.curryExpression(node0.loc, node0.base, node0.args);
+    return translate.curryExpression(node0.loc, node0.base, node0.args);
 }))));
 addTransform("FunctionExpression", ((actions1 = [((__args = ["id", checkTop]), (actions = [].slice.call(__args, 1)),
     seq(moveChild("id"), sequencea(actions), up)), modify((function(node0) {
-    return translation.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
+    return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
         "prefix", node0));
 })), ((__args = ["params", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("params"),
     sequencea(actions), up)), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(
@@ -279,11 +279,11 @@ addTransform("Program", ((useStrict = ecma_statement.ExpressionStatement.create(
     return ((type(node0.body) === "Package") ? node0 : setUd("prefix", useStrict, node0));
 })), ((__args = ["body", checkTop]), (actions = [].slice.call(__args, 1)), seq(moveChild("body"), sequencea(
     actions), up)), getBindings((function(bindings) {
-    return modify(translation.program.bind(null, bindings));
+    return modify(translate.program.bind(null, bindings));
 })))));
 addTransform("Package", seq(packageManager.chain((function(packageManager0) {
     return modify((function(node0) {
-        return translation.packageBlock(packageManager0, node0.loc, node0.exports, node0.body);
+        return translate.packageBlock(packageManager0, node0.loc, node0.exports, node0.body);
     }));
 })), _transform));
 addTransform("Import", packageManager.chain((function(packageManager0) {

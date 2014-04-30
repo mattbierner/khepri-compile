@@ -1,7 +1,7 @@
 /**
  * @fileOverview
  * 
- * @TODO: move all translation specific logic out of this file.
+ * @TODO: move all translate specific logic out of this file.
  */
 package (
     transform)
@@ -40,7 +40,7 @@ with
     import './unpack' {
         expandBindings},
     import './state' state#{State},
-    import './translation' translation,
+    import './translation' translate,
     
     import './package_manager/amd' _,
     import './package_manager/node' _
@@ -252,24 +252,24 @@ addTransform@'BlockStatement' <| seq(
     pushBindings,
     checkChild 'body',
     getBindings \ bindings ->
-        modify (translation.blockStatement @ bindings),
+        modify (translate.blockStatement @ bindings),
     popBindings);
 
 addTransform@'ExpressionStatement' <| seq(
     checkChild 'expression',
-    modify (translation.expressionStatement));
+    modify (translate.expressionStatement));
 
 addTransform@'IfStatement' <| seq(
     checkChild 'test',
     checkChild 'consequent',
     checkChild 'alternate',
-    modify (translation.ifStatement));
+    modify (translate.ifStatement));
 
 addTransform@'WithStatement' <| seq(
     checkChild 'bindings',
     checkChild 'body',
     modify \ node ->
-        translation.withStatement(
+        translate.withStatement(
             node.loc,
             node.bindings,
             node.body));
@@ -277,92 +277,92 @@ addTransform@'WithStatement' <| seq(
 addTransform@'SwitchStatement' <| seq(
     checkChild 'discriminant',
     checkChild 'cases',
-    modify (translation.switchStatement));
+    modify (translate.switchStatement));
 
 addTransform@'ReturnStatement' <| seq(
     checkChild 'argument',
-    modify (translation.returnStatement));;
+    modify (translate.returnStatement));;
 
 addTransform@'ThrowStatement' <| seq(
     checkChild 'argument',
-    modify (translation.throwStatement));
+    modify (translate.throwStatement));
 
 addTransform@'BreakStatement' <|
-    modify (translation.breakStatement);
+    modify (translate.breakStatement);
 
 addTransform@'ContinueStatement' <|
-    modify (translation.continueStatement);
+    modify (translate.continueStatement);
 
 addTransform@'TryStatement' <| seq(
     checkChild 'block',
     checkChild 'handler',
     checkChild 'finalizer',
-    modify (translation.tryStatement));
+    modify (translate.tryStatement));
 
 addTransform@'WhileStatement' <| seq(
     checkChild 'test',
     checkChild 'body',
-    modify (translation.whileStatement));
+    modify (translate.whileStatement));
 
 addTransform@'DoWhileStatement' <| seq(
     checkChild 'body',
     checkChild 'test',
-    modify (translation.doWhileStatement));
+    modify (translate.doWhileStatement));
 
 addTransform@'ForStatement' <| seq(
     checkChild 'init',
     checkChild 'test',
     checkChild 'update',
     checkChild 'body',
-    modify (translation.forStatement));
+    modify (translate.forStatement));
 
 // Expression
 addTransform@'AssignmentExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify (translation.assignmentExpression));
+    modify (translate.assignmentExpression));
 
 addTransform@'UnaryExpression' <| seq(
     checkChild 'argument',
-    modify (translation.unaryExpression));
+    modify (translate.unaryExpression));
 
 addTransform@'BinaryExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify (translation.binaryExpression));
+    modify (translate.binaryExpression));
 
 addTransform@'LogicalExpression' <| seq(
     checkChild 'left',
     checkChild 'right',
-    modify (translation.logicalExpression));
+    modify (translate.logicalExpression));
 
 addTransform@'ConditionalExpression' <| seq(
     checkChild 'test',
     checkChild 'consequent',
     checkChild 'alternate',
-    modify (translation.conditionalExpression));
+    modify (translate.conditionalExpression));
 
 addTransform@'NewExpression' <| seq(
     checkChild 'callee',
     checkChild 'args',
-    modify (translation.newExpression));
+    modify (translate.newExpression));
 
 addTransform@'CallExpression' <| seq(
     checkChild 'callee',
     checkChild 'args',
-    modify (translation.callExpression));
+    modify (translate.callExpression));
 
 addTransform@'MemberExpression' <| seq(
     checkChild 'object',
     checkChild 'property',
-    modify (translation.memberExpression));
+    modify (translate.memberExpression));
 
 addTransform@'LetExpression' <| seq(
     checkChild 'bindings',
     withNode ((.bindings) \> addBindingsForBindingsList),
     checkChild 'body',
     modify \ node ->
-        translation.letExpression(node.loc,
+        translate.letExpression(node.loc,
             node.bindings,
             node.body));
 
@@ -370,7 +370,7 @@ addTransform@'CurryExpression' <| seq(
     checkChild 'base',
     checkChild 'args',
     modify \ node ->
-        translation.curryExpression(node.loc,
+        translate.curryExpression(node.loc,
             node.base,
             node.args));
 
@@ -378,7 +378,7 @@ addTransform@'FunctionExpression' <|
     realBlock(
         checkChild 'id',
         modify \ node ->
-            translation.functionExpression(node.loc,
+            translate.functionExpression(node.loc,
                 node.id,
                 node.params,
                 node.body,
@@ -446,13 +446,13 @@ addTransform@'Program' <|
         
         checkChild 'body',
         getBindings \ bindings ->
-            modify (translation.program @ bindings));
+            modify (translate.program @ bindings));
 
 // Package
 addTransform@'Package' <| seq(
     packageManager.chain \ packageManager ->
     modify \ node ->
-        translation.packageBlock(
+        translate.packageBlock(
             packageManager,
             node.loc,
             node.exports,

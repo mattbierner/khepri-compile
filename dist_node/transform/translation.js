@@ -9,10 +9,8 @@ var ecma_clause = require("ecma-ast")["clause"],
     ecma_program = require("ecma-ast")["program"],
     ecma_statement = require("ecma-ast")["statement"],
     ecma_value = require("ecma-ast")["value"],
-    khepri_declaration = require("khepri-ast")["declaration"],
     khepri_expression = require("khepri-ast")["expression"],
     khepri_statement = require("khepri-ast")["statement"],
-    khepri_pattern = require("khepri-ast")["pattern"],
     khepri_value = require("khepri-ast")["value"],
     __o = require("../ast"),
     type = __o["type"],
@@ -101,14 +99,6 @@ var mapOp = (function(op) {
     return ecma_expression.CallExpression.create(loc, ecma_expression.MemberExpression.create(null, base,
         identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null), args));
 }));
-(blockStatement = (function(bindings, node) {
-    return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
-}));
-(withStatement = (function(loc, bindings, body) {
-    var vars = flatten(map(unpack, bindings)),
-        prefix = variableDeclaration(null, vars);
-    return ecma_statement.BlockStatement.create(loc, concat(prefix, body.body));
-}));
 (functionExpression = (function(loc, id, parameters, functionBody, prefix) {
     var params = parameters.elements,
         bindings = map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(
@@ -117,6 +107,14 @@ var mapOp = (function(op) {
             .create(null, functionBody));
     return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
         body.loc, concat((prefix || []), variableDeclaration(null, bindings), body)));
+}));
+(blockStatement = (function(bindings, node) {
+    return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
+}));
+(withStatement = (function(loc, bindings, body) {
+    var vars = flatten(map(unpack, bindings)),
+        prefix = variableDeclaration(null, vars);
+    return ecma_statement.BlockStatement.create(loc, concat(prefix, body.body));
 }));
 (expressionStatement = (function(node) {
     return ecma_statement.ExpressionStatement.create(node.loc, node.expression);

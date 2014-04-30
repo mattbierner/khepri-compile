@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Translations of Khepri elements to ECMAScript.
  */
 package (
     program
@@ -41,10 +41,8 @@ with
     import 'ecma-ast::statement' ecma_statement,
     import 'ecma-ast::value'ecma_value,
     
-    import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
     import 'khepri-ast::statement' khepri_statement,
-    import 'khepri-ast::pattern' khepri_pattern,
     import 'khepri-ast::value' khepri_value,
     
     import '../ast' {
@@ -63,6 +61,7 @@ with
         expandBinding
         expandArgumentsPattern}
 in {
+
 /* Values
  ******************************************************************************/
 var identifier = \loc, name uid ->
@@ -216,6 +215,28 @@ curryExpression = \loc base args ->
             ecma_value.Literal.create(null, 'null', null),
             args));
 
+/**
+ * Function Expression Normalization.
+ */
+functionExpression = \loc id parameters functionBody prefix -> let
+    params = parameters.elements,
+    
+    bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
+        |> map @ bindingToDeclarator,
+    
+    body = ?type functionBody === "BlockStatement"
+        :functionBody.body
+        :khepri_statement.ReturnStatement.create(null, functionBody)
+in
+    khepri_expression.FunctionExpression.create(loc,
+        id,
+        params,
+        khepri_statement.BlockStatement.create(body.loc,
+            concat(
+                (prefix || []),
+                variableDeclaration(null, bindings),
+                body)));
+
 
 /* Translations
  ******************************************************************************/
@@ -240,28 +261,6 @@ in
         concat(
             prefix,
             body.body));
-
-/**
- * Function Expression Normalization.
- */
-functionExpression = \loc id parameters functionBody prefix -> let
-    params = parameters.elements,
-    
-    bindings = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null))
-        |> map @ bindingToDeclarator,
-    
-    body = ?type functionBody === "BlockStatement"
-        :functionBody.body
-        :khepri_statement.ReturnStatement.create(null, functionBody)
-in
-    khepri_expression.FunctionExpression.create(loc,
-        id,
-        params,
-        khepri_statement.BlockStatement.create(body.loc,
-            concat(
-                (prefix || []),
-                variableDeclaration(null, bindings),
-                body)));
 
 expressionStatement := \node ->
     ecma_statement.ExpressionStatement.create(node.loc,

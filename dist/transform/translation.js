@@ -2,11 +2,10 @@
  * THIS FILE IS AUTO GENERATED from 'lib/transform/translation.kep'
  * DO NOT EDIT
 */define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
-    "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration", "khepri-ast/expression",
-    "khepri-ast/statement", "khepri-ast/pattern", "khepri-ast/value", "../ast", "../fun", "./unpack"
+    "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/expression", "khepri-ast/statement",
+    "khepri-ast/value", "../ast", "../fun", "./unpack"
 ], (function(require, exports, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
-    ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_statement, khepri_pattern,
-    khepri_value, __o, fun, __o0) {
+    ecma_statement, ecma_value, khepri_expression, khepri_statement, khepri_value, __o, fun, __o0) {
     "use strict";
     var type = __o["type"],
         tryGetUd = __o["tryGetUd"],
@@ -95,14 +94,6 @@
             base, identifier(null, "bind")), concat(ecma_value.Literal.create(null, "null", null),
             args));
     }));
-    (blockStatement = (function(bindings, node) {
-        return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
-    }));
-    (withStatement = (function(loc, bindings, body) {
-        var vars = flatten(map(unpack, bindings)),
-            prefix = variableDeclaration(null, vars);
-        return ecma_statement.BlockStatement.create(loc, concat(prefix, body.body));
-    }));
     (functionExpression = (function(loc, id, parameters, functionBody, prefix) {
         var params = parameters.elements,
             bindings = map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression
@@ -111,6 +102,14 @@
                 .create(null, functionBody));
         return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement
             .create(body.loc, concat((prefix || []), variableDeclaration(null, bindings), body)));
+    }));
+    (blockStatement = (function(bindings, node) {
+        return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
+    }));
+    (withStatement = (function(loc, bindings, body) {
+        var vars = flatten(map(unpack, bindings)),
+            prefix = variableDeclaration(null, vars);
+        return ecma_statement.BlockStatement.create(loc, concat(prefix, body.body));
     }));
     (expressionStatement = (function(node) {
         return ecma_statement.ExpressionStatement.create(node.loc, node.expression);
