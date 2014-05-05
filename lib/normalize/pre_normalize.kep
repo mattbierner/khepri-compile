@@ -150,8 +150,8 @@ rewrites.add('ArgumentsPattern', UP,
                     ast_value.Identifier.create(null, '__args')))
     in
         modify(node, {
-            'id': id,
-            'elements': createUnpackList(pre, mid, post)
+            id: id,
+            elements: createUnpackList(pre, mid, post)
         }));
 
 /**

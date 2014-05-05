@@ -33,10 +33,10 @@ var flattenBlockBody :=
 var mergeBlockDeclarations :=
     foldr @ (
         \p c ->
-            ?(type c === 'VariableDeclaration' && type p.(0) === 'VariableDeclaration')
+            ?type c === 'VariableDeclaration' && type p.(0) === 'VariableDeclaration'
                 :concat(
                     modify(c, {
-                        'declarations': concat(
+                        declarations: concat(
                             c.declarations,
                             p.(0).declarations)
                     }),

@@ -1,11 +1,10 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require, exports, __o, __o0,
+*/define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require, exports, __o, __o0,
     __o1, __o2) {
     "use strict";
-    var modify = __o["modify"],
+    var optimize, modify = __o["modify"],
         type = __o0["type"],
         concat = __o1["concat"],
         flatten = __o1["flatten"],
@@ -15,16 +14,16 @@ define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], 
         DOWN = __o2["DOWN"],
         Rewriter = __o2["Rewriter"],
         rewrite = __o2["rewrite"],
-        optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
+        x, flattenBlockBody = ((x = map.bind(null, (function(x0) {
             return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) ===
                 "BlockStatement") ? x0.body : x0));
-        }))), (y = flatten), (function(z) {
-            return y(x(z));
+        }))), (function(z) {
+            return flatten(x(z));
         })),
         mergeBlockDeclarations = foldr.bind(null, (function(p, c) {
             return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ?
                 concat(modify(c, ({
-                    "declarations": concat(c.declarations, p[0].declarations)
+                    declarations: concat(c.declarations, p[0].declarations)
                 })), p.slice(1)) : concat(c, p));
         }), []),
         peepholes = new(Rewriter)(),

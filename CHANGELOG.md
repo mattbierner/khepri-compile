@@ -1,13 +1,12 @@
 # ChangeLog #
 
+## 0.5.12 - April 30, 2014
+* Updated to khepri-ast V3.10
+
 ## 0.5.11 - April 30, 2014
 * Fixed many issues with renaming of unpacked values, causing errors on when inlined
-** Fixed arguments and self unpacks not renamed.
-** Fixed slice unpack of arguments unpack not renamed.
 * Better code generation when using import patterns.
 ** Will prune unused values unpacked from an import.
-* Fixed inling issue where locals were not updated correctly after multiple passes
-  inling, so they were renamed incorrectly.
 
 ## 0.5.10 - April 23, 2014
 * Fixed composen potentially be inlined incorrectly when it is not the first
