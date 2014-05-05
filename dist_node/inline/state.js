@@ -6,13 +6,12 @@
 var record = require("bes")["record"],
     hamt = require("hamt"),
     __o = require("../fun"),
-    concat = __o["concat"],
     __o0 = require("./binding"),
+    State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals, pushLocals,
+        popLocals, concat = __o["concat"],
     Binding = __o0["Binding"],
     MUTABLE = __o0["MUTABLE"],
-    IMMUTABLE = __o0["IMMUTABLE"],
-    State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals, pushLocals,
-        popLocals;
+    IMMUTABLE = __o0["IMMUTABLE"];
 (State = record.declare(null, ["bindings", "working", "globals", "outer", "locals"]));
 (State.empty = new(State)(hamt.empty, hamt.empty, hamt.empty, null, [
     [], null

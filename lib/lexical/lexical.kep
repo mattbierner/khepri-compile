@@ -5,8 +5,6 @@
 package (
     check)
 with
-    import 'khepri-ast::node' {setData getData},
-    
     import 'akh::base' {
         next
         'sequence': seq
@@ -20,18 +18,24 @@ with
     
     import '../ast' {
         type
-        isIdentifier},
+        isIdentifier
+        getUd
+        setUd
+        setUid},
     import '../fun' {foldl},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
 in {
 
-var reserved = \node ->
-    getData(node, 'reserved');
-
 /* Forward declarations
  ******************************************************************************/
 var _check;
+
+/* 
+ ******************************************************************************/
+var reserved := getUd @ 'reserved';
+
+var getStart := \loc -> (loc && loc.start);
 
 /* Monad
  ******************************************************************************/
@@ -48,6 +52,8 @@ var run = \p s ctx ok err->
             ctx),
             s),
         1000);
+
+var pass = M.of null;
 
 var error = M.fail;
 
@@ -70,11 +76,11 @@ var getClosure = M.chain @ (extractScope.map (scope.getClosure));
 
 // Movement Operations
 ////////////////////////////////////////
-var extractCtx = lift (M.inner.get);
+var extractCtx := lift (M.inner.get);
 
-var extract = lift (M.inner.node);
+var extract := lift (M.inner.node);
 
-var inspect = M.chain @ extract;
+var inspect := M.chain @ extract;
 
 var up := lift (M.inner.up);
 var down := lift (M.inner.down);
@@ -83,30 +89,55 @@ var right := lift (M.inner.right);
 
 var root := lift (M.inner.root);
 
-var moveChild =  lift <\ M.inner.child;
+var moveChild :=  lift <\ M.inner.child;
 
-var modifyNode = lift <\ M.inner.modifyNode;
-var setNode = lift <\ M.inner.setNode;
+var modifyNode := lift <\ M.inner.modifyNode;
+var setNode := lift <\ M.inner.setNode;
 
+/**
+ * Move along `edge` and perform `actions`.
+ * 
+ * Returns to current node.
+ */
 var child := \edge ...actions ->
     seq(
         moveChild edge,
         seqa actions,
         up);
 
+/**
+ * Check the current node.
+ */
 var checkTop := inspect \ x -> _check x; // forward
 
+/**
+ * Move to child `edge` and check it.
+ * 
+ * Returns to current node.
+ */
 var checkChild := \edge ->
     child(edge,
         checkTop);
 
+/**
+ * Check all children of an array node.
+ */
+var checkArray := let
+    visit = \_ i arr -> 
+        ?i === arr.length - 1
+            :checkTop
+            :next(checkTop, right)
+in
+    \arr ->
+        ?arr.length
+            :seq(
+                down,
+                seqa arr.map(visit),
+                up)
+        :pass;
+
 /* Operations
  ******************************************************************************/
-/**
- * Noop
- */
-var pass = M.of();
-
 /**
  * When `test` is true for current node, evaluate consequent. Otherwise evaluate
  * alternate.
@@ -147,7 +178,7 @@ var checkHasBinding = \id, loc ->
     examineScope \ s ->
         ?s.hasBinding(id)
             :pass
-        :error("Undeclared identifier:'" + id + "' at:" + loc);
+        :error("Undeclared identifier:'" + id + "' at:" + getStart loc);
 
 /**
  * Ensure the current scope does not have has a binding for `id`.
@@ -155,12 +186,8 @@ var checkHasBinding = \id, loc ->
 var checkCanAddBinding = \id loc -> 
     examineScope \ s ->
         ?s.hasOwnBinding(id)
-            :let
-                start = loc && loc.start,
-                binding = s.getBinding(id),
-                end = binding.loc && binding.loc.start
-            in
-                error("'" + id + "' at:" + start + " already bound for scope from:" + end)
+            :let binding = s.getBinding(id) in
+                error("'" + id + "' at:" + getStart loc + " already bound for scope from:" + getStart binding.loc)
         :pass;
 
 /**
@@ -170,19 +197,7 @@ var checkCanAssign = \id, loc ->
     examineScope \ s ->
         ?s.hasMutableBinding(id)
             :pass
-        :error("Assign to immutable variable:'" + id + "' at:" + loc.start);
-
-/**
- * Mark an assignment `id` as immutable.
- * 
- * This must take place in the same scope the variable was declared in.
- */
-var markAssignment = \id loc ->
-    examineScope \ s ->
-        ?s.hasOwnBinding id
-            :modifyScope \ s ->
-                scope.setBindingMutability(s, id, false)
-            :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
+        :error("Assign to immutable variable:'" + id + "' at:" + getStart loc);
 
 /**
  * Mark existing binding for `id` as immutable.
@@ -194,7 +209,7 @@ var markBindingImmutable = \id loc ->
         ?s.hasOwnBinding id
             :modifyScope \ s ->
                 scope.setBindingMutability(s, id, false)
-            :error("Cannot mark variable:'" + id + "' at:" + loc.start + ' immutable in enclosed scope');
+        :error("Cannot mark variable:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
 
 /**
  * Add a new mutable binding in the current scope.
@@ -411,7 +426,7 @@ addCheck@'FunctionExpression' <|
             
         getClosure \ locals ->
         modifyNode \ node ->
-            setData(node, 'locals', locals.filter(\x -> closure.indexOf(x) < 0))));
+            setUd('locals', locals.filter(\x -> closure.indexOf(x) < 0), node)));
 
 addCheck@'UnaryExpression' <|
     checkChild 'argument';
@@ -482,7 +497,7 @@ addCheck@'AsPattern' <| seq(
             modifyNode \ target ->
                 // Hack: For generating argument lists, we want to use the 
                 // as pattern name if possible.
-                setData(target, 'id', node.id),
+                setUd('id', node.id, target),
             checkTop));
 
 addCheck@'ObjectPattern' <|
@@ -504,50 +519,44 @@ addCheck@'ObjectValue' <|
 addCheck@'Identifier' <|
     inspect \ node#{loc name} -> seq(
         examineScope \ s ->
-             setNode <| setData(node, 'uid', s.getUid(name)),
+             setNode <| setUid(s.getUid(name), node),
         checkHasBinding(name, loc));
 
 /*
  ******************************************************************************/
-_check = \node -> {
-    if (Array.isArray(node)) {
-        if (!node.length)
-            return pass;
-        
-        return seq(
-            down,
-            seqa(node.map\_ i -> 
-                ?i === node.length - 1
-                    :checkTop
-                    :next(checkTop, right)),
-            up);
-    }
-    
-    return (checks.(type node) || pass);
-};
+_check := \node ->
+    ?Array.isArray node
+        :checkArray node
+        :(checks.(type node) || pass);
 
-var addBindings = foldl@(scope.addImmutableBinding, Scope.empty);
+var addBindings := foldl@(scope.addImmutableBinding, Scope.empty);
+
+var rewrite := seq(
+    checkTop,
+    root,
+    extractCtx.chain \ x ->
+    unique \ unique ->
+    extractScope.map \ s -> ({
+        tree: x,
+        data: {
+            unique: unique
+        }
+    }));
 
 /**
+ * Lexical check `ast` and rewrite it by taging every identifier with a unique id.
  * 
+ * Returns result in `Error`.
+ * 
+ * @param ast Zippered khepri AST.
+ * @param globals Global bindings for the program.
  */
-check = \ast globals seed ->
+check = \ast globals ->
     run(
-        seq(
-            checkTop,
-            root,
-            extractCtx.chain \ x ->
-            unique \ unique ->
-            extractScope.map \ s -> ({
-                tree: x,
-                data: {
-                    unique: unique
-                }
-            })),
+        rewrite,
         addBindings(globals || []),
         ast,
         Error.of,
-        Error.fail,
-        seed);
+        Error.fail);
 
 }

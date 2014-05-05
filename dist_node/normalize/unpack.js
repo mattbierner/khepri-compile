@@ -1,22 +1,23 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/unpack.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/unpack.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../pseudo/pattern"),
-    SliceUnpack = __o["SliceUnpack"],
-    RelativeUnpack = __o["RelativeUnpack"],
     __o0 = require("../ast"),
-    type = __o0["type"],
     fun = require("../fun"),
+    innerPattern, unpackParameters, getParameterNames, SliceUnpack = __o["SliceUnpack"],
+    RelativeUnpack = __o["RelativeUnpack"],
+    type = __o0["type"],
     concat = fun["concat"],
     flatten = fun["flatten"],
     flattenr = fun["flattenr"],
     map = fun["map"],
-    innerPattern, unpackParameters, getParameterNames, relativeUnpack = (function(target, start, indx, pattern) {
+    relativeUnpack = (function(target, start, indx, pattern) {
         return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
     }),
     sliceUnpack = (function(target, id, from, to) {
@@ -67,22 +68,21 @@ var ast_expression = require("khepri-ast")["expression"],
         }
     }), elements));
 }));
-var x = flattenr,
-    y = map.bind(null, (function(x0) {
-        switch (type(x0)) {
-            case "IdentifierPattern":
-                return x0;
-            case "AsPattern":
-                return x0.id;
-            case "SliceUnpack":
-            case "RelativeUnpack":
-                return [];
-            default:
-                x0;
-        }
-    }));
+var y = map.bind(null, (function(x) {
+    switch (type(x)) {
+        case "IdentifierPattern":
+            return x;
+        case "AsPattern":
+            return x.id;
+        case "SliceUnpack":
+        case "RelativeUnpack":
+            return [];
+        default:
+            x;
+    }
+}));
 (getParameterNames = (function(z) {
-    return x(y(z));
+    return flattenr(y(z));
 }));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);

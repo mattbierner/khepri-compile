@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/translation.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/translation.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
     ecma_expression = require("ecma-ast")["expression"],
@@ -13,27 +14,25 @@ var ecma_clause = require("ecma-ast")["clause"],
     khepri_statement = require("khepri-ast")["statement"],
     khepri_value = require("khepri-ast")["value"],
     __o = require("../ast"),
-    type = __o["type"],
-    tryGetUd = __o["tryGetUd"],
-    getUid = __o["getUid"],
-    setUid = __o["setUid"],
     fun = require("../fun"),
-    concat = fun["concat"],
-    flatten = fun["flatten"],
-    flip = fun["flip"],
-    filter = fun["filter"],
-    map = fun["map"],
-    reduce = fun["reduce"],
     __o0 = require("./unpack"),
-    expandBinding = __o0["expandBinding"],
-    expandArgumentsPattern = __o0["expandArgumentsPattern"],
     program, assignmentExpression, unaryExpression, binaryExpression, logicalExpression, conditionalExpression,
         newExpression, callExpression, memberExpression, functionExpression, letExpression, curryExpression,
         blockStatement, withStatement, expressionStatement, returnStatement, throwStatement, breakStatement,
         continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement,
-        packageBlock, x, y, x0, y0, x1, y1, identifier = (function(loc, name, uid) {
-            return setUid(uid, ecma_value.Identifier.create(loc, name));
-        }),
+        packageBlock, type = __o["type"],
+    tryGetUd = __o["tryGetUd"],
+    setUid = __o["setUid"],
+    concat = fun["concat"],
+    flatten = fun["flatten"],
+    filter = fun["filter"],
+    map = fun["map"],
+    reduce = fun["reduce"],
+    expandBinding = __o0["expandBinding"],
+    expandArgumentsPattern = __o0["expandArgumentsPattern"],
+    x, y, y0, y1, identifier = (function(loc, name, uid) {
+        return setUid(uid, ecma_value.Identifier.create(loc, name));
+    }),
     variableDeclaration = ecma_declaration.VariableDeclaration.create,
     variableDeclarator = ecma_declaration.VariableDeclarator.create,
     idsToDeclarators = ((x = map.bind(null, (function(x0) {
@@ -44,15 +43,15 @@ var ecma_clause = require("ecma-ast")["clause"],
     bindingToDeclarator = (function(x0) {
         return variableDeclarator(null, x0.pattern.id, x0.value);
     }),
-    unpack = ((x0 = expandBinding), (y0 = map.bind(null, (function(x1) {
-        return variableDeclarator(null, x1.pattern.id, x1.value);
+    unpack = ((y0 = map.bind(null, (function(x0) {
+        return variableDeclarator(null, x0.pattern.id, x0.value);
     }))), (function(z) {
-        return y0(x0(z));
+        return y0(expandBinding(z));
     })),
-    unpackAssign = ((x1 = expandBinding), (y1 = map.bind(null, (function(x2) {
-        return ecma_expression.AssignmentExpression.create(null, "=", x2.pattern.id, x2.value);
+    unpackAssign = ((y1 = map.bind(null, (function(x0) {
+        return ecma_expression.AssignmentExpression.create(null, "=", x0.pattern.id, x0.value);
     }))), (function(z) {
-        return y1(x1(z));
+        return y1(expandBinding(z));
     }));
 (program = (function(bindings, node) {
     return ecma_program.Program.create(node.loc, concat(tryGetUd([], "prefix", node), idsToDeclarators(bindings),
@@ -149,16 +148,16 @@ var mapOp = (function(op) {
 (forStatement = (function(node) {
     return ecma_statement.ForStatement.create(node.loc, node.init, node.test, node.update, node.body);
 }));
-var x2, x3, filterImports = filter.bind(null, ((x2 = type), (function(z) {
+var filterImports = filter.bind(null, (function(z) {
+    var z0 = z.value,
+        y2 = type(z0);
+    return ("Import" === y2);
+})),
+    getImports = filter.bind(null, (function(z) {
         var z0 = z.value,
-            y2 = x2(z0);
-        return ("Import" === y2);
-    }))),
-    getImports = filter.bind(null, ((x3 = type), (function(z) {
-        var z0 = z.value,
-            y2 = x3(z0);
+            y2 = type(z0);
         return ("Import" !== y2);
-    })));
+    }));
 (packageBlock = (function(packageManager, loc, exports0, body) {
     var imports = ((type(body) === "WithStatement") ? filterImports(body.bindings) : []),
         targets = reduce(imports, (function(p, c) {

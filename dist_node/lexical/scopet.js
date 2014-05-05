@@ -5,7 +5,6 @@
 "use strict";
 var StateT = require("akh")["trans"]["statei"],
     scope = require("./scope"),
-    Scope = scope["Scope"],
     ScopeT, ScopeMonad = (function(Instance) {
         (Instance.extractScope = Instance.get);
         (Instance.examineScope = Instance.chain.bind(null, Instance.extractScope));
@@ -14,9 +13,8 @@ var StateT = require("akh")["trans"]["statei"],
         (Instance.pop = Instance.modifyScope(scope.pop));
         (Instance.getClosure = Instance.chain.bind(null, Instance.extractScope.map(scope.getClosure)));
         return Instance;
-    }),
-    x = StateT;
+    });
 (ScopeT = (function(z) {
-    return ScopeMonad(x(z));
+    return ScopeMonad(StateT(z));
 }));
 (module.exports = ScopeT);

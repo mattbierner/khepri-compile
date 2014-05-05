@@ -1,6 +1,10 @@
 # ChangeLog #
 
-## 0.5.12 - April 30, 2014
+## 0.5.13 - May 5, 2014
+* Improved error message for undeclared identifier to only give start location
+  instead of entire range of identifier.
+
+## 0.5.12 - May 5, 2014
 * Updated to khepri-ast V3.10
 
 ## 0.5.11 - April 30, 2014

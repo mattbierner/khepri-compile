@@ -7,12 +7,12 @@ var ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
     __o = require("./ast"),
-    setUd = __o["setUd"],
+    __o0 = require("./fun"),
+    builtins, definitions, member, setUd = __o["setUd"],
     getUid = __o["getUid"],
     setUid = __o["setUid"],
-    __o0 = require("./fun"),
     flip = __o0["flip"],
-    builtins, definitions, member, identifier = (function(name, uid) {
+    identifier = (function(name, uid) {
         return setUid(uid, ast_value.Identifier.create(null, name));
     }),
     unique = (function() {
@@ -47,8 +47,9 @@ var uid2 = unique();
     ["++", "__plus"],
     ["--", "__minus"]
 ].forEach((function(__o1) {
-    var xArg, node, locals, op = __o1[0],
-        name = __o1[1];
+    var op = __o1[0],
+        name = __o1[1],
+        xArg, node, locals;
     registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), (node = ast_expression.FunctionExpression
         .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
             .create(null, xArg)

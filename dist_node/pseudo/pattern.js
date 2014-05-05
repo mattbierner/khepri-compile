@@ -4,11 +4,10 @@
 */
 "use strict";
 var __o = require("khepri-ast")["node"],
-    defineNode = __o["defineNode"],
-    Node = __o["Node"],
     __o0 = require("khepri-ast")["pattern"],
-    Pattern = __o0["Pattern"],
-    RelativeUnpack, SliceUnpack, Import;
+    RelativeUnpack, SliceUnpack, Import, defineNode = __o["defineNode"],
+    Node = __o["Node"],
+    Pattern = __o0["Pattern"];
 (RelativeUnpack = defineNode(Pattern, "RelativeUnpack", ["pattern", "target"], ["index", "min"], (function(loc, pattern,
     target, index, min) {
     var self = this;

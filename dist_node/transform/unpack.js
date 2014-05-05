@@ -1,18 +1,19 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/unpack.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/unpack.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../ast"),
-    type = __o["type"],
     __o0 = require("../fun"),
+    __o1 = require("../normalize/unpack"),
+    expandBinding, expandBindings, expandArgumentsPattern, type = __o["type"],
     concat = __o0["concat"],
     flatten = __o0["flatten"],
     map = __o0["map"],
-    __o1 = require("../normalize/unpack"),
     innerPattern = __o1["innerPattern"],
-    expandBinding, expandBindings, expandArgumentsPattern, identifier = ast_value.Identifier.create.bind(null, null),
+    identifier = ast_value.Identifier.create.bind(null, null),
     number = ast_value.Literal.create.bind(null, null, "number"),
     relativeUnpack = (function(target, start, indx, pattern) {
         return innerPattern(ast_expression.MemberExpression.create(null, target, ast_expression.BinaryExpression.create(
@@ -37,12 +38,11 @@ var ast_expression = require("khepri-ast")["expression"],
                 return node;
         }
     })),
-    x = innerPattern,
-    x0 = transformUnpacks,
-    y = flatten;
+    x = transformUnpacks;
 (expandBindings = (function() {
-    var z = x.apply(null, arguments);
-    return y(x0(z));
+    var args = arguments,
+        z = innerPattern.apply(null, args);
+    return flatten(x(z));
 }));
 (expandBinding = (function(binding) {
     return expandBindings(binding.value, binding.pattern);
