@@ -324,11 +324,9 @@ addRewrite@'UnaryOperator' <| seq(
  * Convert binary op expression to function.
  */
 addRewrite@'BinaryOperator' <| seq(
-    extract \ {name flipped} ->
-        let name = ?flipped : '_' + name : name in
-            seq(
-                addGlobal(name),
-                set <| builtins.(name)),
+    extract \ {name} -> seq(
+        addGlobal(name),
+        set <| builtins.(name)),
     checkTop);
 
 /**
@@ -337,6 +335,19 @@ addRewrite@'BinaryOperator' <| seq(
 addRewrite@'TernaryOperator' <| seq(
     addGlobal('?'),
     set <| builtins.('?'),
+    checkTop);
+
+/**
+ * Convert ternary op expression to function.
+ */
+addRewrite@'OperatorExpression' <| seq(
+    visitChild 'operator',
+
+    when((.flipped),
+        modify \ {operator} ->
+            ast_expression.CallExpression.create(null, builtins.('_'), [operator]),
+        modify (.operator)),
+    
     checkTop);
 
 /* 
@@ -840,7 +851,7 @@ var inline := seq(
             data: {unique: unique}
         });
 
-var initialState = foldl(
+var initialState =  foldl(
     \s name -> let
         id = builtins.(name),
         def = definitions.(name)
@@ -851,7 +862,8 @@ var initialState = foldl(
             true,
             s),
     State.empty,
-    Object.keys(builtins));
+    Object.keys(builtins))
+    |> state.addGlobal @ '_';
 
 /**
  * 

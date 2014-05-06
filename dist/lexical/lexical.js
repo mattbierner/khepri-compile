@@ -34,7 +34,7 @@
             actions61, body14, __args62, actions62, __args63, actions63, __args64, actions64, __args65,
             actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69,
             __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74,
-            actions74, _check, reserved = getUd.bind(null, "reserved"),
+            actions74, __args75, actions75, _check, reserved = getUd.bind(null, "reserved"),
         M = ErrorT(TreeZipperT(ScopeT(Unique))),
         run = (function(p, s, ctx, ok, err) {
             var y, y0;
@@ -333,37 +333,39 @@
     addCheck("CurryExpression", seq(((__args62 = ["base", checkTop]), (actions62 = [].slice.call(__args62, 1)),
         seq(moveChild("base"), seqa(actions62), up)), ((__args63 = ["args", checkTop]), (actions63 = []
         .slice.call(__args63, 1)), seq(moveChild("args"), seqa(actions63), up))));
-    addCheck("EllipsisPattern", ((__args64 = ["id", checkTop]), (actions64 = [].slice.call(__args64, 1)), seq(
-        moveChild("id"), seqa(actions64), up)));
-    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], ((__args65 = ["pattern", checkTop]), (
-        actions65 = [].slice.call(__args65, 1)), seq(moveChild("pattern"), seqa(actions65), up)));
+    addCheck("OperatorExpression", ((__args64 = ["operator", checkTop]), (actions64 = [].slice.call(__args64, 1)),
+        seq(moveChild("operator"), seqa(actions64), up)));
+    addCheck("EllipsisPattern", ((__args65 = ["id", checkTop]), (actions65 = [].slice.call(__args65, 1)), seq(
+        moveChild("id"), seqa(actions65), up)));
+    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], ((__args66 = ["pattern", checkTop]), (
+        actions66 = [].slice.call(__args66, 1)), seq(moveChild("pattern"), seqa(actions66), up)));
     addCheck("IdentifierPattern", seq(inspect((function(node) {
         var loc = node["loc"],
             id = node["id"];
         return (reserved(node) ? addImmutableBinding(id.name, loc) : addImmutableBindingChecked(
             id.name, loc));
-    })), ((__args66 = ["id", checkTop]), (actions66 = [].slice.call(__args66, 1)), seq(moveChild("id"),
-        seqa(actions66), up))));
-    addCheck("AsPattern", seq(((__args67 = ["id", checkTop]), (actions67 = [].slice.call(__args67, 1)), seq(
-        moveChild("id"), seqa(actions67), up)), inspect((function(node) {
-        var __args68 = ["target", modifyNode((function(target) {
+    })), ((__args67 = ["id", checkTop]), (actions67 = [].slice.call(__args67, 1)), seq(moveChild("id"),
+        seqa(actions67), up))));
+    addCheck("AsPattern", seq(((__args68 = ["id", checkTop]), (actions68 = [].slice.call(__args68, 1)), seq(
+        moveChild("id"), seqa(actions68), up)), inspect((function(node) {
+        var __args69 = ["target", modifyNode((function(target) {
             return setUd("id", node.id, target);
         })), checkTop],
-            actions68 = [].slice.call(__args68, 1);
-        return seq(moveChild("target"), seqa(actions68), up);
+            actions69 = [].slice.call(__args69, 1);
+        return seq(moveChild("target"), seqa(actions69), up);
     }))));
-    addCheck("ObjectPattern", ((__args68 = ["elements", checkTop]), (actions68 = [].slice.call(__args68, 1)),
-        seq(moveChild("elements"), seqa(actions68), up)));
-    addCheck("ObjectPatternElement", seq(((__args69 = ["target", checkTop]), (actions69 = [].slice.call(
-        __args69, 1)), seq(moveChild("target"), seqa(actions69), up)), ((__args70 = ["key", checkTop]), (
-        actions70 = [].slice.call(__args70, 1)), seq(moveChild("key"), seqa(actions70), up))));
-    addCheck("ArgumentsPattern", seq(((__args71 = ["id", checkTop]), (actions71 = [].slice.call(__args71, 1)),
-        seq(moveChild("id"), seqa(actions71), up)), ((__args72 = ["elements", checkTop]), (actions72 = []
-        .slice.call(__args72, 1)), seq(moveChild("elements"), seqa(actions72), up)), ((__args73 = [
+    addCheck("ObjectPattern", ((__args69 = ["elements", checkTop]), (actions69 = [].slice.call(__args69, 1)),
+        seq(moveChild("elements"), seqa(actions69), up)));
+    addCheck("ObjectPatternElement", seq(((__args70 = ["target", checkTop]), (actions70 = [].slice.call(
+        __args70, 1)), seq(moveChild("target"), seqa(actions70), up)), ((__args71 = ["key", checkTop]), (
+        actions71 = [].slice.call(__args71, 1)), seq(moveChild("key"), seqa(actions71), up))));
+    addCheck("ArgumentsPattern", seq(((__args72 = ["id", checkTop]), (actions72 = [].slice.call(__args72, 1)),
+        seq(moveChild("id"), seqa(actions72), up)), ((__args73 = ["elements", checkTop]), (actions73 = []
+        .slice.call(__args73, 1)), seq(moveChild("elements"), seqa(actions73), up)), ((__args74 = [
         "self", checkTop
-    ]), (actions73 = [].slice.call(__args73, 1)), seq(moveChild("self"), seqa(actions73), up))));
-    addCheck("ObjectValue", ((__args74 = ["value", checkTop]), (actions74 = [].slice.call(__args74, 1)), seq(
-        moveChild("value"), seqa(actions74), up)));
+    ]), (actions74 = [].slice.call(__args74, 1)), seq(moveChild("self"), seqa(actions74), up))));
+    addCheck("ObjectValue", ((__args75 = ["value", checkTop]), (actions75 = [].slice.call(__args75, 1)), seq(
+        moveChild("value"), seqa(actions75), up)));
     addCheck("Identifier", inspect((function(node) {
         var loc = node["loc"],
             name = node["name"];

@@ -27,8 +27,8 @@ var __o = require("khepri-ast")["node"],
         __args33, actions33, __args34, actions34, __args35, actions35, __args36, actions36, __args37, actions37,
         __args38, actions38, __args39, actions39, __args40, actions40, consequent0, __args41, actions41, __args42,
         actions42, __args43, actions43, __args44, actions44, __args45, actions45, __args46, actions46, __args47,
-        actions47, __args48, actions48, __args49, actions49, test1, yes1, no1, consequent1, __args50, actions50,
-        __args51, actions51, __args52, actions52, _check, isReserved = getUd.bind(null, "reserved"),
+        actions47, __args48, actions48, __args49, actions49, __args50, actions50, test1, yes1, no1, consequent1,
+        __args51, actions51, __args52, actions52, __args53, actions53, _check, isReserved = getUd.bind(null, "reserved"),
     M = TreeZipperT(StateM),
     pass = M.of(null),
     extractCtx = M.get,
@@ -158,11 +158,13 @@ addRewrite("CallExpression", seq(((__args43 = ["callee", checkTop]), (actions43 
 addRewrite("CurryExpression", seq(((__args45 = ["base", checkTop]), (actions45 = [].slice.call(__args45, 1)), seq(
     moveChild("base"), sequencea(actions45), up)), ((__args46 = ["args", checkTop]), (actions46 = [].slice.call(
     __args46, 1)), seq(moveChild("args"), sequencea(actions46), up))));
-addRewrite("LetExpression", seq(((__args47 = ["body", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(
-    moveChild("body"), sequencea(actions47), up)), ((__args48 = ["bindings", checkTop]), (actions48 = [].slice.call(
-    __args48, 1)), seq(moveChild("bindings"), sequencea(actions48), up))));
-addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args49 = ["target", checkTop]), (actions49 = [].slice.call(__args49,
-    1)), seq(moveChild("target"), sequencea(actions49), up)));
+addRewrite("OperatorExpression", ((__args47 = ["operator", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(
+    moveChild("operator"), sequencea(actions47), up)));
+addRewrite("LetExpression", seq(((__args48 = ["body", checkTop]), (actions48 = [].slice.call(__args48, 1)), seq(
+    moveChild("body"), sequencea(actions48), up)), ((__args49 = ["bindings", checkTop]), (actions49 = [].slice.call(
+    __args49, 1)), seq(moveChild("bindings"), sequencea(actions49), up))));
+addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args50 = ["target", checkTop]), (actions50 = [].slice.call(__args50,
+    1)), seq(moveChild("target"), sequencea(actions50), up)));
 addRewrite("ArgumentsPattern", ((test1 = inspect((function(z) {
     var z0 = z.id;
     return getUid(z0.id);
@@ -177,12 +179,12 @@ addRewrite("ArgumentsPattern", ((test1 = inspect((function(z) {
 }))), extract((function(node) {
     return (node.id ? consequent1 : (undefined || pass));
 }))));
-addRewrite("ArrayExpression", ((__args50 = ["elements", checkTop]), (actions50 = [].slice.call(__args50, 1)), seq(
-    moveChild("elements"), sequencea(actions50), up)));
-addRewrite("ObjectExpression", ((__args51 = ["properties", checkTop]), (actions51 = [].slice.call(__args51, 1)), seq(
-    moveChild("properties"), sequencea(actions51), up)));
-addRewrite("ObjectValue", ((__args52 = ["value", checkTop]), (actions52 = [].slice.call(__args52, 1)), seq(moveChild(
-    "value"), sequencea(actions52), up)));
+addRewrite("ArrayExpression", ((__args51 = ["elements", checkTop]), (actions51 = [].slice.call(__args51, 1)), seq(
+    moveChild("elements"), sequencea(actions51), up)));
+addRewrite("ObjectExpression", ((__args52 = ["properties", checkTop]), (actions52 = [].slice.call(__args52, 1)), seq(
+    moveChild("properties"), sequencea(actions52), up)));
+addRewrite("ObjectValue", ((__args53 = ["value", checkTop]), (actions53 = [].slice.call(__args53, 1)), seq(moveChild(
+    "value"), sequencea(actions53), up)));
 addRewrite("Identifier", extract((function(z) {
     var uid = getUid(z);
     return (uid ? modifyState(state.addReference.bind(null, uid)) : pass);

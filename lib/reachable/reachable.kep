@@ -275,6 +275,9 @@ addRewrite@'CurryExpression' <| seq(
     visitChild 'base',
     visitChild 'args');
 
+addRewrite@'OperatorExpression' <|
+    visitChild 'operator';
+
 addRewrite@'LetExpression' <| seq(
     visitChild 'body',
     visitChild 'bindings');

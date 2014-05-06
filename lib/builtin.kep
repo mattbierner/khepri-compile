@@ -97,7 +97,7 @@ in {
                     ast_pattern.ArgumentsPattern.create(null, null, [
                         ast_pattern.IdentifierPattern.create(null, xArg),
                         ast_pattern.IdentifierPattern.create(null, yArg)]),
-                    ast_expression.CallExpression.create(null, f, yArg, xArg)),
+                    ast_expression.CallExpression.create(null, f, [yArg, xArg])),
                 [getUid xArg, getUid yArg]));
 }
 
@@ -146,9 +146,6 @@ in
 var registerBinary = \op name impl -> {
     registerAliasedSymbol(op, name,
         binary(impl));
-    
-    registerAliasedSymbol('_' + op, name + 'r',
-        binary(flip impl));
 };
 
 // Binary Operations

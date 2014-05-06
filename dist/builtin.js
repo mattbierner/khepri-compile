@@ -62,7 +62,7 @@
                 node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
                     .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg0),
                         ast_pattern.IdentifierPattern.create(null, yArg)
-                    ]), ast_expression.CallExpression.create(null, xArg, yArg, xArg0))), (locals = [
+                    ]), ast_expression.CallExpression.create(null, xArg, [yArg, xArg0]))), (locals = [
                 getUid(xArg0), getUid(yArg)
             ]), setUd("locals", locals, node0)))), (locals0 = [getUid(xArg)]), setUd("locals", locals0,
             node)));
@@ -91,7 +91,6 @@
         }),
             registerBinary = (function(op, name, impl) {
                 registerAliasedSymbol(op, name, binary(impl));
-                registerAliasedSymbol(("_" + op), (name + "r"), binary(flip(impl)));
             }),
             binaryOp = (function(op) {
                 return (function(x, y) {

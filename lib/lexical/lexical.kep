@@ -477,6 +477,9 @@ addCheck@'CurryExpression' <| seq(
     checkChild 'base',
     checkChild 'args');
 
+addCheck@'OperatorExpression' <|
+    checkChild 'operator';
+
 // Patterns
 addCheck@'EllipsisPattern' <|
     checkChild 'id';
