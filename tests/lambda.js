@@ -45,7 +45,7 @@ exports.introduces_new_scope_for_args = function(test) {
 
 exports.introduces_new_scope_for_body = function(test) {
     test.equal(
-        testParser("var x = 100; (\\() -> { var x = 3; return x * x; })();"),
+        testParser("var x = 100; (\\ -> { var x = 3; return x * x; })();"),
         9);
     
     test.done();

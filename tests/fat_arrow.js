@@ -14,7 +14,7 @@ var testParser = function(input) {
 
 exports.bind_identifier = function(test) {
     test.equal(
-        testParser("var f = \\() =self-> self.x; f.call({'x': 3});"),
+        testParser("var f = \\ =self-> self.x; f.call({'x': 3});"),
         3);
     
     test.done();
@@ -22,7 +22,7 @@ exports.bind_identifier = function(test) {
 
 exports.keeps_binding_in_new_scope = function(test) {
     test.equal(
-        testParser("var f = \\() =self-> \\y -> y + self.x; f.call({'x': 3})(10);"),
+        testParser("var f = \\ =self-> \\y -> y + self.x; f.call({'x': 3})(10);"),
         13);
     
     test.done();
