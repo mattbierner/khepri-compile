@@ -62,19 +62,19 @@ peepholes.add("FunctionExpression", UP, always, (function(node) {
         body: body
     }));
 }));
-peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, getUid, (function(node) {
+var opToIdentifier = (function(node) {
     return setUserData(ast_value.Identifier.create(node.loc, opToName(node.name)), node.ud);
-}));
-peepholes.add("BinaryExpression", UP, (function(z) {
-    var z0 = z.operator,
-        y = type(z0);
-    return ("Identifier" === y);
-}), (function(__o5) {
-    var loc = __o5["loc"],
-        operator = __o5["operator"],
-        left = __o5["left"],
-        right = __o5["right"];
-    return ast_expression.CallExpression.create(loc, operator, [left, right]);
+});
+peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, getUid, opToIdentifier);
+peepholes.add("BinaryExpression", DOWN, always, (function(node) {
+    var loc = node["loc"],
+        operator = node["operator"],
+        left = node["left"],
+        right = node["right"];
+    return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(
+        operator.loc, opToName(operator.name)), operator.ud), [left, right]) : modify(node, ({
+        operator: operator.name
+    })));
 }));
 var expandAssignment = (function(node) {
     var right;

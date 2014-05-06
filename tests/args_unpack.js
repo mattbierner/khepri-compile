@@ -13,7 +13,7 @@ var testParser = function(input) {
 
 exports.simple_unpack_args = function(test) {
     test.equal(
-        testParser("(\\args() -> args.length)(1, 2, 3);"),
+        testParser("(\\-args() -> args.length)(1, 2, 3);"),
         3);
     
     test.done();
@@ -21,7 +21,7 @@ exports.simple_unpack_args = function(test) {
 
 exports.unpack_args_and_inner_pattern = function(test) {
     test.equal(
-        testParser("(\\args(x y z) -> args.length * (x + y * z))(1, 2, 3);"),
+        testParser("(\\-args(x y z) -> args.length * (x + y * z))(1, 2, 3);"),
         21);
     
     test.done();

@@ -109,27 +109,31 @@ peepholes.add('FunctionExpression', UP,
 
 /* User Operator Conversion
  ******************************************************************************/
+var opToIdentifier := \node ->
+    setUserData(
+        ast_value.Identifier.create(node.loc,
+            opToName node.name),
+        node.ud);
+
 /**
  * Rewrite user defined operators to identifiers.
  */
 peepholes.add(['UnaryOperator', 'BinaryOperator'], DOWN,
     getUid,
     
-    \node ->
-        setUserData(
-            ast_value.Identifier.create(node.loc,
-                opToName node.name),
-            node.ud));
+    opToIdentifier);
 
 /**
  */
-peepholes.add('BinaryExpression', UP,
-    (.operator) \> type \> (===, 'Identifier'),
+peepholes.add('BinaryExpression', DOWN,
+    always,
     
-    \{loc operator left right} ->
-        ast_expression.CallExpression.create(loc,
-            operator,
-            [left, right]));
+    \node#{loc operator left right} ->
+        ?getUid operator
+            :ast_expression.CallExpression.create(loc,
+                opToIdentifier operator,
+                [left, right])
+            :modify(node, { operator: operator.name }));
 
 /* Expression Conversion
  ******************************************************************************/
