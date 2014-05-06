@@ -58,7 +58,7 @@ exports.no_for_working_inline = function(test) {
 
 exports.inline_with_args = function(test) {
     test.equal(
-        evalParser("var f := \\args(...) -> args.(1); f(1,2, 3);"),
+        evalParser("var f := \\-args(...) -> args.(1); f(1,2, 3);"),
         2);
     
     test.done();
