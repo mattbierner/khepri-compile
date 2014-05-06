@@ -5,6 +5,7 @@
 "use strict";
 var Error = require("akh")["error"],
     __o = require("bes")["object"],
+    setProperty = __o["setProperty"],
     lexical = require("../lexical/lexical"),
     check, builtins = ["Array", "Boolean", "Date", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
         "Error", "eval", "EvalError", "Function", "Infinity", "isFinite", "isNaN", "JSON", "Math", "NaN", "Number",

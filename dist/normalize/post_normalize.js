@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/statement", "khepri-ast/value",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/statement", "khepri-ast/value",
     "../pseudo/pattern", "../ast", "../fun", "../rewriter", "./unpack", "./user_operator"
 ], (function(require, exports, __o, ast_expression, ast_statement, ast_value, __o0, __o1, __o2, __o3, __o4,
     opToName) {
@@ -72,6 +71,15 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             node, ({
                 operator: operator.name
             })));
+    }));
+    peepholes.add("UnaryExpression", DOWN, always, (function(node) {
+        var loc = node["loc"],
+            operator = node["operator"],
+            argument = node["argument"];
+        return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier
+            .create(operator.loc, opToName(operator.name)), operator.ud), [argument]) : modify(node, ({
+            operator: operator.name
+        })));
     }));
     var expandAssignment = (function(node) {
         var right;

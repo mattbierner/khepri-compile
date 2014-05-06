@@ -4,21 +4,23 @@
 */
 "use strict";
 var __o = require("khepri-ast-zipper"),
+    khepriZipper = __o["khepriZipper"],
     __o0 = require("neith")["walk"],
+    preWalk = __o0["preWalk"],
     tree = require("neith")["tree"],
     __o1 = require("khepri-ast")["node"],
-    __o2 = require("../fun"),
-    __o3 = require("../ast"),
-    __o4 = require("./expansion"),
-    getLocals, rename, incCount, khepriZipper = __o["khepriZipper"],
-    preWalk = __o0["preWalk"],
     setData = __o1["setData"],
+    __o2 = require("../fun"),
     contains = __o2["contains"],
+    __o3 = require("../ast"),
     type = __o3["type"],
     tryGetUd = __o3["tryGetUd"],
+    getUd = __o3["getUd"],
     getUid = __o3["getUid"],
     setUid = __o3["setUid"],
-    incrementCount = __o4["incrementCount"];
+    __o4 = require("./expansion"),
+    incrementCount = __o4["incrementCount"],
+    getLocals, rename, incCount;
 (getLocals = (function(node, prefix) {
     return tryGetUd([], "locals", node)
         .map((function(uid) {

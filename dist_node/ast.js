@@ -4,8 +4,9 @@
 */
 "use strict";
 var __o = require("khepri-ast")["node"],
+    setData = __o["setData"],
     type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda,
-        isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, setData = __o["setData"];
+        isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid;
 (type = (function(node) {
     return (node && node.type);
 }));

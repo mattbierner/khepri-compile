@@ -5,9 +5,10 @@
 "use strict";
 var record = require("bes")["record"],
     __o = require("../fun"),
+    concat = __o["concat"],
     scope = require("../lexical/scope"),
-    State, getBindings, addBindings, pushBindings, popBindings, concat = __o["concat"],
-    Scope = scope["Scope"];
+    Scope = scope["Scope"],
+    State, getBindings, addBindings, pushBindings, popBindings;
 (State = record.declare(null, ["scope", "packageManager", "bindings"]));
 (State.empty = State.create(Scope.empty, null, [
     [], null

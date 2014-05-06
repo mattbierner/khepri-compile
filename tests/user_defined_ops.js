@@ -60,3 +60,14 @@ exports.flipped_op_to_function = function(test) {
     
     test.done();
 };
+
+exports.no_name_clash = function(test) {
+    test.equal(
+        testParser(
+            "var (+) = (*);" +
+            "var __plus = (/);" +
+            "__plus(10, 5) + 3 + 4;"),
+        24);
+    
+    test.done();
+}

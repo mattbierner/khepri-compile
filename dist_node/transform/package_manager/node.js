@@ -10,8 +10,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
     ast_value = require("khepri-ast")["value"],
     fun = require("../../fun"),
     __o = require("../../builtin"),
-    definePackage, defineProgram, importPackage, builtins = __o["builtins"],
-    concat = Array.prototype.concat.bind([]),
+    builtins = __o["builtins"],
+    definePackage, defineProgram, importPackage, concat = Array.prototype.concat.bind([]),
     map = Function.prototype.call.bind(Array.prototype.map);
 (defineProgram = (function(body) {
     return ast_program.Program.create(null, fun.concat(ast_statement.ExpressionStatement.create(null, ast_value

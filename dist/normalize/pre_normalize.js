@@ -1,11 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/pre_normalize.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/pre_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/pattern", "khepri-ast/package",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun", "../rewriter"
 ], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";
-    var normalize, modify = __o["modify"],
+    var modify = __o["modify"],
         setData = __o["setData"],
         getData = __o["getData"],
         SliceUnpack = __o0["SliceUnpack"],
@@ -15,11 +16,12 @@
         map = __o2["map"],
         foldl = __o2["foldl"],
         foldr = __o2["foldr"],
+        flatten = __o2["flatten"],
         UP = __o3["UP"],
         DOWN = __o3["DOWN"],
         Rewriter = __o3["Rewriter"],
         rewrite = __o3["rewrite"],
-        string = ast_value.Literal.create.bind(null, null, "string"),
+        normalize, string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         always = (function(_) {
             return true;
@@ -54,7 +56,7 @@
     rewrites.add("ArrayPattern", DOWN, (function(_) {
         return true;
     }), (function(__o4) {
-        var loc = __o4["loc"],
+        var pre0, loc = __o4["loc"],
             elements = __o4["elements"],
             indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
@@ -63,8 +65,7 @@
             ]),
             pre = __o5[0],
             mid = __o5[1],
-            post = __o5[2],
-            pre0;
+            post = __o5[2];
         return ast_pattern.ObjectPattern.create(loc, ((pre0 = map((function(x, i) {
             return ast_pattern.ObjectPatternElement.create(null, number(i), x);
         }), pre)), concat(pre0, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null, pre0.length,

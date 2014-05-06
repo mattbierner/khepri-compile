@@ -851,18 +851,19 @@ var inline := seq(
             data: {unique: unique}
         });
 
-var initialState =  foldl(
-    \s name -> let
-        id = builtins.(name),
-        def = definitions.(name)
-    in
-        state.addBinding(
-            getUid id,
-            markExpansion(id, 0, def),
-            true,
-            s),
-    State.empty,
-    Object.keys(builtins))
+var initialState :=
+    foldl(
+        \s name -> let
+            id = builtins.(name),
+            def = definitions.(name)
+        in
+            state.addBinding(
+                getUid id,
+                markExpansion(id, 0, def),
+                true,
+                s),
+        State.empty,
+        Object.keys(builtins))
     |> state.addGlobal @ '_';
 
 /**

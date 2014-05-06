@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     ast_expression = require("khepri-ast")["expression"],
     ast_statement = require("khepri-ast")["statement"],
@@ -74,6 +73,15 @@ peepholes.add("BinaryExpression", DOWN, always, (function(node) {
         right = node["right"];
     return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(
         operator.loc, opToName(operator.name)), operator.ud), [left, right]) : modify(node, ({
+        operator: operator.name
+    })));
+}));
+peepholes.add("UnaryExpression", DOWN, always, (function(node) {
+    var loc = node["loc"],
+        operator = node["operator"],
+        argument = node["argument"];
+    return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(
+        operator.loc, opToName(operator.name)), operator.ud), [argument]) : modify(node, ({
         operator: operator.name
     })));
 }));

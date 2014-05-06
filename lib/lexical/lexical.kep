@@ -178,7 +178,7 @@ var checkHasBinding = \id, loc ->
     examineScope \ s ->
         ?s.hasBinding(id)
             :pass
-        :error("Undeclared identifier:'" + id + "' at:" + getStart loc);
+        :error("Undeclared symbol:'" + id + "' at:" + getStart loc);
 
 /**
  * Ensure the current scope does not have has a binding for `id`.
@@ -428,8 +428,9 @@ addCheck@'FunctionExpression' <|
         modifyNode \ node ->
             setUd('locals', locals.filter(\x -> closure.indexOf(x) < 0), node)));
 
-addCheck@'UnaryExpression' <|
-    checkChild 'argument';
+addCheck@'UnaryExpression' <| seq(
+    checkChild 'operator',
+    checkChild 'argument');
 
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
@@ -520,17 +521,11 @@ addCheck@'ArgumentsPattern' <| seq(
 addCheck@'ObjectValue' <|
     checkChild 'value';
 
-addCheck@'Identifier' <|
-    inspect \ node#{loc name} -> seq(
-        examineScope \ s ->
-             setNode <| setUid(s.getUid(name), node),
-        checkHasBinding(name, loc));
-
-addCheck@'BinaryOperator' <|
+addCheck@['Identifier', 'BinaryOperator', 'UnaryOperator'] <|
     inspect \ node#{loc name} -> seq(
         checkHasBinding(name, loc),
         examineScope \ s ->
-            setNode <| setUid(s.getUid name, node));
+             setNode <| setUid(s.getUid(name), node));
 
 /*
  ******************************************************************************/

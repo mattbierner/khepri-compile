@@ -135,6 +135,18 @@ peepholes.add('BinaryExpression', DOWN,
                 [left, right])
             :modify(node, { operator: operator.name }));
 
+/**
+ */
+peepholes.add('UnaryExpression', DOWN,
+    always,
+    
+    \node#{loc operator argument} ->
+        ?getUid operator
+            :ast_expression.CallExpression.create(loc,
+                opToIdentifier operator,
+                [argument])
+            :modify(node, { operator: operator.name }));
+
 /* Expression Conversion
  ******************************************************************************/
 var expandAssignment := \node ->

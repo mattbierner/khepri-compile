@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khepri-ast/statement",
     "khepri-ast/expression", "khepri-ast/value", "akh/base", "akh/unique", "akh/trans/state", "zipper-m/trans/tree",
     "../ast", "../builtin", "../fun", "./state", "./expand", "./expansion", "./rename"
 ], (function(require, exports, __o, ast_declaration, ast_statement, ast_expression, ast_value, __o0, Unique, StateT,

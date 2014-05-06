@@ -1,17 +1,18 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
     __o = require("./ast"),
-    __o0 = require("./fun"),
-    builtins, definitions, member, setUd = __o["setUd"],
+    setUd = __o["setUd"],
     getUid = __o["getUid"],
     setUid = __o["setUid"],
+    __o0 = require("./fun"),
     flip = __o0["flip"],
-    identifier = (function(name, uid) {
+    builtins, definitions, member, identifier = (function(name, uid) {
         return setUid(uid, ast_value.Identifier.create(null, name));
     }),
     unique = (function() {
@@ -38,7 +39,7 @@ var uid1 = unique();
 (builtins["module"] = setUid(uid1, ast_value.Identifier.create(null, "module")));
 var uid2 = unique();
 (builtins["undefined"] = setUid(uid2, ast_value.Identifier.create(null, "undefined")));
-var uid3, uid5, xArg0, uid6, yArg, node0, locals, uid4, xArg, node, locals0;
+var uid3, uid4, xArg, node, locals0, uid5, xArg0, uid6, yArg, node0, locals;
 [
     ["typeof", "__typeof"],
     ["void", "__void"],
@@ -47,9 +48,8 @@ var uid3, uid5, xArg0, uid6, yArg, node0, locals, uid4, xArg, node, locals0;
     ["++", "__plus"],
     ["--", "__minus"]
 ].forEach((function(__o1) {
-    var op = __o1[0],
-        name = __o1[1],
-        xArg, node, locals;
+    var xArg, node, locals, op = __o1[0],
+        name = __o1[1];
     registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), (node = ast_expression.FunctionExpression
         .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
             .create(null, xArg)

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/user_operator.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/user_operator.kep'
  * DO NOT EDIT
-*/define(["require", "exports"], (function(require, exports) {
+*/
+define(["require", "exports"], (function(require, exports) {
     "use strict";
     var rename, map = ({
             "*": "star",

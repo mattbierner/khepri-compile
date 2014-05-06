@@ -4,24 +4,24 @@
 */
 "use strict";
 var __o = require("ecma-ast")["node"],
+    modify = __o["modify"],
     __o0 = require("./ast"),
-    __o1 = require("./fun"),
-    __o2 = require("./rewriter"),
-    optimize, modify = __o["modify"],
     type = __o0["type"],
+    __o1 = require("./fun"),
     concat = __o1["concat"],
     flatten = __o1["flatten"],
     map = __o1["map"],
     foldr = __o1["foldr"],
+    __o2 = require("./rewriter"),
     UP = __o2["UP"],
     DOWN = __o2["DOWN"],
     Rewriter = __o2["Rewriter"],
     rewrite = __o2["rewrite"],
-    x, flattenBlockBody = ((x = map.bind(null, (function(x0) {
+    optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
         return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) === "BlockStatement") ? x0
             .body : x0));
-    }))), (function(z) {
-        return flatten(x(z));
+    }))), (y = flatten), (function(z) {
+        return y(x(z));
     })),
     mergeBlockDeclarations = foldr.bind(null, (function(p, c) {
         return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ? concat(modify(

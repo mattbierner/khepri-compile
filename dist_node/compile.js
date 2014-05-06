@@ -1,9 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var Error = require("akh")["error"],
     __o = require("khepri-ast-zipper"),
+    khepriZipper = __o["khepriZipper"],
     pre_normalize = require("./stages/pre_normalize"),
     lexical = require("./stages/lexical"),
     reachable = require("./stages/reachable"),
@@ -12,8 +14,7 @@ var Error = require("akh")["error"],
     khepri_peep = require("./stages/khepri_peep"),
     transform = require("./stages/transform"),
     ecma_peep = require("./stages/ecma_peep"),
-    compile, khepriZipper = __o["khepriZipper"],
-    extract = (function(__o0) {
+    compile, extract = (function(__o0) {
         var tree = __o0["tree"];
         return tree;
     }),

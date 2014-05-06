@@ -6,15 +6,15 @@
 var ast_declaration = require("khepri-ast")["declaration"],
     ast_expression = require("khepri-ast")["expression"],
     __o = require("khepri-ast")["node"],
+    setData = __o["setData"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_program = require("khepri-ast")["program"],
     ast_statement = require("khepri-ast")["statement"],
     ast_value = require("khepri-ast")["value"],
     fun = require("../../fun"),
     __o0 = require("../../builtin"),
-    definePackage, defineProgram, importPackage, setData = __o["setData"],
     builtins = __o0["builtins"],
-    concat = Function.prototype.call.bind(Array.prototype.concat),
+    definePackage, defineProgram, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
     map = Function.prototype.call.bind(Array.prototype.map),
     path = (function(path0) {
         return path0.split("::")

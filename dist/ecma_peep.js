@@ -1,10 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/ecma_peep.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/ecma_peep.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require, exports, __o, __o0,
+*/
+define(["require", "exports", "ecma-ast/node", "./ast", "./fun", "./rewriter"], (function(require, exports, __o, __o0,
     __o1, __o2) {
     "use strict";
-    var optimize, modify = __o["modify"],
+    var modify = __o["modify"],
         type = __o0["type"],
         concat = __o1["concat"],
         flatten = __o1["flatten"],
@@ -14,11 +15,11 @@
         DOWN = __o2["DOWN"],
         Rewriter = __o2["Rewriter"],
         rewrite = __o2["rewrite"],
-        x, flattenBlockBody = ((x = map.bind(null, (function(x0) {
+        optimize, x, y, flattenBlockBody = ((x = map.bind(null, (function(x0) {
             return (((!x0) || (type(x0) === "EmptyStatement")) ? [] : ((type(x0) ===
                 "BlockStatement") ? x0.body : x0));
-        }))), (function(z) {
-            return flatten(x(z));
+        }))), (y = flatten), (function(z) {
+            return y(x(z));
         })),
         mergeBlockDeclarations = foldr.bind(null, (function(p, c) {
             return (((type(c) === "VariableDeclaration") && (type(p[0]) === "VariableDeclaration")) ?
