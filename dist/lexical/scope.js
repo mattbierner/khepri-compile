@@ -1,13 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/scope.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lexical/scope.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
+*/define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, addUid, addBinding, addMutableBinding, addImmutableBinding, setBindingMutability, addMapping,
-            getClosure, push, pop, addVar;
-    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals"]));
-    (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty));
+            getClosure, addOperator, getOperators, push, pop, addVar;
+    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals", "prefixOps"]));
+    (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
         var self = this;
         return hamt.has(id, self.record);
@@ -83,9 +82,17 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (getClosure = (function(z) {
         return y(z.locals);
     }));
+    (addOperator = (function(name, uid, s) {
+        return s.setPrefixOps(hamt.set(name, uid, s.prefixOps));
+    }));
+    var y0 = hamt.pairs;
+    (getOperators = (function(z) {
+        return y0(z.prefixOps);
+    }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)
-            .setDefinitions(s.definitions);
+            .setDefinitions(s.definitions)
+            .setPrefixOps(s.prefixOps);
     }));
     var mergeLocals = hamt.fold.bind(null, (function(p, __o) {
         var key = __o["key"],
@@ -108,6 +115,8 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (exports["setBindingMutability"] = setBindingMutability);
     (exports["addMapping"] = addMapping);
     (exports["getClosure"] = getClosure);
+    (exports["addOperator"] = addOperator);
+    (exports["getOperators"] = getOperators);
     (exports["push"] = push);
     (exports["pop"] = pop);
     (exports["addVar"] = addVar);

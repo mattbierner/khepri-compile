@@ -14,6 +14,9 @@ with
     import 'akh::trans::error' ErrorT,
     import 'akh::unique' Unique,
     
+    import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::value' ast_value,
+
     import 'zipper-m::trans::tree' TreeZipperT,
     
     import '../ast' {
@@ -36,6 +39,29 @@ var _check;
 var reserved := getUd @ 'reserved';
 
 var getStart := \loc -> (loc && loc.start);
+
+var startsWith := \s prefix ->
+    s.substring(0, prefix.length) === prefix;
+
+/**
+ * 
+ */
+var splitOp := let
+    matchPrefix = \op ops ->
+        ops.reduce(
+            \p c ->
+                ?startsWith(op, c.(0)) && (!p || c.(0).length > p.(0).length)
+                    :c
+                    :p,
+            null)
+in
+    \op ops ->
+        ?!op
+            :[]
+        :let r = matchPrefix(op, ops) in
+            ?r
+                :[r].concat(splitOp(op.slice(r.(0).length), ops))
+                :[];
 
 /* Monad
  ******************************************************************************/
@@ -269,6 +295,15 @@ var addStaticBindingChecked = \id loc ->
         checkCanAddBinding(id, loc),
         addStaticBinding(id, loc));
 
+var splitUnary = \name ->
+    extractScope.map \ s ->
+        splitOp(name, scope.getOperators(s))
+            .map \ c -> 
+                setUid(c.(1), ast_value.UnaryOperator.create(null, c.(0)));
+
+var addOperator = \name uid-> 
+     modifyScope (scope.addOperator@(name, uid));
+ 
 /* Checks
  ******************************************************************************/
 var checks = {};
@@ -429,8 +464,17 @@ addCheck@'FunctionExpression' <|
             setUd('locals', locals.filter(\x -> closure.indexOf(x) < 0), node)));
 
 addCheck@'UnaryExpression' <| seq(
-    checkChild 'operator',
-    checkChild 'argument');
+    checkChild 'argument',
+    
+    inspect \ {loc operator argument} ->
+        splitUnary(operator.name).chain \ ops ->
+            ?ops.length > 1
+                :seq(
+                    setNode <| ops.reduceRight(\p c ->
+                        ast_expression.UnaryExpression.create(loc, c, p),
+                        argument),
+                    checkTop)
+                :checkChild 'operator');
 
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
@@ -528,13 +572,15 @@ addCheck@['Identifier', 'BinaryOperator'] <|
              setNode <| setUid(s.getUid(name), node));
 
 addCheck@['UnaryOperator'] <|
-    inspect \ node#{loc name} -> seq(
-        ?name.(0) === '.'
-            :pass
-            :checkHasBinding(name, loc),
-        examineScope \ s ->
-             setNode <| setUid(s.getUid(name), node));
-    
+    when((.name) \> (_ ., 0) \> (===, '.'),
+        pass,
+        inspect \ node#{loc name} -> seq(
+            checkHasBinding(name, loc),
+            examineScope \ s ->
+                let uid = s.getUid(name) in seq(
+                    setNode <| setUid(uid, node),
+                    addOperator(name, uid))));
+
 /*
  ******************************************************************************/
 _check := \node ->
@@ -542,41 +588,49 @@ _check := \node ->
         :checkArray node
         :(checks.(type node) || pass);
 
-var initialScope := foldl(scope.addImmutableBinding, Scope.empty, [
-    '*',
-    '/',
-    '+',
-    '-',
-    '%',
-    '<<',
-    '>>',
-    '>>>',
-    '<',
-    '>',
-    '<=',
-    '>=',
-    '==',
-    '!=',
-    '===',
-    '!==',
-    '&',
-    '^',
-    '|',
-    '||',
-    '&&',
-    '|>',
-    '\\>',
-    '\\>>',
-    '<|',
-    '<\\',
-    '<<\\',
-    '!',
-    '++',
-    '--',
-    '~',
-    '.',
-    '@']);
+var initialScope := 
+    foldl(scope.addImmutableBinding, Scope.empty, [
+        '*',
+        '/',
+        '+',
+        '-',
+        '%',
+        '<<',
+        '>>',
+        '>>>',
+        '<',
+        '>',
+        '<=',
+        '>=',
+        '==',
+        '!=',
+        '===',
+        '!==',
+        '&',
+        '^',
+        '|',
+        '||',
+        '&&',
+        '|>',
+        '\\>',
+        '\\>>',
+        '<|',
+        '<\\',
+        '<<\\',
+        '!',
+        '++',
+        '--',
+        '~',
+        '.',
+        '@'])
+    |>\x ->
+    foldl(\p c -> scope.addOperator(c, null, p), x, [
+        '!',
+        '++',
+        '--',
+        '~']);
 
+    
 var addBindings := foldl@(scope.addImmutableBinding, initialScope);
 
 var rewrite := seq(

@@ -28,6 +28,15 @@ exports.chained_binary = function(test) {
     test.done();
 };
 
+exports.simple_unary = function(test) {
+    test.equal(
+        testParser("var (!!) := \x -> x * 10; !! 3;"),
+        30);
+    
+    test.done();
+};
+
+
 
 exports.hide_standard = function(test) {
     test.equal(
@@ -70,4 +79,7 @@ exports.no_name_clash = function(test) {
         24);
     
     test.done();
-}
+};
+
+
+

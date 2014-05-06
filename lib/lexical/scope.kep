@@ -13,6 +13,9 @@ package (
     
     getClosure
     
+    addOperator
+    getOperators
+    
     push
     pop
     
@@ -37,17 +40,20 @@ var IMMUTABLE := 0,
  * @member mapping Maps identifiers to their actual names in this scope.
  * @member definitions Maps identifiers to unique ids.
  * @member locals Set of all unique ids.
+ * @member locals Map of all valid prefix operator names to uids in the scope.
  */
 Scope = record.declare(null, [
     'record',
     'outer',
     'mapping',
     'definitions',
-    'locals']);
+    'locals',
+    'prefixOps']);
 
 Scope.empty = Scope.create(
     hamt.empty,
     null,
+    hamt.empty,
     hamt.empty,
     hamt.empty,
     hamt.empty);
@@ -213,6 +219,14 @@ addMapping = \s from to ->
  */
 getClosure := (.locals) \> hamt.keys;
 
+/* Operator Operations
+ ******************************************************************************/
+addOperator := \name uid s ->
+    s.setPrefixOps <|
+        hamt.set(name, uid, s.prefixOps);
+
+getOperators := (.prefixOps) \> hamt.pairs;
+
 /* Operations
  ******************************************************************************/
 /**
@@ -223,7 +237,8 @@ getClosure := (.locals) \> hamt.keys;
 push = \s ->
     Scope.empty
         .setOuter(s)
-        .setDefinitions(s.definitions);
+        .setDefinitions(s.definitions)
+        .setPrefixOps(s.prefixOps);
 
 /**
  * Pop scope.
