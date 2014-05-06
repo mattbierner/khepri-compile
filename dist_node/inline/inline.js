@@ -212,7 +212,7 @@ var __o = require("khepri-ast")["node"],
 addRewrite("UnaryOperator", seq(extract((function(__o6) {
     var name = __o6["name"];
     return (builtins[name] ? seq(addGlobal(name), set(builtins[name])) : unique((function(uid) {
-        return set(builtin.member(name, uid));
+        return set(builtin.member(name.substring(1), uid));
     })));
 })), checkTop));
 addRewrite("BinaryOperator", seq(extract((function(__o6) {

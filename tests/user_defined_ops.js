@@ -14,40 +14,49 @@ var testParser = function(input) {
 
 exports.simple_binary = function(test) {
     test.equal(
-        testParser("var (**) := \x y -> Math.pow(x, y); 2 ** 3;"),
-        2);
+        testParser("var (**) := Math.pow; 2 ** 3;"),
+        8);
     
     test.done();
 };
 
-exports.flipped_binary = function(test) {
-    test.equal(
-        testParser("var f = (_/); f(10, 5);"),
-        0.5);
+exports.chained_binary = function(test) {
+    test.deepEqual(
+        testParser("var (+|+) := Array.prototype.concat.bind[]; [1, 2] +|+ [3] +|+ [4, 5];"),
+        [1, 2, 3, 4, 5]);
     
     test.done();
 };
 
-exports.non_ecma_op = function(test) {
+
+exports.hide_standard = function(test) {
     test.equal(
-        testParser("var f = (<|); f((!), false);"),
-        true);
+        testParser("var (+) := (-); 1 + 3;"),
+        -2);
     
     test.done();
 };
 
-exports.computed_member = function(test) {
+exports.local_hide = function(test) {
     test.equal(
-        testParser("var f = (.); f ([1, 2, 3], 2);"),
-        3);
+        testParser("100 + (let (+) = (-) in 4 + 10 + 3) + 8;"),
+        99);
     
     test.done();
 };
 
-exports.non_computed_member = function(test) {
+exports.op_to_function = function(test) {
     test.equal(
-        testParser("var x = 100; var f = (.x); f {'x': 3};"),
-        3);
+        testParser("var (**) := Math.pow; (**)(2, 3);"),
+        8);
+    
+    test.done();
+};
+
+exports.flipped_op_to_function = function(test) {
+    test.equal(
+        testParser("var (**) := Math.pow; (_**)(2, 3);"),
+        9);
     
     test.done();
 };

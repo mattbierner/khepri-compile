@@ -567,7 +567,9 @@ var initialScope := foldl(scope.addImmutableBinding, Scope.empty, [
     '!',
     '++',
     '--',
-    '~']);
+    '~',
+    '.',
+    '@']);
 
 var addBindings := foldl@(scope.addImmutableBinding, initialScope);
 

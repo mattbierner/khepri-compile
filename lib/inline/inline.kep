@@ -317,7 +317,7 @@ addRewrite@'UnaryOperator' <| seq(
             // Must be a non computed member expression
             // This is really more of a macro, so it is handled differently
             :unique \ uid ->
-                set <| builtin.member(name, uid),
+                set <| builtin.member(name.substring(1), uid),
     checkTop);
 
 /**

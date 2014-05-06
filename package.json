@@ -38,10 +38,10 @@
         "nu-stream": ">=3.2.0",
         
         "ecma-ast": "2.5.x",
-        "ecma-ast-zipper": "1.0.x",
+        "ecma-ast-zipper": "1.1.x",
         
         "khepri-ast": "4.1.x",
-        "khepri-ast-zipper": "1.1.x",
+        "khepri-ast-zipper": "1.2.x",
         
         "hamt": "0.1.x",
         

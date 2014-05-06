@@ -383,7 +383,7 @@
     }));
     var initialScope = foldl(scope.addImmutableBinding, Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>",
         ">>>", "<", ">", "<=", ">=", "==", "!=", "===", "!==", "&", "^", "|", "||", "&&", "|>", "\\>",
-        "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~"
+        "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".", "@"
     ]),
         addBindings = foldl.bind(null, scope.addImmutableBinding, initialScope),
         rewrite = seq(checkTop, root, extractCtx.chain((function(x3) {
