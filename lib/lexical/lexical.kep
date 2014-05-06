@@ -521,12 +521,20 @@ addCheck@'ArgumentsPattern' <| seq(
 addCheck@'ObjectValue' <|
     checkChild 'value';
 
-addCheck@['Identifier', 'BinaryOperator', 'UnaryOperator'] <|
+addCheck@['Identifier', 'BinaryOperator'] <|
     inspect \ node#{loc name} -> seq(
         checkHasBinding(name, loc),
         examineScope \ s ->
              setNode <| setUid(s.getUid(name), node));
 
+addCheck@['UnaryOperator'] <|
+    inspect \ node#{loc name} -> seq(
+        ?name.(0) === '.'
+            :pass
+            :checkHasBinding(name, loc),
+        examineScope \ s ->
+             setNode <| setUid(s.getUid(name), node));
+    
 /*
  ******************************************************************************/
 _check := \node ->

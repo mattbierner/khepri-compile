@@ -353,10 +353,17 @@ addCheck("ArgumentsPattern", seq(((__args73 = ["id", checkTop]), (actions73 = []
     actions75 = [].slice.call(__args75, 1)), seq(moveChild("self"), seqa(actions75), up))));
 addCheck("ObjectValue", ((__args76 = ["value", checkTop]), (actions76 = [].slice.call(__args76, 1)), seq(moveChild(
     "value"), seqa(actions76), up)));
-addCheck(["Identifier", "BinaryOperator", "UnaryOperator"], inspect((function(node) {
+addCheck(["Identifier", "BinaryOperator"], inspect((function(node) {
     var loc = node["loc"],
         name = node["name"];
     return seq(checkHasBinding(name, loc), examineScope((function(s) {
+        return setNode(setUid(s.getUid(name), node));
+    })));
+})));
+addCheck(["UnaryOperator"], inspect((function(node) {
+    var loc = node["loc"],
+        name = node["name"];
+    return seq(((name[0] === ".") ? pass : checkHasBinding(name, loc)), examineScope((function(s) {
         return setNode(setUid(s.getUid(name), node));
     })));
 })));
