@@ -30,13 +30,27 @@ exports.chained_binary = function(test) {
 
 exports.simple_unary = function(test) {
     test.equal(
-        testParser("var (!!) := \x -> x * 10; !! 3;"),
+        testParser("var (!!) := \\x -> x * 10; !! 3;"),
         30);
     
     test.done();
 };
 
+exports.chained_unary = function(test) {
+    test.equal(
+        testParser("var (!!) := \\x -> x * 10; !! !! 3;"),
+        300);
+    
+    test.done();
+};
 
+exports.chained_splitting_unary = function(test) {
+    test.equal(
+        testParser("var (!!) := \\x -> x * 10; !!!!3;"),
+        300);
+    
+    test.done();
+};
 
 exports.hide_standard = function(test) {
     test.equal(
