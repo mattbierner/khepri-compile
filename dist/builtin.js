@@ -1,15 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value", "./ast", "./fun"], (
+*/define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "khepri-ast/value", "./ast", "./fun"], (
     function(require, exports, ast_pattern, ast_expression, ast_value, __o, __o0) {
         "use strict";
-        var setUd = __o["setUd"],
+        var builtins, definitions, member, setUd = __o["setUd"],
             getUid = __o["getUid"],
             setUid = __o["setUid"],
             flip = __o0["flip"],
-            builtins, definitions, member, identifier = (function(name, uid) {
+            identifier = (function(name, uid) {
                 return setUid(uid, ast_value.Identifier.create(null, name));
             }),
             unique = (function() {
@@ -44,8 +43,9 @@ define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "kh
             ["++", "__plus"],
             ["--", "__minus"]
         ].forEach((function(__o1) {
-            var xArg, node, locals, op = __o1[0],
-                name = __o1[1];
+            var op = __o1[0],
+                name = __o1[1],
+                xArg, node, locals;
             registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), (node = ast_expression.FunctionExpression
                     .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
                         .create(null, xArg)
@@ -104,21 +104,13 @@ define(["require", "exports", "khepri-ast/pattern", "khepri-ast/expression", "kh
             ["!=", "__neq"],
             ["===", "__seq"],
             ["!==", "__sneq"],
-            ["instanceof", "__instanceof"]
-        ].forEach((function(__o1) {
-            var op = __o1[0],
-                name = __o1[1];
-            registerBinary(op, name, binaryOp(op));
-        }));
-        [
+            ["instanceof", "__instanceof"],
             ["||", "__or"],
             ["&&", "__and"]
         ].forEach((function(__o1) {
             var op = __o1[0],
                 name = __o1[1];
-            registerBinary(op, name, (function(x, y) {
-                return ast_expression.LogicalExpression.create(null, op, x, y);
-            }));
+            registerBinary(op, name, binaryOp(op));
         }));
         registerBinary("new", "__new", (function(x, y) {
             return ast_expression.NewExpression.create(null, x, [y]);

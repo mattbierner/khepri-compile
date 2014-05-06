@@ -250,7 +250,7 @@ addRewrite@'FunctionExpression' <| seq(
 addRewrite@'UnaryExpression' <|
     visitChild 'argument';
 
-addRewrite@['LogicalExpression', 'BinaryExpression'] <| seq(
+addRewrite@'BinaryExpression' <| seq(
     visitChild 'left',
     visitChild 'right');
 

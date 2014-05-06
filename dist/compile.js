@@ -1,15 +1,14 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/compile.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/compile.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_normalize", "./stages/lexical",
+*/define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_normalize", "./stages/lexical",
     "./stages/reachable", "./stages/post_normalize", "./stages/inline", "./stages/khepri_peep",
     "./stages/transform", "./stages/ecma_peep"
 ], (function(require, exports, Error, __o, pre_normalize, lexical, reachable, post_normalize, inline, khepri_peep,
     transform, ecma_peep) {
     "use strict";
-    var khepriZipper = __o["khepriZipper"],
-        compile, extract = (function(__o0) {
+    var compile, khepriZipper = __o["khepriZipper"],
+        extract = (function(__o0) {
             var tree = __o0["tree"];
             return tree;
         }),
@@ -25,7 +24,6 @@ define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_no
             .chain(lexical)
             .chain(post_normalize)
             .chain(inline)
-            .chain(reachable)
             .chain(khepri_peep)
             .chain(transform)
             .chain(ecma_peep)), extract, (err || thr));

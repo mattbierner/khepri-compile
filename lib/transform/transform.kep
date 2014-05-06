@@ -324,11 +324,6 @@ addTransform@'BinaryExpression' <| seq(
     rewriteChild 'right',
     modify (translate.binaryExpression));
 
-addTransform@'LogicalExpression' <| seq(
-    rewriteChild 'left',
-    rewriteChild 'right',
-    modify (translate.logicalExpression));
-
 addTransform@'ConditionalExpression' <| seq(
     rewriteChild 'test',
     rewriteChild 'consequent',
@@ -470,6 +465,10 @@ addTransform@'Identifier' <|
         
         // When node has no uid, don't rename
         :set <| identifier(node.loc, node.name);
+
+addTransform@'BinaryOperator' <|
+    modify \ node ->
+        node.name;
 
 /*
  *****************************************************************************/

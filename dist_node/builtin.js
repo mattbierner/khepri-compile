@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/builtin.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/builtin.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_pattern = require("khepri-ast")["pattern"],
     ast_expression = require("khepri-ast")["expression"],
     ast_value = require("khepri-ast")["value"],
@@ -108,21 +107,13 @@ var binary = (function(op) {
     ["!=", "__neq"],
     ["===", "__seq"],
     ["!==", "__sneq"],
-    ["instanceof", "__instanceof"]
-].forEach((function(__o1) {
-    var op = __o1[0],
-        name = __o1[1];
-    registerBinary(op, name, binaryOp(op));
-}));
-[
+    ["instanceof", "__instanceof"],
     ["||", "__or"],
     ["&&", "__and"]
 ].forEach((function(__o1) {
     var op = __o1[0],
         name = __o1[1];
-    registerBinary(op, name, (function(x, y) {
-        return ast_expression.LogicalExpression.create(null, op, x, y);
-    }));
+    registerBinary(op, name, binaryOp(op));
 }));
 registerBinary("new", "__new", (function(x, y) {
     return ast_expression.NewExpression.create(null, x, [y]);

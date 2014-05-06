@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable/reachable.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     __o0 = require("akh")["base"],
     StateM = require("akh")["state"],
@@ -138,9 +137,9 @@ addRewrite("FunctionExpression", seq(((__args31 = ["body", checkTop]), (actions3
     actions33 = [].slice.call(__args33, 1)), seq(moveChild("params"), sequencea(actions33), up))));
 addRewrite("UnaryExpression", ((__args34 = ["argument", checkTop]), (actions34 = [].slice.call(__args34, 1)), seq(
     moveChild("argument"), sequencea(actions34), up)));
-addRewrite(["LogicalExpression", "BinaryExpression"], seq(((__args35 = ["left", checkTop]), (actions35 = [].slice.call(
-    __args35, 1)), seq(moveChild("left"), sequencea(actions35), up)), ((__args36 = ["right", checkTop]), (
-    actions36 = [].slice.call(__args36, 1)), seq(moveChild("right"), sequencea(actions36), up))));
+addRewrite("BinaryExpression", seq(((__args35 = ["left", checkTop]), (actions35 = [].slice.call(__args35, 1)), seq(
+    moveChild("left"), sequencea(actions35), up)), ((__args36 = ["right", checkTop]), (actions36 = [].slice.call(
+    __args36, 1)), seq(moveChild("right"), sequencea(actions36), up))));
 addRewrite("AssignmentExpression", seq(((__args37 = ["left", checkTop]), (actions37 = [].slice.call(__args37, 1)), seq(
     moveChild("left"), sequencea(actions37), up)), ((__args38 = ["right", checkTop]), (actions38 = [].slice.call(
     __args38, 1)), seq(moveChild("right"), sequencea(actions38), up))));

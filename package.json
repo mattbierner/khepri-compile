@@ -40,7 +40,7 @@
         "ecma-ast": "2.5.x",
         "ecma-ast-zipper": "1.0.x",
         
-        "khepri-ast": "3.10.x",
+        "khepri-ast": "4.1.x",
         "khepri-ast-zipper": "1.1.x",
         
         "hamt": "0.1.x",

@@ -1,8 +1,7 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/inline/inline.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/inline/inline.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_statement = require("khepri-ast")["statement"],
@@ -210,19 +209,19 @@ var __o = require("khepri-ast")["node"],
             (peepholes[type0] = f);
         }
     });
-addRewrite("UnaryOperatorExpression", seq(extract((function(__o6) {
-    var op = __o6["op"];
-    return (builtins[op] ? seq(addGlobal(op), set(builtins[op])) : unique((function(uid) {
-        return set(builtin.member(op, uid));
+addRewrite("UnaryOperator", seq(extract((function(__o6) {
+    var name = __o6["name"];
+    return (builtins[name] ? seq(addGlobal(name), set(builtins[name])) : unique((function(uid) {
+        return set(builtin.member(name, uid));
     })));
 })), checkTop));
-addRewrite("BinaryOperatorExpression", seq(extract((function(__o6) {
-    var op = __o6["op"],
+addRewrite("BinaryOperator", seq(extract((function(__o6) {
+    var name = __o6["name"],
         flipped = __o6["flipped"],
-        name = (flipped ? ("_" + op) : op);
-    return seq(addGlobal(name), set(builtins[name]));
+        name0 = (flipped ? ("_" + name) : name);
+    return seq(addGlobal(name0), set(builtins[name0]));
 })), checkTop));
-addRewrite("TernaryOperatorExpression", seq(modifyState(state.addGlobal.bind(null, "?")), set(builtins["?"]), checkTop));
+addRewrite("TernaryOperator", seq(modifyState(state.addGlobal.bind(null, "?")), set(builtins["?"]), checkTop));
 addRewrite("Program", seq(((__args = ["body", checkTop]), (ops = [].slice.call(__args, 1)), seq(moveChild("body"), seqa(
     ops), up)), ((consequent = globals((function(globals0) {
     return modify((function(node) {
@@ -331,7 +330,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
     return (((operator = node["operator"]), (argument = node["argument"]), (arithmetic[operator] &&
         isPrimitive(argument))) ? consequent3 : (undefined || pass));
 }))))));
-addRewrite(["LogicalExpression", "BinaryExpression"], ((arithmetic0 = ({
+addRewrite("BinaryExpression", ((arithmetic0 = ({
     "+": __add,
     "-": __sub,
     "*": __mul,

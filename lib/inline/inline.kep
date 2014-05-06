@@ -307,25 +307,25 @@ var addRewrite = \type f -> {
 /**
  * Convert Unary Op Expression to function.
  */
-addRewrite@'UnaryOperatorExpression' <| seq(
-    extract \ {op} ->
-        ?builtins.(op)
+addRewrite@'UnaryOperator' <| seq(
+    extract \ {name} ->
+        ?builtins.(name)
             :seq(
-                addGlobal(op),
-                set <| builtins.(op))
+                addGlobal(name),
+                set <| builtins.(name))
             
             // Must be a non computed member expression
-            // This really more of a macro, so it is handled differently
+            // This is really more of a macro, so it is handled differently
             :unique \ uid ->
-                set <| builtin.member(op, uid),
+                set <| builtin.member(name, uid),
     checkTop);
 
 /**
  * Convert binary op expression to function.
  */
-addRewrite@'BinaryOperatorExpression' <| seq(
-    extract \ {op flipped} ->
-        let name = ?flipped : '_' + op : op in
+addRewrite@'BinaryOperator' <| seq(
+    extract \ {name flipped} ->
+        let name = ?flipped : '_' + name : name in
             seq(
                 addGlobal(name),
                 set <| builtins.(name)),
@@ -334,7 +334,7 @@ addRewrite@'BinaryOperatorExpression' <| seq(
 /**
  * Convert ternary op expression to function.
  */
-addRewrite@'TernaryOperatorExpression' <| seq(
+addRewrite@'TernaryOperator' <| seq(
     addGlobal('?'),
     set <| builtins.('?'),
     checkTop);
@@ -527,7 +527,7 @@ in seq(
         in
             ast_value.Literal.create(loc, typeof value, value)));
 
-addRewrite@['LogicalExpression', 'BinaryExpression'] <| let
+addRewrite@'BinaryExpression' <| let
     arithmetic = {
         '+': (+),
         '-': (-),

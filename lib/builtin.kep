@@ -162,26 +162,13 @@ var binaryOp = \op ->
     ['!=', '__neq'],
     ['===', '__seq'],
     ['!==', '__sneq'],
-    ['instanceof', '__instanceof']
+    ['instanceof', '__instanceof'],
+    ['||', '__or'],
+    ['&&', '__and']
 ].forEach \ [op name] -> {
     registerBinary(op, name,
         binaryOp(op));
 };
-
-// Logical
-with
-    logicalOp = \op ->
-        \x y ->
-            ast_expression.LogicalExpression.create(null, op, x, y)
-in {
-    [
-        ['||', '__or'],
-        ['&&', '__and']
-    ].forEach \ [op name] -> {
-        registerBinary(op, name,
-            logicalOp(op));
-    };
-}
 
 // New
 registerBinary('new', '__new', \x y ->

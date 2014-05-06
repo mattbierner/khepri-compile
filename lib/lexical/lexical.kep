@@ -443,7 +443,8 @@ addCheck@'AssignmentExpression' <| seq(
             :pass,
     checkChild 'right');
 
-addCheck@['LogicalExpression', 'BinaryExpression'] <| seq(
+addCheck@'BinaryExpression' <| seq(
+    checkChild 'operator',
     checkChild 'left',
     checkChild 'right');
 
@@ -522,6 +523,12 @@ addCheck@'Identifier' <|
              setNode <| setUid(s.getUid(name), node),
         checkHasBinding(name, loc));
 
+addCheck@'BinaryOperator' <|
+    inspect \ node#{loc name} -> seq(
+        checkHasBinding(name, loc),
+        examineScope \ s ->
+            setNode <| setUid(s.getUid name, node));
+
 /*
  ******************************************************************************/
 _check := \node ->
@@ -529,7 +536,40 @@ _check := \node ->
         :checkArray node
         :(checks.(type node) || pass);
 
-var addBindings := foldl@(scope.addImmutableBinding, Scope.empty);
+var initialScope := foldl(scope.addImmutableBinding, Scope.empty, [
+    '*',
+    '/',
+    '+',
+    '-',
+    '%',
+    '<<',
+    '>>',
+    '>>>',
+    '<',
+    '>',
+    '<=',
+    '>=',
+    '==',
+    '!=',
+    '===',
+    '!==',
+    '&',
+    '^',
+    '|',
+    '||',
+    '&&',
+    '|>',
+    '\\>',
+    '\\>>',
+    '<|',
+    '<\\',
+    '<<\\',
+    '!',
+    '++',
+    '--',
+    '~']);
+
+var addBindings := foldl@(scope.addImmutableBinding, initialScope);
 
 var rewrite := seq(
     checkTop,

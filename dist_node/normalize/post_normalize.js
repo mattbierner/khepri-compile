@@ -1,25 +1,29 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/post_normalize.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
-    ast_statement = require("khepri-ast")["statement"],
     ast_expression = require("khepri-ast")["expression"],
+    ast_statement = require("khepri-ast")["statement"],
+    ast_value = require("khepri-ast")["value"],
     __o0 = require("../pseudo/pattern"),
     __o1 = require("../ast"),
     __o2 = require("../fun"),
     __o3 = require("../rewriter"),
     __o4 = require("./unpack"),
+    opToName = require("./user_operator"),
     normalize, modify = __o["modify"],
     Import = __o0["Import"],
     type = __o1["type"],
     isBlockFunction = __o1["isBlockFunction"],
     setUd = __o1["setUd"],
+    setUid = __o1["setUid"],
+    getUid = __o1["getUid"],
     concat = __o2["concat"],
     flattenr = __o2["flattenr"],
     map = __o2["map"],
     UP = __o3["UP"],
+    DOWN = __o3["DOWN"],
     Rewriter = __o3["Rewriter"],
     rewrite = __o3["rewrite"],
     innerPattern = __o4["innerPattern"],
@@ -78,6 +82,21 @@ peepholes.add("ExpressionStatement", UP, (function(z) {
         z2 = flattenr(z1);
     return y(x(z2));
 })));
+peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, always, (function(node) {
+    return (getUid(node) ? setUid(getUid(node), ast_value.Identifier.create(node.loc, opToName(node.name))) :
+        node);
+}));
+peepholes.add("BinaryExpression", UP, (function(z) {
+    var z0 = z.operator,
+        y0 = type(z0);
+    return ("Identifier" === y0);
+}), (function(__o5) {
+    var loc = __o5["loc"],
+        operator = __o5["operator"],
+        left = __o5["left"],
+        right = __o5["right"];
+    return ast_expression.CallExpression.create(loc, operator, [left, right]);
+}));
 peepholes.add("BinaryExpression", UP, (function(z) {
     var y0 = z.operator;
     return ("|>" === y0);

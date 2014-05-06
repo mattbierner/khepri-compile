@@ -1,12 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/reachable.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/reachable/reachable.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zipper-m/trans/tree", "../fun", "../ast",
+*/define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zipper-m/trans/tree", "../fun", "../ast",
     "./state"
 ], (function(require, exports, __o, __o0, StateM, TreeZipperT, __o1, __o2, state) {
     "use strict";
-    var modify = __o["modify"],
+    var removeUnreachable, modify = __o["modify"],
         seq = __o0["sequence"],
         sequencea = __o0["sequencea"],
         flip = __o1["flip"],
@@ -14,20 +13,20 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         type = __o2["type"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
-        removeUnreachable, x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2,
-            __args3, actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7,
-            __args8, actions8, test, __args9, actions9, yes, no, y0, __args10, actions10, consequent, test0,
-            __args11, actions11, yes0, no0, alternate, y1, __args12, actions12, __args13, actions13, __args14,
-            actions14, __args15, actions15, __args16, actions16, __args17, actions17, __args18, actions18,
-            __args19, actions19, __args20, actions20, __args21, actions21, __args22, actions22, __args23,
-            actions23, __args24, actions24, __args25, actions25, __args26, actions26, __args27, actions27,
-            __args28, actions28, __args29, actions29, __args30, actions30, __args31, actions31, __args32,
-            actions32, __args33, actions33, __args34, actions34, __args35, actions35, __args36, actions36,
-            __args37, actions37, __args38, actions38, __args39, actions39, __args40, actions40, consequent0,
-            __args41, actions41, __args42, actions42, __args43, actions43, __args44, actions44, __args45,
-            actions45, __args46, actions46, __args47, actions47, __args48, actions48, __args49, actions49,
-            test1, yes1, no1, consequent1, y2, __args50, actions50, __args51, actions51, __args52, actions52,
-            x0, _check, isReserved = getUd.bind(null, "reserved"),
+        x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3, actions3,
+            __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8, test,
+            __args9, actions9, yes, no, __args10, actions10, consequent, test0, __args11, actions11, yes0, no0,
+            alternate, __args12, actions12, __args13, actions13, __args14, actions14, __args15, actions15,
+            __args16, actions16, __args17, actions17, __args18, actions18, __args19, actions19, __args20,
+            actions20, __args21, actions21, __args22, actions22, __args23, actions23, __args24, actions24,
+            __args25, actions25, __args26, actions26, __args27, actions27, __args28, actions28, __args29,
+            actions29, __args30, actions30, __args31, actions31, __args32, actions32, __args33, actions33,
+            __args34, actions34, __args35, actions35, __args36, actions36, __args37, actions37, __args38,
+            actions38, __args39, actions39, __args40, actions40, consequent0, __args41, actions41, __args42,
+            actions42, __args43, actions43, __args44, actions44, __args45, actions45, __args46, actions46,
+            __args47, actions47, __args48, actions48, __args49, actions49, test1, yes1, no1, consequent1,
+            __args50, actions50, __args51, actions51, __args52, actions52, _check, isReserved = getUd.bind(null,
+                "reserved"),
         M = TreeZipperT(StateM),
         pass = M.of(null),
         extractCtx = M.get,
@@ -80,20 +79,19 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         .call(__args7, 1)), seq(moveChild("body"), sequencea(actions7), up))));
     addRewrite("VariableDeclaration", ((__args8 = ["declarations", checkTop]), (actions8 = [].slice.call(
         __args8, 1)), seq(moveChild("declarations"), sequencea(actions8), up)));
-    addRewrite("VariableDeclarator", ((test = inspect(((y0 = getUid), (function(z) {
-        return y0(z.id);
-    })))), (__args9 = ["init", checkTop]), (actions9 = [].slice.call(__args9, 1)), (yes = seq(moveChild(
+    addRewrite("VariableDeclarator", ((test = inspect((function(z) {
+        return getUid(z.id);
+    }))), (__args9 = ["init", checkTop]), (actions9 = [].slice.call(__args9, 1)), (yes = seq(moveChild(
         "init"), sequencea(actions9), up)), (no = removeBinding), test.chain((function(uid) {
         return getState.chain((function(s) {
             return (state.isReachable(uid, s) ? yes : no);
         }));
     }))));
     addRewrite("Binding", ((__args10 = ["value", checkTop]), (actions10 = [].slice.call(__args10, 1)), (
-        consequent = seq(moveChild("value"), sequencea(actions10), up)), (test0 = inspect(((y1 = getUid), (
-        function(z) {
-            var z0 = z.pattern;
-            return y1(z0.id);
-        })))), (__args11 = ["value", checkTop]), (actions11 = [].slice.call(__args11, 1)), (yes0 = seq(
+        consequent = seq(moveChild("value"), sequencea(actions10), up)), (test0 = inspect((function(z) {
+        var z0 = z.pattern;
+        return getUid(z0.id);
+    }))), (__args11 = ["value", checkTop]), (actions11 = [].slice.call(__args11, 1)), (yes0 = seq(
         moveChild("value"), sequencea(actions11), up)), (no0 = removeBinding), (alternate = test0.chain(
         (function(uid) {
             return getState.chain((function(s) {
@@ -144,10 +142,9 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         "params"), sequencea(actions33), up))));
     addRewrite("UnaryExpression", ((__args34 = ["argument", checkTop]), (actions34 = [].slice.call(__args34, 1)),
         seq(moveChild("argument"), sequencea(actions34), up)));
-    addRewrite(["LogicalExpression", "BinaryExpression"], seq(((__args35 = ["left", checkTop]), (actions35 = []
-        .slice.call(__args35, 1)), seq(moveChild("left"), sequencea(actions35), up)), ((__args36 = [
-        "right", checkTop
-    ]), (actions36 = [].slice.call(__args36, 1)), seq(moveChild("right"), sequencea(actions36), up))));
+    addRewrite("BinaryExpression", seq(((__args35 = ["left", checkTop]), (actions35 = [].slice.call(__args35, 1)),
+        seq(moveChild("left"), sequencea(actions35), up)), ((__args36 = ["right", checkTop]), (
+        actions36 = [].slice.call(__args36, 1)), seq(moveChild("right"), sequencea(actions36), up))));
     addRewrite("AssignmentExpression", seq(((__args37 = ["left", checkTop]), (actions37 = [].slice.call(
         __args37, 1)), seq(moveChild("left"), sequencea(actions37), up)), ((__args38 = ["right",
         checkTop
@@ -173,10 +170,10 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         up))));
     addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args49 = ["target", checkTop]), (actions49 = [].slice.call(
         __args49, 1)), seq(moveChild("target"), sequencea(actions49), up)));
-    addRewrite("ArgumentsPattern", ((test1 = inspect(((y2 = getUid), (function(z) {
+    addRewrite("ArgumentsPattern", ((test1 = inspect((function(z) {
         var z0 = z.id;
-        return y2(z0.id);
-    })))), (yes1 = pass), (no1 = extract((function(node) {
+        return getUid(z0.id);
+    }))), (yes1 = pass), (no1 = extract((function(node) {
         return set(modify(node, ({
             id: null
         })));
@@ -193,10 +190,10 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         1)), seq(moveChild("properties"), sequencea(actions51), up)));
     addRewrite("ObjectValue", ((__args52 = ["value", checkTop]), (actions52 = [].slice.call(__args52, 1)), seq(
         moveChild("value"), sequencea(actions52), up)));
-    addRewrite("Identifier", extract(((x0 = getUid), (function(z) {
-        var uid = x0(z);
+    addRewrite("Identifier", extract((function(z) {
+        var uid = getUid(z);
         return (uid ? modifyState(state.addReference.bind(null, uid)) : pass);
-    }))));
+    })));
     (_check = (function(node) {
         return (Array.isArray(node) ? visitArray(node) : (peepholes[type(node)] || pass));
     }));

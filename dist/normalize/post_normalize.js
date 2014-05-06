@@ -1,15 +1,18 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/normalize/post_normalize.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/statement", "khepri-ast/expression", "../pseudo/pattern",
-    "../ast", "../fun", "../rewriter", "./unpack"
-], (function(require, exports, __o, ast_statement, ast_expression, __o0, __o1, __o2, __o3, __o4) {
+*/define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepri-ast/statement", "khepri-ast/value",
+    "../pseudo/pattern", "../ast", "../fun", "../rewriter", "./unpack", "./user_operator"
+], (function(require, exports, __o, ast_expression, ast_statement, ast_value, __o0, __o1, __o2, __o3, __o4,
+    opToName) {
     "use strict";
-    var modify = __o["modify"],
+    var normalize, modify = __o["modify"],
         Import = __o0["Import"],
         type = __o1["type"],
         isBlockFunction = __o1["isBlockFunction"],
         setUd = __o1["setUd"],
+        setUid = __o1["setUid"],
+        getUid = __o1["getUid"],
         concat = __o2["concat"],
         flattenr = __o2["flattenr"],
         map = __o2["map"],
@@ -20,7 +23,7 @@
         innerPattern = __o4["innerPattern"],
         unpackParameters = __o4["unpackParameters"],
         getParameterNames = __o4["getParameterNames"],
-        normalize, x, x0, x1, y, markReserved = setUd.bind(null, "reserved", true),
+        x, y, markReserved = setUd.bind(null, "reserved", true),
         peepholes = new(Rewriter)(),
         always = (function(_) {
             return true;
@@ -60,19 +63,34 @@
             concat(right, ast_expression.AssignmentExpression.create(null, "=", node.left, right[(right
                 .length - 1)].left))) : [node]);
     });
-    peepholes.add("ExpressionStatement", UP, ((x = type), (function(z) {
+    peepholes.add("ExpressionStatement", UP, (function(z) {
         var z0 = z.expression,
-            y = x(z0);
+            y = type(z0);
         return ("AssignmentExpression" === y);
-    })), ((x0 = flattenr), (x1 = map.bind(null, ast_statement.ExpressionStatement.create.bind(null, null))), (
-        y = ast_statement.BlockStatement.create.bind(null, null)), (function(z) {
+    }), ((x = map.bind(null, ast_statement.ExpressionStatement.create.bind(null, null))), (y =
+        ast_statement.BlockStatement.create.bind(null, null)), (function(z) {
         var right, z0 = z.expression,
             z1 = ((type(z0.right) === "AssignmentExpression") ? ((right = expandAssignment(z0.right)),
                 concat(right, ast_expression.AssignmentExpression.create(null, "=", z0.left,
                     right[(right.length - 1)].left))) : [z0]),
-            z2 = x0(z1);
-        return y(x1(z2));
+            z2 = flattenr(z1);
+        return y(x(z2));
     })));
+    peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, always, (function(node) {
+        return (getUid(node) ? setUid(getUid(node), ast_value.Identifier.create(node.loc, opToName(node
+            .name))) : node);
+    }));
+    peepholes.add("BinaryExpression", UP, (function(z) {
+        var z0 = z.operator,
+            y0 = type(z0);
+        return ("Identifier" === y0);
+    }), (function(__o5) {
+        var loc = __o5["loc"],
+            operator = __o5["operator"],
+            left = __o5["left"],
+            right = __o5["right"];
+        return ast_expression.CallExpression.create(loc, operator, [left, right]);
+    }));
     peepholes.add("BinaryExpression", UP, (function(z) {
         var y0 = z.operator;
         return ("|>" === y0);
