@@ -320,6 +320,7 @@ addTransform@'UnaryExpression' <| seq(
     modify (translate.unaryExpression));
 
 addTransform@'BinaryExpression' <| seq(
+    rewriteChild 'operator',
     rewriteChild 'left',
     rewriteChild 'right',
     modify (translate.binaryExpression));
@@ -466,9 +467,8 @@ addTransform@'Identifier' <|
         // When node has no uid, don't rename
         :set <| identifier(node.loc, node.name);
 
-addTransform@'BinaryOperator' <|
-    modify \ node ->
-        node.name;
+addTransform@['BinaryOperator', 'UnaryOperator'] <|
+    modify (.name);
 
 /*
  *****************************************************************************/

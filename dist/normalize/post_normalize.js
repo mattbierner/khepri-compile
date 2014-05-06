@@ -7,11 +7,11 @@
     opToName) {
     "use strict";
     var normalize, modify = __o["modify"],
+        setUserData = __o["setUserData"],
         Import = __o0["Import"],
         type = __o1["type"],
         isBlockFunction = __o1["isBlockFunction"],
         setUd = __o1["setUd"],
-        setUid = __o1["setUid"],
         getUid = __o1["getUid"],
         concat = __o2["concat"],
         flattenr = __o2["flattenr"],
@@ -57,6 +57,20 @@
             body: body
         }));
     }));
+    peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, getUid, (function(node) {
+        return setUserData(ast_value.Identifier.create(node.loc, opToName(node.name)), node.ud);
+    }));
+    peepholes.add("BinaryExpression", UP, (function(z) {
+        var z0 = z.operator,
+            y = type(z0);
+        return ("Identifier" === y);
+    }), (function(__o5) {
+        var loc = __o5["loc"],
+            operator = __o5["operator"],
+            left = __o5["left"],
+            right = __o5["right"];
+        return ast_expression.CallExpression.create(loc, operator, [left, right]);
+    }));
     var expandAssignment = (function(node) {
         var right;
         return ((type(node.right) === "AssignmentExpression") ? ((right = expandAssignment(node.right)),
@@ -76,21 +90,6 @@
             z2 = flattenr(z1);
         return y(x(z2));
     })));
-    peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, always, (function(node) {
-        return (getUid(node) ? setUid(getUid(node), ast_value.Identifier.create(node.loc, opToName(node
-            .name))) : node);
-    }));
-    peepholes.add("BinaryExpression", UP, (function(z) {
-        var z0 = z.operator,
-            y0 = type(z0);
-        return ("Identifier" === y0);
-    }), (function(__o5) {
-        var loc = __o5["loc"],
-            operator = __o5["operator"],
-            left = __o5["left"],
-            right = __o5["right"];
-        return ast_expression.CallExpression.create(loc, operator, [left, right]);
-    }));
     peepholes.add("BinaryExpression", UP, (function(z) {
         var y0 = z.operator;
         return ("|>" === y0);

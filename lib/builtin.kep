@@ -86,7 +86,21 @@ in {
     ].forEach \ [op name] -> {
         registerAliasedSymbol(op, name, unaryOp(op));
     };
+    
+    addSymbol('_', identifier('_', unique()), unary\f ->
+        let
+            xArg = identifier('x', unique()),
+            yArg = identifier('y', unique())
+        in
+            setLocals(
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null, [
+                        ast_pattern.IdentifierPattern.create(null, xArg),
+                        ast_pattern.IdentifierPattern.create(null, yArg)]),
+                    ast_expression.CallExpression.create(null, f, yArg, xArg)),
+                [getUid xArg, getUid yArg]));
 }
+
 
 /* Ternary Operator
  ******************************************************************************/

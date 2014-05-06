@@ -53,7 +53,7 @@
     "devDependencies": {
         "nodeunit": "0.8.x",
         
-        "khepri-parse": "1.1.x",
+        "khepri-parse": "2.0.x",
         "ecma-unparse": "3.3.x"
     },
     

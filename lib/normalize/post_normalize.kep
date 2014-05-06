@@ -7,7 +7,7 @@
 package (
     normalize)
 with
-    import 'khepri-ast::node' {modify},
+    import 'khepri-ast::node' {modify setUserData},
     import 'khepri-ast::expression' ast_expression,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::value' ast_value,
@@ -107,6 +107,30 @@ peepholes.add('FunctionExpression', UP,
             body: body
         }));
 
+/* User Operator Conversion
+ ******************************************************************************/
+/**
+ * Rewrite user defined operators to identifiers.
+ */
+peepholes.add(['UnaryOperator', 'BinaryOperator'], DOWN,
+    getUid,
+    
+    \node ->
+        setUserData(
+            ast_value.Identifier.create(node.loc,
+                opToName node.name),
+            node.ud));
+
+/**
+ */
+peepholes.add('BinaryExpression', UP,
+    (.operator) \> type \> (===, 'Identifier'),
+    
+    \{loc operator left right} ->
+        ast_expression.CallExpression.create(loc,
+            operator,
+            [left, right]));
+
 /* Expression Conversion
  ******************************************************************************/
 var expandAssignment := \node ->
@@ -131,30 +155,6 @@ peepholes.add('ExpressionStatement', UP,
         \> flattenr
         \> map @ (ast_statement.ExpressionStatement.create @ null)
         \> ast_statement.BlockStatement.create @ null);
-
-/**
- * Rename user operators to identifiers.
- */
-peepholes.add(['UnaryOperator', 'BinaryOperator'], DOWN,
-    always,
-    
-    \node ->
-        ?getUid node
-            :setUid(getUid node,
-                ast_value.Identifier.create(node.loc,
-                    opToName node.name))
-            :node);
-
-/**
- */
-peepholes.add('BinaryExpression', UP,
-    (.operator) \> type \> (===, 'Identifier'),
-    
-    \{loc operator left right} ->
-        ast_expression.CallExpression.create(loc,
-            operator,
-            [left, right]));
-
 
 var pipe := \loc callee arg ->
     ast_expression.CallExpression.create(null,

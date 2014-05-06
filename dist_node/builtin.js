@@ -38,6 +38,7 @@ var uid1 = unique();
 (builtins["module"] = setUid(uid1, ast_value.Identifier.create(null, "module")));
 var uid2 = unique();
 (builtins["undefined"] = setUid(uid2, ast_value.Identifier.create(null, "undefined")));
+var uid3, uid5, xArg0, uid6, yArg, node0, locals, uid4, xArg, node, locals0;
 [
     ["typeof", "__typeof"],
     ["void", "__void"],
@@ -55,28 +56,39 @@ var uid2 = unique();
         ]), ast_expression.UnaryExpression.create(null, op, xArg))), (locals = [getUid(xArg)]), setUd(
         "locals", locals, node)));
 }));
-var uid3 = unique(),
-    xArg = setUid(uid3, ast_value.Identifier.create(null, "x")),
-    uid4 = unique(),
-    yArg = setUid(uid4, ast_value.Identifier.create(null, "y")),
-    uid5 = unique(),
-    zArg = setUid(uid5, ast_value.Identifier.create(null, "z")),
-    node = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg),
+addSymbol("_", ((uid3 = unique()), setUid(uid3, ast_value.Identifier.create(null, "_"))), ((uid4 = unique()), (xArg =
+    setUid(uid4, ast_value.Identifier.create(null, "x"))), (node = ast_expression.FunctionExpression.create(
+    null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
+        xArg)]), ((uid5 = unique()), (xArg0 = setUid(uid5, ast_value.Identifier.create(null, "x"))), (uid6 =
+        unique()), (yArg = setUid(uid6, ast_value.Identifier.create(null, "y"))), (node0 =
+        ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+            null, [ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern
+                .create(null, yArg)
+            ]), ast_expression.CallExpression.create(null, xArg, yArg, xArg0))), (locals = [getUid(
+        xArg0), getUid(yArg)]), setUd("locals", locals, node0)))), (locals0 = [getUid(xArg)]), setUd("locals",
+    locals0, node)));
+var uid7 = unique(),
+    xArg1 = setUid(uid7, ast_value.Identifier.create(null, "x")),
+    uid8 = unique(),
+    yArg0 = setUid(uid8, ast_value.Identifier.create(null, "y")),
+    uid9 = unique(),
+    zArg = setUid(uid9, ast_value.Identifier.create(null, "z")),
+    node1 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_pattern.IdentifierPattern.create(null, xArg1), ast_pattern.IdentifierPattern.create(null, yArg0),
         ast_pattern.IdentifierPattern.create(null, zArg)
-    ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)),
-    locals = [getUid(xArg), getUid(yArg), getUid(zArg)],
-    ternaryOperator = setUd("locals", locals, node);
+    ]), ast_expression.ConditionalExpression.create(null, xArg1, yArg0, zArg)),
+    locals1 = [getUid(xArg1), getUid(yArg0), getUid(zArg)],
+    ternaryOperator = setUd("locals", locals1, node1);
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(op) {
-    var xArg0 = identifier("x", unique()),
-        yArg0 = identifier("y", unique()),
-        node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern.create(null,
-                yArg0)
-        ]), op(xArg0, yArg0)),
-        locals0 = [getUid(xArg0), getUid(yArg0)];
-    return setUd("locals", locals0, node0);
+    var xArg2 = identifier("x", unique()),
+        yArg1 = identifier("y", unique()),
+        node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg2), ast_pattern.IdentifierPattern.create(null,
+                yArg1)
+        ]), op(xArg2, yArg1)),
+        locals2 = [getUid(xArg2), getUid(yArg1)];
+    return setUd("locals", locals2, node2);
 }),
     registerBinary = (function(op, name, impl) {
         registerAliasedSymbol(op, name, binary(impl));
@@ -131,32 +143,32 @@ registerBinary("<|", "__pipe", pipe);
 registerBinary("|>", "__rpipe", flip(pipe));
 var singleCompose = (function(f, g) {
     var x = identifier("z", unique()),
-        node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
+        node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
             ast_pattern.IdentifierPattern.create(null, x)
         ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, g, [x])])),
-        locals0 = [getUid(x)];
-    return setUd("locals", locals0, node0);
+        locals2 = [getUid(x)];
+    return setUd("locals", locals2, node2);
 });
 registerBinary("<\\", "__compose", singleCompose);
 registerBinary("\\>", "__rcompose", flip(singleCompose));
 var multiCompose = (function(f, g) {
     var args = identifier("args", unique()),
-        node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+        node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
             ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression.create(
             null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(null, g,
                 identifier("apply")), [ast_value.Literal.create(null, "null"), args])])),
-        locals0 = [getUid(args)];
-    return setUd("locals", locals0, node0);
+        locals2 = [getUid(args)];
+    return setUd("locals", locals2, node2);
 });
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", flip(multiCompose));
-(member = (function(id, uid6) {
-    var xArg0 = identifier("x", uid6),
-        node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-            null, [ast_pattern.IdentifierPattern.create(null, xArg0)]), ast_expression.MemberExpression.create(
-            null, xArg0, identifier(id), false)),
-        locals0 = [getUid(xArg0)];
-    return setUd("locals", locals0, node0);
+(member = (function(id, uid10) {
+    var xArg2 = identifier("x", uid10),
+        node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+            null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.MemberExpression.create(
+            null, xArg2, identifier(id), false)),
+        locals2 = [getUid(xArg2)];
+    return setUd("locals", locals2, node2);
 }));
 (exports["builtins"] = builtins);
 (exports["definitions"] = definitions);
