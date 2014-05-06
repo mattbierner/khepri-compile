@@ -61,7 +61,7 @@
             paths: {
                 'khepri': 'dist',
                  
-                'khepri-parse': '../khepri-parse/dist',
+                'khepri-parse': 'dependencies/khepri-parse/dist',
                 
                 'akh': 'dependencies/akh/dist',
                 'bennu': 'dependencies/bennu/dist',
@@ -106,7 +106,6 @@
                     };
                     
                     try {
-                        //console.profile();
                         var start = new Date().getTime();
                         
                         var lex = lexer.lex(input);

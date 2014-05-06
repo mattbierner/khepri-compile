@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 1.0.0 - May 6, 2014
+* Added support for custom prefix and infix operators.
+* Revised how flipped binary operators are implemented to require fewer builtins.
+
 ## 0.5.13 - May 5, 2014
 * Improved error message for undeclared identifier to only give start location
   instead of entire range of identifier.
@@ -38,7 +42,7 @@
 ## 0.5.4 - April 16, 2014
 * Fixed `var f := \-> let y -> y;` with local bindings being inlined incorrectly.
 * Improved inlining for fns like `var f := \x -> \y -> x + y;  f 1 2;` to just
-  output `3`;
+  output `3`.
 
 ## 0.5.3 - April 16, 2014
 * Fixed bug that could cause the arguments unpack of an inlined function to be
