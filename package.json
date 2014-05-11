@@ -40,7 +40,7 @@
         "ecma-ast": "2.5.x",
         "ecma-ast-zipper": "1.1.x",
         
-        "khepri-ast": "4.2.x",
+        "khepri-ast": "4.3.x",
         "khepri-ast-zipper": "1.2.x",
         
         "hamt": "0.1.x",
@@ -53,7 +53,7 @@
     "devDependencies": {
         "nodeunit": "0.8.x",
         
-        "khepri-parse": "2.0.x",
+        "khepri-parse": "2.1.x",
         "ecma-unparse": "3.3.x"
     },
     
