@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 1.0.0 - May 6, 2014
+## 1.0.0 - May 10, 2014
 * Added support for custom prefix and infix operators.
 * Revised how flipped binary operators are implemented to require fewer builtins.
 
