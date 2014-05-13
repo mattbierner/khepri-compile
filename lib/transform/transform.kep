@@ -7,7 +7,6 @@ package (
     transform)
 with 
     import 'ecma-ast::clause' ecma_clause,
-    import 'ecma-ast::declaration' ecma_declaration,
     import 'ecma-ast::expression' ecma_expression,
     import 'ecma-ast::statement' ecma_statement,
     import 'ecma-ast::value' ecma_value,
@@ -129,7 +128,7 @@ var exitBlock = modifyScope (scope.pop);
 /**
  * Perform `actions` in an new real block.
  */
-var realBlock := \actions(...) ->
+var realBlock := \-actions(...) ->
     seq(
     enterBlock,
     sequencea actions,
@@ -201,9 +200,7 @@ var addTransform = \type check -> {
 // Declarations
 addTransform@'VariableDeclaration' <| seq(
     rewriteChild 'declarations',
-    modify \ {loc declarations} ->
-        ecma_declaration.VariableDeclaration.create(loc,
-            declarations));
+    modify (translate.variableDeclaration));
 
 addTransform@'Binding' <| seq(
     child('pattern',
@@ -214,10 +211,7 @@ addTransform@'Binding' <| seq(
 addTransform@'VariableDeclarator' <| seq(
     rewriteChild 'id',
     rewriteChild 'init',
-    modify \ node ->
-        ecma_declaration.VariableDeclarator.create(node.loc,
-            node.id,
-            node.init));
+    modify (translate.variableDeclarator));
 
 addTransform@'StaticDeclaration' <|
     modify \ {loc} ->
@@ -348,21 +342,17 @@ addTransform@'MemberExpression' <| seq(
 
 addTransform@'LetExpression' <| seq(
     rewriteChild 'bindings',
-    withNode ((.bindings) \> addBindingsForBindingsList),
+    withNode (
+        (.bindings) \> addBindingsForBindingsList),
     rewriteChild 'body',
-    modify \ node ->
-        translate.letExpression(node.loc,
-            node.bindings,
-            node.body));
+    modify (translate.letExpression));
 
 addTransform@'CurryExpression' <| seq(
     rewriteChild 'base',
     rewriteChild 'args',
-    modify \ node ->
-        translate.curryExpression(node.loc,
-            node.base,
-            node.args));
+    modify (translate.curryExpression));
 
+//TODO: remove duplicate translate stage
 addTransform@'FunctionExpression' <|
     realBlock(
         rewriteChild 'id',
@@ -384,23 +374,16 @@ addTransform@'FunctionExpression' <|
 
 addTransform@'ArrayExpression' <| seq(
     rewriteChild 'elements',
-    modify \ node ->
-        ecma_expression.ArrayExpression.create(node.loc,
-            node.elements));
+    modify (translate.arrayExpression));
 
 addTransform@'ObjectExpression' <| seq(
     rewriteChild 'properties',
-    modify \ node ->
-        ecma_expression.ObjectExpression.create(node.loc,
-            node.properties));
+    modify (translate.objectExpression));
 
 addTransform@'ObjectValue' <| seq(
     rewriteChild 'key',
     rewriteChild 'value',
-    modify \ node ->
-        ecma_value.ObjectValue.create(node.loc,
-            node.key,
-            node.value));
+    modify (translate.objectValue));
 
 // Patterns
 addTransform@['RelativeUnpack', 'SliceUnpack'] <|

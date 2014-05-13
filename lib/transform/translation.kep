@@ -4,6 +4,9 @@
 package (
     program
     
+    variableDeclaration
+    variableDeclarator
+    
     assignmentExpression
     unaryExpression
     binaryExpression
@@ -12,6 +15,9 @@ package (
     newExpression
     callExpression
     memberExpression
+    arrayExpression
+    objectExpression
+    objectValue
     
     functionExpression
     letExpression
@@ -71,9 +77,16 @@ var identifier = \loc, name uid ->
 
 /* Declaration
  ******************************************************************************/
-var variableDeclaration = ecma_declaration.VariableDeclaration.create;
+variableDeclaration = \node ->
+    ecma_declaration.VariableDeclaration.create(
+        node.loc,
+        node.declarations);
 
-var variableDeclarator = ecma_declaration.VariableDeclarator.create;
+variableDeclarator = \node ->
+    ecma_declaration.VariableDeclarator.create(
+        node.loc,
+        node.id,
+        node.init);
 
 var idsToDeclarators :=
     map @ \x ->
@@ -87,7 +100,7 @@ var idsToDeclarators :=
  * Convert a binding to a variable declarator.
  */
 var bindingToDeclarator = \x ->
-    variableDeclarator(null,
+    ecma_declaration.VariableDeclarator.create(null,
         x.pattern.id,
         x.value);
 
@@ -196,23 +209,23 @@ memberExpression := \node ->
 /**
  * Let expression translation.
  */
-letExpression = \loc bindings body ->
-    ecma_expression.SequenceExpression.create(null,
+letExpression = \node ->
+    ecma_expression.SequenceExpression.create(node.loc,
         flatten concat(
-            map(unpackAssign, bindings),
-            body));
+            map(unpackAssign, node.bindings),
+            node.body));
 
 /**
  * Curry expression translation.
  */
-curryExpression = \loc base args ->
-    ecma_expression.CallExpression.create(loc,
+curryExpression = \node ->
+    ecma_expression.CallExpression.create(node.loc,
         ecma_expression.MemberExpression.create(null,
-            base,
+            node.base,
             identifier(null, 'bind')),
         concat(
             ecma_value.Literal.create(null, 'null', null),
-            args));
+            node.args));
 
 /**
  * Function Expression Normalization.
@@ -233,9 +246,33 @@ in
         khepri_statement.BlockStatement.create(body.loc,
             concat(
                 (prefix || []),
-                variableDeclaration(null, bindings),
+                ecma_declaration.VariableDeclaration.create(null, bindings),
                 body)));
 
+
+/**
+ * 
+ */
+arrayExpression = \node ->
+    ecma_expression.ArrayExpression.create(node.loc,
+        node.elements);
+        
+/**
+ * 
+ */
+objectExpression = \node ->
+    ecma_expression.ObjectExpression.create(node.loc,
+        node.properties);
+
+/**
+ * 
+ */
+objectValue = \node ->
+    ecma_value.ObjectValue.create(node.loc,
+        node.key,
+        node.value);
+
+        
 /* Translations
  ******************************************************************************/
 /**
@@ -253,7 +290,7 @@ blockStatement := \bindings node ->
 withStatement = \loc bindings body -> let
     vars = flatten map(unpack, bindings),
     
-    prefix = variableDeclaration(null, vars)
+    prefix = ecma_declaration.VariableDeclaration.create(null, vars)
 in
     ecma_statement.BlockStatement.create(loc,
         concat(
@@ -318,10 +355,10 @@ forStatement := \node ->
  ******************************************************************************/
 packageBlock := let
     filterImports =
-        filter @ ((.value) \> type \> (===, 'Import')),
+        filter @ ((.value) \> type \> (=== 'Import')),
     
     getImports =
-        filter @ ((.value) \> type \> (!==, 'Import'))
+        filter @ ((.value) \> type \> (!== 'Import'))
 in
     \packageManager loc exports body -> let
         imports =
