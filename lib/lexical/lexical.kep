@@ -177,7 +177,7 @@ var when = \test consequent alternate ->
 /**
  * Create a new lexical block for body.
  */
-var block = \body(...) ->
+var block = \-body(...) ->
     seq(
         push,
         seqa body,
@@ -622,15 +622,17 @@ var initialScope :=
         '--',
         '~',
         '.',
-        '@'])
-    |>\x ->
+        '@',
+        'void',
+        'instanceof',
+        'typeof'])
+    |> \x ->
     foldl(\p c -> scope.addOperator(c, null, p), x, [
         '!',
         '++',
         '--',
         '~']);
 
-    
 var addBindings := foldl@(scope.addImmutableBinding, initialScope);
 
 var rewrite := seq(

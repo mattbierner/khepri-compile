@@ -409,7 +409,7 @@ addCheck(["UnaryOperator"], ((consequent4 = pass), (alternate2 = inspect((functi
 }));
 var initialScope = ((x3 = foldl(scope.addImmutableBinding, Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>",
     "<", ">", "<=", ">=", "==", "!=", "===", "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|",
-    "<\\", "<<\\", "!", "++", "--", "~", ".", "@"
+    "<\\", "<<\\", "!", "++", "--", "~", ".", "@", "void", "instanceof", "typeof"
 ])), foldl((function(p, c) {
     return scope.addOperator(c, null, p);
 }), x3, ["!", "++", "--", "~"])),
