@@ -10,8 +10,6 @@ in {
 
 var ScopeMonad := \Instance -> {
     Instance.extractScope = Instance.get;
-
-    Instance.examineScope = Instance.chain @ Instance.extractScope;
     
     Instance.modifyScope = Instance.modify;
     
@@ -19,7 +17,7 @@ var ScopeMonad := \Instance -> {
     
     Instance.pop = Instance.modifyScope scope.pop;
     
-    Instance.getClosure = Instance.chain @ (Instance.extractScope.map (scope.getClosure));
+    Instance.getClosure = (Instance.extractScope.map (scope.getClosure));
 
     return Instance;
 };

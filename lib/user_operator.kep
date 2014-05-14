@@ -1,0 +1,66 @@
+package (
+    opToName
+    
+    splitOp)
+with
+    import './fun' {concat}
+in {
+
+var startsWith := \s prefix ->
+    s.substring(0, prefix.length) === prefix;
+
+/**
+ * Convert an operator to an ECMAScript identifier name.
+ * 
+ * @param name Operator.
+ */
+opToName := let
+    map = {
+        '*': 'star',
+        '/': 'slash',
+        '+': 'plus',
+        '-': 'minus',
+        '%': 'percent',
+        '<': 'lt',
+        '>': 'gt',
+        '=': 'eq',
+        '&': 'and',
+        '|': 'bar',
+        '^': 'hat',
+        '\\': 'bslash',
+        '~': 'tilde',
+        '@': 'at',
+        '?': 'quest'}
+in
+    \name ->
+        '__' + name
+            .split('')
+            .map((., map))
+            .join('_');
+
+/**
+ * Split a compound unary operator using the set of valid operators.
+ * 
+ * Returns array of unary operators.
+ * 
+ * @param op Compound unary op.
+ * @param ops List of all valid unary operators.
+ */
+splitOp := let
+    matchPrefix = \op ops ->
+        ops.reduce(
+            \p c ->
+                ?startsWith(op, c.(0)) && (!p || c.(0).length > p.(0).length)
+                    :c
+                    :p,
+            null)
+in
+    \op ops ->
+        ?!op
+            :[]
+        :let r = matchPrefix(op, ops) in
+            ?r
+                :[r].concat(splitOp(op.slice(r.(0).length), ops))
+                :[];
+    
+}

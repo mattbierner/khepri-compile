@@ -18,7 +18,8 @@ define(["require", "exports"], (function(require, exports) {
             "^": "hat",
             "\\": "bslash",
             "~": "tilde",
-            "@": "at"
+            "@": "at",
+            "?": "quest"
         });
     (rename = (function(name) {
         return ("__" + name.split("")

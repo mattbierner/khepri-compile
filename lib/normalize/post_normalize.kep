@@ -29,11 +29,11 @@ with
         DOWN
         Rewriter
         rewrite},
+    import '../user_operator' {opToName},
     import './unpack' {
         innerPattern
         unpackParameters
-        getParameterNames},
-    import './user_operator' opToName
+        getParameterNames}
 in {
 
 var markReserved := setUd @ 'reserved' @ true;

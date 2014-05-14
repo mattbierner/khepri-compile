@@ -15,12 +15,12 @@ var ecma_clause = require("ecma-ast")["clause"],
     __o = require("../ast"),
     fun = require("../fun"),
     __o0 = require("./unpack"),
-    program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression, binaryExpression,
-        logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression, arrayExpression,
-        objectExpression, objectValue, functionExpression, letExpression, curryExpression, blockStatement,
-        withStatement, expressionStatement, returnStatement, throwStatement, breakStatement, continueStatement,
-        ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement, packageBlock, type =
-        __o["type"],
+    useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
+        binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
+        arrayExpression, objectExpression, objectValue, functionExpression, letExpression, curryExpression, catchClause,
+        switchCase, emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
+        breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
+        tryStatement, packageBlock, type = __o["type"],
     tryGetUd = __o["tryGetUd"],
     setUid = __o["setUid"],
     concat = fun["concat"],
@@ -30,9 +30,11 @@ var ecma_clause = require("ecma-ast")["clause"],
     reduce = fun["reduce"],
     expandBinding = __o0["expandBinding"],
     expandArgumentsPattern = __o0["expandArgumentsPattern"],
-    x, y, y0, y1, identifier = (function(loc, name, uid) {
-        return setUid(uid, ecma_value.Identifier.create(loc, name));
-    });
+    x, y, y0, y1;
+(useStrict = ecma_statement.ExpressionStatement.create(null, ecma_value.Literal.create(null, "string", "use strict")));
+(identifier = (function(loc, name, uid) {
+    return setUid(uid, ecma_value.Identifier.create(loc, name));
+}));
 (variableDeclaration = (function(node) {
     return ecma_declaration.VariableDeclaration.create(node.loc, node.declarations);
 }));
@@ -122,13 +124,22 @@ var mapOp = (function(op) {
 (objectValue = (function(node) {
     return ecma_value.ObjectValue.create(node.loc, node.key, node.value);
 }));
+(catchClause = (function(node) {
+    return ecma_clause.CatchClause.create(node.loc, node.param, node.body);
+}));
+(switchCase = (function(node) {
+    return ecma_clause.SwitchCase.create(node.loc, node.test, node.consequent);
+}));
+(emptyStatement = (function(node) {
+    return ecma_statement.EmptyStatement.create(node.loc);
+}));
 (blockStatement = (function(bindings, node) {
     return ecma_statement.BlockStatement.create(node.loc, concat(idsToDeclarators(bindings), node.body));
 }));
-(withStatement = (function(loc, bindings, body) {
-    var vars = flatten(map(unpack, bindings)),
+(withStatement = (function(node) {
+    var vars = flatten(map(unpack, node.bindings)),
         prefix = ecma_declaration.VariableDeclaration.create(null, vars);
-    return ecma_statement.BlockStatement.create(loc, concat(prefix, body.body));
+    return ecma_statement.BlockStatement.create(node.loc, concat(prefix, node.body.body));
 }));
 (expressionStatement = (function(node) {
     return ecma_statement.ExpressionStatement.create(node.loc, node.expression);
@@ -173,8 +184,11 @@ var filterImports = filter.bind(null, (function(z) {
             y2 = type(z0);
         return ("Import" !== y2);
     }));
-(packageBlock = (function(packageManager, loc, exports0, body) {
-    var imports = ((type(body) === "WithStatement") ? filterImports(body.bindings) : []),
+(packageBlock = (function(packageManager, __o1) {
+    var loc = __o1["loc"],
+        exports0 = __o1["exports"],
+        body = __o1["body"],
+        imports = ((type(body) === "WithStatement") ? filterImports(body.bindings) : []),
         targets = reduce(imports, (function(p, c) {
             (p[c.value.from] = c.pattern.id);
             return p;
@@ -183,6 +197,8 @@ var filterImports = filter.bind(null, (function(z) {
             .bindings), body.body) : body);
     return packageManager.definePackage(loc, exports0, imports, targets, fBody);
 }));
+(exports["useStrict"] = useStrict);
+(exports["identifier"] = identifier);
 (exports["program"] = program);
 (exports["variableDeclaration"] = variableDeclaration);
 (exports["variableDeclarator"] = variableDeclarator);
@@ -200,6 +216,9 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["functionExpression"] = functionExpression);
 (exports["letExpression"] = letExpression);
 (exports["curryExpression"] = curryExpression);
+(exports["catchClause"] = catchClause);
+(exports["switchCase"] = switchCase);
+(exports["emptyStatement"] = emptyStatement);
 (exports["blockStatement"] = blockStatement);
 (exports["withStatement"] = withStatement);
 (exports["expressionStatement"] = expressionStatement);

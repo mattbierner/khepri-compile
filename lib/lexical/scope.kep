@@ -3,12 +3,24 @@
  */
 package (
     Scope
+
+// Binding Ops
+    hasBinding
+    hasMutableBinding
     
-    addUid
     addBinding
     addMutableBinding
     addImmutableBinding
     setBindingMutability
+    
+// Definition Ops
+    getUid
+    addUid
+    
+// Mapping Ops
+    hasMapping
+    hasOwnMapping
+    getMapping
     addMapping
     
     getClosure
@@ -64,18 +76,20 @@ Scope.empty = Scope.create(
 Scope.prototype.hasOwnBinding = \id =self->
     hamt.has(id, self.record);
 
+/* Binding Operations
+ ******************************************************************************/
 /**
- * Does this scope or its parents have a given binding for `id`?
+ * Does scope `s` or its parents have a given binding for `id`?
  */
-Scope.prototype.hasBinding = \id =self->
-    (  self.hasOwnBinding(id)
-    || (self.outer && self.outer.hasBinding(id)));
+hasBinding := \id s->
+    (  s.hasOwnBinding(id)
+    || (s.outer && hasBinding(id, s.outer)));
 
 /**
- * Does this scope or its parents have a mutable binding for `id`?
+ * Does scope `s` or its parents have a mutable binding for `id`?
  */
-Scope.prototype.hasMutableBinding = \id =self-> let
-    binding = self.getBinding(id)
+hasMutableBinding := \id s -> let
+    binding = s.getBinding(id)
 in
     (binding && binding.mutable);
 
@@ -91,50 +105,82 @@ Scope.prototype.getBinding = \id =self->
         :null);
 
 /**
- * Get the unique identifier for `id`.
- */
-Scope.prototype.getUid = \id =self->
-    ?self.hasOwnBinding(id)
-        :hamt.get(id, self.definitions)
-        :?self.outer
-            :self.outer.getUid(id)
-            :null;
-
-/**
- * Does this scope have its own a mapping for a given identifier.
- */
-Scope.prototype.hasOwnMapping = \id =self->
-    hamt.has(id, self.mapping);
-
-/**
- * Does this scope have any mapping for a given identifier.
- */
-Scope.prototype.hasMapping = \id =self->
-    (  self.hasOwnMapping(id)
-    || (self.outer && self.outer.hasMapping(id)));
-
-/**
- * Get the mapped value for a given identifier.
- */
-Scope.prototype.getMapping = \id =self->
-    ?self.hasOwnMapping(id)
-        :hamt.get(id, self.mapping)
-        :self.outer && self.outer.getMapping(id);
-
-/**
  * Get an unused identifier in this scope.
  */
 Scope.prototype.getUnusedId = \id =self-> {
-    if (!self.hasBinding(id))
+    if (!hasBinding(id, self))
         return id;
     
     for (var i = 0; ; i = i + 1)
-        if (!self.hasBinding(id + i))
+        if (!hasBinding(id + i, self))
             return id + i;
 };
 
-/* Operations
+/**
+ * Create a new modified scope with a given binding.
+ * 
+ * @param s Scope.
+ * @param id Identifier for new binding.
+ * @param info Binding information.
+ */
+addBinding = \s id info -> 
+    s.setRecord <|
+        hamt.set(id, info, s.record);
+
+/**
+ * Create a new modified scope with a new mutable binding.
+ * 
+ * @param id Identifier for new binding
+ * @param loc Location of binding in source code.
+ * @param s Scope
+ */
+addMutableBinding := \id loc s ->
+    addBinding(s, id, {
+        mutable: MUTABLE,
+        loc: loc
+    });
+
+/**
+ * Create a new modified scope with a new immutable binding.
+ * 
+ * @param id Identifier for new binding
+ * @param loc Location of binding in source code.
+ * @param s Scope
+ */
+addImmutableBinding = \id loc s ->
+    addBinding(s, id, {
+        mutable: IMMUTABLE,
+        loc: loc
+    });
+
+/**
+ * Create a new modified scope with a new immutable binding.
+ * 
+ * @param id Identifier for new binding
+ * @param loc Location of binding in source code.
+ * @param s Scope
+ */
+setBindingMutability = \id mutable s ->
+    ?s.hasOwnBinding id
+        :addBinding(s, id, {
+            loc: s.getBinding(id).loc,
+            mutable: ?mutable : MUTABLE : IMMUTABLE
+        })
+        :(s.outer && s.setOuter(setBindingMutability(id, mutable, s.outer)));
+
+/* Definition Operations
  ******************************************************************************/
+/**
+ * Get the unique identifier for `id`.
+ * 
+ * @param id Identifier.
+ * @param s SCope.
+ */
+getUid := \id s ->
+    ?s.hasOwnBinding(id)
+        :hamt.get(id, s.definitions)
+        :(s.outer && getUid(id, s.outer));
+
 /**
  * Register a unique identifier in scope `s`.
  * 
@@ -149,69 +195,59 @@ addUid = \id uid s ->
         .setLocals(
             hamt.set(uid, id, s.locals));
 
+/* Mapping Operations
+ ******************************************************************************/
 /**
- * Create a new modified scope with a given binding.
- * 
- * @param s Scope.
- * @param id Identifier for new binding.
- * @param info Binding information.
+ * Does this scope have its own a mapping for a given identifier.
  */
-addBinding = \s id info -> 
-    s.setRecord <| 
-        hamt.set(id, info, s.record);
+Scope.prototype.hasOwnMapping = \id =self->
+    hamt.has(id, self.mapping);
 
 /**
- * Create a new modified scope with a new mutable binding.
- * 
- * @param s Scope
- * @param id Identifier for new binding
- * @param loc Location of binding in source code.
+ * Does this scope have any mapping for a given identifier.
  */
-addMutableBinding = \s, id, loc ->
-    addBinding(s, id, {
-        'mutable': MUTABLE,
-        'loc': loc
-    });
+Scope.prototype.hasMapping = \id =self->
+    (  self.hasOwnMapping(id)
+    || (self.outer && self.outer.hasMapping(id)));
 
 /**
- * Create a new modified scope with a new immutable binding.
- * 
- * @param s Scope
- * @param id Identifier for new binding
- * @param loc Location of binding in source code.
+ * Get the mapped value for `id` in scope `s`.
  */
-addImmutableBinding = \s, id, loc ->
-    addBinding(s, id, {
-        'mutable': IMMUTABLE,
-        'loc': loc
-    });
-
-/**
- * Create a new modified scope with a new immutable binding.
- * 
- * @param s Scope
- * @param id Identifier for new binding
- * @param loc Location of binding in source code.
- */
-setBindingMutability = \s id mutable ->
-    ?s.hasOwnBinding id
-        :addBinding(s, id, {
-            loc: s.getBinding(id).loc,
-            mutable: ?mutable : MUTABLE : IMMUTABLE
-        })
-        :(s.outer && s.setOuter(setBindingMutability(s.outer, id, mutable)));
+getMapping := \id s ->
+    ?s.hasOwnMapping(id)
+        :hamt.get(id, s.mapping)
+        :s.outer && getMapping(id, s.outer);
 
 /**
  * Create a new modified scope with a new mapping
  * 
- * @param s Scope
  * @param from Key value.
  * @param to Value to map to.
+ * @param s Scope
  */
-addMapping = \s from to ->
+addMapping = \from to s ->
     s.setMapping <|
         hamt.set(from, to, s.mapping);
 
+/**
+ * Add a new identifier to scope `s`.
+ * 
+ * @param id Source id name.
+ * @param uid Unique id.
+ * @param s Scope.
+ */
+addVar = \id uid s ->
+    ?s.hasMapping(uid)
+        :addMutableBinding(id, null, s)
+    
+    :let name = s.getUnusedId(id) in
+        addMapping(
+            uid,
+            name,
+            addMutableBinding(name, null, s));
+
+/* Operations
+ ******************************************************************************/
 /**
  * Get a list of all valid uids in the current scope.
  * 
@@ -219,16 +255,6 @@ addMapping = \s from to ->
  */
 getClosure := (.locals) \> hamt.keys;
 
-/* Operator Operations
- ******************************************************************************/
-addOperator := \name uid s ->
-    s.setPrefixOps <|
-        hamt.set(name, uid, s.prefixOps);
-
-getOperators := (.prefixOps) \> hamt.pairs;
-
-/* Operations
- ******************************************************************************/
 /**
  * Enter a new empty scope with its parent set to `s`.
  * 
@@ -254,20 +280,12 @@ in
             .setLocals(
                 mergeLocals(s.outer.locals, s.locals));
 
-/**
- * Add a new identifier to scope `s`.
- * 
- * @param id Source id name.
- * @param uid Unique id.
- * @param s Scope.
- */
-addVar = \id uid s ->
-    ?s.hasMapping(uid)
-        :addMutableBinding(s, id)
-    
-    :let name = s.getUnusedId(id) in
-        addMapping(
-            addMutableBinding(s, name),
-            uid,
-            name);
+/* Operator Operations
+ ******************************************************************************/
+addOperator := \name uid s ->
+    s.setPrefixOps <|
+        hamt.set(name, uid, s.prefixOps);
+
+getOperators := (.prefixOps) \> hamt.pairs;
+
 }

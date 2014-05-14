@@ -1,15 +1,10 @@
 /**
- * @fileOverview
- * 
- * @TODO: move all translate specific logic out of this file.
+ * @fileOverview Rewrite normalized Khepri to ECMAScript.
  */
 package (
     transform)
 with 
-    import 'ecma-ast::clause' ecma_clause,
     import 'ecma-ast::expression' ecma_expression,
-    import 'ecma-ast::statement' ecma_statement,
-    import 'ecma-ast::value' ecma_value,
     
     import 'ecma-ast-zipper' {ecmaZipper},
     
@@ -128,18 +123,17 @@ var exitBlock = modifyScope (scope.pop);
 /**
  * Perform `actions` in an new real block.
  */
-var realBlock := \-actions(...) ->
+var realBlock := \-actions(...)->
     seq(
-    enterBlock,
-    sequencea actions,
-    exitBlock);
+        enterBlock,
+        sequencea actions,
+        exitBlock);
 
 /**
  * Get the identifier name for `uid`.
  */
-var getMapping = \uid ->
-    inspectScope \ s ->
-        s.getMapping(uid);
+var getMapping := \uid ->
+    inspectScope (scope.getMapping @ uid);
 
 /**
  * Add an new identifier in the current scope.
@@ -147,7 +141,7 @@ var getMapping = \uid ->
  * @param id Source id name.
  * @param uid Unique id.
  */
-var addVar = \id uid ->
+var addVar := \id uid ->
     modifyScope (scope.addVar@(id, uid));
 
 // Bindings Operations
@@ -179,13 +173,6 @@ var addBindingsForBindingsList :=
     \> map @ ((.pattern) \> (.id) \> getUid)
     \> addBindings;
 
-/* Values
- ******************************************************************************/
-var identifier = \loc, name uid ->
-    setUid(
-        uid,
-        ecma_value.Identifier.create(loc, name));
-
 /* Transforms
  ******************************************************************************/
 var transformers = {};
@@ -205,8 +192,7 @@ addTransform@'VariableDeclaration' <| seq(
 addTransform@'Binding' <| seq(
     child('pattern',
         rewriteChild 'id'),
-    rewriteChild 'value',
-    modify \ node -> node);
+    rewriteChild 'value');
 
 addTransform@'VariableDeclarator' <| seq(
     rewriteChild 'id',
@@ -214,25 +200,18 @@ addTransform@'VariableDeclarator' <| seq(
     modify (translate.variableDeclarator));
 
 addTransform@'StaticDeclaration' <|
-    modify \ {loc} ->
-        ecma_statement.EmptyStatement.create(loc);
+    modify (translate.emptyStatement);
 
 // Clauses
 addTransform@'CatchClause' <| seq(
     rewriteChild 'param',
     rewriteChild 'body',
-    modify \ node ->
-        ecma_clause.CatchClause.create(node.loc,
-            node.param,
-            node.body));
+    modify (translate.catchClause));
 
 addTransform@'SwitchCase' <| seq(
     rewriteChild 'test',
     rewriteChild 'consequent',
-    modify \ node ->
-        ecma_clause.SwitchCase.create(node.loc,
-            node.test,
-            node.consequent));
+    modify (translate.switchCase));
 
 // Statement
 addTransform@'BlockStatement' <| seq(
@@ -255,11 +234,7 @@ addTransform@'IfStatement' <| seq(
 addTransform@'WithStatement' <| seq(
     rewriteChild 'bindings',
     rewriteChild 'body',
-    modify \ node ->
-        translate.withStatement(
-            node.loc,
-            node.bindings,
-            node.body));
+    modify (translate.withStatement));
 
 addTransform@'SwitchStatement' <| seq(
     rewriteChild 'discriminant',
@@ -268,7 +243,7 @@ addTransform@'SwitchStatement' <| seq(
 
 addTransform@'ReturnStatement' <| seq(
     rewriteChild 'argument',
-    modify (translate.returnStatement));;
+    modify (translate.returnStatement));
 
 addTransform@'ThrowStatement' <| seq(
     rewriteChild 'argument',
@@ -386,6 +361,10 @@ addTransform@'ObjectValue' <| seq(
     modify (translate.objectValue));
 
 // Patterns
+addTransform@'IdentifierPattern' <| seq(
+    rewriteChild 'id',
+    modify (.id));
+
 addTransform@['RelativeUnpack', 'SliceUnpack'] <|
     rewriteChild 'target';
 
@@ -394,41 +373,24 @@ addTransform@'ArgumentsPattern' <| seq(
     rewriteChild 'elements',
     rewriteChild 'self');
 
-addTransform@['IdentifierPattern', 'AsPattern'] <| seq(
-    rewriteChild 'id',
-    modify (.id));
-
-addTransform@['ObjectPattern', 'EllipsisPattern'] <| seq(
-    modify (getUd @ 'id'));
-
 // Program
-addTransform@'Program' <|
-    let
-        useStrict =
-            ecma_statement.ExpressionStatement.create(null,
-                ecma_value.Literal.create(null, 'string', "use strict"))
-    in seq(
-        pushBindings,
-        
-        // Add 'use strict' header to non-package programs.
-        modify \ node ->
-            ?type node.body === 'Package'
-                :node
-                :setUd('prefix', useStrict, node),
-        
-        rewriteChild 'body',
-        getBindings \ bindings ->
-            modify (translate.program @ bindings));
+addTransform@'Program' <| seq(
+    pushBindings,
+    
+    // Add 'use strict' header to non-package programs.
+    modify \ node ->
+        ?type node.body === 'Package'
+            :node
+            :setUd('prefix', translate.useStrict, node),
+    
+    rewriteChild 'body',
+    getBindings \ bindings ->
+        modify (translate.program @ bindings));
 
 // Package
 addTransform@'Package' <| seq(
     packageManager.chain \ packageManager ->
-    modify \ node ->
-        translate.packageBlock(
-            packageManager,
-            node.loc,
-            node.exports,
-            node.body),
+        modify (translate.packageBlock @ packageManager),
     
     // the package managers are expressed in khepri code so we have to translate the output
     checkTop); 
@@ -445,13 +407,10 @@ addTransform@'Identifier' <|
             :seq(
                 addVar(node.name, getUid node),
                 getMapping(getUid node).chain \ name ->
-                    set <| identifier(node.loc, name, getUid node))
+                    set <| translate.identifier(node.loc, name, getUid node))
         
         // When node has no uid, don't rename
-        :set <| identifier(node.loc, node.name);
-
-addTransform@['BinaryOperator', 'UnaryOperator'] <|
-    modify (.name);
+        :set <| translate.identifier(node.loc, node.name);
 
 /*
  *****************************************************************************/
@@ -475,7 +434,7 @@ in
 /**
  * 
  */
-_trans = \node ->
+_trans := \node ->
     ?Array.isArray node
         :visitArray node
         :(transformers.(type node) || pass);
@@ -501,7 +460,7 @@ var getPackageManager = \manager -> {
 /**
  * Rewrite a Khepri zippered program to an ECMAScript program.
  * 
- * Outputs the ECMAScript root.
+ * Outputs a zippered ECMAScript AST.
  * 
  * @param ast Zippered khepri program.
  * @param manager Package manager to use for rewrite.

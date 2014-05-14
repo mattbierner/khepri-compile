@@ -1,31 +1,31 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/transform/state.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/transform/state.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var record = require("bes")["record"],
-    __o = require("../fun"),
-    concat = __o["concat"],
+    stream = require("nu-stream")["stream"],
     scope = require("../lexical/scope"),
-    Scope = scope["Scope"],
-    State, getBindings, addBindings, pushBindings, popBindings;
+    State, getBindings, addBindings, pushBindings, popBindings, append = stream["append"],
+    first = stream["first"],
+    rest = stream["rest"],
+    cons = stream["cons"],
+    NIL = stream["NIL"],
+    toArray = stream["toArray"],
+    Scope = scope["Scope"];
 (State = record.declare(null, ["scope", "packageManager", "bindings"]));
-(State.empty = State.create(Scope.empty, null, [
-    [], null
-]));
-(getBindings = (function(s) {
-    return s.bindings[0];
+(State.empty = State.create(Scope.empty, null, cons(NIL, NIL)));
+(getBindings = (function(z) {
+    var z0 = z.bindings;
+    return toArray(first(z0));
 }));
 (addBindings = (function(bindings, s) {
-    return s.setBindings([concat(s.bindings[0], bindings), s.bindings[1]]);
+    return s.setBindings(cons(append(first(s.bindings), stream.from(bindings)), rest(s.bindings)));
 }));
 (pushBindings = (function(s) {
-    return s.setBindings([
-        [], s.bindings
-    ]);
+    return s.setBindings(cons(NIL, s.bindings));
 }));
 (popBindings = (function(s) {
-    return s.setBindings(s.bindings[1]);
+    return s.setBindings(rest(s.bindings));
 }));
 (exports["State"] = State);
 (exports["getBindings"] = getBindings);

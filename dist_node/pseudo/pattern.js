@@ -1,14 +1,12 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/pseudo/pattern.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/pseudo/pattern.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("khepri-ast")["node"],
-    defineNode = __o["defineNode"],
-    Node = __o["Node"],
     __o0 = require("khepri-ast")["pattern"],
-    Pattern = __o0["Pattern"],
-    RelativeUnpack, SliceUnpack, Import;
+    RelativeUnpack, SliceUnpack, MemberUnpack, Import, defineNode = __o["defineNode"],
+    Node = __o["Node"],
+    Pattern = __o0["Pattern"];
 (RelativeUnpack = defineNode(Pattern, "RelativeUnpack", ["pattern", "target"], ["index", "min"], (function(loc, pattern,
     target, index, min) {
     var self = this;
@@ -27,6 +25,12 @@ var __o = require("khepri-ast")["node"],
     (self.from = from);
     (self.to = to);
 })));
+(MemberUnpack = defineNode(Pattern, "MemberUnpack", ["target", "key"], [], (function(loc, target, key) {
+    var self = this;
+    Node.call(self, loc);
+    (self.target = target);
+    (self.key = key);
+})));
 (Import = defineNode(Pattern, "Import", [], ["from"], (function(loc, from) {
     var self = this;
     Node.call(self, loc);
@@ -34,4 +38,5 @@ var __o = require("khepri-ast")["node"],
 })));
 (exports["RelativeUnpack"] = RelativeUnpack);
 (exports["SliceUnpack"] = SliceUnpack);
+(exports["MemberUnpack"] = MemberUnpack);
 (exports["Import"] = Import);

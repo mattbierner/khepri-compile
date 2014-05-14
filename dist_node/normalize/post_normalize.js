@@ -10,8 +10,8 @@ var __o = require("khepri-ast")["node"],
     __o1 = require("../ast"),
     __o2 = require("../fun"),
     __o3 = require("../rewriter"),
-    __o4 = require("./unpack"),
-    opToName = require("./user_operator"),
+    __o4 = require("../user_operator"),
+    __o5 = require("./unpack"),
     normalize, modify = __o["modify"],
     setUserData = __o["setUserData"],
     Import = __o0["Import"],
@@ -26,20 +26,21 @@ var __o = require("khepri-ast")["node"],
     DOWN = __o3["DOWN"],
     Rewriter = __o3["Rewriter"],
     rewrite = __o3["rewrite"],
-    innerPattern = __o4["innerPattern"],
-    unpackParameters = __o4["unpackParameters"],
-    getParameterNames = __o4["getParameterNames"],
+    opToName = __o4["opToName"],
+    innerPattern = __o5["innerPattern"],
+    unpackParameters = __o5["unpackParameters"],
+    getParameterNames = __o5["getParameterNames"],
     x, y, markReserved = setUd.bind(null, "reserved", true),
     peepholes = new(Rewriter)(),
     always = (function(_) {
         return true;
     });
-peepholes.add("ImportPattern", UP, always, (function(__o5) {
-    var pattern = __o5["pattern"],
-        from = __o5["from"],
-        __o6 = innerPattern(Import.create(null, from.value), pattern),
-        imp = __o6[0],
-        rest = [].slice.call(__o6, 1);
+peepholes.add("ImportPattern", UP, always, (function(__o6) {
+    var pattern = __o6["pattern"],
+        from = __o6["from"],
+        __o7 = innerPattern(Import.create(null, from.value), pattern),
+        imp = __o7[0],
+        rest = [].slice.call(__o7, 1);
     return concat(markReserved(imp), rest);
 }));
 peepholes.add("Binding", UP, always, (function(binding) {
@@ -108,17 +109,17 @@ peepholes.add("ExpressionStatement", UP, (function(z) {
 peepholes.add("BinaryExpression", UP, (function(z) {
     var y0 = z.operator;
     return ("|>" === y0);
-}), (function(__o5) {
-    var left = __o5["left"],
-        right = __o5["right"];
+}), (function(__o6) {
+    var left = __o6["left"],
+        right = __o6["right"];
     return ast_expression.CallExpression.create(null, right, [left]);
 }));
 peepholes.add("BinaryExpression", UP, (function(z) {
     var y0 = z.operator;
     return ("<|" === y0);
-}), (function(__o5) {
-    var left = __o5["left"],
-        right = __o5["right"];
+}), (function(__o6) {
+    var left = __o6["left"],
+        right = __o6["right"];
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 (normalize = rewrite.bind(null, peepholes));

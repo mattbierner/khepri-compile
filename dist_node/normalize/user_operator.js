@@ -17,7 +17,8 @@ var rename, map = ({
         "^": "hat",
         "\\": "bslash",
         "~": "tilde",
-        "@": "at"
+        "@": "at",
+        "?": "quest"
     });
 (rename = (function(name) {
     return ("__" + name.split("")

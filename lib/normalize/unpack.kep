@@ -19,7 +19,7 @@ with
         RelativeUnpack},
     
     import '../ast' {type},
-    import '../fun' fun#{
+    import '../fun' {
         concat
         flatten
         flattenr
@@ -31,12 +31,12 @@ in {
 /**
  * Create unpack relative to the end of `target`.
  * 
- * @param target Parent being unpacked.
+ * @param target Object being unpacked.
  * @param start {number} Minimum index the relative unpack can occupy.
- * @param indx Relative indx of value.
+ * @param indx Relative index of value.
  * @param pattern Unpack for value.
  */
-var relativeUnpack = \target start indx pattern ->
+var relativeUnpack := \target start indx pattern ->
     innerPattern(
         RelativeUnpack.create(null, pattern, target, indx, start),
         pattern);
@@ -44,15 +44,15 @@ var relativeUnpack = \target start indx pattern ->
 /**
  * Unpack a range of values for `target`.
  * 
- * @param start {number} Minimum index the relative unpack can occupy.
- * @param id Value unpack.
+ * @param target Object being unpacked.
+ * @param pattern Value unpack.
  * @param from Start of slice.
  * @param to End of slice, as offset from end.
  */
-var sliceUnpack = \target id from to ->
+var sliceUnpack := \target pattern from to ->
     innerPattern(
-        SliceUnpack.create(null, id, target, from, to),
-        id);
+        SliceUnpack.create(null, pattern, target, from, to),
+        pattern);
 
 /**
  * Expand an object unpack member to bindings.
@@ -159,14 +159,22 @@ unpackParameters = \args elements ->
         }
         |> flatten;
 
-getParameterNames := 
+/**
+ * Transform a list of unpacks to a list of function parameter identifier patterns.
+ * 
+ * @param arr Array of unpacks.
+ */
+getParameterNames :=
     flattenr <\ map @ \x -> {
         switch (type x) {
-        case 'IdentifierPattern': return x;
-        case 'AsPattern': return x.id;
+        case 'AsPattern':
+            return x.id;
         case 'SliceUnpack':
-        case 'RelativeUnpack': return [];
-        default: x;
+        case 'RelativeUnpack':
+            return [];
+        default:
+            return x;
         }
     };
+
 }

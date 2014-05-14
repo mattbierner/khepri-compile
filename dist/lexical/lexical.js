@@ -2,9 +2,10 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lexical/lexical.kep'
  * DO NOT EDIT
 */define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/trans/error", "akh/unique",
-    "khepri-ast/expression", "khepri-ast/value", "zipper-m/trans/tree", "../ast", "../fun", "./scope", "./scopet"
+    "khepri-ast/expression", "khepri-ast/value", "zipper-m/trans/tree", "../ast", "../fun", "../user_operator",
+    "./scope", "./scopet"
 ], (function(require, exports, __o, StateT, Error, ErrorT, Unique, ast_expression, ast_value, TreeZipperT, __o0,
-    __o1, scope, ScopeT) {
+    __o1, __o2, scope, ScopeT) {
     "use strict";
     var check, next = __o["next"],
         seq = __o["sequence"],
@@ -15,6 +16,7 @@
         setUd = __o0["setUd"],
         setUid = __o0["setUid"],
         foldl = __o1["foldl"],
+        splitOp = __o2["splitOp"],
         Scope = scope["Scope"],
         x, y, x0, y0, x1, y1, x2, y2, visit, __args, actions, body, __args0, actions0, __args1, actions1,
             __args2, actions2, __args4, actions3, __args6, actions4, __args5, actions5, consequent, __args7,
@@ -37,14 +39,6 @@
             __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74,
             actions74, __args75, actions75, consequent4, alternate2, x3, _check, reserved = getUd.bind(null,
                 "reserved"),
-        splitOp = (function(op, ops) {
-            var r;
-            return ((!op) ? [] : ((r = ops.reduce((function(p, c) {
-                var prefix;
-                return ((((prefix = c[0]), (op.substring(0, prefix.length) === prefix)) &&
-                    ((!p) || (c[0].length > p[0].length))) ? c : p);
-            }), null)), (r ? [r].concat(splitOp(op.slice(r[0].length), ops)) : [])));
-        }),
         M = ErrorT(TreeZipperT(ScopeT(Unique))),
         run = (function(p, s, ctx, ok, err) {
             var y, y0;
@@ -66,7 +60,7 @@
         })),
         push = M.liftInner(M.inner.inner.push),
         pop = M.liftInner(M.inner.inner.pop),
-        getClosure = M.chain.bind(null, extractScope.map(scope.getClosure)),
+        getClosure = M.chain.bind(null, M.liftInner(M.inner.inner.getClosure)),
         extractCtx = lift(M.inner.get),
         extract = lift(M.inner.node),
         inspect = M.chain.bind(null, extract),
@@ -103,8 +97,8 @@
         }),
         checkHasBinding = (function(id, loc) {
             return examineScope((function(s) {
-                return (s.hasBinding(id) ? pass : error(((("Undeclared symbol:'" + id) + "' at:") +
-                    (loc && loc.start))));
+                return (scope.hasBinding(id, s) ? pass : error(((("Undeclared symbol:'" + id) +
+                    "' at:") + (loc && loc.start))));
             }));
         }),
         checkCanAddBinding = (function(id, loc) {
@@ -118,32 +112,25 @@
         }),
         checkCanAssign = (function(id, loc) {
             return examineScope((function(s) {
-                return (s.hasMutableBinding(id) ? pass : error(((("Assign to immutable variable:'" +
-                    id) + "' at:") + (loc && loc.start))));
+                return (scope.hasMutableBinding(id, s) ? pass : error((((
+                    "Assign to immutable variable:'" + id) + "' at:") + (loc && loc.start))));
             }));
         }),
         markBindingImmutable = (function(id, loc) {
             return examineScope((function(s) {
-                return (s.hasOwnBinding(id) ? modifyScope((function(s0) {
-                    return scope.setBindingMutability(s0, id, false);
-                })) : error((((("Cannot mark variable:'" + id) + "' at:") + (loc && loc.start)) +
-                    " immutable in enclosed scope")));
+                return (s.hasOwnBinding(id) ? modifyScope(scope.setBindingMutability.bind(null, id,
+                    false)) : error((((("Cannot mark variable:'" + id) + "' at:") + (loc && loc
+                    .start)) + " immutable in enclosed scope")));
             }));
         }),
         addMutableBinding = (function(id, loc) {
-            return seq(modifyScope((function(s) {
-                return scope.addMutableBinding(s, id, loc);
-            })), addUid(id));
+            return seq(modifyScope(scope.addMutableBinding.bind(null, id, loc)), addUid(id));
         }),
         addStaticBinding = (function(id, loc) {
-            return modifyScope((function(s) {
-                return scope.addImmutableBinding(s, id, loc);
-            }));
+            return modifyScope(scope.addImmutableBinding.bind(null, id, loc));
         }),
         addImmutableBinding = (function(id, loc) {
-            return seq(modifyScope((function(s) {
-                return scope.addImmutableBinding(s, id, loc);
-            })), addUid(id));
+            return seq(modifyScope(scope.addImmutableBinding.bind(null, id, loc)), addUid(id));
         }),
         addMutableBindingChecked = (function(id, loc) {
             return seq(checkCanAddBinding(id, loc), addMutableBinding(id, loc));
@@ -178,8 +165,8 @@
         moveChild("body"), seqa(actions), up))]), seq(push, seqa(body), pop)));
     addCheck("PackageExports", ((__args0 = ["exports", checkTop]), (actions0 = [].slice.call(__args0, 1)), seq(
         moveChild("exports"), seqa(actions0), up)));
-    addCheck("PackageExport", seq(inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("PackageExport", seq(inspect((function(__o3) {
+        var id = __o3["id"];
         return addMutableBindingChecked(id.name, id.loc);
     })), ((__args1 = ["id", checkTop]), (actions1 = [].slice.call(__args1, 1)), seq(moveChild("id"),
         seqa(actions1), up))));
@@ -201,8 +188,8 @@
         up))]), seq(push, seqa(body0), pop)));
     addCheck(["StaticDeclaration", "VariableDeclaration"], ((__args8 = ["declarations", checkTop]), (actions8 = []
         .slice.call(__args8, 1)), seq(moveChild("declarations"), seqa(actions8), up)));
-    addCheck("StaticDeclarator", inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("StaticDeclarator", inspect((function(__o3) {
+        var id = __o3["id"];
         return addStaticBindingChecked(id.name, id.loc);
     })));
     addCheck("VariableDeclarator", ((bind = (function(node) {
@@ -262,8 +249,8 @@
         checkTop
     ]), (actions32 = [].slice.call(__args32, 1)), seq(moveChild("finalizer"), seqa(
         actions32), up))]), seq(push, seqa(body7), pop))));
-    addCheck("CatchClause", ((body8 = [inspect((function(__o2) {
-        var param = __o2["param"];
+    addCheck("CatchClause", ((body8 = [inspect((function(__o3) {
+        var param = __o3["param"];
         return addImmutableBindingChecked(param.name, param.loc);
     })), ((__args33 = ["param", checkTop]), (actions33 = [].slice.call(__args33, 1)), seq(
         moveChild("param"), seqa(actions33), up)), ((__args34 = ["body", ((__args35 = ["body",
@@ -287,8 +274,8 @@
         checkTop
     ]), (actions43 = [].slice.call(__args43, 1)), seq(moveChild("body"), seqa(
         actions43), up))]), seq(push, seqa(body12), pop))]), seq(push, seqa(body11), pop)));
-    addCheck("FunctionExpression", ((body13 = [((consequent2 = seq(inspect((function(__o2) {
-        var id = __o2["id"];
+    addCheck("FunctionExpression", ((body13 = [((consequent2 = seq(inspect((function(__o3) {
+        var id = __o3["id"];
         return addImmutableBinding(id.name, id.loc);
     })), ((__args44 = ["id", checkTop]), (actions44 = [].slice.call(__args44, 1)),
         seq(moveChild("id"), seqa(actions44), up)))), inspect((function(node) {
@@ -313,10 +300,10 @@
             })));
     }))]), seq(push, seqa(body13), pop)));
     addCheck("UnaryExpression", seq(((__args45 = ["argument", checkTop]), (actions45 = [].slice.call(__args45,
-        1)), seq(moveChild("argument"), seqa(actions45), up)), inspect((function(__o2) {
-        var loc = __o2["loc"],
-            operator = __o2["operator"],
-            argument = __o2["argument"];
+        1)), seq(moveChild("argument"), seqa(actions45), up)), inspect((function(__o3) {
+        var loc = __o3["loc"],
+            operator = __o3["operator"],
+            argument = __o3["argument"];
         return splitUnary(operator.name)
             .chain((function(ops) {
                 var __args46, actions46;
@@ -329,11 +316,11 @@
             }));
     }))));
     addCheck("AssignmentExpression", seq(((__args46 = ["left", checkTop]), (actions46 = [].slice.call(__args46,
-        1)), seq(moveChild("left"), seqa(actions46), up)), inspect((function(__o2) {
-        var operator = __o2["operator"],
-            left = __o2["left"];
-        return (isIdentifier(left) ? seq(checkCanAssign(left.name, left.loc), ((operator ===
-            ":=") ? markBindingImmutable(left.name, left.loc) : pass)) : pass);
+        1)), seq(moveChild("left"), seqa(actions46), up)), inspect((function(__o3) {
+        var immutable = __o3["immutable"],
+            left = __o3["left"];
+        return (isIdentifier(left) ? seq(checkCanAssign(left.name, left.loc), (immutable ?
+            markBindingImmutable(left.name, left.loc) : pass)) : pass);
     })), ((__args47 = ["right", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(moveChild(
         "right"), seqa(actions47), up))));
     addCheck("BinaryExpression", seq(((__args48 = ["operator", checkTop]), (actions48 = [].slice.call(__args48,
@@ -405,14 +392,14 @@
         var loc = node["loc"],
             name = node["name"];
         return seq(checkHasBinding(name, loc), examineScope((function(s) {
-            return setNode(setUid(s.getUid(name), node));
+            return setNode(setUid(scope.getUid(name, s), node));
         })));
     })));
     addCheck(["UnaryOperator"], ((consequent4 = pass), (alternate2 = inspect((function(node) {
         var loc = node["loc"],
             name = node["name"];
         return seq(checkHasBinding(name, loc), examineScope((function(s) {
-            var uid = s.getUid(name);
+            var uid = scope.getUid(name, s);
             return seq(setNode(setUid(uid, node)), addOperator(name, uid));
         })));
     }))), inspect((function(node) {
@@ -423,14 +410,17 @@
     (_check = (function(node) {
         return (Array.isArray(node) ? checkArray(node) : (checks[type(node)] || pass));
     }));
-    var initialScope = ((x3 = foldl(scope.addImmutableBinding, Scope.empty, ["*", "/", "+", "-", "%", "<<",
-        ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===", "!==", "&", "^", "|", "||", "&&",
-        "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".", "@", "void",
-        "instanceof", "typeof"
+    var initialScope = ((x3 = foldl((function(s, c) {
+        return scope.addImmutableBinding(c, "global", s);
+    }), Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=",
+        "===", "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!",
+        "++", "--", "~", ".", "@", "void", "instanceof", "typeof"
     ])), foldl((function(p, c) {
         return scope.addOperator(c, null, p);
     }), x3, ["!", "++", "--", "~"])),
-        addBindings = foldl.bind(null, scope.addImmutableBinding, initialScope),
+        addBindings = foldl.bind(null, (function(s, c) {
+            return scope.addImmutableBinding(c, "global", s);
+        }), initialScope),
         rewrite = seq(checkTop, root, extractCtx.chain((function(x4) {
             return unique((function(unique0) {
                 return extractScope.map((function(s) {

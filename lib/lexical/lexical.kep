@@ -26,6 +26,7 @@ with
         setUd
         setUid},
     import '../fun' {foldl},
+    import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
 in {
@@ -39,29 +40,6 @@ var _check;
 var reserved := getUd @ 'reserved';
 
 var getStart := \loc -> (loc && loc.start);
-
-var startsWith := \s prefix ->
-    s.substring(0, prefix.length) === prefix;
-
-/**
- * 
- */
-var splitOp := let
-    matchPrefix = \op ops ->
-        ops.reduce(
-            \p c ->
-                ?startsWith(op, c.(0)) && (!p || c.(0).length > p.(0).length)
-                    :c
-                    :p,
-            null)
-in
-    \op ops ->
-        ?!op
-            :[]
-        :let r = matchPrefix(op, ops) in
-            ?r
-                :[r].concat(splitOp(op.slice(r.(0).length), ops))
-                :[];
 
 /* Monad
  ******************************************************************************/
@@ -96,9 +74,9 @@ var examineScope = M.chain @ extractScope;
 var modifyScope = M.liftInner <\ M.inner.inner.modify;
 
 var push = M.liftInner (M.inner.inner.push);
-var pop =  M.liftInner (M.inner.inner.pop);
+var pop = M.liftInner (M.inner.inner.pop);
 
-var getClosure = M.chain @ (extractScope.map (scope.getClosure));
+var getClosure = M.chain @ (M.liftInner (M.inner.inner.getClosure));
 
 // Movement Operations
 ////////////////////////////////////////
@@ -177,7 +155,7 @@ var when = \test consequent alternate ->
 /**
  * Create a new lexical block for body.
  */
-var block = \-body(...) ->
+var block = \-body(...)->
     seq(
         push,
         seqa body,
@@ -194,15 +172,14 @@ var addUid = \id ->
  * Get the uid of an identifier.
  */
 var getUid = \id ->
-    extractScope.map \ s ->
-        s.getUid(id);
+    extractScope.map (scope.getUid @ id);
 
 /**
  * Ensure the current scope contains a binding for `id`.
  */
 var checkHasBinding = \id, loc ->
     examineScope \ s ->
-        ?s.hasBinding(id)
+        ?scope.hasBinding(id, s)
             :pass
         :error("Undeclared symbol:'" + id + "' at:" + getStart loc);
 
@@ -221,7 +198,7 @@ var checkCanAddBinding = \id loc ->
  */
 var checkCanAssign = \id, loc -> 
     examineScope \ s ->
-        ?s.hasMutableBinding(id)
+        ?scope.hasMutableBinding(id, s)
             :pass
         :error("Assign to immutable variable:'" + id + "' at:" + getStart loc);
 
@@ -233,18 +210,16 @@ var checkCanAssign = \id, loc ->
 var markBindingImmutable = \id loc ->
     examineScope \ s ->
         ?s.hasOwnBinding id
-            :modifyScope \ s ->
-                scope.setBindingMutability(s, id, false)
+            :modifyScope (scope.setBindingMutability@(id, false))
         :error("Cannot mark variable:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
 
 /**
  * Add a new mutable binding in the current scope.
  * Does not perform any checks.
  */
-var addMutableBinding = \id, loc -> 
+var addMutableBinding = \id loc -> 
     seq(
-         modifyScope \ s ->
-             scope.addMutableBinding(s, id, loc),
+         modifyScope (scope.addMutableBinding@(id, loc)),
          addUid id);
 
 /**
@@ -255,8 +230,7 @@ var addMutableBinding = \id, loc ->
  * Does not perform any checks.
  */
 var addStaticBinding = \id loc -> 
-     modifyScope \ s ->
-         scope.addImmutableBinding(s, id, loc);
+     modifyScope (scope.addImmutableBinding@(id, loc));
 
 /**
  * Adds a new immutable binding in the current scope.
@@ -264,8 +238,7 @@ var addStaticBinding = \id loc ->
  */
 var addImmutableBinding = \id loc -> 
     seq(
-         modifyScope \ s ->
-             scope.addImmutableBinding(s, id, loc),
+         modifyScope (scope.addImmutableBinding@(id, loc)),
          addUid id);
 
 /**
@@ -442,10 +415,11 @@ addCheck@'ForStatement' <|
 // Expression
 addCheck@'FunctionExpression' <|
     block(
-        when((.id), seq(
-            inspect \ {id} ->
-                addImmutableBinding(id.name, id.loc),
-            checkChild 'id')),
+        when((.id),
+            seq(
+                inspect \ {id} ->
+                    addImmutableBinding(id.name, id.loc),
+                checkChild 'id')),
         
         // Attach closure data.
         // This must include the function's id
@@ -478,11 +452,11 @@ addCheck@'UnaryExpression' <| seq(
 
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
-    inspect \ {operator left} ->
+    inspect \ {immutable left} ->
         ?isIdentifier left
             :seq(
                 checkCanAssign(left.name, left.loc),
-                ?operator === ':='
+                ?immutable
                     :markBindingImmutable(left.name, left.loc)
                     :pass)
             :pass,
@@ -569,7 +543,7 @@ addCheck@['Identifier', 'BinaryOperator'] <|
     inspect \ node#{loc name} -> seq(
         checkHasBinding(name, loc),
         examineScope \ s ->
-             setNode <| setUid(s.getUid(name), node));
+             setNode <| setUid(scope.getUid(name, s), node));
 
 addCheck@['UnaryOperator'] <|
     when((.name) \> (_ ., 0) \> (===, '.'),
@@ -577,7 +551,7 @@ addCheck@['UnaryOperator'] <|
         inspect \ node#{loc name} -> seq(
             checkHasBinding(name, loc),
             examineScope \ s ->
-                let uid = s.getUid(name) in seq(
+                let uid = scope.getUid(name, s) in seq(
                     setNode <| setUid(uid, node),
                     addOperator(name, uid))));
 
@@ -589,43 +563,46 @@ _check := \node ->
         :(checks.(type node) || pass);
 
 var initialScope := 
-    foldl(scope.addImmutableBinding, Scope.empty, [
-        '*',
-        '/',
-        '+',
-        '-',
-        '%',
-        '<<',
-        '>>',
-        '>>>',
-        '<',
-        '>',
-        '<=',
-        '>=',
-        '==',
-        '!=',
-        '===',
-        '!==',
-        '&',
-        '^',
-        '|',
-        '||',
-        '&&',
-        '|>',
-        '\\>',
-        '\\>>',
-        '<|',
-        '<\\',
-        '<<\\',
-        '!',
-        '++',
-        '--',
-        '~',
-        '.',
-        '@',
-        'void',
-        'instanceof',
-        'typeof'])
+    foldl(
+        \s c ->
+            scope.addImmutableBinding(c, 'global', s),
+        Scope.empty, [
+            '*',
+            '/',
+            '+',
+            '-',
+            '%',
+            '<<',
+            '>>',
+            '>>>',
+            '<',
+            '>',
+            '<=',
+            '>=',
+            '==',
+            '!=',
+            '===',
+            '!==',
+            '&',
+            '^',
+            '|',
+            '||',
+            '&&',
+            '|>',
+            '\\>',
+            '\\>>',
+            '<|',
+            '<\\',
+            '<<\\',
+            '!',
+            '++',
+            '--',
+            '~',
+            '.',
+            '@',
+            'void',
+            'instanceof',
+            'typeof'])
     |> \x ->
     foldl(\p c -> scope.addOperator(c, null, p), x, [
         '!',
@@ -633,7 +610,10 @@ var initialScope :=
         '--',
         '~']);
 
-var addBindings := foldl@(scope.addImmutableBinding, initialScope);
+var addBindings := foldl@(
+    \s c ->
+        scope.addImmutableBinding(c, 'global', s),
+    initialScope);
 
 var rewrite := seq(
     checkTop,

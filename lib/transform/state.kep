@@ -1,5 +1,5 @@
 /**
- * @fileOverview Transformer state
+ * @fileOverview Transformer state.
  */
 package (
     State
@@ -11,13 +11,25 @@ package (
 with 
     import 'bes::record' record,
     
-    import '../fun' {
-        concat},
+    import 'nu-stream::stream' stream#{
+        append
+        first
+        rest
+        cons
+        NIL
+        toArray},
+    
     import '../lexical/scope' scope#{Scope}
 in {
 
 /* State
  ******************************************************************************/
+/**
+ * @member scope True scope of the generated ECMAScript program.
+ * @member packageManager Package manager code generators.
+ * @member bindings List of bindings without variable declarations in the current
+ *   scope.
+ */
 State = record.declare(null, [
     'scope',
     'packageManager',
@@ -26,28 +38,45 @@ State = record.declare(null, [
 State.empty = State.create(
     Scope.empty,
     null,
-    [[], null]);
+    cons(NIL, NIL));
 
 /* Binding Operations
  ******************************************************************************/
 /**
+ * Get array of current bindings.
  * 
+ * @param s State.
  */
-getBindings := \s -> 
-    s.bindings.(0);
+getBindings := (.bindings) \> first \> toArray;
 
 /**
+ * Add a set of bindings.
  * 
+ * @param bindings Array of bindings.
+ * @param s State.
  */
 addBindings := \bindings s ->
-    s.setBindings [
-        concat(s.bindings.(0), bindings),
-        s.bindings.(1)];
+    s.setBindings <|
+        cons(
+            append(first s.bindings, stream.from bindings),
+            rest s.bindings);
 
+/**
+ * Enter a new bindings scope.
+ * 
+ * @param s State.
+ */
 pushBindings = \s ->
-    s.setBindings([[], s.bindings]);
+    s.setBindings <|
+        cons(NIL, s.bindings);
 
+/**
+ * Exit the current binding scope.
+ * 
+ * @param s State.
+ */
 popBindings := \s ->
-    s.setBindings(s.bindings.(1));
+    s.setBindings <|
+        rest s.bindings;
 
 }

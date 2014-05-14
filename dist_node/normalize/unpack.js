@@ -1,28 +1,21 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/unpack.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/normalize/unpack.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var ast_expression = require("khepri-ast")["expression"],
     ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../pseudo/pattern"),
-    SliceUnpack = __o["SliceUnpack"],
-    RelativeUnpack = __o["RelativeUnpack"],
     __o0 = require("../ast"),
+    __o1 = require("../fun"),
+    innerPattern, unpackParameters, getParameterNames, SliceUnpack = __o["SliceUnpack"],
+    RelativeUnpack = __o["RelativeUnpack"],
     type = __o0["type"],
-    fun = require("../fun"),
-    concat = fun["concat"],
-    flatten = fun["flatten"],
-    flattenr = fun["flattenr"],
-    map = fun["map"],
-    innerPattern, unpackParameters, getParameterNames, relativeUnpack = (function(target, start, indx, pattern) {
-        return innerPattern(RelativeUnpack.create(null, pattern, target, indx, start), pattern);
-    }),
-    sliceUnpack = (function(target, id, from, to) {
-        return innerPattern(SliceUnpack.create(null, id, target, from, to), id);
-    }),
+    concat = __o1["concat"],
+    flatten = __o1["flatten"],
+    flattenr = __o1["flattenr"],
+    map = __o1["map"],
     expandObjectElement = (function(base, pattern, key) {
         var innerBase = ast_expression.MemberExpression.create(null, base, key, true);
         return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
@@ -31,10 +24,14 @@ var ast_expression = require("khepri-ast")["expression"],
     }),
     expandObject = (function(base, pattern) {
         return flattenr(map((function(node) {
-            return ((type(node) === "SliceUnpack") ? sliceUnpack(pattern.ud.id.id, node.pattern, node.from,
-                node.to) : ((type(node) === "RelativeUnpack") ? relativeUnpack(pattern.ud.id.id,
-                node.min, node.index, node.pattern) : expandObjectElement(pattern.ud.id.id,
-                node.target, node.key)));
+            var target, pattern0, from, to, target0, start, indx, pattern1;
+            return ((type(node) === "SliceUnpack") ? ((target = pattern.ud.id.id), (pattern0 = node.pattern), (
+                from = node.from), (to = node.to), innerPattern(SliceUnpack.create(null,
+                pattern0, target, from, to), pattern0)) : ((type(node) === "RelativeUnpack") ? ((
+                target0 = pattern.ud.id.id), (start = node.min), (indx = node.index), (
+                pattern1 = node.pattern), innerPattern(RelativeUnpack.create(null, pattern1,
+                target0, indx, start), pattern1)) : expandObjectElement(pattern.ud.id.id, node.target,
+                node.key)));
         }), pattern.elements));
     }),
     expandAs = (function(base, pattern) {
@@ -58,9 +55,23 @@ var ast_expression = require("khepri-ast")["expression"],
             case "IdentifierPattern":
                 return [];
             case "SliceUnpack":
-                return sliceUnpack(args.id, x.pattern, x.from, x.to);
+                {
+                    var target = args.id,
+                        pattern = x.pattern,
+                        from = x.from,
+                        to = x.to;
+                    return innerPattern(SliceUnpack.create(null, pattern, target, from, to),
+                        pattern);
+                }
             case "RelativeUnpack":
-                return relativeUnpack(args.id, x.min, x.index, x.pattern);
+                {
+                    var target0 = args.id,
+                        start = x.min,
+                        indx = x.index,
+                        pattern0 = x.pattern;
+                    return innerPattern(RelativeUnpack.create(null, pattern0, target0, indx, start),
+                        pattern0);
+                }
             case "AsPattern":
                 return flatten(innerPattern(x.id, x.target));
             default:
@@ -68,22 +79,19 @@ var ast_expression = require("khepri-ast")["expression"],
         }
     }), elements));
 }));
-var x = flattenr,
-    y = map.bind(null, (function(x0) {
-        switch (type(x0)) {
-            case "IdentifierPattern":
-                return x0;
-            case "AsPattern":
-                return x0.id;
-            case "SliceUnpack":
-            case "RelativeUnpack":
-                return [];
-            default:
-                x0;
-        }
-    }));
+var y = map.bind(null, (function(x) {
+    switch (type(x)) {
+        case "AsPattern":
+            return x.id;
+        case "SliceUnpack":
+        case "RelativeUnpack":
+            return [];
+        default:
+            return x;
+    }
+}));
 (getParameterNames = (function(z) {
-    return x(y(z));
+    return flattenr(y(z));
 }));
 (exports["innerPattern"] = innerPattern);
 (exports["unpackParameters"] = unpackParameters);

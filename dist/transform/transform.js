@@ -1,12 +1,11 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast/clause", "ecma-ast/expression", "ecma-ast/statement", "ecma-ast/value",
-    "ecma-ast-zipper", "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "../ast",
-    "../lexical/scope", "../fun", "../builtin", "./unpack", "./state", "./translation", "./package_manager/amd",
-    "./package_manager/node"
-], (function(require, exports, ecma_clause, ecma_expression, ecma_statement, ecma_value, __o, Unique, StateT, __o0,
-    TreeZipperT, __o1, scope, __o2, __o3, __o4, state, translate, _, _0) {
+*/define(["require", "exports", "ecma-ast/expression", "ecma-ast-zipper", "akh/unique", "akh/trans/statei", "akh/base",
+    "zipper-m/trans/tree", "../ast", "../lexical/scope", "../fun", "../builtin", "./unpack", "./state",
+    "./translation", "./package_manager/amd", "./package_manager/node"
+], (function(require, exports, ecma_expression, __o, Unique, StateT, __o0, TreeZipperT, __o1, scope, __o2, __o3,
+    __o4, state, translate, _, _0) {
     "use strict";
     var transform, ecmaZipper = __o["ecmaZipper"],
         liftM2 = __o0["liftM2"],
@@ -16,7 +15,6 @@
         getUd = __o1["getUd"],
         setUd = __o1["setUd"],
         getUid = __o1["getUid"],
-        setUid = __o1["setUid"],
         concat = __o2["concat"],
         flatten = __o2["flatten"],
         flip = __o2["flip"],
@@ -39,8 +37,7 @@
             actions48, __args49, actions49, __args50, actions51, __args51, actions52, __args52, actions53,
             actions50, __args53, actions54, __args54, actions55, __args55, actions56, __args56, actions57,
             __args57, actions58, __args58, actions59, __args59, actions60, __args60, actions61, __args61,
-            actions62, useStrict, __args62, actions63, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(
-                Unique)),
+            actions62, __args62, actions63, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
         run = (function(m, s, ctx, seed) {
             return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
         }),
@@ -83,23 +80,15 @@
             return s.setScope(f0(s.scope));
         }))),
         getMapping = (function(uid) {
-            return inspectScope((function(s) {
-                return s.getMapping(uid);
-            }));
-        }),
-        addVar = (function(id, uid) {
-            return modifyScope(scope.addVar.bind(null, id, uid));
+            return inspectScope(scope.getMapping.bind(null, uid));
         }),
         pushBindings = modifyState(state.pushBindings),
         popBindings = modifyState(state.popBindings),
-        getBindings = M.chain.bind(null, inspectStateWith(((y0 = map.bind(null, (function(uid) {
-            return inspectScope((function(s) {
-                return s.getMapping(uid);
-            }));
-        }))), (y1 = state.getBindings), (function(z) {
-            var z0 = y1(z);
-            return enumeration(y0(z0));
-        })))),
+        getBindings = M.chain.bind(null, inspectStateWith(((y0 = map.bind(null, getMapping)), (y1 = state.getBindings), (
+            function(z) {
+                var z0 = y1(z);
+                return enumeration(y0(z0));
+            })))),
         addBindingsForBindingsList = ((x0 = map.bind(null, ((y2 = expandBindings.bind(null, null)), (function(z) {
             return y2(z.pattern);
         })))), (x1 = map.bind(null, (function(z) {
@@ -111,9 +100,6 @@
                 bindings = x1(z1);
             return modifyState(state.addBindings.bind(null, bindings));
         })),
-        identifier = (function(loc, name, uid) {
-            return setUid(uid, ecma_value.Identifier.create(loc, name));
-        }),
         transformers = ({}),
         addTransform = (function(type0, check) {
             if (Array.isArray(type0)) type0.forEach((function(x2) {
@@ -126,32 +112,21 @@
     addTransform("VariableDeclaration", seq(((__args = ["declarations", checkTop]), (actions = [].slice.call(
         __args, 1)), seq(moveChild("declarations"), sequencea(actions), up)), modify(translate.variableDeclaration)));
     addTransform("Binding", seq(((__args0 = ["pattern", ((__args1 = ["id", checkTop]), (actions0 = [].slice.call(
-            __args1, 1)), seq(moveChild("id"), sequencea(actions0), up))]), (actions1 = [].slice.call(
-            __args0, 1)), seq(moveChild("pattern"), sequencea(actions1), up)), ((__args2 = ["value",
-            checkTop
-        ]), (actions2 = [].slice.call(__args2, 1)), seq(moveChild("value"), sequencea(actions2), up)),
-        modify((function(node0) {
-            return node0;
-        }))));
+        __args1, 1)), seq(moveChild("id"), sequencea(actions0), up))]), (actions1 = [].slice.call(
+        __args0, 1)), seq(moveChild("pattern"), sequencea(actions1), up)), ((__args2 = ["value",
+        checkTop
+    ]), (actions2 = [].slice.call(__args2, 1)), seq(moveChild("value"), sequencea(actions2), up))));
     addTransform("VariableDeclarator", seq(((__args3 = ["id", checkTop]), (actions3 = [].slice.call(__args3, 1)),
         seq(moveChild("id"), sequencea(actions3), up)), ((__args4 = ["init", checkTop]), (actions4 = []
         .slice.call(__args4, 1)), seq(moveChild("init"), sequencea(actions4), up)), modify(translate.variableDeclarator)));
-    addTransform("StaticDeclaration", modify((function(__o5) {
-        var loc = __o5["loc"];
-        return ecma_statement.EmptyStatement.create(loc);
-    })));
+    addTransform("StaticDeclaration", modify(translate.emptyStatement));
     addTransform("CatchClause", seq(((__args5 = ["param", checkTop]), (actions5 = [].slice.call(__args5, 1)),
         seq(moveChild("param"), sequencea(actions5), up)), ((__args6 = ["body", checkTop]), (actions6 = []
-        .slice.call(__args6, 1)), seq(moveChild("body"), sequencea(actions6), up)), modify((function(
-        node0) {
-        return ecma_clause.CatchClause.create(node0.loc, node0.param, node0.body);
-    }))));
+        .slice.call(__args6, 1)), seq(moveChild("body"), sequencea(actions6), up)), modify(translate.catchClause)));
     addTransform("SwitchCase", seq(((__args7 = ["test", checkTop]), (actions7 = [].slice.call(__args7, 1)), seq(
         moveChild("test"), sequencea(actions7), up)), ((__args8 = ["consequent", checkTop]), (actions8 = []
-        .slice.call(__args8, 1)), seq(moveChild("consequent"), sequencea(actions8), up)), modify((
-        function(node0) {
-            return ecma_clause.SwitchCase.create(node0.loc, node0.test, node0.consequent);
-        }))));
+        .slice.call(__args8, 1)), seq(moveChild("consequent"), sequencea(actions8), up)), modify(
+        translate.switchCase)));
     addTransform("BlockStatement", seq(pushBindings, ((__args9 = ["body", checkTop]), (actions9 = [].slice.call(
         __args9, 1)), seq(moveChild("body"), sequencea(actions9), up)), getBindings((function(bindings) {
         return modify(translate.blockStatement.bind(null, bindings));
@@ -166,9 +141,7 @@
     addTransform("WithStatement", seq(((__args14 = ["bindings", checkTop]), (actions14 = [].slice.call(__args14,
             1)), seq(moveChild("bindings"), sequencea(actions14), up)), ((__args15 = ["body", checkTop]), (
             actions15 = [].slice.call(__args15, 1)), seq(moveChild("body"), sequencea(actions15), up)),
-        modify((function(node0) {
-            return translate.withStatement(node0.loc, node0.bindings, node0.body);
-        }))));
+        modify(translate.withStatement)));
     addTransform("SwitchStatement", seq(((__args16 = ["discriminant", checkTop]), (actions16 = [].slice.call(
             __args16, 1)), seq(moveChild("discriminant"), sequencea(actions16), up)), ((__args17 = ["cases",
             checkTop
@@ -259,30 +232,26 @@
         seq(moveChild("key"), sequencea(actions56), up)), ((__args56 = ["value", checkTop]), (actions57 = []
         .slice.call(__args56, 1)), seq(moveChild("value"), sequencea(actions57), up)), modify(translate
         .objectValue)));
-    addTransform(["RelativeUnpack", "SliceUnpack"], ((__args57 = ["target", checkTop]), (actions58 = [].slice.call(
-        __args57, 1)), seq(moveChild("target"), sequencea(actions58), up)));
-    addTransform("ArgumentsPattern", seq(((__args58 = ["id", checkTop]), (actions59 = [].slice.call(__args58, 1)),
-        seq(moveChild("id"), sequencea(actions59), up)), ((__args59 = ["elements", checkTop]), (
-        actions60 = [].slice.call(__args59, 1)), seq(moveChild("elements"), sequencea(actions60),
-        up)), ((__args60 = ["self", checkTop]), (actions61 = [].slice.call(__args60, 1)), seq(moveChild(
-        "self"), sequencea(actions61), up))));
-    addTransform(["IdentifierPattern", "AsPattern"], seq(((__args61 = ["id", checkTop]), (actions62 = [].slice.call(
-        __args61, 1)), seq(moveChild("id"), sequencea(actions62), up)), modify((function(x2) {
+    addTransform("IdentifierPattern", seq(((__args57 = ["id", checkTop]), (actions58 = [].slice.call(__args57,
+        1)), seq(moveChild("id"), sequencea(actions58), up)), modify((function(x2) {
         return x2.id;
     }))));
-    addTransform(["ObjectPattern", "EllipsisPattern"], seq(modify(getUd.bind(null, "id"))));
-    addTransform("Program", ((useStrict = ecma_statement.ExpressionStatement.create(null, ecma_value.Literal.create(
-        null, "string", "use strict"))), seq(pushBindings, modify((function(node0) {
-        return ((type(node0.body) === "Package") ? node0 : setUd("prefix", useStrict, node0));
+    addTransform(["RelativeUnpack", "SliceUnpack"], ((__args58 = ["target", checkTop]), (actions59 = [].slice.call(
+        __args58, 1)), seq(moveChild("target"), sequencea(actions59), up)));
+    addTransform("ArgumentsPattern", seq(((__args59 = ["id", checkTop]), (actions60 = [].slice.call(__args59, 1)),
+        seq(moveChild("id"), sequencea(actions60), up)), ((__args60 = ["elements", checkTop]), (
+        actions61 = [].slice.call(__args60, 1)), seq(moveChild("elements"), sequencea(actions61),
+        up)), ((__args61 = ["self", checkTop]), (actions62 = [].slice.call(__args61, 1)), seq(moveChild(
+        "self"), sequencea(actions62), up))));
+    addTransform("Program", seq(pushBindings, modify((function(node0) {
+        return ((type(node0.body) === "Package") ? node0 : setUd("prefix", translate.useStrict,
+            node0));
     })), ((__args62 = ["body", checkTop]), (actions63 = [].slice.call(__args62, 1)), seq(moveChild(
         "body"), sequencea(actions63), up)), getBindings((function(bindings) {
         return modify(translate.program.bind(null, bindings));
-    })))));
+    }))));
     addTransform("Package", seq(packageManager.chain((function(packageManager0) {
-        return modify((function(node0) {
-            return translate.packageBlock(packageManager0, node0.loc, node0.exports,
-                node0.body);
-        }));
+        return modify(translate.packageBlock.bind(null, packageManager0));
     })), checkTop));
     addTransform("Import", packageManager.chain((function(packageManager0) {
         var y3;
@@ -291,13 +260,13 @@
         })));
     })));
     addTransform("Identifier", withNode((function(node0) {
-        return (getUid(node0) ? seq(addVar(node0.name, getUid(node0)), getMapping(getUid(node0))
+        var id, uid, uid0;
+        return (getUid(node0) ? seq(((id = node0.name), (uid = getUid(node0)), modifyScope(scope.addVar
+                .bind(null, id, uid))), ((uid0 = getUid(node0)), inspectScope(scope.getMapping.bind(
+                null, uid0)))
             .chain((function(name) {
-                return set(identifier(node0.loc, name, getUid(node0)));
-            }))) : set(identifier(node0.loc, node0.name)));
-    })));
-    addTransform(["BinaryOperator", "UnaryOperator"], modify((function(x2) {
-        return x2.name;
+                return set(translate.identifier(node0.loc, name, getUid(node0)));
+            }))) : set(translate.identifier(node0.loc, node0.name)));
     })));
     var visitArray = ((move = (function(x2, i, a) {
         return ((i === (a.length - 1)) ? checkTop : seq(checkTop, right));
