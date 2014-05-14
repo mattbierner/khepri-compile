@@ -6,17 +6,15 @@ define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "
     "./expansion"
 ], (function(require, exports, __o, __o0, tree, __o1, __o2, __o3, __o4) {
     "use strict";
-    var khepriZipper = __o["khepriZipper"],
+    var getLocals, rename, incCount, khepriZipper = __o["khepriZipper"],
         preWalk = __o0["preWalk"],
         setData = __o1["setData"],
         contains = __o2["contains"],
         type = __o3["type"],
         tryGetUd = __o3["tryGetUd"],
-        getUd = __o3["getUd"],
         getUid = __o3["getUid"],
         setUid = __o3["setUid"],
-        incrementCount = __o4["incrementCount"],
-        getLocals, rename, incCount;
+        incrementCount = __o4["incrementCount"];
     (getLocals = (function(node, prefix) {
         return tryGetUd([], "locals", node)
             .map((function(uid) {

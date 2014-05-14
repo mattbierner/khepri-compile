@@ -4,9 +4,8 @@
 */
 define(["require", "exports", "khepri-ast/node"], (function(require, exports, __o) {
     "use strict";
-    var setData = __o["setData"],
-        type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,
-            isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid;
+    var type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction,
+            isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, setData = __o["setData"];
     (type = (function(node) {
         return (node && node.type);
     }));

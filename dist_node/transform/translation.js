@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/translation.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/translation.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var ecma_clause = require("ecma-ast")["clause"],
     ecma_declaration = require("ecma-ast")["declaration"],
     ecma_expression = require("ecma-ast")["expression"],
@@ -17,10 +18,10 @@ var ecma_clause = require("ecma-ast")["clause"],
     __o0 = require("./unpack"),
     useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
         binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
-        arrayExpression, objectExpression, objectValue, functionExpression, letExpression, curryExpression, catchClause,
-        switchCase, emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
-        breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
-        tryStatement, packageBlock, type = __o["type"],
+        arrayExpression, objectExpression, objectValue, functionExpression, functionExpressionPost, letExpression,
+        curryExpression, catchClause, switchCase, emptyStatement, blockStatement, withStatement, expressionStatement,
+        returnStatement, throwStatement, breakStatement, continueStatement, ifStatement, switchStatement, forStatement,
+        doWhileStatement, whileStatement, tryStatement, packageBlock, type = __o["type"],
     tryGetUd = __o["tryGetUd"],
     setUid = __o["setUid"],
     concat = fun["concat"],
@@ -114,6 +115,9 @@ var mapOp = (function(op) {
     return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
         body.loc, concat((prefix || []), ecma_declaration.VariableDeclaration.create(null, bindings), body)
     ));
+}));
+(functionExpressionPost = (function(node) {
+    return ecma_expression.FunctionExpression.create(null, node.id, node.params, node.body);
 }));
 (arrayExpression = (function(node) {
     return ecma_expression.ArrayExpression.create(node.loc, node.elements);
@@ -214,6 +218,7 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["objectExpression"] = objectExpression);
 (exports["objectValue"] = objectValue);
 (exports["functionExpression"] = functionExpression);
+(exports["functionExpressionPost"] = functionExpressionPost);
 (exports["letExpression"] = letExpression);
 (exports["curryExpression"] = curryExpression);
 (exports["catchClause"] = catchClause);

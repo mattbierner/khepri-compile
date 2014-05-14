@@ -5,12 +5,11 @@
 define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (function(require, exports, record, hamt,
     __o, __o0) {
     "use strict";
-    var concat = __o["concat"],
+    var State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals,
+            pushLocals, popLocals, concat = __o["concat"],
         Binding = __o0["Binding"],
         MUTABLE = __o0["MUTABLE"],
-        IMMUTABLE = __o0["IMMUTABLE"],
-        State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals,
-            pushLocals, popLocals;
+        IMMUTABLE = __o0["IMMUTABLE"];
     (State = record.declare(null, ["bindings", "working", "globals", "outer", "locals"]));
     (State.empty = new(State)(hamt.empty, hamt.empty, hamt.empty, null, [
         [], null

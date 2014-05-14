@@ -1,13 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/"use strict";
-var ecma_expression = require("ecma-ast")["expression"],
-    __o = require("ecma-ast-zipper"),
-    Unique = require("akh")["unique"],
+*/
+"use strict";
+var Unique = require("akh")["unique"],
     StateT = require("akh")["trans"]["statei"],
-    __o0 = require("akh")["base"],
+    __o = require("akh")["base"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
+    __o0 = require("ecma-ast-zipper"),
     __o1 = require("../ast"),
     scope = require("../lexical/scope"),
     __o2 = require("../fun"),
@@ -17,10 +17,10 @@ var ecma_expression = require("ecma-ast")["expression"],
     translate = require("./translation"),
     _ = require("./package_manager/amd"),
     _0 = require("./package_manager/node"),
-    transform, ecmaZipper = __o["ecmaZipper"],
-    liftM2 = __o0["liftM2"],
-    seq = __o0["sequence"],
-    sequencea = __o0["sequencea"],
+    transform, liftM2 = __o["liftM2"],
+    seq = __o["sequence"],
+    sequencea = __o["sequencea"],
+    ecmaZipper = __o0["ecmaZipper"],
     type = __o1["type"],
     getUd = __o1["getUd"],
     setUd = __o1["setUd"],
@@ -210,14 +210,13 @@ addTransform("CurryExpression", seq(((__args48 = ["base", checkTop]), (actions48
     moveChild("base"), sequencea(actions48), up)), ((__args49 = ["args", checkTop]), (actions49 = [].slice.call(
     __args49, 1)), seq(moveChild("args"), sequencea(actions49), up)), modify(translate.curryExpression)));
 addTransform("FunctionExpression", ((actions50 = [((__args50 = ["id", checkTop]), (actions51 = [].slice.call(__args50,
-    1)), seq(moveChild("id"), sequencea(actions51), up)), modify((function(node0) {
-    return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
-        "prefix", node0));
-})), ((__args51 = ["params", checkTop]), (actions52 = [].slice.call(__args51, 1)), seq(moveChild(
-    "params"), sequencea(actions52), up)), ((__args52 = ["body", checkTop]), (actions53 = [].slice.call(
-    __args52, 1)), seq(moveChild("body"), sequencea(actions53), up)), modify((function(node0) {
-    return ecma_expression.FunctionExpression.create(null, node0.id, node0.params, node0.body);
-}))]), seq(enterBlock, sequencea(actions50), exitBlock)));
+        1)), seq(moveChild("id"), sequencea(actions51), up)), modify((function(node0) {
+        return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
+            "prefix", node0));
+    })), ((__args51 = ["params", checkTop]), (actions52 = [].slice.call(__args51, 1)), seq(moveChild(
+        "params"), sequencea(actions52), up)), ((__args52 = ["body", checkTop]), (actions53 = [].slice.call(
+        __args52, 1)), seq(moveChild("body"), sequencea(actions53), up)), modify(translate.functionExpressionPost)]),
+    seq(enterBlock, sequencea(actions50), exitBlock)));
 addTransform("ArrayExpression", seq(((__args53 = ["elements", checkTop]), (actions54 = [].slice.call(__args53, 1)), seq(
     moveChild("elements"), sequencea(actions54), up)), modify(translate.arrayExpression)));
 addTransform("ObjectExpression", seq(((__args54 = ["properties", checkTop]), (actions55 = [].slice.call(__args54, 1)),

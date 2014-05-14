@@ -8,9 +8,9 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
 ], (function(require, exports, ast_declaration, ast_expression, __o, ast_pattern, ast_program, ast_statement,
     ast_value, fun, __o0) {
     "use strict";
-    var setData = __o["setData"],
+    var definePackage, defineProgram, importPackage, setData = __o["setData"],
         builtins = __o0["builtins"],
-        definePackage, defineProgram, importPackage, concat = Function.prototype.call.bind(Array.prototype.concat),
+        concat = Function.prototype.call.bind(Array.prototype.concat),
         map = Function.prototype.call.bind(Array.prototype.map),
         path = (function(path0) {
             return path0.split("::")

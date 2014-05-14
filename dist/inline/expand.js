@@ -6,8 +6,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
     "khepri-ast/value", "khepri-ast/node", "../ast", "../fun", "./rename", "../builtin"
 ], (function(require, exports, ast_declaration, ast_expression, ast_pattern, ast_value, __o, __o0, __o1, ren, __o2) {
     "use strict";
-    var setData = __o["setData"],
-        modify = __o["modify"],
+    var expandCallee, expandCurry, modify = __o["modify"],
         type = __o0["type"],
         getUid = __o0["getUid"],
         tryGetUd = __o0["tryGetUd"],
@@ -15,7 +14,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
         map = __o1["map"],
         rename = ren["rename"],
         builtins = __o2["builtins"],
-        expandCallee, expandCurry, getLocals = tryGetUd.bind(null, [], "locals");
+        getLocals = tryGetUd.bind(null, [], "locals");
     (expandCallee = (function(uid, callee, args) {
         var arg, target = ((type(callee) === "LetExpression") ? callee.body : callee),
             closure = getLocals(target),
@@ -38,7 +37,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
             target.body))];
     }));
     (expandCurry = (function(uid, base, args) {
-        var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
+        var target = ((base.type === "LetExpression") ? base.body : base),
+            first, rest, closure, body;
         return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest =
             target.params.elements.slice(1)), (closure = getLocals(target)), (body = modify(
             target, ({

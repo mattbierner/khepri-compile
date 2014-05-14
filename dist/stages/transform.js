@@ -5,8 +5,7 @@
 define(["require", "exports", "akh/error", "bes/object", "../transform/transform"], (function(require, exports, Error,
     __o, transformer) {
     "use strict";
-    var setProperty = __o["setProperty"],
-        transform;
+    var transform, setProperty = __o["setProperty"];
     (transform = (function(input) {
         var options = input["options"],
             tree = input["tree"],

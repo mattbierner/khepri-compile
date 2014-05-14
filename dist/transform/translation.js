@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/translation.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/translation.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
+*/
+define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
     "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/expression", "khepri-ast/statement",
     "khepri-ast/value", "../ast", "../fun", "./unpack"
 ], (function(require, exports, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
@@ -10,10 +11,10 @@
     var useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression,
             unaryExpression, binaryExpression, logicalExpression, conditionalExpression, newExpression,
             callExpression, memberExpression, arrayExpression, objectExpression, objectValue,
-            functionExpression, letExpression, curryExpression, catchClause, switchCase, emptyStatement,
-            blockStatement, withStatement, expressionStatement, returnStatement, throwStatement, breakStatement,
-            continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
-            tryStatement, packageBlock, type = __o["type"],
+            functionExpression, functionExpressionPost, letExpression, curryExpression, catchClause, switchCase,
+            emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
+            breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement,
+            whileStatement, tryStatement, packageBlock, type = __o["type"],
         tryGetUd = __o["tryGetUd"],
         setUid = __o["setUid"],
         concat = fun["concat"],
@@ -109,6 +110,9 @@
         return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement
             .create(body.loc, concat((prefix || []), ecma_declaration.VariableDeclaration.create(null,
                 bindings), body)));
+    }));
+    (functionExpressionPost = (function(node) {
+        return ecma_expression.FunctionExpression.create(null, node.id, node.params, node.body);
     }));
     (arrayExpression = (function(node) {
         return ecma_expression.ArrayExpression.create(node.loc, node.elements);
@@ -209,6 +213,7 @@
     (exports["objectExpression"] = objectExpression);
     (exports["objectValue"] = objectValue);
     (exports["functionExpression"] = functionExpression);
+    (exports["functionExpressionPost"] = functionExpressionPost);
     (exports["letExpression"] = letExpression);
     (exports["curryExpression"] = curryExpression);
     (exports["catchClause"] = catchClause);

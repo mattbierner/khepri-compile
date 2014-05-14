@@ -168,7 +168,7 @@ var pop = modifyState (state.pop);
 /**
  * Evaluate `body` in a new scoping block.
  */
-var block = \body(...) ->
+var block = \-body(...)->
     seq(
         push,
         seqa(body),
@@ -597,7 +597,7 @@ addRewrite@'AssignmentExpression' <| seq(
     /**
      * Update the working value of a binding.
      */
-    when((.left) \> type \> (===, 'Identifier'),
+    when((.left) \> type \> (=== 'Identifier'),
         extract \ {operator left right} ->
             ?operator === '='
                 :setWorkingForNode(left, right)
@@ -757,7 +757,7 @@ addRewrite@'LetExpression' <| seq(
     /**
      * Flatten let with let body.
      */
-    when((.body) \> type \> (===, 'LetExpression'),
+    when((.body) \> type \> (=== 'LetExpression'),
         modify \ {loc bindings body} ->
             ast_expression.LetExpression.create(loc,
                 concat(

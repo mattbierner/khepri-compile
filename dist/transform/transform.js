@@ -1,16 +1,17 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/transform.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "ecma-ast/expression", "ecma-ast-zipper", "akh/unique", "akh/trans/statei", "akh/base",
-    "zipper-m/trans/tree", "../ast", "../lexical/scope", "../fun", "../builtin", "./unpack", "./state",
-    "./translation", "./package_manager/amd", "./package_manager/node"
-], (function(require, exports, ecma_expression, __o, Unique, StateT, __o0, TreeZipperT, __o1, scope, __o2, __o3,
-    __o4, state, translate, _, _0) {
+*/
+define(["require", "exports", "akh/unique", "akh/trans/statei", "akh/base", "zipper-m/trans/tree", "ecma-ast-zipper",
+    "../ast", "../lexical/scope", "../fun", "../builtin", "./unpack", "./state", "./translation",
+    "./package_manager/amd", "./package_manager/node"
+], (function(require, exports, Unique, StateT, __o, TreeZipperT, __o0, __o1, scope, __o2, __o3, __o4, state,
+    translate, _, _0) {
     "use strict";
-    var transform, ecmaZipper = __o["ecmaZipper"],
-        liftM2 = __o0["liftM2"],
-        seq = __o0["sequence"],
-        sequencea = __o0["sequencea"],
+    var transform, liftM2 = __o["liftM2"],
+        seq = __o["sequence"],
+        sequencea = __o["sequencea"],
+        ecmaZipper = __o0["ecmaZipper"],
         type = __o1["type"],
         getUd = __o1["getUd"],
         setUd = __o1["setUd"],
@@ -220,10 +221,8 @@
     })), ((__args51 = ["params", checkTop]), (actions52 = [].slice.call(__args51, 1)), seq(
         moveChild("params"), sequencea(actions52), up)), ((__args52 = ["body", checkTop]), (
         actions53 = [].slice.call(__args52, 1)), seq(moveChild("body"), sequencea(actions53),
-        up)), modify((function(node0) {
-        return ecma_expression.FunctionExpression.create(null, node0.id, node0.params,
-            node0.body);
-    }))]), seq(enterBlock, sequencea(actions50), exitBlock)));
+        up)), modify(translate.functionExpressionPost)]), seq(enterBlock, sequencea(actions50),
+        exitBlock)));
     addTransform("ArrayExpression", seq(((__args53 = ["elements", checkTop]), (actions54 = [].slice.call(
         __args53, 1)), seq(moveChild("elements"), sequencea(actions54), up)), modify(translate.arrayExpression)));
     addTransform("ObjectExpression", seq(((__args54 = ["properties", checkTop]), (actions55 = [].slice.call(

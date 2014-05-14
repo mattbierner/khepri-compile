@@ -306,7 +306,7 @@ addCheck@'Package' <|
         checkChild 'exports',
         // Evaluate body in same scope
         child('body',
-            when(type \> (===, 'WithStatement'),
+            when(type \> (=== 'WithStatement'),
                 seq(
                     checkChild 'bindings',
                     child('body',
@@ -429,7 +429,7 @@ addCheck@'FunctionExpression' <|
             checkChild 'params',
             // Evaluate body in same scope
             child('body',
-                when(type \> (===, 'BlockStatement'),
+                when(type \> (=== 'BlockStatement'),
                     checkChild 'body',
                     checkTop)),
             

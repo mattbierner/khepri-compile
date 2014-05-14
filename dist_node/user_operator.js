@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/user_operator.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/user_operator.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("./fun"),
     opToName, splitOp, map = ({
         "*": "star",

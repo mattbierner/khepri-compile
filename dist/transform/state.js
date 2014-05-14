@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/state.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "bes/record", "nu-stream/stream", "../lexical/scope"], (function(require, exports, record,
+*/
+define(["require", "exports", "bes/record", "nu-stream/stream", "../lexical/scope"], (function(require, exports, record,
     stream, scope) {
     "use strict";
     var State, getBindings, addBindings, pushBindings, popBindings, append = stream["append"],

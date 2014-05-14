@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/normalize/unpack.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/normalize/unpack.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
+*/
+define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun"
 ], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, __o1) {
     "use strict";

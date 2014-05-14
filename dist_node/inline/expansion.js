@@ -5,13 +5,10 @@
 "use strict";
 var record = require("bes")["record"],
     __o = require("khepri-ast")["node"],
-    setData = __o["setData"],
     __o0 = require("../ast"),
-    getUid = __o0["getUid"],
+    markExpansion, incrementCount, getExpansion, isExpansion, expandNode, setData = __o["setData"],
     getUd = __o0["getUd"],
-    markExpansion, incrementCount, getExpansion, isExpansion, expandNode, Expansion = record.declare(null, ["count",
-        "value"
-    ]);
+    Expansion = record.declare(null, ["count", "value"]);
 (getExpansion = getUd.bind(null, "expand"));
 (isExpansion = getExpansion);
 (markExpansion = (function(node, count, value) {

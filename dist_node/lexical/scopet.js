@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical/scopet.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/scopet.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var StateT = require("akh")["trans"]["statei"],
     scope = require("./scope"),
     ScopeT, ScopeMonad = (function(Instance) {

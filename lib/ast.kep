@@ -39,7 +39,7 @@ type := \node ->
 /**
  * Is a node an identifier?
  */
-isIdentifier = type \> (===, 'Identifier');
+isIdentifier = type \> (=== 'Identifier');
 
 /* Literal
  ******************************************************************************/

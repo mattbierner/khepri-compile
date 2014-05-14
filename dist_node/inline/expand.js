@@ -8,20 +8,19 @@ var ast_declaration = require("khepri-ast")["declaration"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o = require("khepri-ast")["node"],
-    setData = __o["setData"],
-    modify = __o["modify"],
     __o0 = require("../ast"),
+    __o1 = require("../fun"),
+    ren = require("./rename"),
+    __o2 = require("../builtin"),
+    expandCallee, expandCurry, modify = __o["modify"],
     type = __o0["type"],
     getUid = __o0["getUid"],
     tryGetUd = __o0["tryGetUd"],
-    __o1 = require("../fun"),
     concat = __o1["concat"],
     map = __o1["map"],
-    ren = require("./rename"),
     rename = ren["rename"],
-    __o2 = require("../builtin"),
     builtins = __o2["builtins"],
-    expandCallee, expandCurry, getLocals = tryGetUd.bind(null, [], "locals");
+    getLocals = tryGetUd.bind(null, [], "locals");
 (expandCallee = (function(uid, callee, args) {
     var arg, target = ((type(callee) === "LetExpression") ? callee.body : callee),
         closure = getLocals(target),
@@ -40,7 +39,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
     return [locals, ast_expression.LetExpression.create(null, bindings0, rename(uid, closure, target.body))];
 }));
 (expandCurry = (function(uid, base, args) {
-    var first, rest, closure, body, target = ((base.type === "LetExpression") ? base.body : base);
+    var target = ((base.type === "LetExpression") ? base.body : base),
+        first, rest, closure, body;
     return ((!target.params.elements.length) ? base : ((first = target.params.elements[0]), (rest = target.params
         .elements.slice(1)), (closure = getLocals(target)), (body = modify(target, ({
         id: null,

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/user_operator.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/user_operator.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "./fun"], (function(require, exports, __o) {
+*/
+define(["require", "exports", "./fun"], (function(require, exports, __o) {
     "use strict";
     var opToName, splitOp, map = ({
             "*": "star",

@@ -5,9 +5,8 @@
 "use strict";
 var Error = require("akh")["error"],
     __o = require("bes")["object"],
-    setProperty = __o["setProperty"],
     khepri_peep = require("../khepri_peep"),
-    optimize;
+    optimize, setProperty = __o["setProperty"];
 (optimize = (function(input) {
     var tree = input["tree"],
         data = input["data"];

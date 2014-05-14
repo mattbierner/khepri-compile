@@ -6,8 +6,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
     "khepri-ast/program", "khepri-ast/value", "../../fun", "../../builtin"
 ], (function(require, exports, ast_declaration, ast_expression, ast_statement, ast_program, ast_value, fun, __o) {
     "use strict";
-    var builtins = __o["builtins"],
-        definePackage, defineProgram, importPackage, concat = Array.prototype.concat.bind([]),
+    var definePackage, defineProgram, importPackage, builtins = __o["builtins"],
+        concat = Array.prototype.concat.bind([]),
         map = Function.prototype.call.bind(Array.prototype.map);
     (defineProgram = (function(body) {
         return ast_program.Program.create(null, fun.concat(ast_statement.ExpressionStatement.create(

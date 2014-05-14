@@ -5,9 +5,8 @@
 define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun"], (function(require, exports, zipper,
     tree, __o, __o0) {
     "use strict";
-    var walk = __o["walk"],
-        concat = __o0["concat"],
-        UP, DOWN, Rewriter, rewrite;
+    var UP, DOWN, Rewriter, rewrite, walk = __o["walk"],
+        concat = __o0["concat"];
     (UP = true);
     (DOWN = false);
     var transform = (function(ctx, transforms) {
@@ -65,7 +64,8 @@ define(["require", "exports", "neith/zipper", "neith/tree", "neith/walk", "./fun
     }),
         y = zipper.root;
     (rewrite = (function() {
-        return y(x.apply(null, arguments));
+        var args = arguments;
+        return y(x.apply(null, args));
     }));
     (exports["UP"] = UP);
     (exports["DOWN"] = DOWN);

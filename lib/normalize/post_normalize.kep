@@ -38,6 +38,8 @@ in {
 
 var markReserved := setUd @ 'reserved' @ true;
 
+var isUserOp := getUid;
+
 /* Transforms
  ******************************************************************************/
 var peepholes = new Rewriter();
@@ -47,7 +49,7 @@ var always := \_ -> true;
 /* Binding Expansion
  ******************************************************************************/
 /**
- * Expand an import pattern to a binding to an import.
+ * Expand an import pattern to an import.
  * 
  * Imports are marked reserved so they will not be pruned.
  */
@@ -55,7 +57,10 @@ peepholes.add('ImportPattern', UP,
     always,
     
     \{pattern from} -> let
-        [imp ...rest] = innerPattern(Import.create(null, from.value), pattern)
+        [imp ...rest] =
+            innerPattern(
+                Import.create(null, from.value),
+                pattern)
     in
         concat(
             markReserved imp,
@@ -69,7 +74,9 @@ peepholes.add('Binding', UP,
     always,
     
     \binding ->
-        innerPattern(binding.value, binding.pattern));
+        innerPattern(
+            binding.value,
+            binding.pattern));
 
 /**
  * Flatten previously expanded binding lists.
@@ -119,29 +126,35 @@ var opToIdentifier := \node ->
  * Rewrite user defined operators to identifiers.
  */
 peepholes.add(['UnaryOperator', 'BinaryOperator'], DOWN,
-    getUid,
+    isUserOp,
     
     opToIdentifier);
 
 /**
+ * Rewrite binary expressions with user defined ops to a function call.
+ * 
+ * Rewrites normal binary expressions to use op name instead of node.
  */
 peepholes.add('BinaryExpression', DOWN,
     always,
     
     \node#{loc operator left right} ->
-        ?getUid operator
+        ?isUserOp operator
             :ast_expression.CallExpression.create(loc,
                 opToIdentifier operator,
                 [left, right])
             :modify(node, { operator: operator.name }));
 
 /**
+ * Rewrite unary expressions with user defined op to a funciton call.
+ * 
+ * Rewrites normal unary expressions to use op name instead of node.
  */
 peepholes.add('UnaryExpression', DOWN,
     always,
     
     \node#{loc operator argument} ->
-        ?getUid operator
+        ?isUserOp operator
             :ast_expression.CallExpression.create(loc,
                 opToIdentifier operator,
                 [argument])
@@ -164,7 +177,7 @@ var expandAssignment := \node ->
  * assignments in a block.
  */
 peepholes.add('ExpressionStatement', UP,
-    (.expression) \> type \> (===, 'AssignmentExpression'),
+    (.expression) \> type \> (=== 'AssignmentExpression'),
     
     (.expression)
         \> expandAssignment
@@ -181,7 +194,7 @@ var pipe := \loc callee arg ->
  * Rewrite left pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    (.operator) \> (===, '|>'),
+    (.operator) \> (=== '|>'),
     
     \{loc left right} ->
         pipe(loc, right, left));
@@ -190,7 +203,7 @@ peepholes.add('BinaryExpression', UP,
  * Rewrite right pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    (.operator) \> (===, '<|'),
+    (.operator) \> (=== '<|'),
     
     \{loc left right} ->
         pipe(loc, left, right));

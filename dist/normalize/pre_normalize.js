@@ -6,7 +6,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun", "../rewriter"
 ], (function(require, exports, __o, ast_expression, ast_pattern, ast_package, ast_value, __o0, __o1, __o2, __o3) {
     "use strict";
-    var modify = __o["modify"],
+    var normalize, modify = __o["modify"],
         setData = __o["setData"],
         getData = __o["getData"],
         SliceUnpack = __o0["SliceUnpack"],
@@ -16,12 +16,11 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         map = __o2["map"],
         foldl = __o2["foldl"],
         foldr = __o2["foldr"],
-        flatten = __o2["flatten"],
         UP = __o3["UP"],
         DOWN = __o3["DOWN"],
         Rewriter = __o3["Rewriter"],
         rewrite = __o3["rewrite"],
-        normalize, string = ast_value.Literal.create.bind(null, null, "string"),
+        string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         always = (function(_) {
             return true;
@@ -56,7 +55,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     rewrites.add("ArrayPattern", DOWN, (function(_) {
         return true;
     }), (function(__o4) {
-        var pre0, loc = __o4["loc"],
+        var loc = __o4["loc"],
             elements = __o4["elements"],
             indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
@@ -65,7 +64,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             ]),
             pre = __o5[0],
             mid = __o5[1],
-            post = __o5[2];
+            post = __o5[2],
+            pre0;
         return ast_pattern.ObjectPattern.create(loc, ((pre0 = map((function(x, i) {
             return ast_pattern.ObjectPatternElement.create(null, number(i), x);
         }), pre)), concat(pre0, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null, pre0.length,

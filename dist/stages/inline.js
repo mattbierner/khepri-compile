@@ -5,8 +5,7 @@
 define(["require", "exports", "bes/object", "akh/error", "../inline/inline"], (function(require, exports, __o, Error,
     inline) {
     "use strict";
-    var setProperty = __o["setProperty"],
-        optimize;
+    var optimize, setProperty = __o["setProperty"];
     (optimize = (function(input) {
         var tree = input["tree"],
             data = input["data"],

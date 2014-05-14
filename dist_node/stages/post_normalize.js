@@ -4,10 +4,9 @@
 */
 "use strict";
 var __o = require("bes")["object"],
-    setProperty = __o["setProperty"],
     Error = require("akh")["error"],
     post_normalize = require("../normalize/post_normalize"),
-    optimize;
+    optimize, setProperty = __o["setProperty"];
 (optimize = (function(input) {
     var tree = input["tree"],
         data = input["data"];

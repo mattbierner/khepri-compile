@@ -24,6 +24,7 @@ package (
     objectValue
     
     functionExpression
+    functionExpressionPost
     letExpression
     curryExpression
     
@@ -261,6 +262,11 @@ in
                 ecma_declaration.VariableDeclaration.create(null, bindings),
                 body)));
 
+functionExpressionPost = \node ->
+    ecma_expression.FunctionExpression.create(null,
+        node.id,
+        node.params,
+        node.body);
 
 /**
  * 

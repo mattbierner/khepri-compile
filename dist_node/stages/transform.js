@@ -5,9 +5,8 @@
 "use strict";
 var Error = require("akh")["error"],
     __o = require("bes")["object"],
-    setProperty = __o["setProperty"],
     transformer = require("../transform/transform"),
-    transform;
+    transform, setProperty = __o["setProperty"];
 (transform = (function(input) {
     var options = input["options"],
         tree = input["tree"],

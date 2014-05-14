@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/transform/state.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/transform/state.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var record = require("bes")["record"],
     stream = require("nu-stream")["stream"],
     scope = require("../lexical/scope"),

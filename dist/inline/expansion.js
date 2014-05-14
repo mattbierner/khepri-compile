@@ -4,12 +4,9 @@
 */
 define(["require", "exports", "bes/record", "khepri-ast/node", "../ast"], (function(require, exports, record, __o, __o0) {
     "use strict";
-    var setData = __o["setData"],
-        getUid = __o0["getUid"],
+    var markExpansion, incrementCount, getExpansion, isExpansion, expandNode, setData = __o["setData"],
         getUd = __o0["getUd"],
-        markExpansion, incrementCount, getExpansion, isExpansion, expandNode, Expansion = record.declare(null, [
-            "count", "value"
-        ]);
+        Expansion = record.declare(null, ["count", "value"]);
     (getExpansion = getUd.bind(null, "expand"));
     (isExpansion = getExpansion);
     (markExpansion = (function(node, count, value) {

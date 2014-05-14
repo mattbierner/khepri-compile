@@ -5,8 +5,7 @@
 define(["require", "exports", "akh/error", "bes/object", "../khepri_peep"], (function(require, exports, Error, __o,
     khepri_peep) {
     "use strict";
-    var setProperty = __o["setProperty"],
-        optimize;
+    var optimize, setProperty = __o["setProperty"];
     (optimize = (function(input) {
         var tree = input["tree"],
             data = input["data"];

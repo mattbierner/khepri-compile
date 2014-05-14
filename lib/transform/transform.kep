@@ -3,11 +3,7 @@
  */
 package (
     transform)
-with 
-    import 'ecma-ast::expression' ecma_expression,
-    
-    import 'ecma-ast-zipper' {ecmaZipper},
-    
+with     
     import 'akh::unique' Unique,
     import 'akh::trans::statei' StateT,
     import 'akh::base' {
@@ -16,6 +12,8 @@ with
         sequencea},
     
     import 'zipper-m::trans::tree' TreeZipperT,
+    
+    import 'ecma-ast-zipper' {ecmaZipper},
     
     import '../ast' {
         type
@@ -341,11 +339,7 @@ addTransform@'FunctionExpression' <|
         rewriteChild 'params',
         rewriteChild 'body',
         
-        modify \ node ->
-            ecma_expression.FunctionExpression.create(null,
-                node.id,
-                node.params,
-                node.body));
+        modify (translate.functionExpressionPost));
 
 addTransform@'ArrayExpression' <| seq(
     rewriteChild 'elements',
@@ -438,7 +432,6 @@ _trans := \node ->
     ?Array.isArray node
         :visitArray node
         :(transformers.(type node) || pass);
-
 
 var transformProgram := seq(
     addVar('require', getUid(builtins.require)),

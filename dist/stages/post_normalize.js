@@ -5,8 +5,7 @@
 define(["require", "exports", "bes/object", "akh/error", "../normalize/post_normalize"], (function(require, exports,
     __o, Error, post_normalize) {
     "use strict";
-    var setProperty = __o["setProperty"],
-        optimize;
+    var optimize, setProperty = __o["setProperty"];
     (optimize = (function(input) {
         var tree = input["tree"],
             data = input["data"];

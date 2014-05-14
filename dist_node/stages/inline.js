@@ -4,10 +4,9 @@
 */
 "use strict";
 var __o = require("bes")["object"],
-    setProperty = __o["setProperty"],
     Error = require("akh")["error"],
     inline = require("../inline/inline"),
-    optimize;
+    optimize, setProperty = __o["setProperty"];
 (optimize = (function(input) {
     var tree = input["tree"],
         data = input["data"],

@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lexical/scopet.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lexical/scopet.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "akh/trans/statei", "./scope"], (function(require, exports, StateT, scope) {
+*/
+define(["require", "exports", "akh/trans/statei", "./scope"], (function(require, exports, StateT, scope) {
     "use strict";
     var ScopeT, ScopeMonad = (function(Instance) {
             (Instance.extractScope = Instance.get);

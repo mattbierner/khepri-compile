@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/pseudo/pattern.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/pseudo/pattern.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern"], (function(require, exports, __o, __o0) {
+*/
+define(["require", "exports", "khepri-ast/node", "khepri-ast/pattern"], (function(require, exports, __o, __o0) {
     "use strict";
     var RelativeUnpack, SliceUnpack, MemberUnpack, Import, defineNode = __o["defineNode"],
         Node = __o["Node"],

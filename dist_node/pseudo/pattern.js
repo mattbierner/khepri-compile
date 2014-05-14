@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/pseudo/pattern.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/pseudo/pattern.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("khepri-ast")["node"],
     __o0 = require("khepri-ast")["pattern"],
     RelativeUnpack, SliceUnpack, MemberUnpack, Import, defineNode = __o["defineNode"],
