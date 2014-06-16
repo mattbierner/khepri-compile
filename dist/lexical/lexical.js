@@ -12,7 +12,7 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         seq = __o["sequence"],
         seqa = __o["sequencea"],
         type = __o0["type"],
-        isIdentifier = __o0["isIdentifier"],
+        isSymbol = __o0["isSymbol"],
         getUd = __o0["getUd"],
         setUd = __o0["setUd"],
         setUid = __o0["setUid"],
@@ -114,14 +114,14 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         checkCanAssign = (function(id, loc) {
             return examineScope((function(s) {
                 return (scope.hasMutableBinding(id, s) ? pass : error((((
-                    "Assign to immutable variable:'" + id) + "' at:") + (loc && loc.start))));
+                    "Assign to immutable symbol:'" + id) + "' at:") + (loc && loc.start))));
             }));
         }),
         markBindingImmutable = (function(id, loc) {
             return examineScope((function(s) {
                 return (s.hasOwnBinding(id) ? modifyScope(scope.setBindingMutability.bind(null, id,
-                    false)) : error((((("Cannot mark variable:'" + id) + "' at:") + (loc && loc
-                    .start)) + " immutable in enclosed scope")));
+                    false)) : error((((("Cannot mark symbol:'" + id) + "' at:") + (loc && loc.start)) +
+                    " immutable in enclosed scope")));
             }));
         }),
         addMutableBinding = (function(id, loc) {
@@ -320,7 +320,7 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         1)), seq(moveChild("left"), seqa(actions46), up)), inspect((function(__o3) {
         var immutable = __o3["immutable"],
             left = __o3["left"];
-        return (isIdentifier(left) ? seq(checkCanAssign(left.name, left.loc), (immutable ?
+        return (isSymbol(left) ? seq(checkCanAssign(left.name, left.loc), (immutable ?
             markBindingImmutable(left.name, left.loc) : pass)) : pass);
     })), ((__args47 = ["right", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(moveChild(
         "right"), seqa(actions47), up))));

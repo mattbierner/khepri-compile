@@ -20,7 +20,7 @@ var __o = require("akh")["base"],
     seq = __o["sequence"],
     seqa = __o["sequencea"],
     type = __o0["type"],
-    isIdentifier = __o0["isIdentifier"],
+    isSymbol = __o0["isSymbol"],
     getUd = __o0["getUd"],
     setUd = __o0["setUd"],
     setUid = __o0["setUid"],
@@ -117,14 +117,14 @@ var __o = require("akh")["base"],
     }),
     checkCanAssign = (function(id, loc) {
         return examineScope((function(s) {
-            return (scope.hasMutableBinding(id, s) ? pass : error(((("Assign to immutable variable:'" + id) +
+            return (scope.hasMutableBinding(id, s) ? pass : error(((("Assign to immutable symbol:'" + id) +
                 "' at:") + (loc && loc.start))));
         }));
     }),
     markBindingImmutable = (function(id, loc) {
         return examineScope((function(s) {
             return (s.hasOwnBinding(id) ? modifyScope(scope.setBindingMutability.bind(null, id, false)) :
-                error((((("Cannot mark variable:'" + id) + "' at:") + (loc && loc.start)) +
+                error((((("Cannot mark symbol:'" + id) + "' at:") + (loc && loc.start)) +
                     " immutable in enclosed scope")));
         }));
     }),
@@ -312,8 +312,8 @@ addCheck("AssignmentExpression", seq(((__args46 = ["left", checkTop]), (actions4
     moveChild("left"), seqa(actions46), up)), inspect((function(__o3) {
     var immutable = __o3["immutable"],
         left = __o3["left"];
-    return (isIdentifier(left) ? seq(checkCanAssign(left.name, left.loc), (immutable ?
-        markBindingImmutable(left.name, left.loc) : pass)) : pass);
+    return (isSymbol(left) ? seq(checkCanAssign(left.name, left.loc), (immutable ? markBindingImmutable(
+        left.name, left.loc) : pass)) : pass);
 })), ((__args47 = ["right", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(moveChild("right"), seqa(
     actions47), up))));
 addCheck("BinaryExpression", seq(((__args48 = ["operator", checkTop]), (actions48 = [].slice.call(__args48, 1)), seq(

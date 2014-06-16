@@ -21,7 +21,7 @@ with
     
     import '../ast' {
         type
-        isIdentifier
+        isSymbol
         getUd
         setUd
         setUid},
@@ -200,7 +200,7 @@ var checkCanAssign = \id, loc ->
     examineScope \ s ->
         ?scope.hasMutableBinding(id, s)
             :pass
-        :error("Assign to immutable variable:'" + id + "' at:" + getStart loc);
+        :error("Assign to immutable symbol:'" + id + "' at:" + getStart loc);
 
 /**
  * Mark existing binding for `id` as immutable.
@@ -211,7 +211,7 @@ var markBindingImmutable = \id loc ->
     examineScope \ s ->
         ?s.hasOwnBinding id
             :modifyScope (scope.setBindingMutability@(id, false))
-        :error("Cannot mark variable:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
+        :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
 
 /**
  * Add a new mutable binding in the current scope.
@@ -453,7 +453,7 @@ addCheck@'UnaryExpression' <| seq(
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
     inspect \ {immutable left} ->
-        ?isIdentifier left
+        ?isSymbol left
             :seq(
                 checkCanAssign(left.name, left.loc),
                 ?immutable
@@ -546,7 +546,7 @@ addCheck@['Identifier', 'BinaryOperator'] <|
              setNode <| setUid(scope.getUid(name, s), node));
 
 addCheck@['UnaryOperator'] <|
-    when((.name) \> (_ ., 0) \> (===, '.'),
+    when((.name) \> (_ ., 0) \> (=== '.'),
         pass,
         inspect \ node#{loc name} -> seq(
             checkHasBinding(name, loc),

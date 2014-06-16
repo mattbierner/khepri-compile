@@ -1,7 +1,9 @@
 # ChangeLog #
 
-## 1.0.2 - May XX, 2014
+## 1.0.2 - June 15, 2014
 * Fixed operators with `?` not generating correct names.
+* Fixed not erroring on reassignment of built-in immutable ops.
+** Local hiding of built-in ops  ok
 
 ## 1.0.1 - May 12, 2014
 * Fixed identifier operators like `instanceof` being undefined.

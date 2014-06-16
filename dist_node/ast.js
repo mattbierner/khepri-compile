@@ -4,14 +4,22 @@
 */
 "use strict";
 var __o = require("khepri-ast")["node"],
-    type, isIdentifier, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy, isBlockFunction, isLambda,
-        isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, setData = __o["setData"];
+    type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
+        isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, setData = __o["setData"];
 (type = (function(node) {
     return (node && node.type);
 }));
 (isIdentifier = (function(z) {
     var y = (z && z.type);
     return ("Identifier" === y);
+}));
+(isOperator = (function(node) {
+    return ((((node && node.type) === "UnaryOperator") || ((node && node.type) === "BinaryOperator")) || ((node &&
+        node.type) === "TernaryOperator"));
+}));
+(isSymbol = (function(node) {
+    return (isIdentifier(node) || ((((node && node.type) === "UnaryOperator") || ((node && node.type) ===
+        "BinaryOperator")) || ((node && node.type) === "TernaryOperator")));
 }));
 (isLiteral = (function(z) {
     var y = (z && z.type);
@@ -67,6 +75,8 @@ var __o = require("khepri-ast")["node"],
 }));
 (exports["type"] = type);
 (exports["isIdentifier"] = isIdentifier);
+(exports["isOperator"] = isOperator);
+(exports["isSymbol"] = isSymbol);
 (exports["isLiteral"] = isLiteral);
 (exports["isNumberish"] = isNumberish);
 (exports["isPrimitive"] = isPrimitive);
