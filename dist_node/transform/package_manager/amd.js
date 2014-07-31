@@ -56,6 +56,6 @@ var ast_declaration = require("khepri-ast")["declaration"],
                 return ast_value.Literal.create(null, "string", path(x.value.from));
             })))), packageBody]));
 }));
-( = exports["definePackage"]);
-( = exports["defineProgram"]);
-( = exports["importPackage"]);
+(exports["definePackage"] = definePackage);
+(exports["defineProgram"] = defineProgram);
+(exports["importPackage"] = importPackage);

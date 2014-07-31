@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 1.0.3 - July 30, 2014
+## 1.0.4 - July 30, 2014
 * Fixed package compiling error cause by changes to Khepri-ast that were 
   incorrectly synced.
 

@@ -122,4 +122,4 @@ peepholes.add("BinaryExpression", UP, (function(z) {
     return ast_expression.CallExpression.create(null, left, [right]);
 }));
 (normalize = rewrite.bind(null, peepholes));
-( = exports["normalize"]);
+(exports["normalize"] = normalize);

@@ -95,4 +95,4 @@ peepholes.add("ExpressionStatement", UP, (function(node) {
             node.expression.loc, node.expression.left, node.expression.right.body))]));
 }));
 (optimize = rewrite.bind(null, peepholes));
-( = exports["optimize"]);
+(exports["optimize"] = optimize);
