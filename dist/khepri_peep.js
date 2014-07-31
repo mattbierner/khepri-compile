@@ -96,5 +96,5 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/statement", 
                 .create(node.expression.loc, node.expression.left, node.expression.right.body))]));
     }));
     (optimize = rewrite.bind(null, peepholes));
-    ( = exports["optimize"]);
+    (exports["optimize"] = optimize);
 }));

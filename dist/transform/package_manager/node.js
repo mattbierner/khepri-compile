@@ -47,7 +47,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 exportBody)))
         ]);
     }));
-    ( = exports["definePackage"]);
-    ( = exports["defineProgram"]);
-    ( = exports["importPackage"]);
+    (exports["definePackage"] = definePackage);
+    (exports["defineProgram"] = defineProgram);
+    (exports["importPackage"] = importPackage);
 }));

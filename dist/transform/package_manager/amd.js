@@ -54,7 +54,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                         return ast_value.Literal.create(null, "string", path(x.value.from));
                     })))), packageBody]));
     }));
-    ( = exports["definePackage"]);
-    ( = exports["defineProgram"]);
-    ( = exports["importPackage"]);
+    (exports["definePackage"] = definePackage);
+    (exports["defineProgram"] = defineProgram);
+    (exports["importPackage"] = importPackage);
 }));
