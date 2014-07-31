@@ -62,7 +62,7 @@ definePackage = \loc exports imports targets body -> let
     exportBody = ?exports.type === 'PackageExports'
         :map(exports.exports, \x ->
             ast_statement.ExpressionStatement.create(null,
-                ast_expression.AssignmentExpression.create(null, '=',
+                ast_expression.AssignmentExpression.create(null, 
                     ast_expression.MemberExpression.create(null,
                         builtins.exports,
                         x.alias,

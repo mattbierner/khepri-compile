@@ -39,8 +39,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
         }))),
         exportBody = ((exports0.type === "PackageExports") ? map(exports0.exports, (function(x) {
             return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
-                .create(null, "=", ast_expression.MemberExpression.create(null, builtins.exports, x
-                    .alias, true), x.id));
+                .create(null, ast_expression.MemberExpression.create(null, builtins.exports, x.alias,
+                    true), x.id));
         })) : ast_statement.ReturnStatement.create(null, exports0.id)),
         packageBody = setData(ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
             .create(null, null, concat(ast_pattern.IdentifierPattern.create(null, builtins.require),
@@ -56,6 +56,6 @@ var ast_declaration = require("khepri-ast")["declaration"],
                 return ast_value.Literal.create(null, "string", path(x.value.from));
             })))), packageBody]));
 }));
-(exports["definePackage"] = definePackage);
-(exports["defineProgram"] = defineProgram);
-(exports["importPackage"] = importPackage);
+( = exports["definePackage"]);
+( = exports["defineProgram"]);
+( = exports["importPackage"]);

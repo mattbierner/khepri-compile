@@ -93,9 +93,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/statement", 
     }), (function(node) {
         return ast_statement.WithStatement.create(null, node.expression.right.bindings, ast_statement.BlockStatement
             .create(null, [ast_statement.ExpressionStatement.create(node.loc, ast_expression.AssignmentExpression
-                .create(node.expression.loc, node.expression.operator, node.expression.left,
-                    node.expression.right.body))]));
+                .create(node.expression.loc, node.expression.left, node.expression.right.body))]));
     }));
     (optimize = rewrite.bind(null, peepholes));
-    (exports["optimize"] = optimize);
+    ( = exports["optimize"]);
 }));

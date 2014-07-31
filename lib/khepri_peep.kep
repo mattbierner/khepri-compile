@@ -169,7 +169,6 @@ peepholes.add('ExpressionStatement', UP,
             ast_statement.BlockStatement.create(null, [
                 ast_statement.ExpressionStatement.create(node.loc,
                     ast_expression.AssignmentExpression.create(node.expression.loc,
-                        node.expression.operator,
                         node.expression.left,
                         node.expression.right.body))])));
 

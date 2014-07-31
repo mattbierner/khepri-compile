@@ -167,7 +167,7 @@ var expandAssignment := \node ->
         :let right = expandAssignment(node.right) in
             concat(
                 right,
-                ast_expression.AssignmentExpression.create(null, '=',
+                ast_expression.AssignmentExpression.create(null,
                     node.left,
                     right.(right.length - 1).left))
         :[node];

@@ -33,13 +33,11 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 }))),
             exportBody = ((exports0.type === "PackageExports") ? map(exports0.exports, (function(x) {
                 return ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
-                    .create(null, "=", ast_expression.MemberExpression.create(null,
-                            ast_value.Identifier.create(null, "exports"), x.alias, true), x
-                        .id));
+                    .create(null, ast_expression.MemberExpression.create(null, ast_value.Identifier
+                        .create(null, "exports"), x.alias, true), x.id));
             })) : ast_statement.ExpressionStatement.create(null, ast_expression.AssignmentExpression
-                .create(null, "=", ast_expression.MemberExpression.create(null, ast_value.Identifier
-                        .create(null, "module"), ast_value.Identifier.create(null, "exports")),
-                    exports0.id)));
+                .create(null, ast_expression.MemberExpression.create(null, ast_value.Identifier.create(
+                    null, "module"), ast_value.Identifier.create(null, "exports")), exports0.id)));
         return ast_statement.BlockStatement.create(loc, [ast_statement.ExpressionStatement.create(null,
                 ast_value.Literal.create(null, "string", "use strict")), ast_statement.WithStatement
             .create(null, map(imports, (function(x) {
@@ -49,7 +47,7 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/expression",
                 exportBody)))
         ]);
     }));
-    (exports["definePackage"] = definePackage);
-    (exports["defineProgram"] = defineProgram);
-    (exports["importPackage"] = importPackage);
+    ( = exports["definePackage"]);
+    ( = exports["defineProgram"]);
+    ( = exports["importPackage"]);
 }));

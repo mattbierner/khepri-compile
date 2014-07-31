@@ -85,8 +85,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     var expandAssignment = (function(node) {
         var right;
         return ((type(node.right) === "AssignmentExpression") ? ((right = expandAssignment(node.right)),
-            concat(right, ast_expression.AssignmentExpression.create(null, "=", node.left, right[(right
-                .length - 1)].left))) : [node]);
+            concat(right, ast_expression.AssignmentExpression.create(null, node.left, right[(right.length -
+                1)].left))) : [node]);
     });
     peepholes.add("ExpressionStatement", UP, (function(z) {
         var z0 = z.expression,
@@ -96,8 +96,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         ast_statement.BlockStatement.create.bind(null, null)), (function(z) {
         var right, z0 = z.expression,
             z1 = ((type(z0.right) === "AssignmentExpression") ? ((right = expandAssignment(z0.right)),
-                concat(right, ast_expression.AssignmentExpression.create(null, "=", z0.left,
-                    right[(right.length - 1)].left))) : [z0]),
+                concat(right, ast_expression.AssignmentExpression.create(null, z0.left, right[(
+                    right.length - 1)].left))) : [z0]),
             z2 = flattenr(z1);
         return y(x(z2));
     })));
@@ -118,5 +118,5 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         return ast_expression.CallExpression.create(null, left, [right]);
     }));
     (normalize = rewrite.bind(null, peepholes));
-    (exports["normalize"] = normalize);
+    ( = exports["normalize"]);
 }));
