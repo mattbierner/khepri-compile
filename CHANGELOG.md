@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.0.5 - July 31, 2014
+* Fixed lexical check not including `new` operator in initial state.
+
 ## 1.0.4 - July 30, 2014
 * Fixed package compiling error cause by changes to Khepri-ast that were 
   incorrectly synced.
