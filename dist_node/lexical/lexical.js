@@ -399,7 +399,7 @@ var initialScope = ((x3 = foldl((function(s, c) {
     return scope.addImmutableBinding(c, "global", s);
 }), Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
     "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".",
-    "@", "void", "instanceof", "typeof"
+    "@", "void", "instanceof", "typeof", "new"
 ])), foldl((function(p, c) {
     return scope.addOperator(c, null, p);
 }), x3, ["!", "++", "--", "~"])),

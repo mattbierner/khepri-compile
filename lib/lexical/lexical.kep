@@ -602,13 +602,14 @@ var initialScope :=
             '@',
             'void',
             'instanceof',
-            'typeof'])
+            'typeof',
+            'new'])
     |> \x ->
-    foldl(\p c -> scope.addOperator(c, null, p), x, [
-        '!',
-        '++',
-        '--',
-        '~']);
+        foldl(\p c -> scope.addOperator(c, null, p), x, [
+            '!',
+            '++',
+            '--',
+            '~']);
 
 var addBindings := foldl@(
     \s c ->

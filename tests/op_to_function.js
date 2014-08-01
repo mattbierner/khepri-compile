@@ -51,3 +51,11 @@ exports.non_computed_member = function(test) {
     
     test.done();
 };
+
+exports.keyword_new_operator = function(test) {
+    test.equal(
+        testParser("var A = function\\x=self->{self.x = x;}; (new)(A, 3).x;"),
+        3);
+    
+    test.done();
+};

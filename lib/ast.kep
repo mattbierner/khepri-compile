@@ -36,15 +36,15 @@ in{
 type := \node ->
     (node && node.type);
 
-/* Identifier
+/* Symbols
  ******************************************************************************/
 /**
- * Is a node an identifier?
+ * Is an AST node an identifier?
  */
 isIdentifier := type \> (=== 'Identifier');
 
 /**
- * Is a node an operator symbol?
+ * Is an AST node an operator symbol?
  */
 isOperator := \node ->
     (  type node === 'UnaryOperator'
@@ -52,12 +52,13 @@ isOperator := \node ->
     || type node === 'TernaryOperator');
 
 /**
- * Is a node a symbol?
+ * Is an AST node a symbol?
  */
 isSymbol := \node ->
-    isIdentifier node || isOperator node;
+    (  isIdentifier node
+    || isOperator node);
 
-/* Literal
+/* Literals
  ******************************************************************************/
 /**
  * Is a node a literal.
