@@ -9,6 +9,7 @@ package (
     getBinding
     addBinding
     addWorking
+    invalidateWorking
     
     push
     pop
@@ -135,6 +136,20 @@ addWorking = \uid value simple s ->
         Binding.create(value, MUTABLE, simple),
         s);
 
+/**
+ * Invalidate the working binding for `uid`.
+ * 
+ * @param uid Unique id.
+ * @param value Bound value.
+ * @param simple Is the bound value simple?
+ * @param s State.
+ */
+invalidateWorking = \uid s ->
+    putWorking(
+        uid,
+        null,
+        s);
+    
 /* Globals Operations
  ******************************************************************************/
 /**

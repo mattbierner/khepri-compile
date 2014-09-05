@@ -26,7 +26,7 @@ in {
  ******************************************************************************/
 /**
  * @member scope True scope of the generated ECMAScript program.
- * @member packageManager Package manager code generators.
+ * @member packageManager Package manager code generator.
  * @member bindings List of bindings without variable declarations in the current
  *   scope.
  */

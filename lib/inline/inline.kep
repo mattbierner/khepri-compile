@@ -132,6 +132,14 @@ var addWorking = \uid value simple ->
     modifyState state.addWorking@(uid, value, simple);
 
 /**
+ * Invalidate a working binding.
+ * 
+ * @param uid Identifier unique id.
+ */
+var invalidateWorking = \uid ->
+    modifyState state.invalidateWorking@(uid);
+
+/**
  * Get the value of the current binding for `uid`.
  * 
  * Prefers working bindings over immutable bindings.
@@ -206,7 +214,7 @@ var pushLocals := modifyState (state.pushLocals);
 var popLocals := modifyState (state.popLocals);
 
 var addLocals := \locals -> modifyState(state.addLocals @ locals);
-    
+
 /*
  ******************************************************************************/
 /**
@@ -283,13 +291,19 @@ var addWorkingForNode = \id value ->
                         true)
                     :addWorking(uid, value, false)
         
-        :addWorking(uid, value, false);
+        :invalidateWorking(uid);
+
+var putWorkingForNode = \id value ->
+    getBinding(getUid id).chain \ binding ->
+        ? !binding || binding.value
+            :addWorkingForNode(id, value)
+            :invalidateWorking(getUid id);
 
 var setWorkingForNode = \id value ->
     getBinding(getUid id).chain \ binding ->
-        ?(!binding || binding.value)
+        ?binding && binding.value
             :addWorkingForNode(id, value)
-            :pass;
+            :invalidateWorking(getUid id);
 
 /*
  ******************************************************************************/
@@ -358,7 +372,7 @@ addRewrite@'Program' <| seq(
     visitChild 'body',
     
     when(
-        (.body) \> type \> (!==, 'Package'),
+        (.body) \> type \> (!== 'Package'),
         
         globals \ globals ->
         modify \ node ->
@@ -408,18 +422,16 @@ addRewrite@'VariableDeclaration' <|
 addRewrite@'VariableDeclarator' <| seq(
     visitChild 'init',
     
-    when(
-        (.init),
-        
-        extract \ node ->
-            ?node.immutable
+    when((.init),
+        extract \ {immutable id init} ->
+            ?immutable
                 :seq(
-                    addBindingForNode(node.id, node.init),
-                    tryPrune(node.id))
+                    addBindingForNode(id, init),
+                    tryPrune id)
                 :addWorking(
-                    getUid(node.id),
-                    node.init,
-                    (isPrimitive node.init || isIdentifier node.init || isLambda node.init))));
+                    getUid id,
+                    init,
+                    (isPrimitive init || isIdentifier init || isLambda init))));
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -531,7 +543,7 @@ in seq(
     when(
         \{operator argument} ->
             (  arithmetic.(operator)
-            && isPrimitive(argument)),
+            && isPrimitive argument),
     
         modify \ {loc operator argument} -> let
             value = arithmetic.(operator)(argument.value)
@@ -566,8 +578,8 @@ in seq(
     when(
         \{operator left right} ->
             (  arithmetic.(operator)
-            && isPrimitive(left)
-            && isPrimitive(right)),
+            && isPrimitive left
+            && isPrimitive right),
         
         modify \ {operator left right} -> let
             value = arithmetic.(operator)(left.value, right.value)
@@ -576,6 +588,8 @@ in seq(
     
     /**
      * Rewrite compose to use builtin compose code.
+     * 
+     * @TODO: move this out of this stage.
      */
     when(
         \{operator} ->
@@ -598,10 +612,10 @@ addRewrite@'AssignmentExpression' <| seq(
      * Update the working value of a binding.
      */
     when((.left) \> type \> (=== 'Identifier'),
-        extract \ {operator left right} ->
-            ?operator === '='
-                :setWorkingForNode(left, right)
-                :addBindingForNode(left, right)));
+        extract \ {immutable left right} ->
+            ?immutable
+                :addBindingForNode(left, right)
+                :setWorkingForNode(left, right)));
 
 addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',
@@ -740,9 +754,9 @@ addRewrite@'CurryExpression' <| seq(
      * Discards arguments that are not used.
      */
     when(
-        \node ->
-            (  isLambdaWithoutArgs(node.base)
-            || (node.base.type === 'LetExpression' && isLambdaWithoutArgs(node.base.body))),
+        \{base} ->
+            (  isLambdaWithoutArgs base
+            || (type base === 'LetExpression' && isLambdaWithoutArgs(base.body))),
         
         seq(
             unique \ uid ->

@@ -5,8 +5,8 @@
 define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (function(require, exports, record, hamt,
     __o, __o0) {
     "use strict";
-    var State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals,
-            pushLocals, popLocals, concat = __o["concat"],
+    var State, getBinding, addBinding, addWorking, invalidateWorking, push, pop, getGlobals, addGlobal,
+            addLocals, getLocals, pushLocals, popLocals, concat = __o["concat"],
         Binding = __o0["Binding"],
         MUTABLE = __o0["MUTABLE"],
         IMMUTABLE = __o0["IMMUTABLE"];
@@ -38,6 +38,9 @@ define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (fun
         var binding = Binding.create(value, MUTABLE, simple);
         return s.setWorking(hamt.set(uid, binding, s.working));
     }));
+    (invalidateWorking = (function(uid, s) {
+        return s.setWorking(hamt.set(uid, null, s.working));
+    }));
     var y = hamt.keys;
     (getGlobals = (function(z) {
         return y(z.globals);
@@ -63,6 +66,7 @@ define(["require", "exports", "bes/record", "hamt", "../fun", "./binding"], (fun
     (exports["getBinding"] = getBinding);
     (exports["addBinding"] = addBinding);
     (exports["addWorking"] = addWorking);
+    (exports["invalidateWorking"] = invalidateWorking);
     (exports["push"] = push);
     (exports["pop"] = pop);
     (exports["getGlobals"] = getGlobals);

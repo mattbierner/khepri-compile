@@ -7,8 +7,8 @@ var record = require("bes")["record"],
     hamt = require("hamt"),
     __o = require("../fun"),
     __o0 = require("./binding"),
-    State, getBinding, addBinding, addWorking, push, pop, getGlobals, addGlobal, addLocals, getLocals, pushLocals,
-        popLocals, concat = __o["concat"],
+    State, getBinding, addBinding, addWorking, invalidateWorking, push, pop, getGlobals, addGlobal, addLocals,
+        getLocals, pushLocals, popLocals, concat = __o["concat"],
     Binding = __o0["Binding"],
     MUTABLE = __o0["MUTABLE"],
     IMMUTABLE = __o0["IMMUTABLE"];
@@ -40,6 +40,9 @@ var nullWorking = hamt.fold.bind(null, (function(p, __o1) {
     var binding = Binding.create(value, MUTABLE, simple);
     return s.setWorking(hamt.set(uid, binding, s.working));
 }));
+(invalidateWorking = (function(uid, s) {
+    return s.setWorking(hamt.set(uid, null, s.working));
+}));
 var y = hamt.keys;
 (getGlobals = (function(z) {
     return y(z.globals);
@@ -65,6 +68,7 @@ var y = hamt.keys;
 (exports["getBinding"] = getBinding);
 (exports["addBinding"] = addBinding);
 (exports["addWorking"] = addWorking);
+(exports["invalidateWorking"] = invalidateWorking);
 (exports["push"] = push);
 (exports["pop"] = pop);
 (exports["getGlobals"] = getGlobals);

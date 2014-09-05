@@ -28,7 +28,7 @@ package (
     setUid)
 with
     import 'khepri-ast::node' {setData}
-in{
+in {
 
 /**
  * Safe node type getter

@@ -138,6 +138,9 @@ var __o = require("khepri-ast")["node"],
     addWorking = (function(uid, value, simple) {
         return modifyState(state.addWorking.bind(null, uid, value, simple));
     }),
+    invalidateWorking = (function(uid) {
+        return modifyState(state.invalidateWorking.bind(null, uid));
+    }),
     getBinding = (function(uid) {
         return (uid ? getState.map(state.getBinding.bind(null, uid)) : pass);
     }),
@@ -193,12 +196,13 @@ var __o = require("khepri-ast")["node"],
                 return ((binding && binding.immutable) ? addWorking(uid, ((binding.simple &&
                     binding.value) ? binding.value : value), true) : addWorking(uid, value,
                     false));
-            })) : addWorking(uid, value, false))));
+            })) : invalidateWorking(uid))));
     }),
     setWorkingForNode = (function(id, value) {
         return getBinding(getUid(id))
             .chain((function(binding) {
-                return (((!binding) || binding.value) ? addWorkingForNode(id, value) : pass);
+                return ((binding && binding.value) ? addWorkingForNode(id, value) : invalidateWorking(
+                    getUid(id)));
             }));
     }),
     peepholes = ({}),
@@ -263,10 +267,12 @@ addRewrite("CatchClause", seq(((__args4 = ["param", checkTop]), (ops4 = [].slice
 addRewrite("VariableDeclaration", ((__args6 = ["declarations", checkTop]), (ops6 = [].slice.call(__args6, 1)), seq(
     moveChild("declarations"), seqa(ops6), up)));
 addRewrite("VariableDeclarator", seq(((__args7 = ["init", checkTop]), (ops7 = [].slice.call(__args7, 1)), seq(moveChild(
-    "init"), seqa(ops7), up)), ((consequent1 = extract((function(node) {
-    return (node.immutable ? seq(addBindingForNode(node.id, node.init), tryPrune(node.id)) :
-        addWorking(getUid(node.id), node.init, ((isPrimitive(node.init) || isIdentifier(node.init)) ||
-            isLambda(node.init))));
+    "init"), seqa(ops7), up)), ((consequent1 = extract((function(__o6) {
+    var immutable = __o6["immutable"],
+        id = __o6["id"],
+        init = __o6["init"];
+    return (immutable ? seq(addBindingForNode(id, init), tryPrune(id)) : addWorking(getUid(id),
+        init, ((isPrimitive(init) || isIdentifier(init)) || isLambda(init))));
 }))), extract((function(node) {
     return (node.init ? consequent1 : (undefined || pass));
 })))));
@@ -380,11 +386,10 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
 }))))));
 addRewrite("AssignmentExpression", seq(((__args33 = ["right", checkTop]), (ops33 = [].slice.call(__args33, 1)), seq(
     moveChild("right"), seqa(ops33), up)), ((consequent7 = extract((function(__o6) {
-    var operator = __o6["operator"],
+    var immutable = __o6["immutable"],
         left = __o6["left"],
         right0 = __o6["right"];
-    return ((operator === "=") ? setWorkingForNode(left, right0) : addBindingForNode(left,
-        right0));
+    return (immutable ? addBindingForNode(left, right0) : setWorkingForNode(left, right0));
 }))), extract((function(node) {
     var z, y0;
     return (((z = node.left), (y0 = type(z)), ("Identifier" === y0)) ? consequent7 : (undefined ||
@@ -473,8 +478,9 @@ addRewrite("CurryExpression", seq(((__args43 = ["base", checkTop]), (ops43 = [].
         return expandCurry(uid, node.base, node.args);
     }));
 })), checkTop)), extract((function(node) {
-    return ((isLambdaWithoutArgs(node.base) || ((node.base.type === "LetExpression") &&
-        isLambdaWithoutArgs(node.base.body))) ? consequent16 : (undefined || pass));
+    var base;
+    return (((base = node["base"]), (isLambdaWithoutArgs(base) || ((type(base) === "LetExpression") &&
+        isLambdaWithoutArgs(base.body)))) ? consequent16 : (undefined || pass));
 })))));
 addRewrite("LetExpression", seq(((__args45 = ["bindings", checkTop]), (ops45 = [].slice.call(__args45, 1)), seq(
     moveChild("bindings"), seqa(ops45), up)), ((__args46 = ["body", checkTop]), (ops46 = [].slice.call(__args46,
