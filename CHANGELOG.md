@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 1.0.6 - Sep 4, 2014
+* Fixed assignment constant propogation to be invalidated after an assignment
+  takes place in an inner scope.
+
 ## 1.0.5 - July 31, 2014
 * Fixed lexical check not including `new` operator in initial state.
 

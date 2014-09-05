@@ -564,8 +564,11 @@ addRewrite@'BinaryExpression' <| let
         '>': (>),
         '<=': (<=),
         '>=': (>=),
-        '||': (||),
-        '&&': (&&)}
+        '|': (|),
+        '&': (&),
+        '^': (^),
+        '&&': (&&),
+        '||': (||)}
 in seq(
     visitChild 'left',
     visitChild 'right',
