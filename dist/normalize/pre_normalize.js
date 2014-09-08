@@ -21,7 +21,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         DOWN = __o3["DOWN"],
         Rewriter = __o3["Rewriter"],
         rewrite = __o3["rewrite"],
-        y, y0, id, string = ast_value.Literal.create.bind(null, null, "string"),
+        __args, y, y0, __o4, string = ast_value.Literal.create.bind(null, null, "string"),
         number = ast_value.Literal.create.bind(null, null, "number"),
         markReserved = setUd.bind(null, "reserved", true),
         always = (function(_) {
@@ -54,16 +54,31 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             return ast_expression.CurryExpression.create(null, p, [arg]);
         }), base, args);
     }));
+    rewrites.add("MemberExpression", UP, (function(node) {
+        return ((type(node.object) === "MemberExpression") && node.object.checked);
+    }), (function(node) {
+        return modify(node, ({}), ({
+            checked: true
+        }));
+    }));
+    var markChecked = (function(x) {
+        return (((type(x) === "ObjectPattern") || (type(x) === "ArrayPattern")) ? modify(x, ({}), ({
+            checked: true
+        })) : ((type(x) === "AsPattern") ? modify(x, ({
+            target: markChecked(x.target)
+        })) : x));
+    });
     rewrites.add("ArrayPattern", DOWN, (function(_) {
         return true;
     }), (function(__o4) {
         var loc = __o4["loc"],
             elements = __o4["elements"],
             checked = __o4["checked"],
-            indx = elements.map(type)
+            elements0 = (checked ? map(markChecked, elements) : elements),
+            indx = elements0.map(type)
                 .indexOf("EllipsisPattern"),
-            __o5 = ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx],
-                elements.slice((indx + 1))
+            __o5 = ((indx < 0) ? [elements0, null, []] : [elements0.slice(0, indx), elements0[indx],
+                elements0.slice((indx + 1))
             ]),
             pre = __o5[0],
             mid = __o5[1],
@@ -77,10 +92,35 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
                 pre0.length));
         }), post))), checked);
     }));
+    rewrites.add("ObjectPattern", DOWN, (function(x) {
+        return x.checked;
+    }), (function(node) {
+        return modify(node, ({
+            elements: map((function(element) {
+                var x, x0;
+                return modify(element, ({
+                    target: ((x = element.target), (((type(x) ===
+                        "ObjectPattern") || (type(x) ===
+                        "ArrayPattern")) ? modify(x, ({}), ({
+                        checked: true
+                    })) : ((type(x) === "AsPattern") ? modify(x, ({
+                        target: markChecked(x.target)
+                    })) : x))),
+                    key: ((x0 = element.key), (((type(x0) === "ObjectPattern") ||
+                        (type(x0) === "ArrayPattern")) ? modify(x0, ({}), ({
+                        checked: true
+                    })) : ((type(x0) === "AsPattern") ? modify(x0, ({
+                        target: markChecked(x0.target)
+                    })) : x0)))
+                }));
+            }), node.elements)
+        }));
+    }));
     rewrites.add("ArgumentsPattern", UP, (function(node) {
         return (node.elements.map(type)
             .indexOf("EllipsisPattern") >= 0);
-    }), (function(node) {
+    }), ((__args = markReserved(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null,
+        "__args")))), (function(node) {
         var elements = node.elements,
             indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
@@ -89,18 +129,16 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             ]),
             pre = __o4[0],
             mid = __o4[1],
-            post = __o4[2],
-            id = (node.id || markReserved(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier
-                .create(null, "__args"))));
+            post = __o4[2];
         return modify(node, ({
-            id: id,
-            elements: concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null, pre
-                .length, post.length) : []), map((function(x, i) {
+            id: (node.id || __args),
+            elements: concat(pre, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null,
+                pre.length, post.length) : []), map((function(x, i) {
                 return RelativeUnpack.create(null, x, null, (post.length - i), (
                     post.length + pre.length));
             }), post))
         }));
-    }));
+    })));
     rewrites.add("ObjectPatternElement", DOWN, (function(z) {
         var x = z.target;
         return (!x);
@@ -124,9 +162,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     rewrites.add("ObjectPattern", UP, ((y0 = getUd.bind(null, "id")), (function(z) {
         var x = y0(z);
         return (!x);
-    })), ((id = markReserved(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null,
+    })), ((__o4 = markReserved(ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null,
         "__o")))), (function(node) {
-        return ast_pattern.AsPattern.create(null, id, setUd("id", id, node));
+        return ast_pattern.AsPattern.create(null, __o4, setUd("id", __o4, node));
     })));
     rewrites.add("SinkPattern", DOWN, always, constant(markReserved(ast_pattern.IdentifierPattern.create(null,
         ast_value.Identifier.create(null, "_")))));

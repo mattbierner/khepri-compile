@@ -5,8 +5,11 @@
 ** Ensures that base can be accessed, returning `object && object.property`.
 ** Will only evaluate base at most once.
 ** Supports computed members too.
+** In a member chain, all values to the right of a checked property are implicitly
+  checked. `a.?b.c` === `a.?b.?c`;
 * Added support for checked object and array patterns `\?{x b}`.
 ** Ensures that base is a valid object before evaluating all child elements.
+* All sub patterns of a checked pattern are implicitly checked.
 * Add checked member operator `(.?)`.
 
 ## 1.0.6 - Sep 4, 2014

@@ -111,8 +111,26 @@ rewrites.add('CurryExpression', DOWN,
             base,
             args));
 
+/**
+ * Propagate member checking to the right of the check in chained accessor
+ * expressions.
+ */
+rewrites.add('MemberExpression', UP,
+    \node ->
+        type node.object === 'MemberExpression' && node.object.checked,
+    
+    \node ->
+        modify(node, {}, { checked: true }));
+
 /* Pattern Normalizations
  ******************************************************************************/
+var markChecked := \x ->
+    ?type x === 'ObjectPattern' || type x === 'ArrayPattern'
+        :modify(x, {}, { checked: true })
+    :?type x === 'AsPattern'
+        :modify(x, { target: markChecked x.target })
+    :x;
+
 /**
  * Convert array pattern to object pattern.
  * 
@@ -122,6 +140,8 @@ rewrites.add('ArrayPattern', DOWN,
     \_ -> true,
     
     \{loc elements checked} -> let
+        elements = ?checked : map(markChecked, elements) : elements,
+        
         [pre mid post] = splitUnpackList elements
     in
         ast_pattern.ObjectPattern.create(loc,
@@ -134,6 +154,20 @@ rewrites.add('ArrayPattern', DOWN,
             checked));
 
 /**
+ * 
+ */
+rewrites.add('ObjectPattern', DOWN,
+    (.checked),
+    
+    \node ->
+        modify @ node {
+            elements: map(
+                \element ->
+                    modify(element, { target: markChecked element.target, key: markChecked element.key }),
+                node.elements)
+        });
+
+/**
  * Rewrite arg pattern elements if an ellipsis pattern is used.
  * 
  * Also ensure arguments patterns with an ellipsis have an argument name.
@@ -142,18 +176,18 @@ rewrites.add('ArgumentsPattern', UP,
     \node ->
        node.elements.map(type).indexOf('EllipsisPattern') >= 0,
     
-    \node -> let
-        [pre mid post] = splitUnpackList node.elements,
-        
-        id = (node.id ||
-            markReserved <|
-                ast_pattern.IdentifierPattern.create(null,
-                    ast_value.Identifier.create(null, '__args')))
+    let
+        __args = markReserved <|
+            ast_pattern.IdentifierPattern.create(null,
+                ast_value.Identifier.create(null, '__args'))
     in
-        modify(node, {
-            id: id,
-            elements: createUnpackList(pre, mid, post)
-        }));
+         \node -> let
+            [pre mid post] = splitUnpackList node.elements
+        in
+            modify @ node {
+                id: (node.id || __args),
+                elements: createUnpackList(pre, mid, post)
+            });
 
 /**
  * Normalize object patterns to ('key': pattern) form.
@@ -200,14 +234,14 @@ rewrites.add('ObjectPattern', UP,
     (!) <\ getUd @ 'id',
     
     let
-        id = markReserved <|
+        __o = markReserved <|
             ast_pattern.IdentifierPattern.create(null,
                 ast_value.Identifier.create(null, '__o'))
     in
         \node ->
             ast_pattern.AsPattern.create(null,
-                id,
-                setUd('id', id, node)));
+                __o,
+                setUd('id', __o, node)));
 
 /**
  * Rewrite sink patterns to identifier patterns.
