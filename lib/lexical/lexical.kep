@@ -481,10 +481,8 @@ addCheck@'MemberExpression' <| seq(
     when((.computed),
         checkChild 'property'),
     when((.checked),
-        seq(
-            addImmutableBinding('__x', null),
-            examineScope \ s ->
-                modifyNode (setUd @ 'id' @ setUid(s.getUid('__x'), ast_value.Identifier.create(null, '__x'))))));
+        unique \ uid ->
+        modifyNode (setUd @ 'id' @ setUid(uid, ast_value.Identifier.create(null, '__x')))));
 
 addCheck@'ArrayExpression' <|
     checkChild 'elements';
