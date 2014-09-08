@@ -133,6 +133,10 @@ registerBinary("new", "__new", (function(x, y) {
 registerBinary(".", "__dot", (function(x, y) {
     return ast_expression.MemberExpression.create(null, x, y, true);
 }));
+registerBinary(".?", "__cdot", (function(x, y) {
+    return ast_expression.BinaryExpression.create(null, "&&", x, setUd("id", identifier("__x", unique()),
+        ast_expression.MemberExpression.create(null, x, y, true)));
+}));
 registerBinary("@", "__curry", (function(x, y) {
     return ast_expression.CurryExpression.create(null, x, [y]);
 }));

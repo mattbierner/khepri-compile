@@ -4,8 +4,7 @@
 package (
     transform)
 with     
-    import 'akh::unique' Unique,
-    import 'akh::trans::statei' StateT,
+    import 'akh::state' StateM,
     import 'akh::base' {
         liftM2
         'sequence': seq,
@@ -44,14 +43,12 @@ var _trans;
 
 /* Monad
  ******************************************************************************/
-var M := TreeZipperT (StateT Unique);
+var M := TreeZipperT (StateM);
 
-var run = \m s ctx seed ->
-    Unique.runUnique(
-        StateT.evalStateT(
-            TreeZipperT.runTreeZipperT(m, ctx),
-            s),
-        seed);
+var run = \m s ctx ->
+    StateM.evalState(
+        TreeZipperT.runTreeZipperT(m, ctx),
+        s);
 
 var pass := M.of null;
 
@@ -311,7 +308,12 @@ addTransform@'CallExpression' <| seq(
 addTransform@'MemberExpression' <| seq(
     rewriteChild 'object',
     rewriteChild 'property',
-    modify (translate.memberExpression));
+    withNode \node ->
+        ?node.checked
+            :seq(
+                modify (translate.checkedMemberExpression @ (getUd('id', node))),
+                checkTop)
+            :modify (translate.memberExpression));
 
 addTransform@'LetExpression' <| seq(
     rewriteChild 'bindings',

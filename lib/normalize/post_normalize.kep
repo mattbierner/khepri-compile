@@ -146,7 +146,7 @@ peepholes.add('BinaryExpression', DOWN,
             :modify(node, { operator: operator.name }));
 
 /**
- * Rewrite unary expressions with user defined op to a funciton call.
+ * Rewrite unary expressions with user defined op to a function call.
  * 
  * Rewrites normal unary expressions to use op name instead of node.
  */

@@ -189,6 +189,15 @@ registerBinary('new', '__new', \x y ->
 registerBinary('.', '__dot', \x y ->
     ast_expression.MemberExpression.create(null, x, y, true));
 
+// Checked Computed Member
+registerBinary('.?', '__cdot', \x y ->
+    ast_expression.BinaryExpression.create(null, '&&',
+        x,
+        setUd(
+            'id',
+            identifier('__x', unique()),
+            ast_expression.MemberExpression.create(null, x, y, true))));
+
 // Curry
 registerBinary('@', '__curry', \x y ->
     ast_expression.CurryExpression.create(null, x, [y]));

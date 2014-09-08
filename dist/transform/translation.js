@@ -3,19 +3,21 @@
  * DO NOT EDIT
 */
 define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-ast/expression", "ecma-ast/node",
-    "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/expression", "khepri-ast/statement",
-    "khepri-ast/value", "../ast", "../fun", "./unpack"
+    "ecma-ast/program", "ecma-ast/statement", "ecma-ast/value", "khepri-ast/declaration", "khepri-ast/expression",
+    "khepri-ast/pattern", "khepri-ast/statement", "khepri-ast/value", "../ast", "../fun", "./unpack"
 ], (function(require, exports, ecma_clause, ecma_declaration, ecma_expression, ecma_node, ecma_program,
-    ecma_statement, ecma_value, khepri_expression, khepri_statement, khepri_value, __o, fun, __o0) {
+    ecma_statement, ecma_value, khepri_declaration, khepri_expression, khepri_pattern, khepri_statement,
+    khepri_value, __o, fun, __o0) {
     "use strict";
     var useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression,
             unaryExpression, binaryExpression, logicalExpression, conditionalExpression, newExpression,
-            callExpression, memberExpression, arrayExpression, objectExpression, objectValue,
-            functionExpression, functionExpressionPost, letExpression, curryExpression, catchClause, switchCase,
-            emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
-            breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement,
-            whileStatement, tryStatement, packageBlock, type = __o["type"],
+            callExpression, memberExpression, checkedMemberExpression, arrayExpression, objectExpression,
+            objectValue, functionExpression, functionExpressionPost, letExpression, curryExpression,
+            catchClause, switchCase, emptyStatement, blockStatement, withStatement, expressionStatement,
+            returnStatement, throwStatement, breakStatement, continueStatement, ifStatement, switchStatement,
+            forStatement, doWhileStatement, whileStatement, tryStatement, packageBlock, type = __o["type"],
         tryGetUd = __o["tryGetUd"],
+        getUd = __o["getUd"],
         setUid = __o["setUid"],
         concat = fun["concat"],
         flatten = fun["flatten"],
@@ -91,6 +93,14 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     }));
     (memberExpression = (function(node) {
         return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
+    }));
+    (checkedMemberExpression = (function(id, node) {
+        var body = khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.MemberExpression
+            .create(null, id, node.property, node.computed, false));
+        return (getUd("hasBinding", node) ? body : khepri_expression.LetExpression.create(node.loc, [
+            khepri_declaration.Binding.create(null, khepri_pattern.IdentifierPattern.create(
+                null, id), node.object)
+        ], body));
     }));
     (letExpression = (function(node) {
         return ecma_expression.SequenceExpression.create(node.loc, flatten(concat(map(unpackAssign,
@@ -209,6 +219,7 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     (exports["newExpression"] = newExpression);
     (exports["callExpression"] = callExpression);
     (exports["memberExpression"] = memberExpression);
+    (exports["checkedMemberExpression"] = checkedMemberExpression);
     (exports["arrayExpression"] = arrayExpression);
     (exports["objectExpression"] = objectExpression);
     (exports["objectValue"] = objectValue);

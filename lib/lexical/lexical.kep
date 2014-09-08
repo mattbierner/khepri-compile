@@ -479,7 +479,10 @@ addCheck@['CallExpression', 'NewExpression'] <| seq(
 addCheck@'MemberExpression' <| seq(
     checkChild 'object',
     when((.computed),
-        checkChild 'property'));
+        checkChild 'property'),
+    when((.checked),
+        unique \ uid ->
+        modifyNode (setUd @ 'id' @ setUid(uid, ast_value.Identifier.create(null, '__x')))));
 
 addCheck@'ArrayExpression' <|
     checkChild 'elements';
@@ -599,6 +602,7 @@ var initialScope :=
             '--',
             '~',
             '.',
+            '.?',
             '@',
             'void',
             'instanceof',

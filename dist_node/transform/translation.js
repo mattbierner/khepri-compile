@@ -10,7 +10,9 @@ var ecma_clause = require("ecma-ast")["clause"],
     ecma_program = require("ecma-ast")["program"],
     ecma_statement = require("ecma-ast")["statement"],
     ecma_value = require("ecma-ast")["value"],
+    khepri_declaration = require("khepri-ast")["declaration"],
     khepri_expression = require("khepri-ast")["expression"],
+    khepri_pattern = require("khepri-ast")["pattern"],
     khepri_statement = require("khepri-ast")["statement"],
     khepri_value = require("khepri-ast")["value"],
     __o = require("../ast"),
@@ -18,11 +20,13 @@ var ecma_clause = require("ecma-ast")["clause"],
     __o0 = require("./unpack"),
     useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
         binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
-        arrayExpression, objectExpression, objectValue, functionExpression, functionExpressionPost, letExpression,
-        curryExpression, catchClause, switchCase, emptyStatement, blockStatement, withStatement, expressionStatement,
-        returnStatement, throwStatement, breakStatement, continueStatement, ifStatement, switchStatement, forStatement,
-        doWhileStatement, whileStatement, tryStatement, packageBlock, type = __o["type"],
+        checkedMemberExpression, arrayExpression, objectExpression, objectValue, functionExpression,
+        functionExpressionPost, letExpression, curryExpression, catchClause, switchCase, emptyStatement, blockStatement,
+        withStatement, expressionStatement, returnStatement, throwStatement, breakStatement, continueStatement,
+        ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement, packageBlock, type =
+        __o["type"],
     tryGetUd = __o["tryGetUd"],
+    getUd = __o["getUd"],
     setUid = __o["setUid"],
     concat = fun["concat"],
     flatten = fun["flatten"],
@@ -97,6 +101,14 @@ var mapOp = (function(op) {
 }));
 (memberExpression = (function(node) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
+}));
+(checkedMemberExpression = (function(id, node) {
+    var body = khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.MemberExpression.create(
+        null, id, node.property, node.computed, false));
+    return (getUd("hasBinding", node) ? body : khepri_expression.LetExpression.create(node.loc, [
+        khepri_declaration.Binding.create(null, khepri_pattern.IdentifierPattern.create(null, id), node
+            .object)
+    ], body));
 }));
 (letExpression = (function(node) {
     return ecma_expression.SequenceExpression.create(node.loc, flatten(concat(map(unpackAssign, node.bindings),
@@ -214,6 +226,7 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["newExpression"] = newExpression);
 (exports["callExpression"] = callExpression);
 (exports["memberExpression"] = memberExpression);
+(exports["checkedMemberExpression"] = checkedMemberExpression);
 (exports["arrayExpression"] = arrayExpression);
 (exports["objectExpression"] = objectExpression);
 (exports["objectValue"] = objectValue);

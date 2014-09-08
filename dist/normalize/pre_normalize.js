@@ -57,6 +57,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     }), (function(__o4) {
         var loc = __o4["loc"],
             elements = __o4["elements"],
+            checked = __o4["checked"],
             indx = elements.map(type)
                 .indexOf("EllipsisPattern"),
             __o5 = ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx],
@@ -72,7 +73,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             post.length) : []), map((function(x, i) {
             return RelativeUnpack.create(null, x, null, (post.length - i), (post.length +
                 pre0.length));
-        }), post))));
+        }), post))), checked);
     }));
     rewrites.add("ArgumentsPattern", UP, (function(node) {
         return (node.elements.map(type)

@@ -13,17 +13,19 @@ var ast_expression = require("khepri-ast")["expression"],
     innerPattern, unpackParameters, getParameterNames, SliceUnpack = __o["SliceUnpack"],
     RelativeUnpack = __o["RelativeUnpack"],
     type = __o0["type"],
+    setUd = __o0["setUd"],
     concat = __o1["concat"],
     flatten = __o1["flatten"],
     flattenr = __o1["flattenr"],
     map = __o1["map"],
-    expandObjectElement = (function(base, pattern, key) {
-        var innerBase = ast_expression.MemberExpression.create(null, base, key, true);
+    expandObjectElement = (function(base, pattern, key, checked) {
+        var member = ast_expression.MemberExpression.create(null, base, key, true, checked),
+            innerBase = (checked ? setUd("hasBinding", true, setUd("id", base, member)) : member);
         return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
         ));
     }),
-    expandObject = (function(base, pattern) {
+    expandObject = (function(base, pattern, checked) {
         return flattenr(map((function(node) {
             var target, pattern0, from, to, target0, start, indx, pattern1;
             return ((type(node) === "SliceUnpack") ? ((target = pattern.ud.id.id), (pattern0 = node.pattern), (
@@ -32,7 +34,7 @@ var ast_expression = require("khepri-ast")["expression"],
                 target0 = pattern.ud.id.id), (start = node.min), (indx = node.index), (
                 pattern1 = node.pattern), innerPattern(RelativeUnpack.create(null, pattern1,
                 target0, indx, start), pattern1)) : expandObjectElement(pattern.ud.id.id, node.target,
-                node.key)));
+                node.key, pattern.checked)));
         }), pattern.elements));
     }),
     expandAs = (function(base, pattern) {
@@ -45,7 +47,7 @@ var ast_expression = require("khepri-ast")["expression"],
         case "AsPattern":
             return expandAs(base, pattern);
         case "ObjectPattern":
-            return expandObject(base, pattern);
+            return expandObject(base, pattern, pattern.checked);
         default:
             return [];
     }

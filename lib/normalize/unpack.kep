@@ -18,7 +18,7 @@ with
         SliceUnpack
         RelativeUnpack},
     
-    import '../ast' {type},
+    import '../ast' {type getUd setUd},
     import '../fun' {
         concat
         flatten
@@ -67,16 +67,21 @@ var expandObjectElement = let
                 ast_value.Identifier.create(null, key.value)),
             innerBase)
 in
-    \base pattern key ->
+    \base pattern key checked ->
         objectElement(
-            ast_expression.MemberExpression.create(null, base, key, true),
+            let
+                member = ast_expression.MemberExpression.create(null, base, key, true, checked)
+            in
+                ?checked
+                    :setUd('hasBinding', true, setUd('id', base, member))
+                    :member,
             pattern,
             key);
 
 /**
  * Expand an object unpack to bindings.
  */
-var expandObject = \base pattern ->
+var expandObject = \base pattern checked ->
     pattern.elements
         |> (map @ \node ->
             ?type node === 'SliceUnpack'
@@ -96,7 +101,8 @@ var expandObject = \base pattern ->
             :expandObjectElement(
                 pattern.ud.id.id,
                 node.target,
-                node.key))
+                node.key,
+                pattern.checked))
         
         |> flattenr;
 
@@ -126,7 +132,7 @@ innerPattern = \base pattern -> {
         return expandAs(base, pattern);
     
     case 'ObjectPattern':
-        return expandObject(base, pattern);
+        return expandObject(base, pattern, pattern.checked);
     
     default:
         return [];

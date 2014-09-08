@@ -19,6 +19,7 @@ package (
     newExpression
     callExpression
     memberExpression
+    checkedMemberExpression
     arrayExpression
     objectExpression
     objectValue
@@ -56,14 +57,17 @@ with
     import 'ecma-ast::statement' ecma_statement,
     import 'ecma-ast::value'ecma_value,
     
+    import 'khepri-ast::declaration' khepri_declaration,
     import 'khepri-ast::expression' khepri_expression,
+    import 'khepri-ast::pattern' khepri_pattern,
     import 'khepri-ast::statement' khepri_statement,
     import 'khepri-ast::value' khepri_value,
     
     import '../ast' {
         type
         tryGetUd
-        getUid
+        getUd
+        setUd
         setUid},
     import '../fun' fun#{
         concat
@@ -218,6 +222,26 @@ memberExpression := \node ->
         node.object,
         node.property,
         node.computed);
+
+/**
+ * 
+ */
+checkedMemberExpression := \id node -> let
+    body = 
+        khepri_expression.BinaryExpression.create(null, '&&',
+            id,
+            khepri_expression.MemberExpression.create(null, id,
+                node.property,
+                node.computed,
+                false))
+in
+    ?getUd('hasBinding', node)
+        :body
+        :khepri_expression.LetExpression.create(node.loc, [
+            khepri_declaration.Binding.create(null,
+                khepri_pattern.IdentifierPattern.create(null, id),
+                node.object)],
+            body);
 
 /**
  * Let expression translation.

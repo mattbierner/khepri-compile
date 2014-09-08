@@ -652,7 +652,7 @@ addRewrite@'MemberExpression' <| seq(
     
         modify \ {object property} ->
             object.elements.(property.value) || builtins.undefined),
-       
+   
     /**
      * Length of array expression.
      */

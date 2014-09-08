@@ -3,8 +3,7 @@
  * DO NOT EDIT
 */
 "use strict";
-var Unique = require("akh")["unique"],
-    StateT = require("akh")["trans"]["statei"],
+var StateM = require("akh")["state"],
     __o = require("akh")["base"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
     __o0 = require("ecma-ast-zipper"),
@@ -46,9 +45,9 @@ var Unique = require("akh")["unique"],
         actions49, __args50, actions51, __args51, actions52, __args52, actions53, actions50, __args53, actions54,
         __args54, actions55, __args55, actions56, __args56, actions57, __args57, actions58, __args58, actions59,
         __args59, actions60, __args60, actions61, __args61, actions62, __args62, actions63, move, uid, f1, uid0, f2,
-        _trans, M = TreeZipperT(StateT(Unique)),
-    run = (function(m, s, ctx, seed) {
-        return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s), seed);
+        _trans, M = TreeZipperT(StateM),
+    run = (function(m, s, ctx) {
+        return StateM.evalState(TreeZipperT.runTreeZipperT(m, ctx), s);
     }),
     pass = M.of(null),
     cons = liftM2.bind(null, concat),
@@ -200,7 +199,10 @@ addTransform("CallExpression", seq(((__args42 = ["callee", checkTop]), (actions4
     __args43, 1)), seq(moveChild("args"), sequencea(actions43), up)), modify(translate.callExpression)));
 addTransform("MemberExpression", seq(((__args44 = ["object", checkTop]), (actions44 = [].slice.call(__args44, 1)), seq(
     moveChild("object"), sequencea(actions44), up)), ((__args45 = ["property", checkTop]), (actions45 = [].slice
-    .call(__args45, 1)), seq(moveChild("property"), sequencea(actions45), up)), modify(translate.memberExpression)));
+    .call(__args45, 1)), seq(moveChild("property"), sequencea(actions45), up)), withNode((function(node0) {
+    return (node0.checked ? seq(modify(translate.checkedMemberExpression.bind(null, getUd("id", node0))),
+        checkTop) : modify(translate.memberExpression));
+}))));
 addTransform("LetExpression", seq(((__args46 = ["bindings", checkTop]), (actions46 = [].slice.call(__args46, 1)), seq(
     moveChild("bindings"), sequencea(actions46), up)), withNode((function(z) {
     return addBindingsForBindingsList(z.bindings);

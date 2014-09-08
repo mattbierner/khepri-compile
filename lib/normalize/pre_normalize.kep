@@ -121,7 +121,7 @@ rewrites.add('CurryExpression', DOWN,
 rewrites.add('ArrayPattern', DOWN,
     \_ -> true,
     
-    \{loc elements} -> let
+    \{loc elements checked} -> let
         [pre mid post] = splitUnpackList elements
     in
         ast_pattern.ObjectPattern.create(loc,
@@ -130,7 +130,8 @@ rewrites.add('ArrayPattern', DOWN,
                     \x i -> ast_pattern.ObjectPatternElement.create(null, number i, x),
                     pre),
                 mid,
-                post)));
+                post),
+            checked));
 
 /**
  * Rewrite arg pattern elements if an ellipsis pattern is used.

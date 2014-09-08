@@ -40,11 +40,11 @@ var __o = require("akh")["base"],
         actions42, __args43, actions43, body12, body11, __args44, actions44, consequent2, body13, __args45, actions45,
         __args46, actions46, __args47, actions47, __args48, actions48, __args49, actions49, __args50, actions50,
         __args51, actions51, __args52, actions52, __args53, actions53, __args54, actions54, __args55, actions55,
-        __args56, actions56, __args57, actions57, consequent3, __args58, actions58, __args59, actions59, __args60,
-        actions60, __args61, actions61, body14, __args62, actions62, __args63, actions63, __args64, actions64, __args65,
-        actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69, __args70,
-        actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74, actions74, __args75,
-        actions75, consequent4, alternate2, x3, _check, reserved = getUd.bind(null, "reserved"),
+        __args56, actions56, __args57, actions57, consequent3, consequent4, __args58, actions58, __args59, actions59,
+        __args60, actions60, __args61, actions61, body14, __args62, actions62, __args63, actions63, __args64, actions64,
+        __args65, actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69,
+        __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74, actions74,
+        __args75, actions75, consequent5, alternate2, x3, _check, reserved = getUd.bind(null, "reserved"),
     M = ErrorT(TreeZipperT(ScopeT(Unique))),
     run = (function(p, s, ctx, ok, err) {
         var y, y0;
@@ -331,6 +331,11 @@ addCheck("MemberExpression", seq(((__args56 = ["object", checkTop]), (actions56 
     moveChild("object"), seqa(actions56), up)), ((__args57 = ["property", checkTop]), (actions57 = [].slice.call(
     __args57, 1)), (consequent3 = seq(moveChild("property"), seqa(actions57), up)), inspect((function(node) {
     return (node.computed ? consequent3 : (undefined || pass));
+}))), ((consequent4 = unique((function(uid) {
+    return modifyNode(setUd.bind(null, "id", setUid(uid, ast_value.Identifier.create(null,
+        "__x"))));
+}))), inspect((function(node) {
+    return (node.checked ? consequent4 : (undefined || pass));
 })))));
 addCheck("ArrayExpression", ((__args58 = ["elements", checkTop]), (actions58 = [].slice.call(__args58, 1)), seq(
     moveChild("elements"), seqa(actions58), up)));
@@ -381,7 +386,7 @@ addCheck(["Identifier", "BinaryOperator"], inspect((function(node) {
         return setNode(setUid(scope.getUid(name, s), node));
     })));
 })));
-addCheck(["UnaryOperator"], ((consequent4 = pass), (alternate2 = inspect((function(node) {
+addCheck(["UnaryOperator"], ((consequent5 = pass), (alternate2 = inspect((function(node) {
     var loc = node["loc"],
         name = node["name"];
     return seq(checkHasBinding(name, loc), examineScope((function(s) {
@@ -390,7 +395,7 @@ addCheck(["UnaryOperator"], ((consequent4 = pass), (alternate2 = inspect((functi
     })));
 }))), inspect((function(node) {
     var z, y3;
-    return (((z = node.name), (y3 = z[0]), ("." === y3)) ? consequent4 : (alternate2 || pass));
+    return (((z = node.name), (y3 = z[0]), ("." === y3)) ? consequent5 : (alternate2 || pass));
 }))));
 (_check = (function(node) {
     return (Array.isArray(node) ? checkArray(node) : (checks[type(node)] || pass));
@@ -399,7 +404,7 @@ var initialScope = ((x3 = foldl((function(s, c) {
     return scope.addImmutableBinding(c, "global", s);
 }), Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
     "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".",
-    "@", "void", "instanceof", "typeof", "new"
+    ".?", "@", "void", "instanceof", "typeof", "new"
 ])), foldl((function(p, c) {
     return scope.addOperator(c, null, p);
 }), x3, ["!", "++", "--", "~"])),

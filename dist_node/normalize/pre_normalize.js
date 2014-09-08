@@ -63,6 +63,7 @@ rewrites.add("ArrayPattern", DOWN, (function(_) {
 }), (function(__o4) {
     var loc = __o4["loc"],
         elements = __o4["elements"],
+        checked = __o4["checked"],
         indx = elements.map(type)
             .indexOf("EllipsisPattern"),
         __o5 = ((indx < 0) ? [elements, null, []] : [elements.slice(0, indx), elements[indx], elements.slice((
@@ -76,7 +77,7 @@ rewrites.add("ArrayPattern", DOWN, (function(_) {
     }), pre)), concat(pre0, ((mid && mid.id) ? SliceUnpack.create(null, mid.id, null, pre0.length, post
         .length) : []), map((function(x, i) {
         return RelativeUnpack.create(null, x, null, (post.length - i), (post.length + pre0.length));
-    }), post))));
+    }), post))), checked);
 }));
 rewrites.add("ArgumentsPattern", UP, (function(node) {
     return (node.elements.map(type)
