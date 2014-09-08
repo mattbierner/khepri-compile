@@ -13,8 +13,8 @@ with
     import 'khepri-ast::package' ast_package,
     import 'khepri-ast::value' ast_value,
     
+    import '../pseudo/expression' {CheckedMemberExpression},
     import '../pseudo/pattern' {SliceUnpack RelativeUnpack},
-
     
     import '../ast' {
         type
@@ -112,15 +112,39 @@ rewrites.add('CurryExpression', DOWN,
             args));
 
 /**
+ */
+rewrites.add('MemberExpression', DOWN,
+    (.checked),
+    
+    \node ->
+        CheckedMemberExpression.create(node.loc,
+            node.object,
+            node.property,
+            null,
+            node.computed));
+
+/**
  * Propagate member checking to the right of the check in chained accessor
  * expressions.
  */
 rewrites.add('MemberExpression', UP,
-    \node ->
-        type node.object === 'MemberExpression' && node.object.checked,
+    (.object) \> type \> (=== 'CheckedMemberExpression'),
     
     \node ->
-        modify(node, {}, { checked: true }));
+        CheckedMemberExpression.create(node.loc,
+            node.object,
+            node.property,
+            node.computed));
+
+/**
+ * Mark function calls with checked callees as checked.
+ */
+rewrites.add('CallExpression', UP,
+    \{callee} ->
+        (   (type callee === 'CheckedMemberExpression')
+        ||  getUd('checked', callee)),
+    
+    setUd@('checked', true));
 
 /* Pattern Normalizations
  ******************************************************************************/
@@ -132,9 +156,9 @@ var markChecked := \x ->
     :x;
 
 /**
- * Convert array pattern to object pattern.
- * 
- * Also generate slice and relative unpacks if ellipsis pattern used.
+ * 1) Convert array pattern to object pattern.
+ * 2) Mark all subpatterns as checked.
+ * 3) Generate slice and relative unpacks if ellipsis pattern used.
  */
 rewrites.add('ArrayPattern', DOWN,
     \_ -> true,
@@ -154,7 +178,7 @@ rewrites.add('ArrayPattern', DOWN,
             checked));
 
 /**
- * 
+ * Mark all subpatterns as checked.
  */
 rewrites.add('ObjectPattern', DOWN,
     (.checked),

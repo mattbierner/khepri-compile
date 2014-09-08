@@ -13,11 +13,10 @@ var __o = require("khepri-ast-zipper"),
     getLocals, rename, incCount, khepriZipper = __o["khepriZipper"],
     preWalk = __o0["preWalk"],
     setData = __o1["setData"],
+    modify = __o1["modify"],
     contains = __o2["contains"],
     type = __o3["type"],
     tryGetUd = __o3["tryGetUd"],
-    getUd = __o3["getUd"],
-    setUd = __o3["setUd"],
     getUid = __o3["getUid"],
     setUid = __o3["setUid"],
     incrementCount = __o4["incrementCount"];
@@ -40,9 +39,10 @@ var updateClosure = (function(node, prefix, list) {
             uid = getUid(node);
         return (contains(list, uid) ? tree.setNode(setUid(((prefix + "-") + uid), node), ctx) : ((
             type(node) === "FunctionExpression") ? tree.setNode(updateClosure(node, prefix,
-            list), ctx) : (((type(node) === "MemberExpression") && node.checked) ? tree.setNode(
-            setUd("id", rename(prefix, list, tree.node(khepriZipper(getUd("id", node)))),
-                node), ctx) : ctx)));
+            list), ctx) : ((type(node) === "CheckedMemberExpression") ? tree.setNode(modify
+            .bind(null, node), ({
+                "id": rename(prefix, list, tree.node(khepriZipper(node.id)))
+            }), ctx) : ctx)));
     }), khepriZipper(root)));
 }));
 (incCount = (function(target, count, value, root) {

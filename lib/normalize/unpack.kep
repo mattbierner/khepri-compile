@@ -69,12 +69,10 @@ var expandObjectElement = let
 in
     \base pattern key checked ->
         objectElement(
-            let
-                member = ast_expression.MemberExpression.create(null, base, key, true, checked)
-            in
-                ?checked
-                    :setUd('hasBinding', true, setUd('id', base, member))
-                    :member,
+            ?checked
+                :setUd('hasBinding', true,
+                    CheckedMemberExpression.create(null, base, key, id, true))
+                :ast_expression.MemberExpression.create(null, base, key, true, false),
             pattern,
             key);
 

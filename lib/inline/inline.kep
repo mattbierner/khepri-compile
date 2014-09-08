@@ -638,19 +638,23 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
             visitChild 'consequent',
             visitChild 'alternate')));
 
-addRewrite@'MemberExpression' <| seq(
+addRewrite@'CheckedMemberExpression' <| seq(
     visitChild 'object',
     when((.computed),
         visitChild 'property'),
     
-     when((.checked),
-        extract \ node -> let
-            id = getUd('id', node)
-        in
-             getBinding(getUid(id)).chain \ binding ->
-                ?binding && binding.value && binding.simple
-                    :set <| setUd('id', binding.value, node)
-                    :pass),
+    extract \ node -> let
+        id = node.id
+    in
+         getBinding(getUid(node.id)).chain \ binding ->
+            ?binding && binding.value && binding.simple
+                :set <| modifyNode(node, {'id': binding.value })
+                :pass);
+
+addRewrite@'MemberExpression' <| seq(
+    visitChild 'object',
+    when((.computed),
+        visitChild 'property'),
     
     /**
      * Constant index in array expression.

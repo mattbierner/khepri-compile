@@ -1,0 +1,37 @@
+/**
+ * @fileOverview
+ */
+package (
+    CheckedMemberExpression
+    CheckedCallExpression)
+with
+    import 'khepri-ast::node'{defineNode Node},
+    import 'khepri-ast::expression' {Expression}
+in
+{
+
+CheckedMemberExpression = defineNode(Expression, 'CheckedMemberExpression',
+    ['object', 'property', 'id'],
+    ['computed', 'hasBinding'],
+    function \loc object property id computed hasBinding =self-> {
+        Node.call(self, loc);
+        self.object = object;
+        self.property = property;
+        self.id= id;
+        self.computed = !!computed;
+        self.hasBinding = !!hasBinding;
+    });
+
+/**
+ * 
+ */
+CheckedCallExpression = defineNode(Expression, 'CheckedCallExpression',
+    ['callee', 'args'],
+    [],
+    function \loc callee args =self-> {
+        Node.call(self, loc);
+        self.callee = callee;
+        self.args = args;
+    });
+
+}

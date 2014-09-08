@@ -8,7 +8,7 @@ with
 
     import 'neith::tree' tree,
     
-    import 'khepri-ast::node' {setData},
+    import 'khepri-ast::node' {setData modify},
     
     import '../fun' {
         contains},
@@ -65,12 +65,11 @@ rename = \prefix list root ->
                     updateClosure(node, prefix, list),
                     ctx)
             
-            :?type node === 'MemberExpression' && node.checked
+            :?type node === 'CheckedMemberExpression'
                 :tree.setNode(
-                    setUd(
-                        'id',
-                        rename(prefix, list, tree.node(khepriZipper getUd('id', node))),
-                        node),
+                    modify @ node, {
+                        'id': rename(prefix, list, tree.node(khepriZipper node.id))
+                    },
                     ctx)
             :ctx,
         khepriZipper root);

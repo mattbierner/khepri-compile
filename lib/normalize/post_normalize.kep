@@ -85,7 +85,9 @@ peepholes.add(['LetExpression', 'WithStatement'], UP,
     always,
     
     \node ->
-        modify(node, { bindings: flattenr node.bindings }));
+        modify @ node {
+            bindings: flattenr node.bindings
+        });
 
 /**
  * Expand potentially complex parameter patterns in a function to simple
@@ -105,14 +107,15 @@ peepholes.add('FunctionExpression', UP,
                 [ast_statement.WithStatement.create(null,
                     bindings,
                     node.body)])
+             
             :ast_expression.LetExpression.create(null,
                 bindings,
                 node.body)
     in
-        modify(node, {
+        modify @ node {
             params: modify(node.params, { elements: params }),
             body: body
-        }));
+        });
 
 /* User Operator Conversion
  ******************************************************************************/
@@ -211,7 +214,7 @@ peepholes.add('BinaryExpression', UP,
 /* Interface
  ******************************************************************************/
 /**
- * Pre normalize a Khepri AST.
+ * Post normalize a Khepri AST.
  * 
  * @param ast Zippered Khepri AST.
  */
