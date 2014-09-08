@@ -32,6 +32,8 @@ with
         type
         isIdentifier
         getUid
+        setUd
+        getUd
         isLambda
         isLambdaWithoutArgs
         isPrimitive
@@ -640,6 +642,15 @@ addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
     when((.computed),
         visitChild 'property'),
+    
+     when((.checked),
+        extract \ node -> let
+            id = getUd('id', node)
+        in
+             getBinding(getUid(id)).chain \ binding ->
+                ?binding && binding.value && binding.simple
+                    :set <| setUd('id', binding.value, node)
+                    :pass),
     
     /**
      * Constant index in array expression.
