@@ -343,10 +343,13 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         actions57 = [].slice.call(__args57, 1)), (consequent3 = seq(moveChild("property"), seqa(
         actions57), up)), inspect((function(node) {
         return (node.computed ? consequent3 : (undefined || pass));
-    }))), ((consequent4 = unique((function(uid) {
-        return modifyNode(setUd.bind(null, "id", setUid(uid, ast_value.Identifier.create(
-            null, "__x"))));
-    }))), inspect((function(node) {
+    }))), ((consequent4 = seq(seq(modifyScope(scope.addImmutableBinding.bind(null, "__x", null)),
+        unique((function(uid) {
+            return modifyScope(scope.addUid.bind(null, "__x", uid));
+        }))), examineScope((function(s) {
+        return modifyNode(setUd.bind(null, "id", setUid(s.getUid("__x"), ast_value.Identifier
+            .create(null, "__x"))));
+    })))), inspect((function(node) {
         return (node.checked ? consequent4 : (undefined || pass));
     })))));
     addCheck("ArrayExpression", ((__args58 = ["elements", checkTop]), (actions58 = [].slice.call(__args58, 1)),

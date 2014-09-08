@@ -1,5 +1,12 @@
 # ChangeLog #
 
+## 1.1.0 - Sep 7, 2014
+* Added support for checked member expressions `object.?property`.
+** Ensures that base can be accessed, returning `object && object.property`.
+** Will only evaluate base once.
+* Added support for checked object and array patterns `\?{x b}`.
+** Ensures that base is a valid object before evaluating all child elements.
+
 ## 1.0.6 - Sep 4, 2014
 * Fixed assignment constant propogation to be invalidated after an assignment
   takes place in an inner scope.

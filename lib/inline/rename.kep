@@ -16,6 +16,7 @@ with
         type
         tryGetUd
         getUd
+        setUd
         getUid
         setUid},
     import './expansion' {
@@ -64,6 +65,13 @@ rename = \prefix list root ->
                     updateClosure(node, prefix, list),
                     ctx)
             
+            :?type node === 'MemberExpression' && node.checked
+                :tree.setNode(
+                    setUd(
+                        'id',
+                        rename(prefix, list, tree.node(khepriZipper getUd('id', node))),
+                        node),
+                    ctx)
             :ctx,
         khepriZipper root);
 

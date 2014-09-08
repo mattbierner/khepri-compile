@@ -14,7 +14,7 @@ var testParser = function(input) {
 
 exports.single_value = function(test) {
     test.equal(
-        testParser("var f = \\{'x': val} -> val; f {'x': 1, 'y': 2};"),
+        testParser("var f = \\{'x'#val} -> val; f {'x': 1, 'y': 2};"),
         1);
     
     test.done();
@@ -22,7 +22,7 @@ exports.single_value = function(test) {
 
 exports.multiple_values = function(test) {
     test.equal(
-        testParser("var f = \\{'x': x, 'y': y} -> x + y; f {'x': 1, 'y': 2};"),
+        testParser("var f = \\{'x'# x, 'y'# y} -> x + y; f {'x': 1, 'y': 2};"),
         3);
     
     test.done();
@@ -30,7 +30,7 @@ exports.multiple_values = function(test) {
 
 exports.undefined_value = function(test) {
     test.equal(
-        testParser("var f = \\{'undefined': x} -> x; f {'x': 1, 'y': 2};"),
+        testParser("var f = \\{'undefined'#x} -> x; f {'x': 1, 'y': 2};"),
         undefined);
     
     test.done();
@@ -54,7 +54,7 @@ exports.nested_object_unpacks = function(test) {
 
 exports.array_target = function(test) {
     test.equal(
-        testParser("var f = \\{'1': x} -> x; f [0, 1, 2, 3];"),
+        testParser("var f = \\{'1'# x} -> x; f [0, 1, 2, 3];"),
         1);
     
     test.done();
@@ -64,6 +64,18 @@ exports.as_name = function(test) {
     test.equal(
         testParser("var f = \\{x#{y}} -> y; f {'x': {'y': 2}};"),
         2);
+    
+    test.done();
+};
+
+exports.checked = function(test) {
+    test.equal(
+        testParser("var f = \\?{x} -> x; f {'x': 1, 'y': 2};"),
+        1);
+    
+    test.equal(
+        testParser("var f = \\?{x} -> x; f null;"),
+        null);
     
     test.done();
 };

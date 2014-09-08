@@ -12,6 +12,8 @@ define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "
         contains = __o2["contains"],
         type = __o3["type"],
         tryGetUd = __o3["tryGetUd"],
+        getUd = __o3["getUd"],
+        setUd = __o3["setUd"],
         getUid = __o3["getUid"],
         setUid = __o3["setUid"],
         incrementCount = __o4["incrementCount"];
@@ -34,7 +36,10 @@ define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "
                 uid = getUid(node);
             return (contains(list, uid) ? tree.setNode(setUid(((prefix + "-") + uid), node),
                 ctx) : ((type(node) === "FunctionExpression") ? tree.setNode(
-                updateClosure(node, prefix, list), ctx) : ctx));
+                updateClosure(node, prefix, list), ctx) : (((type(node) ===
+                "MemberExpression") && node.checked) ? tree.setNode(setUd("id",
+                rename(prefix, list, tree.node(khepriZipper(getUd("id",
+                    node)))), node), ctx) : ctx)));
         }), khepriZipper(root)));
     }));
     (incCount = (function(target, count, value, root) {

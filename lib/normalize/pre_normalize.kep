@@ -16,9 +16,13 @@ with
     import '../pseudo/pattern' {SliceUnpack RelativeUnpack},
 
     
-    import '../ast' {type},
+    import '../ast' {
+        type
+        getUd
+        setUd},
     
     import '../fun' {
+        constant
         concat
         map
         foldl
@@ -34,11 +38,7 @@ in {
 var string := ast_value.Literal.create @ (null, 'string');
 var number := ast_value.Literal.create @ (null, 'number');
 
-var markReserved := \node ->
-    setData(
-        node,
-        'reserved',
-        true);
+var markReserved := setUd@('reserved', true);
 
 /**
  * Split a list of unpacks around an ellipsis.
@@ -162,7 +162,7 @@ rewrites.add('ObjectPatternElement', DOWN,
     (!) <\ (.target),
     
     \node#{key} -> {
-        switch(type key) {
+        switch (type key) {
         case 'IdentifierPattern':
             return ast_pattern.ObjectPatternElement.create(node.loc,
                 string(key.id.name),
@@ -183,13 +183,12 @@ rewrites.add('ObjectPatternElement', DOWN,
  * as pattern name if possible instead of the auto generated name.
  */
 rewrites.add('AsPattern', DOWN,
-    \node ->
-        !getData(node.target, 'id'),
+    (!) <\ ((.target) \> getUd @ 'id'),
     
     \node ->
-        ast_pattern.AsPattern.create(node.loc,
+        ast_pattern.AsPattern.create(null,
             node.id,
-            setData(node.target, 'id', node.id)));
+            setUd('id', node.id, node.target)));
 
 /**
  * Name anon object patterns.
@@ -198,17 +197,17 @@ rewrites.add('AsPattern', DOWN,
  * does not complain if it is not unique.
  */
 rewrites.add('ObjectPattern', UP,
-    \node ->
-        !getData(node, 'id'),
+    (!) <\ getUd @ 'id',
     
-    \node -> let
-        id = markReserved <| 
+    let
+        id = markReserved <|
             ast_pattern.IdentifierPattern.create(null,
                 ast_value.Identifier.create(null, '__o'))
     in
-        ast_pattern.AsPattern.create(null,
-            id,
-            setData(node, 'id', id)));
+        \node ->
+            ast_pattern.AsPattern.create(null,
+                id,
+                setUd('id', id, node)));
 
 /**
  * Rewrite sink patterns to identifier patterns.
@@ -216,10 +215,9 @@ rewrites.add('ObjectPattern', UP,
 rewrites.add('SinkPattern', DOWN,
     always,
     
-    \node#{loc} ->
-        markReserved <|
-            ast_pattern.IdentifierPattern.create(loc,
-                ast_value.Identifier.create(null, '_')));
+    constant <| markReserved <|
+        ast_pattern.IdentifierPattern.create(null,
+            ast_value.Identifier.create(null, '_')));
 
 /* Interface
  ******************************************************************************/
