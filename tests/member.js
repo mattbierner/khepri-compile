@@ -58,3 +58,31 @@ exports.computed_member_evaled_once = function(test) {
 
     test.done();
 };
+
+exports.checked_member = function(test) {
+    test.equal(
+        testParser("var o = {'x':3}; o.?x;"),
+        3);
+    
+    test.equal(
+        testParser("var o = {'x':3}; o.?u;"),
+        undefined);
+    
+     test.equal(
+        testParser("var o; o.?x;"),
+        undefined);
+    
+    test.equal(
+        testParser("var o = null; o.?x;"),
+        null);
+    
+    test.done();
+};
+
+exports.checked_member_evals_base_once = function(test) {
+    test.equal(
+        testParser("var g = 0; var o = {'x':{'y': 3}}; var f = \\-> { g = g + 1; return o; }; (f()).?x.y; g;"),
+        1);
+    
+    test.done();
+};

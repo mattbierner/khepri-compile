@@ -39,7 +39,19 @@ exports.non_ecma_op = function(test) {
 exports.computed_member = function(test) {
     test.equal(
         testParser("var f = (.); f ([1, 2, 3], 2);"),
-        3);
+        testParser("[1, 2, 3].('2');"));
+    
+    test.done();
+};
+
+exports.checked_member = function(test) {
+    test.equal(
+        testParser("var f = (.?); f ([1, 2, 3], 2);"),
+        testParser("[1, 2, 3].?(2);"));
+    
+    test.equal(
+        testParser("var f = (.?); var a; f (a, 2);"),
+        undefined);
     
     test.done();
 };
