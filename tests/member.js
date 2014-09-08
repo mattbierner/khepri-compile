@@ -51,7 +51,7 @@ exports.computed_member = function(test) {
     test.done();
 };
 
-exports.computed_member_evaled_once = function(test) {
+exports.computed_member_arg_evaled_once = function(test) {
     test.equal(
         testParser("var g = 0; var f = \\x -> { g = g + 1; return x; }; var a = [1, [4], 3]; a.(f(1)).(0); g;"),
         1);
@@ -83,6 +83,18 @@ exports.checked_member_evals_base_once = function(test) {
     test.equal(
         testParser("var g = 0; var o = {'x':{'y': 3}}; var f = \\-> { g = g + 1; return o; }; (f()).?x.y; g;"),
         1);
+    
+    test.done();
+};
+
+exports.checked_member_evals_arg_at_most_once = function(test) {
+    test.equal(
+        testParser("var g = 0; var o = {'x':{'y': 3}}; var f = \\-> { g = g + 1; return 'x'; }; o.?(f()).y; g;"),
+        1);
+    
+    test.equal(
+        testParser("var g = 0; var o = null; var f = \\-> { g = g + 1; return 'x'; }; o.?(f()).?y; g;"),
+        0);
     
     test.done();
 };
