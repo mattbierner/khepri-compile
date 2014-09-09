@@ -44,6 +44,57 @@ var builtins := [
     'undefined',
     'URIError'];
 
+/**
+ * Default set of builtin binary operators.
+ */
+var builtinBinaryOps := [
+    '*',
+    '/',
+    '+',
+    '-',
+    '%',
+    '<<',
+    '>>',
+    '>>>',
+    '<',
+    '>',
+    '<=',
+    '>=',
+    '==',
+    '!=',
+    '===',
+    '!==',
+    '&',
+    '^',
+    '|',
+    '||',
+    '&&',
+    '|>',
+    '\\>',
+    '\\>>',
+    '<|',
+    '<\\',
+    '<<\\',
+    '!',
+    '++',
+    '--',
+    '~',
+    '.',
+    '??',
+    '@',
+    'void',
+    'instanceof',
+    'typeof',
+    'new'];
+
+/**
+ * Default set of builtin unary operators.
+ */
+var builtinUnaryOps := [
+    '!',
+    '++',
+    '--',
+    '~'];
 
 /**
  * 
@@ -52,6 +103,8 @@ check = \input#{options tree data} ->
     lexical.check(
         tree,
         ((options && options.globals) || builtins),
+        builtinBinaryOps,
+        builtinUnaryOps,
         data)
     .map \ {tree data} -> ({
         'tree': tree,

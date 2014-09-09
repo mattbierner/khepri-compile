@@ -10,12 +10,18 @@ var Error = require("akh")["error"],
         "Error", "eval", "EvalError", "Function", "Infinity", "isFinite", "isNaN", "JSON", "Math", "NaN", "Number",
         "Object", "parseInt", "parseFloat", "RangeError", "ReferenceError", "RegExp", "String", "SyntaxError",
         "TypeError", "undefined", "URIError"
-    ];
+    ],
+    builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===", "!==", "&",
+        "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".", "??", "@", "void",
+        "instanceof", "typeof", "new"
+    ],
+    builtinUnaryOps = ["!", "++", "--", "~"];
 (check = (function(input) {
     var options = input["options"],
         tree = input["tree"],
         data = input["data"];
-    return lexical.check(tree, ((options && options.globals) || builtins), data)
+    return lexical.check(tree, ((options && options.globals) || builtins), builtinBinaryOps, builtinUnaryOps,
+        data)
         .map((function(__o0) {
             var tree0 = __o0["tree"],
                 data0 = __o0["data"];

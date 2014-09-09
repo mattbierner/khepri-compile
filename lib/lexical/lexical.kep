@@ -27,7 +27,7 @@ with
         getUd
         setUd
         setUid},
-    import '../fun' {foldl},
+    import '../fun' {flip foldl},
     import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
@@ -575,60 +575,11 @@ _check := \node ->
         :checkArray node
         :(checks.(type node) || pass);
 
-var initialScope := 
-    foldl(
-        \s c ->
-            scope.addImmutableBinding(c, 'global', s),
-        Scope.empty, [
-            '*',
-            '/',
-            '+',
-            '-',
-            '%',
-            '<<',
-            '>>',
-            '>>>',
-            '<',
-            '>',
-            '<=',
-            '>=',
-            '==',
-            '!=',
-            '===',
-            '!==',
-            '&',
-            '^',
-            '|',
-            '||',
-            '&&',
-            '|>',
-            '\\>',
-            '\\>>',
-            '<|',
-            '<\\',
-            '<<\\',
-            '!',
-            '++',
-            '--',
-            '~',
-            '.',
-            '??',
-            '@',
-            'void',
-            'instanceof',
-            'typeof',
-            'new'])
-    |> \x ->
-        foldl(\p c -> scope.addOperator(c, null, p), x, [
-            '!',
-            '++',
-            '--',
-            '~']);
+var addGlobals := flip foldl @ \s c ->
+    scope.addImmutableBinding(c, 'global', s);
 
-var addBindings := foldl@(
-    \s c ->
-        scope.addImmutableBinding(c, 'global', s),
-    initialScope);
+var addUnaryOp := flip foldl @ \s c ->
+    scope.addOperator(c, 'global', s);
 
 var rewrite := seq(
     checkTop,
@@ -650,10 +601,13 @@ var rewrite := seq(
  * @param ast Zippered khepri AST.
  * @param globals Global bindings for the program.
  */
-check = \ast globals ->
+check = \ast globals builtinBinary builtinUnary ->
     run(
         rewrite,
-        addBindings(globals || []),
+        Scope.empty
+            |> addGlobals@(globals || [])
+            |> addGlobals@(builtinBinary || [])
+            |> addUnaryOps@(builtinUnary || []),
         ast,
         Error.of,
         Error.fail);
