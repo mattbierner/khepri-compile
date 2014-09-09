@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.2.1 - Sep 8, 2014
+* Fixed node bypassing reachable prune stage.
+
 ## 1.2.0 - Sep 8, 2014
 * Added the checked operator `??`:
 ** Pseudo code is: `var (??) := \o f -> o && f o;`
