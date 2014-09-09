@@ -22,14 +22,13 @@ exports.simple_checked = function(test) {
         testParser("var o = {'x':3}; o ?? .x;"),
         undefined);
     
-    
     test.done();
 };
 
-exports.checked_member_evals_base_once = function(test) {
+exports.does_not_eval_rhs_if_lhs_false = function(test) {
     test.equal(
-        testParser("var g = 0; var o = {'x':{'y': 3}}; var f = \\-> { g = g + 1; return o; }; (f()).?x.y; g;"),
-        1);
+        testParser("var g = 0; var f = \-> { g = g + 1; }; null ?? f;"),
+        0);
     
     test.done();
 };

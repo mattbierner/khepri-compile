@@ -198,7 +198,7 @@ registerBinary('??', '__chk', \x y ->
         setUd(
             'id',
             identifier('__x', unique()),
-            ast_expression.CallExpression.create(null, x, [y]))));
+            ast_expression.CallExpression.create(null, y, [x]))));
 
 // Curry
 registerBinary('@', '__curry', \x y ->

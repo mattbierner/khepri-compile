@@ -1,5 +1,7 @@
 # ChangeLog #
 
+## 1.2.0 - Sep 8, 2014
+
 ## 1.1.0 - Sep 7, 2014
 * Added support for checked member expressions `object.?property`.
 ** Ensures that base can be accessed, returning `object && object.property`.

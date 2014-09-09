@@ -137,7 +137,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
     }));
     registerBinary("??", "__chk", (function(x, y) {
         return ast_expression.BinaryExpression.create(null, "&&", x, setUd("id", identifier("__x",
-            unique()), ast_expression.CallExpression.create(null, x, [y])));
+            unique()), ast_expression.CallExpression.create(null, y, [x])));
     }));
     registerBinary("@", "__curry", (function(x, y) {
         return ast_expression.CurryExpression.create(null, x, [y]);
