@@ -70,8 +70,7 @@ in
     \base pattern key checked ->
         objectElement(
             ?checked
-                :setUd('hasBinding', true,
-                    CheckedMemberExpression.create(null, base, key, id, true))
+                :CheckedMemberExpression.create(null, base, key, id, true, true)
                 :ast_expression.MemberExpression.create(null, base, key, true, false),
             pattern,
             key);

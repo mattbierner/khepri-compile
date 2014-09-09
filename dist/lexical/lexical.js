@@ -429,7 +429,7 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         return scope.addImmutableBinding(c, "global", s);
     }), Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=",
         "===", "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!",
-        "++", "--", "~", ".", ".?", "@", "void", "instanceof", "typeof", "new"
+        "++", "--", "~", ".", "??", "@", "void", "instanceof", "typeof", "new"
     ])), foldl((function(p, c) {
         return scope.addOperator(c, null, p);
     }), x3, ["!", "++", "--", "~"])),

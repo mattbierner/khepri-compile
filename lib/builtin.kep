@@ -189,14 +189,14 @@ registerBinary('new', '__new', \x y ->
 registerBinary('.', '__dot', \x y ->
     ast_expression.MemberExpression.create(null, x, y, true));
 
-// Checked Computed Member
-registerBinary('.?', '__cdot', \x y ->
+// Checked
+registerBinary('??', '__chk', \x y ->
     ast_expression.BinaryExpression.create(null, '&&',
         x,
         setUd(
             'id',
             identifier('__x', unique()),
-            ast_expression.MemberExpression.create(null, x, y, true))));
+            ast_expression.CallExpression.create(null, x, [y]))));
 
 // Curry
 registerBinary('@', '__curry', \x y ->

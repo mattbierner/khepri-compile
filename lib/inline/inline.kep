@@ -592,7 +592,7 @@ in seq(
             ast_value.Literal.create(null, typeof value, value)),
     
     /**
-     * Rewrite compose to use builtin compose code.
+     * Rewrite binary functions to use builtins.
      * 
      * @TODO: move this out of this stage.
      */
@@ -601,7 +601,8 @@ in seq(
             (  operator === '\\>'
             || operator === '\\>>'
             || operator === '<\\'
-            || operator === '<<\\'),
+            || operator === '<<\\'
+            || operator === '??'),
         
         extract \ {operator left right} -> seq(
             addGlobal(operator),

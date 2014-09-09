@@ -394,9 +394,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             null, builtins[operator], [left, right0])), checkTop);
     }))), extract((function(node) {
         var operator;
-        return (((operator = node["operator"]), ((((operator === "\\>") || (operator ===
-                "\\>>")) || (operator === "<\\")) || (operator === "<<\\"))) ?
-            consequent6 : (undefined || pass));
+        return (((operator = node["operator"]), (((((operator === "\\>") || (operator ===
+                "\\>>")) || (operator === "<\\")) || (operator === "<<\\")) ||
+            (operator === "??"))) ? consequent6 : (undefined || pass));
     }))))));
     addRewrite("AssignmentExpression", seq(((__args33 = ["right", checkTop]), (ops33 = [].slice.call(__args33,
         1)), seq(moveChild("right"), seqa(ops33), up)), ((consequent7 = extract((function(__o6) {
