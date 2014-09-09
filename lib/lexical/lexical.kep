@@ -559,14 +559,12 @@ addCheck@['Identifier', 'BinaryOperator'] <|
              setNode <| setUid(scope.getUid(name, s), node));
 
 addCheck@['UnaryOperator'] <|
-    when((.name) \> (_ ., 0) \> (=== '.'),
-        pass,
-        inspect \ node#{loc name} -> seq(
-            checkHasBinding(name, loc),
-            examineScope \ s ->
-                let uid = scope.getUid(name, s) in seq(
-                    setNode <| setUid(uid, node),
-                    addOperator(name, uid))));
+    inspect \ node#{loc name} -> seq(
+        checkHasBinding(name, loc),
+        examineScope \ s ->
+            let uid = scope.getUid(name, s) in seq(
+                setNode <| setUid(uid, node),
+                addOperator(name, uid)));
 
 /*
  ******************************************************************************/
@@ -578,7 +576,7 @@ _check := \node ->
 var addGlobals := flip foldl @ \s c ->
     scope.addImmutableBinding(c, 'global', s);
 
-var addUnaryOp := flip foldl @ \s c ->
+var addUnaryOps := flip foldl @ \s c ->
     scope.addOperator(c, 'global', s);
 
 var rewrite := seq(
@@ -599,7 +597,9 @@ var rewrite := seq(
  * Returns result in `Error`.
  * 
  * @param ast Zippered khepri AST.
- * @param globals Global bindings for the program.
+ * @param globals List of global identifiers.
+ * @param builtinBinary List of global binary operators.
+ * @param builtinUnary List of global unary operators.
  */
 check = \ast globals builtinBinary builtinUnary ->
     run(

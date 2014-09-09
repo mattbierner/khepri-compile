@@ -325,15 +325,9 @@ var addRewrite = \type f -> {
  */
 addRewrite@'UnaryOperator' <| seq(
     extract \ {name} ->
-        ?builtins.(name)
-            :seq(
-                addGlobal(name),
-                set <| builtins.(name))
-            
-            // Must be a non computed member expression
-            // This is really more of a macro, so it is handled differently
-            :unique \ uid ->
-                set <| builtin.member(name.substring(1), uid),
+        seq(
+            addGlobal(name),
+            set <| builtins.(name)),
     checkTop);
 
 /**
@@ -354,17 +348,30 @@ addRewrite@'TernaryOperator' <| seq(
     checkTop);
 
 /**
- * Convert ternary op expression to function.
+ * Convert expressions to functions.
  */
 addRewrite@'OperatorExpression' <| seq(
-    visitChild 'operator',
-
-    when((.flipped),
-        modify \ {operator} ->
-            ast_expression.CallExpression.create(null, builtins.('_'), [operator]),
-        modify (.operator)),
-    
-    checkTop);
+    when(\{operator} ->
+        (  type operator === 'MemberExpression'
+        || type operator === 'CallExpression'),
+        
+        // Must be a dot expression
+        // This is really more of a macro, so it is handled differently
+        seq(
+            unique \ uid ->
+                modify \ {operator} ->
+                    builtin.member(operator, uid),
+            checkTop),
+        visitChild 'operator',
+        
+        // Otherwise, normal op
+        seq(
+            when((.flipped),
+                modify \ {operator} ->
+                    ast_expression.CallExpression.create(null, builtins.('_'), [operator]),
+                modify (.operator)),
+            
+            checkTop)));
 
 /* 
  ******************************************************************************/
@@ -663,7 +670,7 @@ addRewrite@'MemberExpression' <| seq(
     when(
         \node ->
             (  node.computed
-            && node.object.type === 'ArrayExpression'
+            && type node.object === 'ArrayExpression'
             && isNumberish node.property),
     
         modify \ {object property} ->
@@ -674,10 +681,10 @@ addRewrite@'MemberExpression' <| seq(
      */
     when(
         \node ->
-            (  node.type === 'MemberExpression'
-            && node.object.type === 'ArrayExpression'
+            (  type node === 'MemberExpression'
+            && type node.object === 'ArrayExpression'
             && (  (!node.computed && node.property.name === 'length')
-               || (node.computed && node.property.type === 'Literal' && node.property.value === 'length'))),
+               || (node.computed && type node.property === 'Literal' && node.property.value === 'length'))),
     
         modify \ {object} ->
             ast_value.Literal.create(null, 'number', object.elements.length)),
@@ -688,7 +695,7 @@ addRewrite@'MemberExpression' <| seq(
     when(
         \node ->
             (  node.computed
-            && (node.object.type === 'Literal' && node.object.kind === 'string')
+            && (type node.object === 'Literal' && node.object.kind === 'string')
             && isNumberish node.property),
     
         modify \ node -> let

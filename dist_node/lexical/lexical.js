@@ -26,6 +26,7 @@ var __o = require("akh")["base"],
     getUd = __o1["getUd"],
     setUd = __o1["setUd"],
     setUid = __o1["setUid"],
+    flip = __o2["flip"],
     foldl = __o2["foldl"],
     splitOp = __o3["splitOp"],
     Scope = scope["Scope"],
@@ -46,8 +47,7 @@ var __o = require("akh")["base"],
         __args60, actions60, __args61, actions61, __args62, actions62, __args63, actions63, body14, __args64, actions64,
         __args65, actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69,
         __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74, actions74,
-        __args75, actions75, __args76, actions76, __args77, actions77, consequent5, alternate2, x3, _check, reserved =
-        getUd.bind(null, "reserved"),
+        __args75, actions75, __args76, actions76, __args77, actions77, _check, reserved = getUd.bind(null, "reserved"),
     M = ErrorT(TreeZipperT(ScopeT(Unique))),
     run = (function(p, s, ctx, ok, err) {
         var y, y0;
@@ -396,36 +396,28 @@ addCheck(["Identifier", "BinaryOperator"], inspect((function(node) {
         return setNode(setUid(scope.getUid(name, s), node));
     })));
 })));
-addCheck(["UnaryOperator"], ((consequent5 = pass), (alternate2 = inspect((function(node) {
+addCheck(["UnaryOperator"], inspect((function(node) {
     var loc = node["loc"],
         name = node["name"];
     return seq(checkHasBinding(name, loc), examineScope((function(s) {
         var uid = scope.getUid(name, s);
         return seq(setNode(setUid(uid, node)), addOperator(name, uid));
     })));
-}))), inspect((function(node) {
-    var z, y3;
-    return (((z = node.name), (y3 = z[0]), ("." === y3)) ? consequent5 : (alternate2 || pass));
-}))));
+})));
 (_check = (function(node) {
     return (Array.isArray(node) ? checkArray(node) : (checks[type(node)] || pass));
 }));
-var initialScope = ((x3 = foldl((function(s, c) {
+var addGlobals = flip(foldl.bind(null, (function(s, c) {
     return scope.addImmutableBinding(c, "global", s);
-}), Scope.empty, ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
-    "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~", ".",
-    "??", "@", "void", "instanceof", "typeof", "new"
-])), foldl((function(p, c) {
-    return scope.addOperator(c, null, p);
-}), x3, ["!", "++", "--", "~"])),
-    addBindings = foldl.bind(null, (function(s, c) {
-        return scope.addImmutableBinding(c, "global", s);
-    }), initialScope),
-    rewrite = seq(checkTop, root, extractCtx.chain((function(x4) {
+}))),
+    addUnaryOps = flip(foldl.bind(null, (function(s, c) {
+        return scope.addOperator(c, "global", s);
+    }))),
+    rewrite = seq(checkTop, root, extractCtx.chain((function(x3) {
         return unique((function(unique0) {
             return extractScope.map((function(s) {
                 return ({
-                    tree: x4,
+                    tree: x3,
                     data: ({
                         unique: unique0
                     })
@@ -433,7 +425,8 @@ var initialScope = ((x3 = foldl((function(s, c) {
             }));
         }));
     })));
-(check = (function(ast, globals) {
-    return run(rewrite, addBindings((globals || [])), ast, Error.of, Error.fail);
+(check = (function(ast, globals, builtinBinary, builtinUnary) {
+    return run(rewrite, addUnaryOps((builtinUnary || []), addGlobals((builtinBinary || []), addGlobals((globals || []),
+        Scope.empty))), ast, Error.of, Error.fail);
 }));
 (exports["check"] = check);

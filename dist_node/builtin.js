@@ -3,15 +3,18 @@
  * DO NOT EDIT
 */
 "use strict";
-var ast_pattern = require("khepri-ast")["pattern"],
-    ast_expression = require("khepri-ast")["expression"],
+var ast_expression = require("khepri-ast")["expression"],
+    __o = require("khepri-ast")["node"],
+    ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
-    __o = require("./ast"),
-    __o0 = require("./fun"),
-    builtins, definitions, member, setUd = __o["setUd"],
-    getUid = __o["getUid"],
-    setUid = __o["setUid"],
-    flip = __o0["flip"],
+    __o0 = require("./ast"),
+    __o1 = require("./fun"),
+    builtins, definitions, member, modify = __o["modify"],
+    type = __o0["type"],
+    setUd = __o0["setUd"],
+    getUid = __o0["getUid"],
+    setUid = __o0["setUid"],
+    flip = __o1["flip"],
     identifier = (function(name, uid) {
         return setUid(uid, ast_value.Identifier.create(null, name));
     }),
@@ -47,9 +50,9 @@ var uid3, uid5, xArg0, uid6, yArg, node0, locals, uid4, xArg, node, locals0;
     ["!", "__lnot"],
     ["++", "__plus"],
     ["--", "__minus"]
-].forEach((function(__o1) {
-    var op = __o1[0],
-        name = __o1[1],
+].forEach((function(__o2) {
+    var op = __o2[0],
+        name = __o2[1],
         xArg, node, locals;
     registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), (node = ast_expression.FunctionExpression
         .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
@@ -122,9 +125,9 @@ var binary = (function(op) {
     ["instanceof", "__instanceof"],
     ["||", "__or"],
     ["&&", "__and"]
-].forEach((function(__o1) {
-    var op = __o1[0],
-        name = __o1[1];
+].forEach((function(__o2) {
+    var op = __o2[0],
+        name = __o2[1];
     registerBinary(op, name, binaryOp(op));
 }));
 registerBinary("new", "__new", (function(x, y) {
@@ -166,11 +169,22 @@ var multiCompose = (function(f, g) {
 });
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", flip(multiCompose));
-(member = (function(id, uid10) {
+var subDotHole = (function(expr, arg) {
+    return ((type(expr) === "MemberExpression") ? modify(expr, ({
+        "object": (expr.object ? subDotHole(expr.object, arg) : arg)
+    })) : ((type(expr) === "CallExpression") ? modify(expr, ({
+        "callee": subDotHole(expr.callee, arg)
+    })) : expr));
+});
+(member = (function(expr, uid10) {
     var xArg2 = identifier("x", uid10),
         node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-            null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.MemberExpression.create(
-            null, xArg2, identifier(id), false)),
+            null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ((type(expr) === "MemberExpression") ?
+            modify(expr, ({
+                "object": (expr.object ? subDotHole(expr.object, xArg2) : xArg2)
+            })) : ((type(expr) === "CallExpression") ? modify(expr, ({
+                "callee": subDotHole(expr.callee, xArg2)
+            })) : expr))),
         locals2 = [getUid(xArg2)];
     return setUd("locals", locals2, node2);
 }));

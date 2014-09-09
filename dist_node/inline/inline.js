@@ -46,7 +46,7 @@ var __o = require("khepri-ast")["node"],
     isExpansion = __o4["isExpansion"],
     expandNode = __o4["expandNode"],
     incCount = __o5["incCount"],
-    x, y, __args, ops, consequent, alternate, __args0, ops0, consequent0, __args1, ops1, __args2, ops2, __args3, ops3,
+    x, y, consequent, __args, ops, alternate, __args0, ops0, consequent0, __args1, ops1, __args2, ops2, __args3, ops3,
         __args4, ops4, __args5, ops5, __args6, ops6, __args7, ops7, consequent1, __args8, ops8, consequent2,
         consequent3, __args9, ops9, __args10, ops10, __args11, ops11, __args12, ops12, __args13, ops13, __args14, ops14,
         __args15, ops15, __args16, ops16, __args17, ops17, __args18, ops18, __args19, ops19, __args20, ops20, body,
@@ -226,24 +226,24 @@ var __o = require("khepri-ast")["node"],
     });
 addRewrite("UnaryOperator", seq(extract((function(__o6) {
     var name = __o6["name"];
-    return (builtins[name] ? seq(addGlobal(name), set(builtins[name])) : unique((function(uid) {
-        return set(builtin.member(name.substring(1), uid));
-    })));
+    return seq(addGlobal(name), set(builtins[name]));
 })), checkTop));
 addRewrite("BinaryOperator", seq(extract((function(__o6) {
     var name = __o6["name"];
     return seq(addGlobal(name), set(builtins[name]));
 })), checkTop));
 addRewrite("TernaryOperator", seq(modifyState(state.addGlobal.bind(null, "?")), set(builtins["?"]), checkTop));
-addRewrite("OperatorExpression", seq(((__args = ["operator", checkTop]), (ops = [].slice.call(__args, 1)), seq(
-    moveChild("operator"), seqa(ops), up)), ((consequent = modify((function(__o6) {
-    var operator = __o6["operator"];
-    return ast_expression.CallExpression.create(null, builtins["_"], [operator]);
-}))), (alternate = modify((function(x0) {
-    return x0.operator;
-}))), extract((function(node) {
-    return (node.flipped ? consequent : (alternate || pass));
-}))), checkTop));
+addRewrite("OperatorExpression", seq(((consequent = seq(unique((function(uid) {
+    return modify((function(__o6) {
+        var operator = __o6["operator"];
+        return builtin.member(operator, uid);
+    }));
+})), checkTop)), (__args = ["operator", checkTop]), (ops = [].slice.call(__args, 1)), (alternate = seq(
+    moveChild("operator"), seqa(ops), up)), extract((function(node) {
+    var operator;
+    return (((operator = node["operator"]), ((type(operator) === "MemberExpression") || (type(
+        operator) === "CallExpression"))) ? consequent : (alternate || pass));
+})))));
 addRewrite("Program", seq(((__args0 = ["body", checkTop]), (ops0 = [].slice.call(__args0, 1)), seq(moveChild("body"),
     seqa(ops0), up)), ((consequent0 = globals((function(globals0) {
     return modify((function(node) {
@@ -441,22 +441,22 @@ addRewrite("MemberExpression", seq(((__args39 = ["object", checkTop]), (ops39 = 
         property = __o6["property"];
     return (object.elements[property.value] || builtins.undefined);
 }))), extract((function(node) {
-    return (((node.computed && (node.object.type === "ArrayExpression")) && isNumberish(node.property)) ?
+    return (((node.computed && (type(node.object) === "ArrayExpression")) && isNumberish(node.property)) ?
         consequent11 : (undefined || pass));
 }))), ((consequent12 = modify((function(__o6) {
     var object = __o6["object"];
     return ast_value.Literal.create(null, "number", object.elements.length);
 }))), extract((function(node) {
-    return ((((node.type === "MemberExpression") && (node.object.type === "ArrayExpression")) && ((
-            (!node.computed) && (node.property.name === "length")) || ((node.computed && (
-            node.property.type === "Literal")) && (node.property.value === "length")))) ?
+    return ((((type(node) === "MemberExpression") && (type(node.object) === "ArrayExpression")) &&
+            (((!node.computed) && (node.property.name === "length")) || ((node.computed && (type(
+                node.property) === "Literal")) && (node.property.value === "length")))) ?
         consequent12 : (undefined || pass));
 }))), ((consequent13 = modify((function(node) {
     var str = node.object.value,
         idx = node.property.value;
     return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : builtins.undefined);
 }))), extract((function(node) {
-    return (((node.computed && ((node.object.type === "Literal") && (node.object.kind === "string"))) &&
+    return (((node.computed && ((type(node.object) === "Literal") && (node.object.kind === "string"))) &&
         isNumberish(node.property)) ? consequent13 : (undefined || pass));
 })))));
 addRewrite("NewExpression", seq(((__args41 = ["callee", checkTop]), (ops41 = [].slice.call(__args41, 1)), seq(moveChild(

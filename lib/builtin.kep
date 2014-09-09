@@ -7,11 +7,13 @@ package (
     
     member)
 with
-    import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::expression' ast_expression,
+    import 'khepri-ast::node' {modify},
+    import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-    
+
     import './ast' {
+        type
         setUd
         getUid
         setUid},
@@ -262,15 +264,31 @@ in {
 /* Macro Operators
  ******************************************************************************/
 /**
- * Non computed member access.
+ * Replace the hole in a dot expression with `arg`.
  */
-member = \id uid -> let
+var subDotHole := \expr arg ->
+    ?type expr === 'MemberExpression'
+        :modify @ expr {
+            'object': ?expr.object
+                :subDotHole(expr.object, arg)
+                :arg
+        }
+    
+    :?type expr === 'CallExpression'
+         :modify @ expr { 'callee': subDotHole(expr.callee, arg) }
+    
+    :expr;
+
+/**
+ * Dot Expressoion access.
+ */
+member := \expr uid -> let
     xArg = identifier('x', uid)
 in
     setLocals(
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
                 ast_pattern.IdentifierPattern.create(null, xArg)]),
-            ast_expression.MemberExpression.create(null, xArg, identifier id, false)),
+            subDotHole(expr, xArg)),
         [getUid xArg]);
 }
