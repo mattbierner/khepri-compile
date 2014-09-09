@@ -102,12 +102,9 @@ var mapOp = (function(op) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
 }));
 (checkedMemberExpression = (function(node) {
-    var id = node.id,
-        body = khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.MemberExpression.create(
-            null, id, node.property, node.computed, false));
-    return (node.hasBinding ? body : khepri_expression.LetExpression.create(node.loc, [khepri_declaration.Binding
-        .create(null, khepri_pattern.IdentifierPattern.create(null, id), node.object)
-    ], body));
+    var id = node.id;
+    return khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.MemberExpression.create(
+        null, id, node.property, node.computed, false));
 }));
 (letExpression = (function(node) {
     return ecma_expression.SequenceExpression.create(node.loc, flatten(concat(map(unpackAssign, node.bindings),

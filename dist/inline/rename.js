@@ -36,10 +36,10 @@ define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "
             return (contains(list, uid) ? tree.setNode(setUid(((prefix + "-") + uid), node),
                 ctx) : ((type(node) === "FunctionExpression") ? tree.setNode(
                 updateClosure(node, prefix, list), ctx) : ((type(node) ===
-                "CheckedMemberExpression") ? tree.setNode(modify.bind(null,
-                node), ({
-                "id": rename(prefix, list, tree.node(khepriZipper(node.id)))
-            }), ctx) : ctx)));
+                "CheckedMemberExpression") ? tree.setNode(modify(node, ({
+                "id": rename(prefix, list, tree.node(khepriZipper(
+                    node.id)))
+            })), ctx) : ctx)));
         }), khepriZipper(root)));
     }));
     (incCount = (function(target, count, value, root) {

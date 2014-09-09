@@ -227,23 +227,14 @@ memberExpression := \node ->
  * 
  */
 checkedMemberExpression := \node -> let
-    id = node.id,
-
-    body = 
-        khepri_expression.BinaryExpression.create(null, '&&',
-            id,
-            khepri_expression.MemberExpression.create(null, id,
-                node.property,
-                node.computed,
-                false))
+    id = node.id
 in
-    ?node.hasBinding
-        :body
-        :khepri_expression.LetExpression.create(node.loc, [
-            khepri_declaration.Binding.create(null,
-                khepri_pattern.IdentifierPattern.create(null, id),
-                node.object)],
-            body);
+    khepri_expression.BinaryExpression.create(null, '&&',
+        id,
+        khepri_expression.MemberExpression.create(null, id,
+            node.property,
+            node.computed,
+            false));
 
 /**
  * Let expression translation.

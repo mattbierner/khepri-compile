@@ -67,7 +67,7 @@ rename = \prefix list root ->
             
             :?type node === 'CheckedMemberExpression'
                 :tree.setNode(
-                    modify @ node, {
+                    modify @ node {
                         'id': rename(prefix, list, tree.node(khepriZipper node.id))
                     },
                     ctx)

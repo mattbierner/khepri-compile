@@ -485,13 +485,15 @@ addCheck@'MemberExpression' <| seq(
 
 addCheck@'CheckedMemberExpression' <| seq(
     checkChild 'object',
+    
     when((.computed),
         checkChild 'property'),
+    
     unique \ uid ->
     modifyNode \ node ->
-        modifyAstNode @ node {
+        modifyAstNode(node, {
             'id' : setUid(uid, ast_value.Identifier.create(null, '__x'))
-        });
+        }));
 
 
 addCheck@'ArrayExpression' <|

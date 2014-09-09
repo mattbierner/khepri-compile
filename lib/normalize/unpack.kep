@@ -72,7 +72,7 @@ in
     \base pattern key checked ->
         objectElement(
             ?checked
-                :CheckedMemberExpression.create(null, base, key, base.id.id)
+                :CheckedMemberExpression.create(null, base, key, base)
                 :ast_expression.MemberExpression.create(null, base, key, true),
             pattern,
             key);
