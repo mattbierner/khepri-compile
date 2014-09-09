@@ -96,7 +96,7 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     (checkedMemberExpression = (function(node) {
         var id = node.id;
         return khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.MemberExpression
-            .create(null, id, node.property, node.computed, false));
+            .create(null, id, node.property, node.computed));
     }));
     (letExpression = (function(node) {
         return ecma_expression.SequenceExpression.create(node.loc, flatten(concat(map(unpackAssign,

@@ -231,10 +231,10 @@ checkedMemberExpression := \node -> let
 in
     khepri_expression.BinaryExpression.create(null, '&&',
         id,
-        khepri_expression.MemberExpression.create(null, id,
+        khepri_expression.MemberExpression.create(null,
+            id,
             node.property,
-            node.computed,
-            false));
+            node.computed));
 
 /**
  * Let expression translation.

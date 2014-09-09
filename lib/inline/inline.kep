@@ -645,7 +645,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
         seq(
             visitChild 'consequent',
             visitChild 'alternate')));
-/*
+
 addRewrite@'CheckedMemberExpression' <| seq(
     visitChild 'object',
     when((.computed),
@@ -658,7 +658,7 @@ addRewrite@'CheckedMemberExpression' <| seq(
             ?binding && binding.value && binding.simple
                 :set <| modifyNode(node, {'id': binding.value })
                 :pass);
-*/
+
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
     when((.computed),

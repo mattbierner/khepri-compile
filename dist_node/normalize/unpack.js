@@ -20,7 +20,7 @@ var ast_expression = require("khepri-ast")["expression"],
     flattenr = __o2["flattenr"],
     map = __o2["map"],
     expandObjectElement = (function(base, pattern, key, checked) {
-        var innerBase = (checked ? CheckedMemberExpression.create(null, base, key, base) : ast_expression.MemberExpression
+        var innerBase = (checked ? CheckedMemberExpression.create(null, base, key, base, true) : ast_expression.MemberExpression
             .create(null, base, key, true));
         return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
