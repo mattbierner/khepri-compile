@@ -150,12 +150,12 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         __args37, 1)), seq(moveChild("left"), sequencea(actions37), up)), ((__args38 = ["right",
         checkTop
     ]), (actions38 = [].slice.call(__args38, 1)), seq(moveChild("right"), sequencea(actions38), up))));
-    addRewrite("MemberExpression", seq(((__args39 = ["object", checkTop]), (actions39 = [].slice.call(__args39,
-        1)), seq(moveChild("object"), sequencea(actions39), up)), ((__args40 = ["property", checkTop]), (
-        actions40 = [].slice.call(__args40, 1)), (consequent0 = seq(moveChild("property"),
-        sequencea(actions40), up)), extract((function(node) {
-        return (node.computed ? consequent0 : (undefined || pass));
-    })))));
+    addRewrite(["MemberExpression", "CheckedMemberExpression"], seq(((__args39 = ["object", checkTop]), (
+        actions39 = [].slice.call(__args39, 1)), seq(moveChild("object"), sequencea(actions39), up)), (
+        (__args40 = ["property", checkTop]), (actions40 = [].slice.call(__args40, 1)), (consequent0 =
+            seq(moveChild("property"), sequencea(actions40), up)), extract((function(node) {
+            return (node.computed ? consequent0 : (undefined || pass));
+        })))));
     addRewrite("NewExpression", seq(((__args41 = ["callee", checkTop]), (actions41 = [].slice.call(__args41, 1)),
         seq(moveChild("callee"), sequencea(actions41), up)), ((__args42 = ["args", checkTop]), (
         actions42 = [].slice.call(__args42, 1)), seq(moveChild("args"), sequencea(actions42), up))));

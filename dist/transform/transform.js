@@ -200,10 +200,7 @@ define(["require", "exports", "akh/state", "akh/base", "zipper-m/trans/tree", "e
     addTransform("CallExpression", seq(((__args42 = ["callee", checkTop]), (actions42 = [].slice.call(__args42,
             1)), seq(moveChild("callee"), sequencea(actions42), up)), ((__args43 = ["args", checkTop]), (
             actions43 = [].slice.call(__args43, 1)), seq(moveChild("args"), sequencea(actions43), up)),
-        withNode((function(node0) {
-            return (getUd("checked", node0) ? seq(modify(translate.checkedCallExpression.bind(null,
-                getUd("id", node0))), checkTop) : modify(translate.callExpression));
-        }))));
+        modify(translate.callExpression)));
     addTransform("MemberExpression", seq(((__args44 = ["object", checkTop]), (actions44 = [].slice.call(
         __args44, 1)), seq(moveChild("object"), sequencea(actions44), up)), ((__args45 = ["property",
         checkTop

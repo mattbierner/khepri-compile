@@ -17,6 +17,8 @@ with
     import '../pseudo/pattern' {
         SliceUnpack
         RelativeUnpack},
+    import '../pseudo/expression' {
+        CheckedMemberExpression},
     
     import '../ast' {type getUd setUd},
     import '../fun' {
@@ -70,8 +72,8 @@ in
     \base pattern key checked ->
         objectElement(
             ?checked
-                :CheckedMemberExpression.create(null, base, key, id, true, true)
-                :ast_expression.MemberExpression.create(null, base, key, true, false),
+                :CheckedMemberExpression.create(null, base, key, base.id.id)
+                :ast_expression.MemberExpression.create(null, base, key, true),
             pattern,
             key);
 

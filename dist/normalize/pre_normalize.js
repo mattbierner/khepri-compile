@@ -8,7 +8,6 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
     __o4) {
     "use strict";
     var normalize, modify = __o["modify"],
-        CheckedMemberExpression = __o0["CheckedMemberExpression"],
         SliceUnpack = __o1["SliceUnpack"],
         RelativeUnpack = __o1["RelativeUnpack"],
         type = __o2["type"],
@@ -56,22 +55,6 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             return ast_expression.CurryExpression.create(null, p, [arg]);
         }), base, args);
     }));
-    rewrites.add("MemberExpression", DOWN, (function(x) {
-        return x.checked;
-    }), (function(node) {
-        return CheckedMemberExpression.create(node.loc, node.object, node.property, null, node.computed);
-    }));
-    rewrites.add("MemberExpression", UP, (function(z) {
-        var z0 = z.object,
-            y = type(z0);
-        return ("CheckedMemberExpression" === y);
-    }), (function(node) {
-        return CheckedMemberExpression.create(node.loc, node.object, node.property, node.computed);
-    }));
-    rewrites.add("CallExpression", UP, (function(__o5) {
-        var callee = __o5["callee"];
-        return ((type(callee) === "CheckedMemberExpression") || getUd("checked", callee));
-    }), setUd.bind(null, "checked", true));
     var markChecked = (function(x) {
         return (((type(x) === "ObjectPattern") || (type(x) === "ArrayPattern")) ? modify(x, ({}), ({
             checked: true

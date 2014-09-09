@@ -19,12 +19,12 @@ var ecma_clause = require("ecma-ast")["clause"],
     fun = require("../fun"),
     __o0 = require("./unpack"),
     useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
-        binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression,
-        checkedCallExpression, memberExpression, checkedMemberExpression, arrayExpression, objectExpression,
-        objectValue, functionExpression, functionExpressionPost, letExpression, curryExpression, catchClause,
-        switchCase, emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
-        breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
-        tryStatement, packageBlock, type = __o["type"],
+        binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
+        checkedMemberExpression, arrayExpression, objectExpression, objectValue, functionExpression,
+        functionExpressionPost, letExpression, curryExpression, catchClause, switchCase, emptyStatement, blockStatement,
+        withStatement, expressionStatement, returnStatement, throwStatement, breakStatement, continueStatement,
+        ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement, packageBlock, type =
+        __o["type"],
     tryGetUd = __o["tryGetUd"],
     setUid = __o["setUid"],
     concat = fun["concat"],
@@ -97,12 +97,6 @@ var mapOp = (function(op) {
 }));
 (callExpression = (function(node) {
     return ecma_expression.CallExpression.create(node.loc, node.callee, node.args);
-}));
-(checkedCallExpression = (function(id, node) {
-    var body = khepri_expression.BinaryExpression.create(null, "&&", id, khepri_expression.CallExpression.create(
-        null, id, node.callee, node.args));
-    return khepri_expression.LetExpression.create(node.loc, [khepri_declaration.Binding.create(null,
-        khepri_pattern.IdentifierPattern.create(null, id), node.object)], body);
 }));
 (memberExpression = (function(node) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
@@ -230,7 +224,6 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["conditionalExpression"] = conditionalExpression);
 (exports["newExpression"] = newExpression);
 (exports["callExpression"] = callExpression);
-(exports["checkedCallExpression"] = checkedCallExpression);
 (exports["memberExpression"] = memberExpression);
 (exports["checkedMemberExpression"] = checkedMemberExpression);
 (exports["arrayExpression"] = arrayExpression);

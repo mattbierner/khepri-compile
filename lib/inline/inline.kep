@@ -362,10 +362,10 @@ addRewrite@'OperatorExpression' <| seq(
                 modify \ {operator} ->
                     builtin.member(operator, uid),
             checkTop),
-        visitChild 'operator',
         
         // Otherwise, normal op
         seq(
+            visitChild 'operator',
             when((.flipped),
                 modify \ {operator} ->
                     ast_expression.CallExpression.create(null, builtins.('_'), [operator]),

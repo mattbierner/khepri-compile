@@ -8,19 +8,20 @@ var ast_expression = require("khepri-ast")["expression"],
     ast_pattern = require("khepri-ast")["pattern"],
     ast_value = require("khepri-ast")["value"],
     __o = require("../pseudo/pattern"),
-    __o0 = require("../ast"),
-    __o1 = require("../fun"),
+    __o0 = require("../pseudo/expression"),
+    __o1 = require("../ast"),
+    __o2 = require("../fun"),
     innerPattern, unpackParameters, getParameterNames, SliceUnpack = __o["SliceUnpack"],
     RelativeUnpack = __o["RelativeUnpack"],
-    type = __o0["type"],
-    setUd = __o0["setUd"],
-    concat = __o1["concat"],
-    flatten = __o1["flatten"],
-    flattenr = __o1["flattenr"],
-    map = __o1["map"],
+    CheckedMemberExpression = __o0["CheckedMemberExpression"],
+    type = __o1["type"],
+    concat = __o2["concat"],
+    flatten = __o2["flatten"],
+    flattenr = __o2["flattenr"],
+    map = __o2["map"],
     expandObjectElement = (function(base, pattern, key, checked) {
-        var member = ast_expression.MemberExpression.create(null, base, key, true, checked),
-            innerBase = (checked ? setUd("hasBinding", true, setUd("id", base, member)) : member);
+        var innerBase = (checked ? CheckedMemberExpression.create(null, base, key, base.id.id) : ast_expression.MemberExpression
+            .create(null, base, key, true));
         return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(null,
             ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)), innerBase
         ));

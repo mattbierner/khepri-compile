@@ -3,20 +3,20 @@
  * DO NOT EDIT
 */
 define(["require", "exports", "khepri-ast/expression", "khepri-ast/declaration", "khepri-ast/pattern",
-    "khepri-ast/value", "../pseudo/pattern", "../ast", "../fun"
-], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, __o1) {
+    "khepri-ast/value", "../pseudo/pattern", "../pseudo/expression", "../ast", "../fun"
+], (function(require, exports, ast_expression, ast_declaration, ast_pattern, ast_value, __o, __o0, __o1, __o2) {
     "use strict";
     var innerPattern, unpackParameters, getParameterNames, SliceUnpack = __o["SliceUnpack"],
         RelativeUnpack = __o["RelativeUnpack"],
-        type = __o0["type"],
-        setUd = __o0["setUd"],
-        concat = __o1["concat"],
-        flatten = __o1["flatten"],
-        flattenr = __o1["flattenr"],
-        map = __o1["map"],
+        CheckedMemberExpression = __o0["CheckedMemberExpression"],
+        type = __o1["type"],
+        concat = __o2["concat"],
+        flatten = __o2["flatten"],
+        flattenr = __o2["flattenr"],
+        map = __o2["map"],
         expandObjectElement = (function(base, pattern, key, checked) {
-            var member = ast_expression.MemberExpression.create(null, base, key, true, checked),
-                innerBase = (checked ? setUd("hasBinding", true, setUd("id", base, member)) : member);
+            var innerBase = (checked ? CheckedMemberExpression.create(null, base, key, base.id.id) :
+                ast_expression.MemberExpression.create(null, base, key, true));
             return (pattern ? flatten(innerPattern(innerBase, pattern)) : ast_declaration.Binding.create(
                 null, ast_pattern.IdentifierPattern.create(null, ast_value.Identifier.create(null, key.value)),
                 innerBase));

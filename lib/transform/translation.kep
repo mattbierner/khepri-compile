@@ -18,7 +18,6 @@ package (
     conditionalExpression
     newExpression
     callExpression
-    checkedCallExpression
     memberExpression
     checkedMemberExpression
     arrayExpression
@@ -214,23 +213,6 @@ callExpression := \node ->
     ecma_expression.CallExpression.create(node.loc,
         node.callee,
         node.args);
-
-/**
- * 
- */
-checkedCallExpression := \id node -> let
-    body = 
-        khepri_expression.BinaryExpression.create(null, '&&',
-            id,
-            khepri_expression.CallExpression.create(null, id,
-                node.callee,
-                node.args))
-in
-    khepri_expression.LetExpression.create(node.loc, [
-        khepri_declaration.Binding.create(null,
-            khepri_pattern.IdentifierPattern.create(null, id),
-            node.object)],
-        body);
 
 /**
  * 

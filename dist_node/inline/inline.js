@@ -46,19 +46,19 @@ var __o = require("khepri-ast")["node"],
     isExpansion = __o4["isExpansion"],
     expandNode = __o4["expandNode"],
     incCount = __o5["incCount"],
-    x, y, consequent, __args, ops, alternate, __args0, ops0, consequent0, __args1, ops1, __args2, ops2, __args3, ops3,
-        __args4, ops4, __args5, ops5, __args6, ops6, __args7, ops7, consequent1, __args8, ops8, consequent2,
-        consequent3, __args9, ops9, __args10, ops10, __args11, ops11, __args12, ops12, __args13, ops13, __args14, ops14,
-        __args15, ops15, __args16, ops16, __args17, ops17, __args18, ops18, __args19, ops19, __args20, ops20, body,
-        __args21, ops21, __args22, ops22, body0, __args23, ops23, __args24, ops24, __args25, ops25, __args26, ops26,
-        body1, __args27, ops27, __args28, ops28, __args29, ops29, body2, arithmetic, __args30, ops30, consequent4,
-        arithmetic0, __args31, ops31, __args32, ops32, consequent5, consequent6, __args33, ops33, consequent7, __args34,
-        ops34, __args35, ops35, __args36, ops36, consequent8, alternate0, __args37, ops37, __args38, ops38, consequent9,
-        __args39, ops39, __args40, ops40, consequent10, consequent11, consequent12, consequent13, __args41, ops41,
-        __args42, ops42, __args43, ops43, __args44, ops44, exp, consequent14, consequent15, __args45, ops45, __args46,
-        ops46, exp0, consequent16, consequent17, __args47, ops47, __args48, ops48, consequent18, consequent19, __args49,
-        ops49, __args50, ops50, __args51, ops51, __args52, ops52, __args53, ops53, __args54, ops54, __args55, ops55,
-        consequent20, __and = (function(x, y) {
+    x, y, __args, ops, consequent0, alternate0, consequent, alternate, __args0, ops0, consequent1, __args1, ops1,
+        __args2, ops2, __args3, ops3, __args4, ops4, __args5, ops5, __args6, ops6, __args7, ops7, consequent2, __args8,
+        ops8, consequent3, consequent4, __args9, ops9, __args10, ops10, __args11, ops11, __args12, ops12, __args13,
+        ops13, __args14, ops14, __args15, ops15, __args16, ops16, __args17, ops17, __args18, ops18, __args19, ops19,
+        __args20, ops20, body, __args21, ops21, __args22, ops22, body0, __args23, ops23, __args24, ops24, __args25,
+        ops25, __args26, ops26, body1, __args27, ops27, __args28, ops28, __args29, ops29, body2, arithmetic, __args30,
+        ops30, consequent5, arithmetic0, __args31, ops31, __args32, ops32, consequent6, consequent7, __args33, ops33,
+        consequent8, __args34, ops34, __args35, ops35, __args36, ops36, consequent9, alternate1, __args37, ops37,
+        __args38, ops38, consequent10, __args39, ops39, __args40, ops40, consequent11, consequent12, consequent13,
+        consequent14, __args41, ops41, __args42, ops42, __args43, ops43, __args44, ops44, exp, consequent15,
+        consequent16, __args45, ops45, __args46, ops46, exp0, consequent17, consequent18, __args47, ops47, __args48,
+        ops48, consequent19, consequent20, __args49, ops49, __args50, ops50, __args51, ops51, __args52, ops52, __args53,
+        ops53, __args54, ops54, __args55, ops55, consequent21, __and = (function(x, y) {
             return (x && y);
         }),
     __plus = (function(x) {
@@ -238,14 +238,21 @@ addRewrite("OperatorExpression", seq(((consequent = seq(unique((function(uid) {
         var operator = __o6["operator"];
         return builtin.member(operator, uid);
     }));
-})), checkTop)), (__args = ["operator", checkTop]), (ops = [].slice.call(__args, 1)), (alternate = seq(
-    moveChild("operator"), seqa(ops), up)), extract((function(node) {
+})), checkTop)), (alternate = seq(((__args = ["operator", checkTop]), (ops = [].slice.call(__args, 1)), seq(
+    moveChild("operator"), seqa(ops), up)), ((consequent0 = modify((function(__o6) {
+    var operator = __o6["operator"];
+    return ast_expression.CallExpression.create(null, builtins["_"], [operator]);
+}))), (alternate0 = modify((function(x0) {
+    return x0.operator;
+}))), extract((function(node) {
+    return (node.flipped ? consequent0 : (alternate0 || pass));
+}))), checkTop)), extract((function(node) {
     var operator;
     return (((operator = node["operator"]), ((type(operator) === "MemberExpression") || (type(
         operator) === "CallExpression"))) ? consequent : (alternate || pass));
 })))));
 addRewrite("Program", seq(((__args0 = ["body", checkTop]), (ops0 = [].slice.call(__args0, 1)), seq(moveChild("body"),
-    seqa(ops0), up)), ((consequent0 = globals((function(globals0) {
+    seqa(ops0), up)), ((consequent1 = globals((function(globals0) {
     return modify((function(node) {
         return modifyNode(node, ({
             body: concat(createGlobalDeclarations(globals0), node.body)
@@ -253,7 +260,7 @@ addRewrite("Program", seq(((__args0 = ["body", checkTop]), (ops0 = [].slice.call
     }));
 }))), extract((function(node) {
     var z, y0;
-    return (((z = node.body), (y0 = type(z)), ("Package" !== y0)) ? consequent0 : (undefined ||
+    return (((z = node.body), (y0 = type(z)), ("Package" !== y0)) ? consequent1 : (undefined ||
         pass));
 })))));
 addRewrite("Package", seq(((__args1 = ["body", checkTop]), (ops1 = [].slice.call(__args1, 1)), seq(moveChild("body"),
@@ -277,28 +284,28 @@ addRewrite("CatchClause", seq(((__args4 = ["param", checkTop]), (ops4 = [].slice
 addRewrite("VariableDeclaration", ((__args6 = ["declarations", checkTop]), (ops6 = [].slice.call(__args6, 1)), seq(
     moveChild("declarations"), seqa(ops6), up)));
 addRewrite("VariableDeclarator", seq(((__args7 = ["init", checkTop]), (ops7 = [].slice.call(__args7, 1)), seq(moveChild(
-    "init"), seqa(ops7), up)), ((consequent1 = extract((function(__o6) {
+    "init"), seqa(ops7), up)), ((consequent2 = extract((function(__o6) {
     var immutable = __o6["immutable"],
         id = __o6["id"],
         init = __o6["init"];
     return (immutable ? seq(addBindingForNode(id, init), tryPrune(id)) : addWorking(getUid(id),
         init, ((isPrimitive(init) || isIdentifier(init)) || isLambda(init))));
 }))), extract((function(node) {
-    return (node.init ? consequent1 : (undefined || pass));
+    return (node.init ? consequent2 : (undefined || pass));
 })))));
 addRewrite("Binding", seq(((__args8 = ["value", checkTop]), (ops8 = [].slice.call(__args8, 1)), seq(moveChild("value"),
-    seqa(ops8), up)), ((consequent2 = extract((function(node) {
+    seqa(ops8), up)), ((consequent3 = extract((function(node) {
     return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern.id));
 }))), extract((function(node) {
-    return (((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id)) ? consequent2 :
+    return (((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id)) ? consequent3 :
         (undefined || pass));
-}))), ((consequent3 = extract((function(node) {
+}))), ((consequent4 = extract((function(node) {
     var bindings = flatten(concat(node.value.bindings, ast_declaration.Binding.create(null,
         node.pattern, node.value.body)));
     return seq(set(bindings), visitChild((bindings.length - 1)));
 }))), extract((function(node) {
     return ((((node && (node.type === "Binding")) && node.value) && (node.value.type ===
-        "LetExpression")) ? consequent3 : (undefined || pass));
+        "LetExpression")) ? consequent4 : (undefined || pass));
 })))));
 addRewrite("BlockStatement", ((__args9 = ["body", checkTop]), (ops9 = [].slice.call(__args9, 1)), seq(moveChild("body"),
     seqa(ops9), up)));
@@ -344,7 +351,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
     "++": __plus,
     "--": __minus
 })), seq(((__args30 = ["argument", checkTop]), (ops30 = [].slice.call(__args30, 1)), seq(moveChild("argument"),
-    seqa(ops30), up)), ((consequent4 = modify((function(__o6) {
+    seqa(ops30), up)), ((consequent5 = modify((function(__o6) {
     var loc = __o6["loc"],
         operator = __o6["operator"],
         argument = __o6["argument"],
@@ -353,7 +360,7 @@ addRewrite("UnaryExpression", ((arithmetic = ({
 }))), extract((function(node) {
     var operator, argument;
     return (((operator = node["operator"]), (argument = node["argument"]), (arithmetic[operator] &&
-        isPrimitive(argument))) ? consequent4 : (undefined || pass));
+        isPrimitive(argument))) ? consequent5 : (undefined || pass));
 }))))));
 addRewrite("BinaryExpression", ((arithmetic0 = ({
     "+": __add,
@@ -375,7 +382,7 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
     "||": __or
 })), seq(((__args31 = ["left", checkTop]), (ops31 = [].slice.call(__args31, 1)), seq(moveChild("left"), seqa(
     ops31), up)), ((__args32 = ["right", checkTop]), (ops32 = [].slice.call(__args32, 1)), seq(moveChild(
-    "right"), seqa(ops32), up)), ((consequent5 = modify((function(__o6) {
+    "right"), seqa(ops32), up)), ((consequent6 = modify((function(__o6) {
     var operator = __o6["operator"],
         left = __o6["left"],
         right0 = __o6["right"],
@@ -384,9 +391,9 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
 }))), extract((function(node) {
     var operator, left, right0;
     return (((operator = node["operator"]), (left = node["left"]), (right0 = node["right"]), ((
-            arithmetic0[operator] && isPrimitive(left)) && isPrimitive(right0))) ? consequent5 :
+            arithmetic0[operator] && isPrimitive(left)) && isPrimitive(right0))) ? consequent6 :
         (undefined || pass));
-}))), ((consequent6 = extract((function(__o6) {
+}))), ((consequent7 = extract((function(__o6) {
     var operator = __o6["operator"],
         left = __o6["left"],
         right0 = __o6["right"];
@@ -396,34 +403,34 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
     var operator;
     return (((operator = node["operator"]), (((((operator === "\\>") || (operator === "\\>>")) ||
             (operator === "<\\")) || (operator === "<<\\")) || (operator === "??"))) ?
-        consequent6 : (undefined || pass));
+        consequent7 : (undefined || pass));
 }))))));
 addRewrite("AssignmentExpression", seq(((__args33 = ["right", checkTop]), (ops33 = [].slice.call(__args33, 1)), seq(
-    moveChild("right"), seqa(ops33), up)), ((consequent7 = extract((function(__o6) {
+    moveChild("right"), seqa(ops33), up)), ((consequent8 = extract((function(__o6) {
     var immutable = __o6["immutable"],
         left = __o6["left"],
         right0 = __o6["right"];
     return (immutable ? addBindingForNode(left, right0) : setWorkingForNode(left, right0));
 }))), extract((function(node) {
     var z, y0;
-    return (((z = node.left), (y0 = type(z)), ("Identifier" === y0)) ? consequent7 : (undefined ||
+    return (((z = node.left), (y0 = type(z)), ("Identifier" === y0)) ? consequent8 : (undefined ||
         pass));
 })))));
 addRewrite(["ConditionalExpression", "IfStatement"], seq(((__args34 = ["test", checkTop]), (ops34 = [].slice.call(
-    __args34, 1)), seq(moveChild("test"), seqa(ops34), up)), ((consequent8 = extract((function(__o6) {
+    __args34, 1)), seq(moveChild("test"), seqa(ops34), up)), ((consequent9 = extract((function(__o6) {
     var test = __o6["test"],
-        consequent9 = __o6["consequent"],
-        alternate0 = __o6["alternate"];
-    return seq(set((isTruthy(test) ? consequent9 : alternate0)), checkTop);
-}))), (alternate0 = seq(((__args35 = ["consequent", checkTop]), (ops35 = [].slice.call(__args35, 1)), seq(
+        consequent10 = __o6["consequent"],
+        alternate1 = __o6["alternate"];
+    return seq(set((isTruthy(test) ? consequent10 : alternate1)), checkTop);
+}))), (alternate1 = seq(((__args35 = ["consequent", checkTop]), (ops35 = [].slice.call(__args35, 1)), seq(
     moveChild("consequent"), seqa(ops35), up)), ((__args36 = ["alternate", checkTop]), (ops36 = [].slice
     .call(__args36, 1)), seq(moveChild("alternate"), seqa(ops36), up)))), extract((function(node) {
-    return (isPrimitive(node.test) ? consequent8 : (alternate0 || pass));
+    return (isPrimitive(node.test) ? consequent9 : (alternate1 || pass));
 })))));
 addRewrite("CheckedMemberExpression", seq(((__args37 = ["object", checkTop]), (ops37 = [].slice.call(__args37, 1)), seq(
     moveChild("object"), seqa(ops37), up)), ((__args38 = ["property", checkTop]), (ops38 = [].slice.call(
-    __args38, 1)), (consequent9 = seq(moveChild("property"), seqa(ops38), up)), extract((function(node) {
-    return (node.computed ? consequent9 : (undefined || pass));
+    __args38, 1)), (consequent10 = seq(moveChild("property"), seqa(ops38), up)), extract((function(node) {
+    return (node.computed ? consequent10 : (undefined || pass));
 }))), extract((function(node) {
     return getBinding(getUid(node.id))
         .chain((function(binding) {
@@ -434,30 +441,30 @@ addRewrite("CheckedMemberExpression", seq(((__args37 = ["object", checkTop]), (o
 }))));
 addRewrite("MemberExpression", seq(((__args39 = ["object", checkTop]), (ops39 = [].slice.call(__args39, 1)), seq(
     moveChild("object"), seqa(ops39), up)), ((__args40 = ["property", checkTop]), (ops40 = [].slice.call(
-    __args40, 1)), (consequent10 = seq(moveChild("property"), seqa(ops40), up)), extract((function(node) {
-    return (node.computed ? consequent10 : (undefined || pass));
-}))), ((consequent11 = modify((function(__o6) {
+    __args40, 1)), (consequent11 = seq(moveChild("property"), seqa(ops40), up)), extract((function(node) {
+    return (node.computed ? consequent11 : (undefined || pass));
+}))), ((consequent12 = modify((function(__o6) {
     var object = __o6["object"],
         property = __o6["property"];
     return (object.elements[property.value] || builtins.undefined);
 }))), extract((function(node) {
     return (((node.computed && (type(node.object) === "ArrayExpression")) && isNumberish(node.property)) ?
-        consequent11 : (undefined || pass));
-}))), ((consequent12 = modify((function(__o6) {
+        consequent12 : (undefined || pass));
+}))), ((consequent13 = modify((function(__o6) {
     var object = __o6["object"];
     return ast_value.Literal.create(null, "number", object.elements.length);
 }))), extract((function(node) {
     return ((((type(node) === "MemberExpression") && (type(node.object) === "ArrayExpression")) &&
             (((!node.computed) && (node.property.name === "length")) || ((node.computed && (type(
                 node.property) === "Literal")) && (node.property.value === "length")))) ?
-        consequent12 : (undefined || pass));
-}))), ((consequent13 = modify((function(node) {
+        consequent13 : (undefined || pass));
+}))), ((consequent14 = modify((function(node) {
     var str = node.object.value,
         idx = node.property.value;
     return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : builtins.undefined);
 }))), extract((function(node) {
     return (((node.computed && ((type(node.object) === "Literal") && (node.object.kind === "string"))) &&
-        isNumberish(node.property)) ? consequent13 : (undefined || pass));
+        isNumberish(node.property)) ? consequent14 : (undefined || pass));
 })))));
 addRewrite("NewExpression", seq(((__args41 = ["callee", checkTop]), (ops41 = [].slice.call(__args41, 1)), seq(moveChild(
     "callee"), seqa(ops41), up)), ((__args42 = ["args", checkTop]), (ops42 = [].slice.call(__args42, 1)), seq(
@@ -466,7 +473,7 @@ addRewrite("CallExpression", seq(((__args43 = ["callee", checkTop]), (ops43 = []
     moveChild("callee"), seqa(ops43), up)), ((__args44 = ["args", checkTop]), (ops44 = [].slice.call(__args44,
     1)), seq(moveChild("args"), seqa(ops44), up)), ((exp = M.node.map((function(x0) {
     return x0.callee;
-}))), (consequent14 = exp.chain((function(z) {
+}))), (consequent15 = exp.chain((function(z) {
     var callee = expandNode(z);
     return modify((function(node) {
         return incCount(getUid(node.callee), (getExpansion(node.callee)
@@ -475,8 +482,8 @@ addRewrite("CallExpression", seq(((__args43 = ["callee", checkTop]), (ops43 = []
         );
     }));
 }))), extract((function(node) {
-    return (isExpansion(node.callee) ? consequent14 : (undefined || pass));
-}))), ((consequent15 = seq(unique((function(uid) {
+    return (isExpansion(node.callee) ? consequent15 : (undefined || pass));
+}))), ((consequent16 = seq(unique((function(uid) {
     return extract((function(node) {
         var __o6 = expandCallee(uid, node.callee, node.args),
             locals = __o6[0],
@@ -485,50 +492,50 @@ addRewrite("CallExpression", seq(((__args43 = ["callee", checkTop]), (ops43 = []
     }));
 })), checkTop)), extract((function(node) {
     return ((isLambda(node.callee) || ((node.callee.type === "LetExpression") && isLambda(node.callee
-        .body))) ? consequent15 : (undefined || pass));
+        .body))) ? consequent16 : (undefined || pass));
 })))));
 addRewrite("CurryExpression", seq(((__args45 = ["base", checkTop]), (ops45 = [].slice.call(__args45, 1)), seq(moveChild(
     "base"), seqa(ops45), up)), ((__args46 = ["args", checkTop]), (ops46 = [].slice.call(__args46, 1)), seq(
     moveChild("args"), seqa(ops46), up)), ((exp0 = M.node.map((function(x0) {
     return x0.base;
-}))), (consequent16 = exp0.chain((function(z) {
+}))), (consequent17 = exp0.chain((function(z) {
     var base = expandNode(z);
     return modify((function(node) {
         return incCount(getUid(node.base), getExpansion(node.base), getExpansion(node.base)
             .value, ast_expression.CurryExpression.create(node.loc, base, node.args));
     }));
 }))), extract((function(node) {
-    return (isExpansion(node.base) ? consequent16 : (undefined || pass));
-}))), ((consequent17 = seq(unique((function(uid) {
+    return (isExpansion(node.base) ? consequent17 : (undefined || pass));
+}))), ((consequent18 = seq(unique((function(uid) {
     return modify((function(node) {
         return expandCurry(uid, node.base, node.args);
     }));
 })), checkTop)), extract((function(node) {
     var base;
     return (((base = node["base"]), (isLambdaWithoutArgs(base) || ((type(base) === "LetExpression") &&
-        isLambdaWithoutArgs(base.body)))) ? consequent17 : (undefined || pass));
+        isLambdaWithoutArgs(base.body)))) ? consequent18 : (undefined || pass));
 })))));
 addRewrite("LetExpression", seq(((__args47 = ["bindings", checkTop]), (ops47 = [].slice.call(__args47, 1)), seq(
     moveChild("bindings"), seqa(ops47), up)), ((__args48 = ["body", checkTop]), (ops48 = [].slice.call(__args48,
-    1)), seq(moveChild("body"), seqa(ops48), up)), ((consequent18 = modify((function(__o6) {
+    1)), seq(moveChild("body"), seqa(ops48), up)), ((consequent19 = modify((function(__o6) {
     var loc = __o6["loc"],
         bindings = __o6["bindings"],
         body3 = __o6["body"];
     return ast_expression.LetExpression.create(loc, concat(bindings, body3.bindings), body3.body);
 }))), extract((function(node) {
     var z, y0;
-    return (((z = node.body), (y0 = type(z)), ("LetExpression" === y0)) ? consequent18 : (undefined ||
+    return (((z = node.body), (y0 = type(z)), ("LetExpression" === y0)) ? consequent19 : (undefined ||
         pass));
 }))), modify((function(__o6) {
     var loc = __o6["loc"],
         bindings = __o6["bindings"],
         body3 = __o6["body"];
     return ast_expression.LetExpression.create(loc, flattenr(bindings), body3);
-})), ((consequent19 = modify((function(x0) {
+})), ((consequent20 = modify((function(x0) {
     return x0.body;
 }))), extract((function(node) {
     var bindings;
-    return (((bindings = node["bindings"]), (!bindings.length)) ? consequent19 : (undefined || pass));
+    return (((bindings = node["bindings"]), (!bindings.length)) ? consequent20 : (undefined || pass));
 })))));
 addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args49 = ["target", checkTop]), (ops49 = [].slice.call(__args49, 1)),
     seq(moveChild("target"), seqa(ops49), up)));
@@ -545,14 +552,14 @@ addRewrite("ObjectExpression", ((__args54 = ["properties", checkTop]), (ops54 = 
     moveChild("properties"), seqa(ops54), up)));
 addRewrite("ObjectValue", ((__args55 = ["value", checkTop]), (ops55 = [].slice.call(__args55, 1)), seq(moveChild(
     "value"), seqa(ops55), up)));
-addRewrite("Identifier", ((consequent20 = extract((function(node) {
+addRewrite("Identifier", ((consequent21 = extract((function(node) {
     return getBinding(getUid(node))
         .chain((function(binding) {
             return (((binding && binding.value) && binding.simple) ? set(binding.value) :
                 pass);
         }));
 }))), extract((function(node) {
-    return ((getUid(node) && (!isExpansion(node))) ? consequent20 : (undefined || pass));
+    return ((getUid(node) && (!isExpansion(node))) ? consequent21 : (undefined || pass));
 }))));
 (_check = (function(node) {
     if (Array.isArray(node)) {

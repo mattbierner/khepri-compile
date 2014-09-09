@@ -303,13 +303,7 @@ addTransform@'NewExpression' <| seq(
 addTransform@'CallExpression' <| seq(
     rewriteChild 'callee',
     rewriteChild 'args',
-    
-    withNode \ node ->
-        ?getUd('checked', node)
-            :seq(
-                modify (translate.checkedCallExpression @ (getUd('id', node))),
-                checkTop)
-            :modify (translate.callExpression));
+    modify (translate.callExpression));
 
 addTransform@'MemberExpression' <| seq(
     rewriteChild 'object',

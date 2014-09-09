@@ -196,10 +196,7 @@ addTransform("NewExpression", seq(((__args40 = ["callee", checkTop]), (actions40
     __args41, 1)), seq(moveChild("args"), sequencea(actions41), up)), modify(translate.newExpression)));
 addTransform("CallExpression", seq(((__args42 = ["callee", checkTop]), (actions42 = [].slice.call(__args42, 1)), seq(
     moveChild("callee"), sequencea(actions42), up)), ((__args43 = ["args", checkTop]), (actions43 = [].slice.call(
-    __args43, 1)), seq(moveChild("args"), sequencea(actions43), up)), withNode((function(node0) {
-    return (getUd("checked", node0) ? seq(modify(translate.checkedCallExpression.bind(null, getUd("id",
-        node0))), checkTop) : modify(translate.callExpression));
-}))));
+    __args43, 1)), seq(moveChild("args"), sequencea(actions43), up)), modify(translate.callExpression)));
 addTransform("MemberExpression", seq(((__args44 = ["object", checkTop]), (actions44 = [].slice.call(__args44, 1)), seq(
     moveChild("object"), sequencea(actions44), up)), ((__args45 = ["property", checkTop]), (actions45 = [].slice
     .call(__args45, 1)), seq(moveChild("property"), sequencea(actions45), up)), modify(translate.memberExpression)));

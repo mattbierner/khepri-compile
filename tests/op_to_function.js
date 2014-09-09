@@ -44,13 +44,13 @@ exports.computed_member = function(test) {
     test.done();
 };
 
-exports.checked_member = function(test) {
+exports.checked = function(test) {
     test.equal(
-        testParser("var f = (.?); f ([1, 2, 3], 2);"),
-        testParser("[1, 2, 3].?(2);"));
+        testParser("var f = (??); f ([1, 2, 3], .(1));"),
+        2);
     
     test.equal(
-        testParser("var f = (.?); var a; f (a, 2);"),
+        testParser("var f = (??); var a; f (a, .(1));"),
         undefined);
     
     test.done();

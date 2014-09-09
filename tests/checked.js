@@ -20,26 +20,14 @@ exports.simple_checked = function(test) {
     
     test.equal(
         testParser("var o = {'x':3}; o ?? .x;"),
-        undefined);
+        3);
     
     test.done();
 };
 
 exports.does_not_eval_rhs_if_lhs_false = function(test) {
     test.equal(
-        testParser("var g = 0; var f = \-> { g = g + 1; }; null ?? f;"),
-        0);
-    
-    test.done();
-};
-
-exports.checked_member_evals_arg_at_most_once = function(test) {
-    test.equal(
-        testParser("var g = 0; var o = {'x':{'y': 3}}; var f = \\-> { g = g + 1; return 'x'; }; o.?(f()).y; g;"),
-        1);
-    
-    test.equal(
-        testParser("var g = 0; var o = null; var f = \\-> { g = g + 1; return 'x'; }; o.?(f()).?y; g;"),
+        testParser("var g = 0; var f = \\-> { g = g + 1; }; null ?? f; g;"),
         0);
     
     test.done();

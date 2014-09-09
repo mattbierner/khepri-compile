@@ -111,41 +111,6 @@ rewrites.add('CurryExpression', DOWN,
             base,
             args));
 
-/**
- */
-rewrites.add('MemberExpression', DOWN,
-    (.checked),
-    
-    \node ->
-        CheckedMemberExpression.create(node.loc,
-            node.object,
-            node.property,
-            null,
-            node.computed));
-
-/**
- * Propagate member checking to the right of the check in chained accessor
- * expressions.
- */
-rewrites.add('MemberExpression', UP,
-    (.object) \> type \> (=== 'CheckedMemberExpression'),
-    
-    \node ->
-        CheckedMemberExpression.create(node.loc,
-            node.object,
-            node.property,
-            node.computed));
-
-/**
- * Mark function calls with checked callees as checked.
- */
-rewrites.add('CallExpression', UP,
-    \{callee} ->
-        (   (type callee === 'CheckedMemberExpression')
-        ||  getUd('checked', callee)),
-    
-    setUd@('checked', true));
-
 /* Pattern Normalizations
  ******************************************************************************/
 var markChecked := \x ->

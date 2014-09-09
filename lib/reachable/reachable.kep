@@ -258,7 +258,7 @@ addRewrite@'AssignmentExpression' <| seq(
     visitChild 'left',
     visitChild 'right');
 
-addRewrite@'MemberExpression' <| seq(
+addRewrite@['MemberExpression', 'CheckedMemberExpression'] <| seq(
     visitChild 'object',
     when((.computed),
         visitChild 'property'));
