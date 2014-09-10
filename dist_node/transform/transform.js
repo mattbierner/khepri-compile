@@ -3,7 +3,8 @@
  * DO NOT EDIT
 */
 "use strict";
-var StateM = require("akh")["state"],
+var StateT = require("akh")["trans"]["state"],
+    Unique = require("akh")["unique"],
     __o = require("akh")["base"],
     TreeZipperT = require("zipper-m")["trans"]["tree"],
     __o0 = require("ecma-ast-zipper"),
@@ -45,9 +46,9 @@ var StateM = require("akh")["state"],
         actions49, __args50, actions50, __args51, actions51, __args52, actions53, __args53, actions54, __args54,
         actions55, actions52, __args55, actions56, __args56, actions57, __args57, actions58, __args58, actions59,
         __args59, actions60, __args60, actions61, __args61, actions62, __args62, actions63, __args63, actions64,
-        __args64, actions65, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateM),
+        __args64, actions65, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
     run = (function(m, s, ctx) {
-        return StateM.evalState(TreeZipperT.runTreeZipperT(m, ctx), s);
+        return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s));
     }),
     pass = M.of(null),
     cons = liftM2.bind(null, concat),

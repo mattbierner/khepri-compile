@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.2.2 - Sep 9, 2014
+* Temp fix for translation stage blowing up call stack for large programs.
+
 ## 1.2.1 - Sep 8, 2014
 * Fixed node bypassing reachable prune stage.
 

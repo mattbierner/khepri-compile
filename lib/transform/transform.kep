@@ -4,7 +4,8 @@
 package (
     transform)
 with     
-    import 'akh::state' StateM,
+    import 'akh::trans::state' StateT,
+    import 'akh::unique' Unique,
     import 'akh::base' {
         liftM2
         'sequence': seq,
@@ -43,12 +44,13 @@ var _trans;
 
 /* Monad
  ******************************************************************************/
-var M := TreeZipperT (StateM);
+var M := TreeZipperT (StateT Unique); // HACK: prevent call stack explode
 
 var run = \m s ctx ->
-    StateM.evalState(
-        TreeZipperT.runTreeZipperT(m, ctx),
-        s);
+    Unique.runUnique(
+        StateT.evalStateT(
+            TreeZipperT.runTreeZipperT(m, ctx),
+            s));
 
 var pass := M.of null;
 

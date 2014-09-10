@@ -2,11 +2,11 @@
  * THIS FILE IS AUTO GENERATED FROM 'lib/transform/transform.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "akh/state", "akh/base", "zipper-m/trans/tree", "ecma-ast-zipper", "../ast",
-    "../lexical/scope", "../fun", "../builtin", "./unpack", "./state", "./translation", "./package_manager/amd",
-    "./package_manager/node"
-], (function(require, exports, StateM, __o, TreeZipperT, __o0, __o1, scope, __o2, __o3, __o4, state, translate, _,
-    _0) {
+define(["require", "exports", "akh/trans/state", "akh/unique", "akh/base", "zipper-m/trans/tree", "ecma-ast-zipper",
+    "../ast", "../lexical/scope", "../fun", "../builtin", "./unpack", "./state", "./translation",
+    "./package_manager/amd", "./package_manager/node"
+], (function(require, exports, StateT, Unique, __o, TreeZipperT, __o0, __o1, scope, __o2, __o3, __o4, state,
+    translate, _, _0) {
     "use strict";
     var transform, liftM2 = __o["liftM2"],
         seq = __o["sequence"],
@@ -39,9 +39,9 @@ define(["require", "exports", "akh/state", "akh/base", "zipper-m/trans/tree", "e
             __args53, actions54, __args54, actions55, actions52, __args55, actions56, __args56, actions57,
             __args57, actions58, __args58, actions59, __args59, actions60, __args60, actions61, __args61,
             actions62, __args62, actions63, __args63, actions64, __args64, actions65, move, uid, f1, uid0, f2,
-            _trans, M = TreeZipperT(StateM),
+            _trans, M = TreeZipperT(StateT(Unique)),
         run = (function(m, s, ctx) {
-            return StateM.evalState(TreeZipperT.runTreeZipperT(m, ctx), s);
+            return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s));
         }),
         pass = M.of(null),
         cons = liftM2.bind(null, concat),
