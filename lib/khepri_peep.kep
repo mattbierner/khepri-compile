@@ -33,7 +33,7 @@ var always := \_ -> true;
  * Flatten let with let body.
  */
 peepholes.add('LetExpression', UP,
-    (.body) \> type \> (=== 'LetExpression'),
+    .body \> type \> (=== 'LetExpression'),
     
     \node ->
         ast_expression.LetExpression.create(node.loc,
@@ -46,7 +46,7 @@ peepholes.add('LetExpression', UP,
  * Flatten curry of curry.
  */
 peepholes.add('CurryExpression', UP,
-    (.base) \> type \> (=== 'CurryExpression'),
+    .base \> type \> (=== 'CurryExpression'),
     
     \node ->
         ast_expression.CurryExpression.create(node.loc,
@@ -59,7 +59,7 @@ peepholes.add('CurryExpression', UP,
  * Flatten call of curry to call.
  */
 peepholes.add('CallExpression', UP,
-    (.callee) \> type \> (=== 'CurryExpression'),
+    .callee \> type \> (=== 'CurryExpression'),
     
     \node ->
         ast_expression.CallExpression.create(node.loc,
@@ -115,7 +115,7 @@ peepholes.add('WithStatement', UP,
  * Rewrite `return let` to a with statement.
  */
 peepholes.add('ReturnStatement', false,
-    (.argument) \> (type) \> (=== 'LetExpression'),
+    .argument \> type \> (=== 'LetExpression'),
     
     \node ->
         ast_statement.WithStatement.create(null,
@@ -128,7 +128,7 @@ peepholes.add('ReturnStatement', false,
  * Rewrite `\...-> let` to a with statement.
  */
 peepholes.add('FunctionExpression', DOWN,
-    (.body) \> (type) \> (=== 'LetExpression'),
+    .body \> type \> (=== 'LetExpression'),
     
     \node ->
         ast_expression.FunctionExpression.create(null,
@@ -145,7 +145,7 @@ peepholes.add('FunctionExpression', DOWN,
  * Rewrite top level let expressions to with statements.
  */
 peepholes.add('ExpressionStatement', UP,
-    (.expression) \> (type) \> (=== 'LetExpression'),
+    .expression \> type \> (=== 'LetExpression'),
     
     \node ->
         ast_statement.WithStatement.create(null,
@@ -159,9 +159,8 @@ peepholes.add('ExpressionStatement', UP,
  */
 peepholes.add('ExpressionStatement', UP,
     \node ->
-        (  node.expression
-        && node.expression.type === 'AssignmentExpression'
-        && node.expression.right.type === 'LetExpression'),
+        (  type node.expression === 'AssignmentExpression'
+        && type node.expression.right === 'LetExpression'),
     
     \node ->
         ast_statement.WithStatement.create(null,

@@ -88,8 +88,8 @@ define(["require", "exports", "khepri-ast/declaration", "khepri-ast/statement", 
             .create(null, [ast_statement.ExpressionStatement.create(node.loc, node.expression.body)]));
     }));
     peepholes.add("ExpressionStatement", UP, (function(node) {
-        return ((node.expression && (node.expression.type === "AssignmentExpression")) && (node.expression
-            .right.type === "LetExpression"));
+        return ((type(node.expression) === "AssignmentExpression") && (type(node.expression.right) ===
+            "LetExpression"));
     }), (function(node) {
         return ast_statement.WithStatement.create(null, node.expression.right.bindings, ast_statement.BlockStatement
             .create(null, [ast_statement.ExpressionStatement.create(node.loc, ast_expression.AssignmentExpression

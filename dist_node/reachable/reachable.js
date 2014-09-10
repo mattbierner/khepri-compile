@@ -92,8 +92,7 @@ addRewrite("VariableDeclarator", ((test = inspect((function(z) {
 }))));
 addRewrite("Binding", ((__args10 = ["value", checkTop]), (actions10 = [].slice.call(__args10, 1)), (consequent = seq(
     moveChild("value"), sequencea(actions10), up)), (test0 = inspect((function(z) {
-    var z0 = z.pattern;
-    return getUid(z0.id);
+    return getUid(z.pattern.id);
 }))), (__args11 = ["value", checkTop]), (actions11 = [].slice.call(__args11, 1)), (yes0 = seq(moveChild("value"),
     sequencea(actions11), up)), (no0 = removeBinding), (alternate = test0.chain((function(uid) {
     return getState.chain((function(s) {
@@ -168,8 +167,7 @@ addRewrite("LetExpression", seq(((__args48 = ["body", checkTop]), (actions48 = [
 addRewrite(["SliceUnpack", "RelativeUnpack"], ((__args50 = ["target", checkTop]), (actions50 = [].slice.call(__args50,
     1)), seq(moveChild("target"), sequencea(actions50), up)));
 addRewrite("ArgumentsPattern", ((test1 = inspect((function(z) {
-    var z0 = z.id;
-    return getUid(z0.id);
+    return getUid(z.id.id);
 }))), (yes1 = pass), (no1 = extract((function(node) {
     return set(modify(node, ({
         id: null

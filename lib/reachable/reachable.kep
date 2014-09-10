@@ -32,7 +32,6 @@ in {
  ******************************************************************************/
 var _check;
 
-
 var isReserved := getUd @ 'reserved';
 
 /* Monad
@@ -152,7 +151,7 @@ in
 
 /* Visit
  ******************************************************************************/
-var peepholes := {};
+var peepholes := { };
 
 var addRewrite := \type f -> {
     if (Array.isArray type)
@@ -191,7 +190,7 @@ addRewrite@'VariableDeclaration' <|
     visitChild 'declarations';
 
 addRewrite@'VariableDeclarator' <|
-    isReachable(inspect ((.id) \> getUid),
+    isReachable(inspect (.id \> getUid),
         visitChild 'init',
         removeBinding);
 
@@ -200,7 +199,7 @@ addRewrite@'Binding' <|
         // Never prune reserved bindings.
         visitChild 'value',
         
-        isReachable(inspect ((.pattern) \> (.id) \> getUid),
+        isReachable(inspect (.pattern.id \> getUid),
             visitChild 'value',
             removeBinding));
 
@@ -288,8 +287,8 @@ addRewrite@['SliceUnpack', 'RelativeUnpack'] <|
 
 addRewrite@'ArgumentsPattern' <|
     // Try to prune the arguments binding.
-    when((.id),
-        isReachable(inspect ((.id) \> (.id) \> getUid),
+    when(.id,
+        isReachable(inspect (.id.id \> getUid),
             pass,
             extract \ node ->
                 set modify(node, { id: null })));
