@@ -180,9 +180,9 @@ var expandAssignment := \node ->
  * assignments in a block.
  */
 peepholes.add('ExpressionStatement', UP,
-    (.expression) \> type \> (=== 'AssignmentExpression'),
+    .expression \> type \> (=== 'AssignmentExpression'),
     
-    (.expression)
+    .expression
         \> expandAssignment
         \> flattenr
         \> map @ (ast_statement.ExpressionStatement.create @ null)
@@ -197,7 +197,7 @@ var pipe := \loc callee arg ->
  * Rewrite left pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    (.operator) \> (=== '|>'),
+    .operator \> (=== '|>'),
     
     \{loc left right} ->
         pipe(loc, right, left));
@@ -206,7 +206,7 @@ peepholes.add('BinaryExpression', UP,
  * Rewrite right pipe to a call.
  */
 peepholes.add('BinaryExpression', UP,
-    (.operator) \> (=== '<|'),
+    .operator \> (=== '<|'),
     
     \{loc left right} ->
         pipe(loc, left, right));

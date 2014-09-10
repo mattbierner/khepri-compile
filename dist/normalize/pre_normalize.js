@@ -36,8 +36,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             loc = __o4["loc"];
         return ast_package.PackageExport.create(loc, id, string(id.name));
     }));
-    rewrites.add("LetExpression", UP, (function(node) {
-        return (node.bindings.length > 1);
+    rewrites.add("LetExpression", UP, (function(z) {
+        var y = z.bindings.length;
+        return (y > 1);
     }), (function(__o4) {
         var bindings = __o4["bindings"],
             body = __o4["body"];
@@ -45,8 +46,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
             return ast_expression.LetExpression.create(null, [c], p);
         }), body, bindings);
     }));
-    rewrites.add("CurryExpression", DOWN, (function(node) {
-        return (node.args.length > 1);
+    rewrites.add("CurryExpression", DOWN, (function(z) {
+        var y = z.args.length;
+        return (y > 1);
     }), (function(__o4) {
         var base = __o4["base"],
             args = __o4["args"];

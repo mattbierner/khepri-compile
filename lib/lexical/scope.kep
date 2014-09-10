@@ -91,7 +91,7 @@ hasBinding := \id s->
 hasMutableBinding := \id s -> let
     binding = s.getBinding(id)
 in
-    (binding && binding.mutable);
+    (binding??.mutable);
 
 /**
  * Get information for a given binding.
@@ -208,7 +208,7 @@ Scope.prototype.hasOwnMapping = \id =self->
  */
 Scope.prototype.hasMapping = \id =self->
     (  self.hasOwnMapping(id)
-    || (self.outer && self.outer.hasMapping(id)));
+    || (self.outer??.hasMapping(id)));
 
 /**
  * Get the mapped value for `id` in scope `s`.
@@ -253,7 +253,7 @@ addVar = \id uid s ->
  * 
  * @param s Scope.
  */
-getClosure := (.locals) \> hamt.keys;
+getClosure := .locals \> hamt.keys;
 
 /**
  * Enter a new empty scope with its parent set to `s`.
@@ -286,6 +286,6 @@ addOperator := \name uid s ->
     s.setPrefixOps <|
         hamt.set(name, uid, s.prefixOps);
 
-getOperators := (.prefixOps) \> hamt.pairs;
+getOperators := .prefixOps \> hamt.pairs;
 
 }

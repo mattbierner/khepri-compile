@@ -33,8 +33,7 @@ in {
 /**
  * Safe node type getter
  */
-type := \node ->
-    (node && node.type);
+type := (_ ?? .type);
 
 /* Symbols
  ******************************************************************************/
@@ -65,7 +64,7 @@ isSymbol := \node ->
  * 
  * This includes regular expressions.
  */
-isLiteral = type \> (===, 'Literal');
+isLiteral = type \> (=== 'Literal');
 
 /**
  * Can a node be treated as a number?
@@ -101,7 +100,7 @@ isSimple = \node ->
 isPod = \node ->
     (  isPrimitive node
     || type node === 'ArrayExpression' && node.elements.every(isPod)
-    || type type === 'ObjectExpression' && node.elements.every((.value) \> isPod));
+    || type type === 'ObjectExpression' && node.elements.every(.value \> isPod));
 
 /* Value
  ******************************************************************************/

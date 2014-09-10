@@ -67,8 +67,8 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         return hamt.has(id, self.mapping);
     }));
     (Scope.prototype.hasMapping = (function(id) {
-        var self = this;
-        return (self.hasOwnMapping(id) || (self.outer && self.outer.hasMapping(id)));
+        var x, self = this;
+        return (self.hasOwnMapping(id) || ((x = self.outer), (x && x.hasMapping(id))));
     }));
     (getMapping = (function(id, s) {
         return (s.hasOwnMapping(id) ? hamt.get(id, s.mapping) : (s.outer && getMapping(id, s.outer)));

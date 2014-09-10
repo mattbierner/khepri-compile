@@ -6,23 +6,23 @@
 var __o = require("khepri-ast")["node"],
     type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
         isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, setData = __o["setData"];
-(type = (function(node) {
-    return (node && node.type);
+(type = (function(y) {
+    return (y && y.type);
 }));
 (isIdentifier = (function(z) {
-    var y = (z && z.type);
+    var y = type(z);
     return ("Identifier" === y);
 }));
 (isOperator = (function(node) {
-    return ((((node && node.type) === "UnaryOperator") || ((node && node.type) === "BinaryOperator")) || ((node &&
-        node.type) === "TernaryOperator"));
+    return (((type(node) === "UnaryOperator") || (type(node) === "BinaryOperator")) || (type(node) ===
+        "TernaryOperator"));
 }));
 (isSymbol = (function(node) {
-    return (isIdentifier(node) || ((((node && node.type) === "UnaryOperator") || ((node && node.type) ===
-        "BinaryOperator")) || ((node && node.type) === "TernaryOperator")));
+    return (isIdentifier(node) || (((type(node) === "UnaryOperator") || (type(node) === "BinaryOperator")) || (
+        type(node) === "TernaryOperator")));
 }));
 (isLiteral = (function(z) {
-    var y = (z && z.type);
+    var y = type(z);
     return ("Literal" === y);
 }));
 (isNumberish = (function(node) {
@@ -33,13 +33,12 @@ var __o = require("khepri-ast")["node"],
         "boolean")) || (node.kind === "null")));
 }));
 (isSimple = (function(node) {
-    return ((isLiteral(node) || ((node && node.type) === "ArrayExpression")) || ((type && type.type) ===
-        "ObjectExpression"));
+    return ((isLiteral(node) || (type(node) === "ArrayExpression")) || (type(type) === "ObjectExpression"));
 }));
 (isPod = (function(node) {
     var y;
-    return (((isPrimitive(node) || ((node && node.type) === "ArrayExpression")) && (node.elements.every(isPod) ||
-        ((type && type.type) === "ObjectExpression"))) && node.elements.every(((y = isPod), (function(z) {
+    return (((isPrimitive(node) || (type(node) === "ArrayExpression")) && (node.elements.every(isPod) || (type(
+        type) === "ObjectExpression"))) && node.elements.every(((y = isPod), (function(z) {
         return y(z.value);
     }))));
 }));
@@ -47,13 +46,11 @@ var __o = require("khepri-ast")["node"],
     return (isPrimitive(node) && (!(!node.value)));
 }));
 (isBlockFunction = (function(node) {
-    var node0;
-    return (((node && node.type) === "FunctionExpression") && (((node0 = node.body), (node0 && node0.type)) ===
-        "BlockStatement"));
+    return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
 }));
 (isLambda = (function(node) {
-    return (((((node && node.type) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!
-        node.params.self));
+    return ((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) && (!node.params
+        .self));
 }));
 (isLambdaWithoutArgs = (function(node) {
     return (isLambda(node) && (!node.params.id));
