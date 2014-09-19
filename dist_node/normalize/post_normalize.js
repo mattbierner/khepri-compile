@@ -39,7 +39,8 @@ var __o = require("khepri-ast")["node"],
 peepholes.add("ImportPattern", UP, always, (function(__o6) {
     var pattern = __o6["pattern"],
         from = __o6["from"],
-        __o7 = innerPattern(Import.create(null, from.value), pattern),
+        value = from["value"],
+        __o7 = innerPattern(Import.create(null, value), pattern),
         imp = __o7[0],
         rest = [].slice.call(__o7, 1);
     return concat(markReserved(imp), rest);
@@ -68,24 +69,34 @@ var opToIdentifier = (function(node) {
     return setUserData(ast_value.Identifier.create(node.loc, opToName(node.name)), node.ud);
 });
 peepholes.add(["UnaryOperator", "BinaryOperator"], DOWN, getUid, opToIdentifier);
-peepholes.add("BinaryExpression", DOWN, always, (function(node) {
-    var loc = node["loc"],
-        operator = node["operator"],
-        left = node["left"],
-        right = node["right"];
-    return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(
-        operator.loc, opToName(operator.name)), operator.ud), [left, right]) : modify(node, ({
-        operator: operator.name
-    })));
+peepholes.add("BinaryExpression", DOWN, (function(z) {
+    return getUid(z.operator);
+}), (function(__o6) {
+    var loc = __o6["loc"],
+        operator = __o6["operator"],
+        left = __o6["left"],
+        right = __o6["right"];
+    return ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(operator.loc,
+        opToName(operator.name)), operator.ud), [left, right]);
 }));
-peepholes.add("UnaryExpression", DOWN, always, (function(node) {
-    var loc = node["loc"],
-        operator = node["operator"],
-        argument = node["argument"];
-    return (getUid(operator) ? ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(
-        operator.loc, opToName(operator.name)), operator.ud), [argument]) : modify(node, ({
+peepholes.add(["BinaryExpression", "UnaryExpression"], DOWN, (function(z) {
+    var z0 = z.operator,
+        x = getUid(z0);
+    return (!x);
+}), (function(node) {
+    var operator = node["operator"];
+    return modify(node, ({
         operator: operator.name
-    })));
+    }));
+}));
+peepholes.add("UnaryExpression", DOWN, (function(z) {
+    return getUid(z.operator);
+}), (function(__o6) {
+    var loc = __o6["loc"],
+        operator = __o6["operator"],
+        argument = __o6["argument"];
+    return ast_expression.CallExpression.create(loc, setUserData(ast_value.Identifier.create(operator.loc,
+        opToName(operator.name)), operator.ud), [argument]);
 }));
 var expandAssignment = (function(node) {
     var right;

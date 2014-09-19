@@ -56,10 +56,10 @@ var always := \_ -> true;
 peepholes.add('ImportPattern', UP,
     always,
     
-    \{pattern from} -> let
+    \{pattern from#{value}} -> let
         [imp ...rest] =
             innerPattern(
-                Import.create(null, from.value),
+                Import.create(null, value),
                 pattern)
     in
         concat(
@@ -135,36 +135,41 @@ peepholes.add(['UnaryOperator', 'BinaryOperator'], DOWN,
 
 /**
  * Rewrite binary expressions with user defined ops to a function call.
- * 
- * Rewrites normal binary expressions to use op name instead of node.
  */
 peepholes.add('BinaryExpression', DOWN,
-    always,
+    .operator \> isUserOp,
     
-    \node#{loc operator left right} ->
-        ?isUserOp operator
-            :ast_expression.CallExpression.create(loc,
-                opToIdentifier operator,
-                [left, right])
-            :modify(node, { operator: operator.name }));
+    \{loc operator left right} ->
+        ast_expression.CallExpression.create(loc,
+            opToIdentifier operator,
+            [left, right]));
+
+/**
+ * Rewrite non user defined binary expressions to use op name instead of node for
+ * operator property.
+ */
+peepholes.add(['BinaryExpression', 'UnaryExpression'], DOWN,
+    .operator \> isUserOp \> (!),
+    
+    \node#{operator} ->
+        modify(node, { operator: operator.name }));
 
 /**
  * Rewrite unary expressions with user defined op to a function call.
- * 
- * Rewrites normal unary expressions to use op name instead of node.
  */
 peepholes.add('UnaryExpression', DOWN,
-    always,
+     .operator \> isUserOp,
     
-    \node#{loc operator argument} ->
-        ?isUserOp operator
-            :ast_expression.CallExpression.create(loc,
-                opToIdentifier operator,
-                [argument])
-            :modify(node, { operator: operator.name }));
+    \{loc operator argument} ->
+        ast_expression.CallExpression.create(loc,
+            opToIdentifier operator,
+            [argument]));
 
 /* Expression Conversion
  ******************************************************************************/
+/**
+ * Expand an assignment expression to a list of single assignments.
+ */
 var expandAssignment := \node ->
     ?type node.right === 'AssignmentExpression'
         :let right = expandAssignment(node.right) in
