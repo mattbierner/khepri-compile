@@ -42,6 +42,16 @@ rewrites.add("PackageExport", UP, (function(z) {
         loc = __o4["loc"];
     return ast_package.PackageExport.create(loc, id, string(id.name));
 }));
+rewrites.add("PackageExport", UP, (function(z) {
+    var z0 = z.alias,
+        y = type(z0);
+    return ("IdentifierPattern" === y);
+}), (function(__o4) {
+    var id = __o4["id"],
+        alias = __o4["alias"],
+        loc = __o4["loc"];
+    return ast_package.PackageExport.create(loc, id, string(alias.id.name));
+}));
 rewrites.add("LetExpression", UP, (function(z) {
     var y = z.bindings.length;
     return (y > 1);

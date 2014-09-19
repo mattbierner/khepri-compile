@@ -80,6 +80,17 @@ rewrites.add('PackageExport', UP,
             id,
             string id.name));
 
+/**
+ * Convert all package exports to use string aliases
+ */
+rewrites.add('PackageExport', UP,
+    .alias \> type \> (=== 'IdentifierPattern'),
+    
+    \{id alias loc} ->
+        ast_package.PackageExport.create(loc,
+            id,
+            string alias.id.name));
+
 /* Expression Expansions
  ******************************************************************************/
 /**
