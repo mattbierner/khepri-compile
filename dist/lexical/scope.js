@@ -10,8 +10,9 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals", "prefixOps"]));
     (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
-        var self = this;
-        return hamt.has(id, self.record);
+        var __o = this,
+            record0 = __o["record"];
+        return hamt.has(id, record0);
     }));
     (hasBinding = (function(id, s) {
         return (s.hasOwnBinding(id) || (s.outer && hasBinding(id, s.outer)));

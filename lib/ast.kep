@@ -24,13 +24,17 @@ package (
     getUd
     setUd
     
+    modify
+    
     getUid
     setUid
     
     getLocals
     setLocals)
 with
-    import 'khepri-ast::node' {setData}
+    import 'khepri-ast::node' {
+        setData
+        'modify': modifyAstNode}
 in {
 
 /**
@@ -163,6 +167,11 @@ getUd := tryGetUd @ null;
  */
 setUd := \key value node ->
     setData(node, key, value);
+
+/* Ops
+ ******************************************************************************/
+modify := \f node ->
+    modifyAstNode(node, f);
 
 /* Khepri User Data
  ******************************************************************************/

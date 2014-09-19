@@ -3,24 +3,24 @@
  * DO NOT EDIT
 */
 define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/trans/error", "akh/unique",
-    "khepri-ast/expression", "khepri-ast/node", "khepri-ast/value", "zipper-m/trans/tree", "../ast", "../fun",
-    "../user_operator", "./scope", "./scopet"
-], (function(require, exports, __o, StateT, Error, ErrorT, Unique, ast_expression, __o0, ast_value, TreeZipperT,
-    __o1, __o2, __o3, scope, ScopeT) {
+    "khepri-ast/expression", "khepri-ast/value", "zipper-m/trans/tree", "../ast", "../fun", "../user_operator",
+    "./scope", "./scopet"
+], (function(require, exports, __o, StateT, Error, ErrorT, Unique, ast_expression, ast_value, TreeZipperT, __o0,
+    __o1, __o2, scope, ScopeT) {
     "use strict";
     var check, next = __o["next"],
         seq = __o["sequence"],
         seqa = __o["sequencea"],
-        modifyAstNode = __o0["modify"],
-        type = __o1["type"],
-        isSymbol = __o1["isSymbol"],
-        getUd = __o1["getUd"],
-        setUd = __o1["setUd"],
-        setUid = __o1["setUid"],
-        setLocals = __o1["setLocals"],
-        flip = __o2["flip"],
-        foldl = __o2["foldl"],
-        splitOp = __o3["splitOp"],
+        type = __o0["type"],
+        isSymbol = __o0["isSymbol"],
+        getUd = __o0["getUd"],
+        setUd = __o0["setUd"],
+        setUid = __o0["setUid"],
+        setLocals = __o0["setLocals"],
+        flip = __o1["flip"],
+        foldl = __o1["foldl"],
+        notContains = __o1["notContains"],
+        splitOp = __o2["splitOp"],
         Scope = scope["Scope"],
         x, y, x0, y0, x1, y1, x2, y2, visit, __args, actions, __args1, actions0, __args0, actions1, checkWith,
             __args2, actions2, checkBlock, __args3, actions3, body, __args4, actions4, __args5, actions5,
@@ -37,12 +37,14 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
             actions45, consequent1, body13, __args46, actions46, __args47, actions47, consequent2, __args48,
             actions48, __args49, actions49, __args50, actions50, __args51, actions51, __args52, actions52,
             __args53, actions53, __args54, actions54, __args55, actions55, __args56, actions56, __args57,
-            actions57, __args58, actions58, consequent3, __args59, actions59, __args60, actions60, consequent4,
-            __args61, actions61, __args62, actions62, __args63, actions63, __args64, actions64, body14,
-            __args65, actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69,
-            actions69, __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73,
-            __args74, actions74, __args75, actions75, __args76, actions76, __args77, actions77, __args78,
-            actions78, _check, reserved = getUd.bind(null, "reserved"),
+            actions57, __args58, actions58, consequent3, __args59, actions59, __args60, actions60, __args61,
+            actions61, __args62, actions62, body14, __args63, actions63, __args64, actions64, __args65,
+            actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69, actions69,
+            __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73, __args74,
+            actions74, __args75, actions75, __args76, actions76, _check, reserved = getUd.bind(null, "reserved"),
+        getStart = (function(y) {
+            return (y && y.start);
+        }),
         M = ErrorT(TreeZipperT(ScopeT(Unique))),
         run = (function(p, s, ctx, ok, err) {
             var y, y0;
@@ -97,28 +99,27 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         checkHasBinding = (function(id, loc) {
             return examineScope((function(s) {
                 return (scope.hasBinding(id, s) ? pass : error(((("Undeclared symbol:'" + id) +
-                    "' at:") + (loc && loc.start))));
+                    "' at:") + getStart(loc))));
             }));
         }),
         checkCanAddBinding = (function(id, loc) {
             return examineScope((function(s) {
-                var binding, loc0;
+                var binding;
                 return (s.hasOwnBinding(id) ? ((binding = s.getBinding(id)), error(((((("'" + id) +
-                        "' at:") + (loc && loc.start)) +
-                    " already bound for scope from:") + ((loc0 = binding.loc), (
-                    loc0 && loc0.start))))) : pass);
+                        "' at:") + getStart(loc)) +
+                    " already bound for scope from:") + getStart(binding.loc)))) : pass);
             }));
         }),
         checkCanAssign = (function(id, loc) {
             return examineScope((function(s) {
                 return (scope.hasMutableBinding(id, s) ? pass : error((((
-                    "Assign to immutable symbol:'" + id) + "' at:") + (loc && loc.start))));
+                    "Assign to immutable symbol:'" + id) + "' at:") + getStart(loc))));
             }));
         }),
         markBindingImmutable = (function(id, loc) {
             return examineScope((function(s) {
                 return (s.hasOwnBinding(id) ? modifyScope(scope.setBindingMutability.bind(null, id,
-                    false)) : error((((("Cannot mark symbol:'" + id) + "' at:") + (loc && loc.start)) +
+                    false)) : error((((("Cannot mark symbol:'" + id) + "' at:") + getStart(loc)) +
                     " immutable in enclosed scope")));
             }));
         }),
@@ -175,8 +176,8 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         moveChild("body"), seqa(actions3), up))]), seq(push, seqa(body), pop)));
     addCheck("PackageExports", ((__args4 = ["exports", checkTop]), (actions4 = [].slice.call(__args4, 1)), seq(
         moveChild("exports"), seqa(actions4), up)));
-    addCheck("PackageExport", seq(inspect((function(__o4) {
-        var id = __o4["id"];
+    addCheck("PackageExport", seq(inspect((function(__o3) {
+        var id = __o3["id"];
         return addMutableBindingChecked(id.name, id.loc);
     })), ((__args5 = ["id", checkTop]), (actions5 = [].slice.call(__args5, 1)), seq(moveChild("id"),
         seqa(actions5), up))));
@@ -188,8 +189,8 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         seqa(body0), pop)));
     addCheck(["StaticDeclaration", "VariableDeclaration"], ((__args9 = ["declarations", checkTop]), (actions9 = []
         .slice.call(__args9, 1)), seq(moveChild("declarations"), seqa(actions9), up)));
-    addCheck("StaticDeclarator", inspect((function(__o4) {
-        var id = __o4["id"];
+    addCheck("StaticDeclarator", inspect((function(__o3) {
+        var id = __o3["id"];
         return addStaticBindingChecked(id.name, id.loc);
     })));
     addCheck("VariableDeclarator", ((bind = (function(node) {
@@ -250,8 +251,8 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         checkTop
     ]), (actions33 = [].slice.call(__args33, 1)), seq(moveChild("finalizer"), seqa(
         actions33), up))]), seq(push, seqa(body7), pop))));
-    addCheck("CatchClause", ((body8 = [inspect((function(__o4) {
-        var param = __o4["param"];
+    addCheck("CatchClause", ((body8 = [inspect((function(__o3) {
+        var param = __o3["param"];
         return addImmutableBindingChecked(param.name, param.loc);
     })), ((__args34 = ["param", checkTop]), (actions34 = [].slice.call(__args34, 1)), seq(
         moveChild("param"), seqa(actions34), up)), ((__args35 = ["body", ((__args36 = ["body",
@@ -275,8 +276,8 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         checkTop
     ]), (actions44 = [].slice.call(__args44, 1)), seq(moveChild("body"), seqa(
         actions44), up))]), seq(push, seqa(body12), pop))]), seq(push, seqa(body11), pop)));
-    addCheck("FunctionExpression", ((body13 = [((consequent1 = seq(inspect((function(__o4) {
-        var id = __o4["id"];
+    addCheck("FunctionExpression", ((body13 = [((consequent1 = seq(inspect((function(__o3) {
+        var id = __o3["id"];
         return addImmutableBinding(id.name, id.loc);
     })), ((__args45 = ["id", checkTop]), (actions45 = [].slice.call(__args45, 1)),
         seq(moveChild("id"), seqa(actions45), up)))), inspect((function(node) {
@@ -288,18 +289,15 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
             __args47 = ["body", checkBlockSameScope(checkTop)]), (actions47 = []
             .slice.call(__args47, 1)), seq(moveChild("body"), seqa(actions47),
             up)), getClosure((function(locals) {
-            return modifyNode((function(node) {
-                return setLocals(node, locals.filter((function(x3) {
-                    return (closure.indexOf(x3) < 0);
-                })));
-            }));
+            return modifyNode(setLocals.bind(null, locals.filter(
+                notContains.bind(null, closure))));
         })));
     }))]), seq(push, seqa(body13), pop)));
     addCheck("UnaryExpression", seq(((__args46 = ["argument", checkTop]), (actions46 = [].slice.call(__args46,
-        1)), seq(moveChild("argument"), seqa(actions46), up)), inspect((function(__o4) {
-        var loc = __o4["loc"],
-            operator = __o4["operator"],
-            argument = __o4["argument"];
+        1)), seq(moveChild("argument"), seqa(actions46), up)), inspect((function(__o3) {
+        var loc = __o3["loc"],
+            operator = __o3["operator"],
+            argument = __o3["argument"];
         return splitUnary(operator.name)
             .chain((function(ops) {
                 var __args47, actions47;
@@ -312,9 +310,9 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
             }));
     }))));
     addCheck("AssignmentExpression", seq(((__args47 = ["left", checkTop]), (actions47 = [].slice.call(__args47,
-        1)), seq(moveChild("left"), seqa(actions47), up)), ((consequent2 = inspect((function(__o4) {
-        var immutable = __o4["immutable"],
-            left = __o4["left"],
+        1)), seq(moveChild("left"), seqa(actions47), up)), ((consequent2 = inspect((function(__o3) {
+        var immutable = __o3["immutable"],
+            left = __o3["left"],
             name = left["name"],
             loc = left["loc"];
         return seq(checkCanAssign(name, loc), (immutable ? markBindingImmutable(name,
@@ -337,70 +335,57 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         .call(__args55, 1)), seq(moveChild("callee"), seqa(actions55), up)), ((__args56 = ["args",
         checkTop
     ]), (actions56 = [].slice.call(__args56, 1)), seq(moveChild("args"), seqa(actions56), up))));
-    addCheck("MemberExpression", seq(((__args57 = ["object", checkTop]), (actions57 = [].slice.call(__args57, 1)),
-        seq(moveChild("object"), seqa(actions57), up)), ((__args58 = ["property", checkTop]), (
-        actions58 = [].slice.call(__args58, 1)), (consequent3 = seq(moveChild("property"), seqa(
-        actions58), up)), inspect((function(node) {
+    addCheck(["MemberExpression", "CheckedMemberExpression"], seq(((__args57 = ["object", checkTop]), (
+        actions57 = [].slice.call(__args57, 1)), seq(moveChild("object"), seqa(actions57), up)), ((
+        __args58 = ["property", checkTop]), (actions58 = [].slice.call(__args58, 1)), (consequent3 =
+        seq(moveChild("property"), seqa(actions58), up)), inspect((function(node) {
         return (node.computed ? consequent3 : (undefined || pass));
     })))));
-    addCheck("CheckedMemberExpression", seq(((__args59 = ["object", checkTop]), (actions59 = [].slice.call(
-        __args59, 1)), seq(moveChild("object"), seqa(actions59), up)), ((__args60 = ["property",
+    addCheck("ArrayExpression", ((__args59 = ["elements", checkTop]), (actions59 = [].slice.call(__args59, 1)),
+        seq(moveChild("elements"), seqa(actions59), up)));
+    addCheck("ObjectExpression", ((__args60 = ["properties", checkTop]), (actions60 = [].slice.call(__args60, 1)),
+        seq(moveChild("properties"), seqa(actions60), up)));
+    addCheck("LetExpression", ((body14 = [((__args61 = ["bindings", checkTop]), (actions61 = [].slice.call(
+        __args61, 1)), seq(moveChild("bindings"), seqa(actions61), up)), ((__args62 = ["body",
         checkTop
-    ]), (actions60 = [].slice.call(__args60, 1)), (consequent4 = seq(moveChild("property"), seqa(
-        actions60), up)), inspect((function(node) {
-        return (node.computed ? consequent4 : (undefined || pass));
-    }))), unique((function(uid) {
-        return modifyNode((function(node) {
-            return modifyAstNode(node, ({
-                "id": setUid(uid, ast_value.Identifier.create(null, "__x"))
-            }));
-        }));
-    }))));
-    addCheck("ArrayExpression", ((__args61 = ["elements", checkTop]), (actions61 = [].slice.call(__args61, 1)),
-        seq(moveChild("elements"), seqa(actions61), up)));
-    addCheck("ObjectExpression", ((__args62 = ["properties", checkTop]), (actions62 = [].slice.call(__args62, 1)),
-        seq(moveChild("properties"), seqa(actions62), up)));
-    addCheck("LetExpression", ((body14 = [((__args63 = ["bindings", checkTop]), (actions63 = [].slice.call(
-        __args63, 1)), seq(moveChild("bindings"), seqa(actions63), up)), ((__args64 = ["body",
-        checkTop
-    ]), (actions64 = [].slice.call(__args64, 1)), seq(moveChild("body"), seqa(actions64),
+    ]), (actions62 = [].slice.call(__args62, 1)), seq(moveChild("body"), seqa(actions62),
         up))]), seq(push, seqa(body14), pop)));
-    addCheck("CurryExpression", seq(((__args65 = ["base", checkTop]), (actions65 = [].slice.call(__args65, 1)),
-        seq(moveChild("base"), seqa(actions65), up)), ((__args66 = ["args", checkTop]), (actions66 = []
-        .slice.call(__args66, 1)), seq(moveChild("args"), seqa(actions66), up))));
-    addCheck("OperatorExpression", ((__args67 = ["operator", checkTop]), (actions67 = [].slice.call(__args67, 1)),
-        seq(moveChild("operator"), seqa(actions67), up)));
-    addCheck("EllipsisPattern", ((__args68 = ["id", checkTop]), (actions68 = [].slice.call(__args68, 1)), seq(
-        moveChild("id"), seqa(actions68), up)));
-    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], ((__args69 = ["pattern", checkTop]), (
-        actions69 = [].slice.call(__args69, 1)), seq(moveChild("pattern"), seqa(actions69), up)));
+    addCheck("CurryExpression", seq(((__args63 = ["base", checkTop]), (actions63 = [].slice.call(__args63, 1)),
+        seq(moveChild("base"), seqa(actions63), up)), ((__args64 = ["args", checkTop]), (actions64 = []
+        .slice.call(__args64, 1)), seq(moveChild("args"), seqa(actions64), up))));
+    addCheck("OperatorExpression", ((__args65 = ["operator", checkTop]), (actions65 = [].slice.call(__args65, 1)),
+        seq(moveChild("operator"), seqa(actions65), up)));
+    addCheck("EllipsisPattern", ((__args66 = ["id", checkTop]), (actions66 = [].slice.call(__args66, 1)), seq(
+        moveChild("id"), seqa(actions66), up)));
+    addCheck(["SliceUnpack", "RelativeUnpack", "ImportPattern"], ((__args67 = ["pattern", checkTop]), (
+        actions67 = [].slice.call(__args67, 1)), seq(moveChild("pattern"), seqa(actions67), up)));
     addCheck("IdentifierPattern", seq(inspect((function(node) {
         var loc = node["loc"],
             id = node["id"];
         return (reserved(node) ? addImmutableBinding(id.name, loc) : addImmutableBindingChecked(
             id.name, loc));
-    })), ((__args70 = ["id", checkTop]), (actions70 = [].slice.call(__args70, 1)), seq(moveChild("id"),
-        seqa(actions70), up))));
-    addCheck("AsPattern", seq(((__args71 = ["id", checkTop]), (actions71 = [].slice.call(__args71, 1)), seq(
-        moveChild("id"), seqa(actions71), up)), inspect((function(node) {
-        var __args72 = ["target", modifyNode((function(target) {
+    })), ((__args68 = ["id", checkTop]), (actions68 = [].slice.call(__args68, 1)), seq(moveChild("id"),
+        seqa(actions68), up))));
+    addCheck("AsPattern", seq(((__args69 = ["id", checkTop]), (actions69 = [].slice.call(__args69, 1)), seq(
+        moveChild("id"), seqa(actions69), up)), inspect((function(node) {
+        var __args70 = ["target", modifyNode((function(target) {
             return setUd("id", node.id, target);
         })), checkTop],
-            actions72 = [].slice.call(__args72, 1);
-        return seq(moveChild("target"), seqa(actions72), up);
+            actions70 = [].slice.call(__args70, 1);
+        return seq(moveChild("target"), seqa(actions70), up);
     }))));
-    addCheck("ObjectPattern", ((__args72 = ["elements", checkTop]), (actions72 = [].slice.call(__args72, 1)),
-        seq(moveChild("elements"), seqa(actions72), up)));
-    addCheck("ObjectPatternElement", seq(((__args73 = ["target", checkTop]), (actions73 = [].slice.call(
-        __args73, 1)), seq(moveChild("target"), seqa(actions73), up)), ((__args74 = ["key", checkTop]), (
-        actions74 = [].slice.call(__args74, 1)), seq(moveChild("key"), seqa(actions74), up))));
-    addCheck("ArgumentsPattern", seq(((__args75 = ["id", checkTop]), (actions75 = [].slice.call(__args75, 1)),
-        seq(moveChild("id"), seqa(actions75), up)), ((__args76 = ["elements", checkTop]), (actions76 = []
-        .slice.call(__args76, 1)), seq(moveChild("elements"), seqa(actions76), up)), ((__args77 = [
+    addCheck("ObjectPattern", ((__args70 = ["elements", checkTop]), (actions70 = [].slice.call(__args70, 1)),
+        seq(moveChild("elements"), seqa(actions70), up)));
+    addCheck("ObjectPatternElement", seq(((__args71 = ["target", checkTop]), (actions71 = [].slice.call(
+        __args71, 1)), seq(moveChild("target"), seqa(actions71), up)), ((__args72 = ["key", checkTop]), (
+        actions72 = [].slice.call(__args72, 1)), seq(moveChild("key"), seqa(actions72), up))));
+    addCheck("ArgumentsPattern", seq(((__args73 = ["id", checkTop]), (actions73 = [].slice.call(__args73, 1)),
+        seq(moveChild("id"), seqa(actions73), up)), ((__args74 = ["elements", checkTop]), (actions74 = []
+        .slice.call(__args74, 1)), seq(moveChild("elements"), seqa(actions74), up)), ((__args75 = [
         "self", checkTop
-    ]), (actions77 = [].slice.call(__args77, 1)), seq(moveChild("self"), seqa(actions77), up))));
-    addCheck("ObjectValue", ((__args78 = ["value", checkTop]), (actions78 = [].slice.call(__args78, 1)), seq(
-        moveChild("value"), seqa(actions78), up)));
+    ]), (actions75 = [].slice.call(__args75, 1)), seq(moveChild("self"), seqa(actions75), up))));
+    addCheck("ObjectValue", ((__args76 = ["value", checkTop]), (actions76 = [].slice.call(__args76, 1)), seq(
+        moveChild("value"), seqa(actions76), up)));
     addCheck(["Identifier", "BinaryOperator"], inspect((function(node) {
         var loc = node["loc"],
             name = node["name"];

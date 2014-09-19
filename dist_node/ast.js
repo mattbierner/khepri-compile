@@ -5,8 +5,9 @@
 "use strict";
 var __o = require("khepri-ast")["node"],
     type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
-        isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid, getLocals, setLocals,
-        setData = __o["setData"];
+        isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, modify, getUid, setUid, getLocals,
+        setLocals, setData = __o["setData"],
+    modifyAstNode = __o["modify"];
 (type = (function(y) {
     return (y && y.type);
 }));
@@ -66,6 +67,9 @@ var __o = require("khepri-ast")["node"],
 (setUd = (function(key, value, node) {
     return setData(node, key, value);
 }));
+(modify = (function(f, node) {
+    return modifyAstNode(node, f);
+}));
 (getUid = (function(node) {
     return (((node && node.ud) && node.ud.hasOwnProperty("uid")) ? node.ud["uid"] : null);
 }));
@@ -95,6 +99,7 @@ var def = [];
 (exports["tryGetUd"] = tryGetUd);
 (exports["getUd"] = getUd);
 (exports["setUd"] = setUd);
+(exports["modify"] = modify);
 (exports["getUid"] = getUid);
 (exports["setUid"] = setUid);
 (exports["getLocals"] = getLocals);

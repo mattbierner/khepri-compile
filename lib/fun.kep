@@ -21,7 +21,8 @@ package (
     flatten
     flattenr
     
-    contains)
+    contains
+    notContains)
 {
 
 /* 
@@ -82,4 +83,10 @@ flattenr = \x ->
  */
 contains := \a x ->
     a.indexOf(x) >= 0;
+    
+/**
+ * Does array `a` not contain `x`?
+ */
+notContains := (!) <<\ contains;
+
 }

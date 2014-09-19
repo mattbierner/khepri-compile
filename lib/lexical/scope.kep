@@ -52,7 +52,7 @@ var IMMUTABLE := 0,
  * @member mapping Maps identifiers to their actual names in this scope.
  * @member definitions Maps identifiers to unique ids.
  * @member locals Set of all unique ids.
- * @member locals Map of all valid prefix operator names to uids in the scope.
+ * @member prefixOps Map of all valid prefix operator names to uids in the scope.
  */
 Scope = record.declare(null, [
     'record',
@@ -73,8 +73,8 @@ Scope.empty = Scope.create(
 /**
  * Does this scope have a binding for `id`?
  */
-Scope.prototype.hasOwnBinding = \id =self->
-    hamt.has(id, self.record);
+Scope.prototype.hasOwnBinding = \id ={record}->
+    hamt.has(id, record);
 
 /* Binding Operations
  ******************************************************************************/

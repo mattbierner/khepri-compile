@@ -188,29 +188,6 @@ peepholes.add('ExpressionStatement', UP,
         \> map @ (ast_statement.ExpressionStatement.create @ null)
         \> ast_statement.BlockStatement.create @ null);
 
-var pipe := \loc callee arg ->
-    ast_expression.CallExpression.create(null,
-        callee,
-        [arg]);
-
-/**
- * Rewrite left pipe to a call.
- */
-peepholes.add('BinaryExpression', UP,
-    .operator \> (=== '|>'),
-    
-    \{loc left right} ->
-        pipe(loc, right, left));
-
-/**
- * Rewrite right pipe to a call.
- */
-peepholes.add('BinaryExpression', UP,
-    .operator \> (=== '<|'),
-    
-    \{loc left right} ->
-        pipe(loc, left, right));
-
 /* Interface
  ******************************************************************************/
 /**

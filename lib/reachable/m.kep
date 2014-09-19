@@ -1,6 +1,6 @@
 package (
     ReachableMonad
-    run)
+    runReachable)
 with
     import 'akh::state' StateM,
 
@@ -9,9 +9,9 @@ in {
 
 ReachableMonad := TreeZipperT (StateM);
 
-run := \c ctx ->
+runReachable := \state c ctx ->
     StateM.evalState(
         TreeZipperT.runTreeZipperT(c, ctx),
-        state.Empty);
+        state);
 
 }

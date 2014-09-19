@@ -104,7 +104,7 @@ in
             body: rename(uid, closure, target.body)
         })
     in
-        ?type first === 'IdentifierPattern' || type first === 'AsPattern' || type first === 'ObjectPattern')
+        ?type first === 'IdentifierPattern' || type first === 'AsPattern' || type first === 'ObjectPattern'
             :ast_expression.LetExpression.create(null,
                 concat(
                     base.bindings,

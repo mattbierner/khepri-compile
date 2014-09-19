@@ -23,12 +23,14 @@ with
         getUid},
     
     import './state' state,
-    import './m' {'ReachableMonad'#M, run}
+    import './m' {'ReachableMonad'#M runReachable}
 in {
 
 var _check; // forward
 
 var isReserved := getUd @ 'reserved';
+
+var run = runReachable @ state.Empty;
 
 /* Operations
  ******************************************************************************/

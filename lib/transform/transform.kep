@@ -165,9 +165,9 @@ var addBindings = \bindings ->
  * 
  */
 var addBindingsForBindingsList :=
-    map @ ((.pattern) \> expandBindings@null)
+    map @ (.pattern \> expandBindings@null)
     \> flatten
-    \> map @ ((.pattern) \> (.id) \> getUid)
+    \> map @ (.pattern.id \> getUid)
     \> addBindings;
 
 /* Transforms

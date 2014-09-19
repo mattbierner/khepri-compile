@@ -101,8 +101,7 @@ var StateT = require("akh")["trans"]["state"],
     addBindingsForBindingsList = ((x0 = map.bind(null, ((y2 = expandBindings.bind(null, null)), (function(z) {
         return y2(z.pattern);
     })))), (x1 = map.bind(null, (function(z) {
-        var z0 = z.pattern;
-        return getUid(z0.id);
+        return getUid(z.pattern.id);
     }))), (function(z) {
         var z0 = x0(z),
             z1 = flatten(z0),

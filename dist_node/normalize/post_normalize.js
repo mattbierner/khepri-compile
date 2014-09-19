@@ -105,21 +105,5 @@ peepholes.add("ExpressionStatement", UP, (function(z) {
         z2 = flattenr(z1);
     return y(x(z2));
 })));
-peepholes.add("BinaryExpression", UP, (function(z) {
-    var y0 = z.operator;
-    return ("|>" === y0);
-}), (function(__o6) {
-    var left = __o6["left"],
-        right = __o6["right"];
-    return ast_expression.CallExpression.create(null, right, [left]);
-}));
-peepholes.add("BinaryExpression", UP, (function(z) {
-    var y0 = z.operator;
-    return ("<|" === y0);
-}), (function(__o6) {
-    var left = __o6["left"],
-        right = __o6["right"];
-    return ast_expression.CallExpression.create(null, left, [right]);
-}));
 (normalize = rewrite.bind(null, peepholes));
 (exports["normalize"] = normalize);

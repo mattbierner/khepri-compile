@@ -15,12 +15,11 @@ var ast_declaration = require("khepri-ast")["declaration"],
     expandCallee, expandCurry, modify = __o["modify"],
     type = __o0["type"],
     getUid = __o0["getUid"],
-    tryGetUd = __o0["tryGetUd"],
+    getLocals = __o0["getLocals"],
     concat = __o1["concat"],
     map = __o1["map"],
     rename = ren["rename"],
-    builtins = __o2["builtins"],
-    getLocals = tryGetUd.bind(null, [], "locals");
+    builtins = __o2["builtins"];
 (expandCallee = (function(uid, callee, args) {
     var arg, target = ((type(callee) === "LetExpression") ? callee.body : callee),
         closure = getLocals(target),
@@ -47,8 +46,8 @@ var ast_declaration = require("khepri-ast")["declaration"],
         params: ast_pattern.ArgumentsPattern.create(null, null, rename(uid, closure, rest),
             target.params.self),
         body: rename(uid, closure, target.body)
-    }))), ((first && (((first.type === "IdentifierPattern") || (first.type === "AsPattern")) || (first.type ===
-        "ObjectPattern"))) ? ast_expression.LetExpression.create(null, concat(base.bindings,
+    }))), ((((type(first) === "IdentifierPattern") || (type(first) === "AsPattern")) || (type(first) ===
+        "ObjectPattern")) ? ast_expression.LetExpression.create(null, concat(base.bindings,
         ast_declaration.Binding.create(null, rename(uid, closure, first), args[0])), body) : body)));
 }));
 (exports["expandCallee"] = expandCallee);

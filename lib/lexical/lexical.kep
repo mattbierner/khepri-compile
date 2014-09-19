@@ -15,8 +15,6 @@ with
     import 'akh::unique' Unique,
     
     import 'khepri-ast::expression' ast_expression,
-    import 'khepri-ast::node' {
-        'modify': modifyAstNode},
     import 'khepri-ast::value' ast_value,
 
     import 'zipper-m::trans::tree' TreeZipperT,
@@ -27,22 +25,20 @@ with
         getUd
         setUd
         setUid
-        setLocals},
-    import '../fun' {flip foldl},
+        setLocals
+        'modify': modifyAstNode},
+    import '../fun' {flip foldl notContains},
     import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
 in {
 
-/* Forward declarations
- ******************************************************************************/
-var _check;
+var _check; // forward
 
-/* 
- ******************************************************************************/
+
 var reserved := getUd @ 'reserved';
 
-var getStart := \loc -> (loc && loc.start);
+var getStart := (_ ?? .start);
 
 /* Monad
  ******************************************************************************/
@@ -438,7 +434,7 @@ addCheck@'FunctionExpression' <|
                     addImmutableBinding(id.name, id.loc),
                 checkChild 'id')),
         
-        // Attach closure data.
+        // Get closure data.
         // This must include the function's id
         getClosure \ closure ->
        
@@ -448,9 +444,10 @@ addCheck@'FunctionExpression' <|
             child('body',
                 checkBlockSameScope(checkTop)),
         
+        // Attach locals data
         getClosure \ locals ->
-        modifyNode \ node ->
-            setLocals(node, locals.filter(\x -> closure.indexOf(x) < 0))));
+        modifyNode (
+            setLocals @ locals.filter(notContains @ closure))));
 
 addCheck@'UnaryExpression' <| seq(
     checkChild 'argument',
@@ -489,23 +486,10 @@ addCheck@['CallExpression', 'NewExpression'] <| seq(
     checkChild 'callee',
     checkChild 'args');
 
-addCheck@'MemberExpression' <| seq(
+addCheck@['MemberExpression', 'CheckedMemberExpression'] <| seq(
     checkChild 'object',
     when(.computed,
         checkChild 'property'));
-
-addCheck@'CheckedMemberExpression' <| seq(
-    checkChild 'object',
-    
-    when(.computed,
-        checkChild 'property'),
-    
-    unique \ uid ->
-    modifyNode \ node ->
-        modifyAstNode(node, {
-            'id' : setUid(uid, ast_value.Identifier.create(null, '__x'))
-        }));
-
 
 addCheck@'ArrayExpression' <|
     checkChild 'elements';
