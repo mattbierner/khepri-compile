@@ -26,7 +26,8 @@ with
         isSymbol
         getUd
         setUd
-        setUid},
+        setUid
+        setLocals},
     import '../fun' {flip foldl},
     import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
@@ -277,8 +278,27 @@ var splitUnary = \name ->
                 setUid(c.(1), ast_value.UnaryOperator.create(null, c.(0)));
 
 var addOperator = \name uid-> 
-     modifyScope (scope.addOperator@(name, uid));
- 
+    modifyScope (scope.addOperator@(name, uid));
+
+/* Inner Checks
+ ******************************************************************************/
+var checkBlockSameScope = let
+    checkWith = seq(
+        checkChild 'bindings',
+        child('body',
+            checkChild 'body')),
+    
+    checkBlock = checkChild 'body'
+    
+in
+    \alt ->
+        inspect \ node ->
+            ?type node === 'WithStatement'
+                :checkWith
+            :?type node === 'BlockStatement'
+                :checkBlock
+            :alt;
+    
 /* Checks
  ******************************************************************************/
 var checks = {};
@@ -308,12 +328,7 @@ addCheck@'Package' <|
         checkChild 'exports',
         // Evaluate body in same scope
         child('body',
-            when(type \> (=== 'WithStatement'),
-                seq(
-                    checkChild 'bindings',
-                    child('body',
-                        checkChild 'body')),
-                checkChild 'body')));
+            checkBlockSameScope(checkChild 'body')));
 
 // Declarations
 addCheck@['StaticDeclaration', 'VariableDeclaration'] <|
@@ -431,13 +446,11 @@ addCheck@'FunctionExpression' <|
             checkChild 'params',
             // Evaluate body in same scope
             child('body',
-                when(type \> (=== 'BlockStatement'),
-                    checkChild 'body',
-                    checkTop)),
-            
+                checkBlockSameScope(checkTop)),
+        
         getClosure \ locals ->
         modifyNode \ node ->
-            setUd('locals', locals.filter(\x -> closure.indexOf(x) < 0), node)));
+            setLocals(node, locals.filter(\x -> closure.indexOf(x) < 0))));
 
 addCheck@'UnaryExpression' <| seq(
     checkChild 'argument',
@@ -454,14 +467,12 @@ addCheck@'UnaryExpression' <| seq(
 
 addCheck@'AssignmentExpression' <| seq(
     checkChild 'left',
-    inspect \ {immutable left} ->
-        ?isSymbol left
-            :seq(
-                checkCanAssign(left.name, left.loc),
-                ?immutable
-                    :markBindingImmutable(left.name, left.loc)
-                    :pass)
-            :pass,
+    when(.left \> isSymbol,
+        inspect \ {immutable left#{name loc}} -> seq(
+            checkCanAssign(name, loc),
+            ?immutable
+                :markBindingImmutable(name, loc)
+                :pass)),
     checkChild 'right');
 
 addCheck@'BinaryExpression' <| seq(

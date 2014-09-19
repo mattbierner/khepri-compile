@@ -25,7 +25,10 @@ package (
     setUd
     
     getUid
-    setUid)
+    setUid
+    
+    getLocals
+    setLocals)
 with
     import 'khepri-ast::node' {setData}
 in {
@@ -118,7 +121,10 @@ isTruthy = \node ->
  */
 isBlockFunction = \node ->
     (  type node === 'FunctionExpression'
-    && type node.body === 'BlockStatement');
+    && (
+           type node.body === 'BlockStatement'
+        || type node.body === 'WithStatement'
+        || type node.body === 'TryStatement'));
 
 /**
  * Is a function a lambda function? Includes functions that use the arguments
@@ -158,6 +164,8 @@ getUd := tryGetUd @ null;
 setUd := \key value node ->
     setData(node, key, value);
 
+/* Khepri User Data
+ ******************************************************************************/
 /**
  * Get the uid of a node or null.
  */
@@ -170,5 +178,18 @@ getUid := getUd @ 'uid';
  * @param node
  */
 setUid := setUd @ 'uid';
+
+/**
+ * Get array of locals on a node.
+ */
+getLocals := tryGetUd @ [] @ 'locals';
+
+/**
+ * Set the locals of a node.
+ * 
+ * @param locals
+ * @param node
+ */
+setLocals := setUd @ 'locals';
 
 }

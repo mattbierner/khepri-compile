@@ -455,14 +455,14 @@ addRewrite@'Binding' <| seq(
      * Register bound values.
      */
     when(
-        \node ->
-            (  node.pattern.type === 'IdentifierPattern'
-            && getUid node.pattern.id),
+        \{pattern} ->
+            (  type pattern === 'IdentifierPattern'
+            && getUid pattern.id),
         
-        extract \ node ->
+        extract \ {pattern value} ->
             seq(
-                addBindingForNode(node.pattern.id, node.value),
-                tryPrune(node.pattern.id))),
+                addBindingForNode(pattern.id, value),
+                tryPrune(pattern.id))),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -470,7 +470,7 @@ addRewrite@'Binding' <| seq(
      */
     when(
         \node ->
-            (node && node.type === 'Binding' && node.value && node.value.type === 'LetExpression'),
+            (type node === 'Binding' && type node.value === 'LetExpression'),
         
         extract \ node -> let
             bindings =
@@ -624,7 +624,7 @@ addRewrite@'AssignmentExpression' <| seq(
     /**
      * Update the working value of a binding.
      */
-    when((.left) \> type \> (=== 'Identifier'),
+    when(.left \> type \> (=== 'Identifier'),
         extract \ {immutable left right} ->
             ?immutable
                 :addBindingForNode(left, right)
@@ -636,7 +636,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     /**
      * Reduce conditionals with constant test.
      */
-    when((.test) \> isPrimitive,
+    when(.test \> isPrimitive,
         
         extract \ {test consequent alternate} -> seq(
             set ?isTruthy test : consequent : alternate,
@@ -717,9 +717,7 @@ addRewrite@'CallExpression' <| seq(
     /**
      * Expand callee.
      */
-    when(
-        (.callee) \> isExpansion,
-        
+    when(.callee \> isExpansion,
         expand(
             M.node.map (.callee),
             \callee ->
@@ -727,7 +725,7 @@ addRewrite@'CallExpression' <| seq(
                     incCount(
                         getUid(node.callee),
                         getExpansion(node.callee).count || 1,
-                        getExpansion(node.callee).countvalue,
+                        getExpansion(node.callee).value,
                         ast_expression.CallExpression.create(node.loc,
                             callee,
                             node.args)))),
@@ -740,7 +738,7 @@ addRewrite@'CallExpression' <| seq(
     when(
         \node ->
             (  isLambda(node.callee)
-            || (node.callee.type === 'LetExpression' && isLambda(node.callee.body))),
+            || (type node.callee === 'LetExpression' && isLambda(node.callee.body))),
         
             seq(
                 unique \ uid ->

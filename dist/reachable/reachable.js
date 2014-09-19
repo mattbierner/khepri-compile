@@ -2,9 +2,8 @@
  * THIS FILE IS AUTO GENERATED FROM 'lib/reachable/reachable.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zipper-m/trans/tree", "../fun", "../ast",
-    "./state"
-], (function(require, exports, __o, __o0, StateM, TreeZipperT, __o1, __o2, state) {
+define(["require", "exports", "khepri-ast/node", "akh/base", "../fun", "../ast", "./state", "./m"], (function(require,
+    exports, __o, __o0, __o1, __o2, state, __o3) {
     "use strict";
     var removeUnreachable, modify = __o["modify"],
         seq = __o0["sequence"],
@@ -14,6 +13,8 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
         type = __o2["type"],
         getUd = __o2["getUd"],
         getUid = __o2["getUid"],
+        M = __o3["ReachableMonad"],
+        run = __o3["run"],
         x, y, move, __args, actions, __args0, actions0, __args1, actions1, __args2, actions2, __args3, actions3,
             __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8, test,
             __args9, actions9, yes, no, __args10, actions10, consequent, test0, __args11, actions11, yes0, no0,
@@ -28,7 +29,6 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
             __args47, actions47, __args48, actions48, __args49, actions49, __args50, actions50, test1, yes1,
             no1, consequent1, __args51, actions51, __args52, actions52, __args53, actions53, _check, isReserved =
             getUd.bind(null, "reserved"),
-        M = TreeZipperT(StateM),
         pass = M.of(null),
         extractCtx = M.get,
         inspect = flip(M.map)
@@ -198,9 +198,6 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
     (_check = (function(node) {
         return (Array.isArray(node) ? visitArray(node) : (peepholes[type(node)] || pass));
     }));
-    var c = seq(checkTop, extractCtx);
-    (removeUnreachable = (function(ctx) {
-        return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), state.Empty);
-    }));
+    (removeUnreachable = run.bind(null, seq(checkTop, extractCtx)));
     return removeUnreachable;
 }));

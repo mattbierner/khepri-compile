@@ -11,7 +11,7 @@ with
     import '../ast' {
         type
         getUid
-        tryGetUd},
+        getLocals},
     import '../fun' {
         concat
         map},
@@ -19,8 +19,6 @@ with
         rename},
     import '../builtin' {builtins}
 in{
-
-var getLocals := tryGetUd@([], 'locals');
 
 /**
  * Convert the elements of an argument unpack object to a set of bindings.
@@ -48,8 +46,12 @@ var argsBinding := \uid arg bindings args closure ->
 /* Interface
  ******************************************************************************/
 /**
- * Expand a call of a lambda expression of let expression with lambda body
+ * Expand a call of a lambda expression or let expression with lambda body
  * to a let expression.
+ * 
+ * @param uid New unique id used to renamed identifiers in expansion.
+ * @param callee Target to expand.
+ * @param args Array of arguments of call to expand.
  */
 expandCallee = \uid callee args -> let
     target = ?type callee === 'LetExpression' : callee.body : callee,
@@ -68,7 +70,7 @@ expandCallee = \uid callee args -> let
             :[],
         bindings,
         argBinding),
-        
+    
     locals = concat(
         bindings.map \ x -> getUid x.pattern.id,
         ren.getLocals(target, uid),
@@ -102,7 +104,7 @@ in
             body: rename(uid, closure, target.body)
         })
     in
-        ?first && (first.type === 'IdentifierPattern' || first.type === 'AsPattern' || first.type === 'ObjectPattern')
+        ?type first === 'IdentifierPattern' || type first === 'AsPattern' || type first === 'ObjectPattern')
             :ast_expression.LetExpression.create(null,
                 concat(
                     base.bindings,

@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 1.3.0 - Sep 18, 2014
+* Support for identifier alias exports.
+* Support for with and try body lambdas.
+
 ## 1.2.2 - Sep 9, 2014
 * Temp fix for translation stage blowing up call stack for large programs.
 

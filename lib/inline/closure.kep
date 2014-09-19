@@ -1,0 +1,19 @@
+package (
+    updateClosure)
+with
+    import '../fun' {
+        contains},
+    import '../ast' {
+        getLocals
+        setLocals}
+in {
+
+updateClosure := \f node list -> let
+    closure = getLocals node,
+    
+    closure = closure.map \ x ->
+        ?contains(list, x) : f x : x
+in
+    setLocals(closure, node);
+
+}

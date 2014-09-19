@@ -13,9 +13,6 @@ with
     import 'akh::base' {
         'sequence': seq
         sequencea},
-    import 'akh::state' StateM,
-
-    import 'zipper-m::trans::tree' TreeZipperT,
     
     import '../fun' {
         flip
@@ -25,24 +22,16 @@ with
         getUd
         getUid},
     
-    import './state' state
+    import './state' state,
+    import './m' {'ReachableMonad'#M, run}
 in {
 
-/* Forward
- ******************************************************************************/
-var _check;
+var _check; // forward
 
 var isReserved := getUd @ 'reserved';
 
-/* Monad
+/* Operations
  ******************************************************************************/
-var M = TreeZipperT (StateM);
-
-var run = \c ctx ->
-    StateM.evalState(
-        TreeZipperT.runTreeZipperT(c, ctx),
-        state.Empty);
-
 var pass = M.of null;
 
 // Movement

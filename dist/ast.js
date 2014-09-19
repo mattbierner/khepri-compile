@@ -6,7 +6,7 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     "use strict";
     var type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod,
             isTruthy, isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, getUid, setUid,
-            setData = __o["setData"];
+            getLocals, setLocals, setData = __o["setData"];
     (type = (function(y) {
         return (y && y.type);
     }));
@@ -49,7 +49,8 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
         return (isPrimitive(node) && (!(!node.value)));
     }));
     (isBlockFunction = (function(node) {
-        return ((type(node) === "FunctionExpression") && (type(node.body) === "BlockStatement"));
+        return ((type(node) === "FunctionExpression") && (((type(node.body) === "BlockStatement") || (
+            type(node.body) === "WithStatement")) || (type(node.body) === "TryStatement")));
     }));
     (isLambda = (function(node) {
         return ((((type(node) === "FunctionExpression") && (!node.id)) && (!isBlockFunction(node))) &&
@@ -73,6 +74,13 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     (setUid = (function(value, node) {
         return setData(node, "uid", value);
     }));
+    var def = [];
+    (getLocals = (function(node) {
+        return (((node && node.ud) && node.ud.hasOwnProperty("locals")) ? node.ud["locals"] : def);
+    }));
+    (setLocals = (function(value, node) {
+        return setData(node, "locals", value);
+    }));
     (exports["type"] = type);
     (exports["isIdentifier"] = isIdentifier);
     (exports["isOperator"] = isOperator);
@@ -91,4 +99,6 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     (exports["setUd"] = setUd);
     (exports["getUid"] = getUid);
     (exports["setUid"] = setUid);
+    (exports["getLocals"] = getLocals);
+    (exports["setLocals"] = setLocals);
 }));

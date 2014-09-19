@@ -1,0 +1,17 @@
+package (
+    ReachableMonad
+    run)
+with
+    import 'akh::state' StateM,
+
+    import 'zipper-m::trans::tree' TreeZipperT
+in {
+
+ReachableMonad := TreeZipperT (StateM);
+
+run := \c ctx ->
+    StateM.evalState(
+        TreeZipperT.runTreeZipperT(c, ctx),
+        state.Empty);
+
+}

@@ -291,19 +291,21 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         return (node.init ? consequent2 : (undefined || pass));
     })))));
     addRewrite("Binding", seq(((__args8 = ["value", checkTop]), (ops8 = [].slice.call(__args8, 1)), seq(
-        moveChild("value"), seqa(ops8), up)), ((consequent3 = extract((function(node) {
-        return seq(addBindingForNode(node.pattern.id, node.value), tryPrune(node.pattern
-            .id));
+        moveChild("value"), seqa(ops8), up)), ((consequent3 = extract((function(__o6) {
+        var pattern = __o6["pattern"],
+            value = __o6["value"];
+        return seq(addBindingForNode(pattern.id, value), tryPrune(pattern.id));
     }))), extract((function(node) {
-        return (((node.pattern.type === "IdentifierPattern") && getUid(node.pattern.id)) ?
-            consequent3 : (undefined || pass));
+        var pattern;
+        return (((pattern = node["pattern"]), ((type(pattern) === "IdentifierPattern") &&
+            getUid(pattern.id))) ? consequent3 : (undefined || pass));
     }))), ((consequent4 = extract((function(node) {
         var bindings = flatten(concat(node.value.bindings, ast_declaration.Binding.create(
             null, node.pattern, node.value.body)));
         return seq(set(bindings), visitChild((bindings.length - 1)));
     }))), extract((function(node) {
-        return ((((node && (node.type === "Binding")) && node.value) && (node.value.type ===
-            "LetExpression")) ? consequent4 : (undefined || pass));
+        return (((type(node) === "Binding") && (type(node.value) === "LetExpression")) ?
+            consequent4 : (undefined || pass));
     })))));
     addRewrite("BlockStatement", ((__args9 = ["body", checkTop]), (ops9 = [].slice.call(__args9, 1)), seq(
         moveChild("body"), seqa(ops9), up)));
@@ -490,8 +492,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         return modify((function(node) {
             return incCount(getUid(node.callee), (getExpansion(node.callee)
                     .count || 1), getExpansion(node.callee)
-                .countvalue, ast_expression.CallExpression.create(node.loc,
-                    callee, node.args));
+                .value, ast_expression.CallExpression.create(node.loc, callee,
+                    node.args));
         }));
     }))), extract((function(node) {
         return (isExpansion(node.callee) ? consequent15 : (undefined || pass));
@@ -504,7 +506,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
                 node0));
         }));
     })), checkTop)), extract((function(node) {
-        return ((isLambda(node.callee) || ((node.callee.type === "LetExpression") &&
+        return ((isLambda(node.callee) || ((type(node.callee) === "LetExpression") &&
             isLambda(node.callee.body))) ? consequent16 : (undefined || pass));
     })))));
     addRewrite("CurryExpression", seq(((__args45 = ["base", checkTop]), (ops45 = [].slice.call(__args45, 1)),
