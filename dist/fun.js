@@ -4,8 +4,8 @@
 */
 define(["require", "exports"], (function(require, exports) {
     "use strict";
-    var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten, flattenr,
-            contains, notContains, arrayDiff;
+    var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, forEach, map, flatten,
+            flattenr, contains, notContains, arrayDiff;
     (id = (function(x) {
         return x;
     }));
@@ -32,6 +32,7 @@ define(["require", "exports"], (function(require, exports) {
     (filter = (function(f, a) {
         return Array.prototype.filter.call(a, f);
     }));
+    (forEach = Function.prototype.call.bind(Array.prototype.forEach));
     (map = (function(f, a) {
         return Array.prototype.map.call(a, f);
     }));
@@ -62,6 +63,7 @@ define(["require", "exports"], (function(require, exports) {
     (exports["foldr"] = foldr);
     (exports["concat"] = concat);
     (exports["filter"] = filter);
+    (exports["forEach"] = forEach);
     (exports["map"] = map);
     (exports["flatten"] = flatten);
     (exports["flattenr"] = flattenr);

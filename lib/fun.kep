@@ -16,6 +16,7 @@ package (
     
     concat
     filter
+    forEach
     map
     
     flatten
@@ -58,6 +59,8 @@ foldl = \f z a -> reduce(a, f, z);
 foldr = \f z a -> reduceRight(a, f, z);
 
 filter = \f a -> Array.prototype.filter.call(a, f);
+
+forEach = Function.prototype.call.bind(Array.prototype.forEach);
 
 map = \f a ->  Array.prototype.map.call(a, f);
 

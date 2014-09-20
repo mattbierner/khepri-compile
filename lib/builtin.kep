@@ -16,17 +16,12 @@ with
         type
         setUd
         getUid
-        setUid},
+        setUid
+        setLocals},
     import './fun' {
-        flip}
+        flip
+        forEach}
 in {
-
-var setLocals := setUd @ 'locals';
-
-var identifier = \name uid ->
-    setUid(
-        uid,
-        ast_value.Identifier.create(null, name));
 
 var unique = (\-> {
     var x = 0;
@@ -35,6 +30,15 @@ var unique = (\-> {
         return x;
     };
 }());
+
+
+var identifier := \name uid ->
+    setUid(
+        uid,
+        ast_value.Identifier.create(null, name));
+
+var uniqueId := \name ->
+    identifier(name, unique());
 
 /* Exports
  ******************************************************************************/
@@ -47,18 +51,19 @@ var addSymbol = \name id def -> {
 };
 
 var registerAliasedSymbol = \name alias def -> {
-    addSymbol(name,
-        identifier(alias, unique()),
+    addSymbol(
+        name,
+        uniqueId alias,
         def);
 };
 
 /* Reserved Identifiers
  ******************************************************************************/
-builtins.('require') = identifier('require', unique());
-builtins.('exports') = identifier('exports', unique());
-builtins.('module') = identifier('module', unique());
+builtins.('require') = uniqueId 'require';
+builtins.('exports') = uniqueId 'exports';
+builtins.('module') = uniqueId 'module';
 
-builtins.('undefined') = identifier('undefined', unique());
+builtins.('undefined') = uniqueId 'undefined';
 
 /* Unary Operators
  ******************************************************************************/
@@ -71,34 +76,22 @@ var unary := \op xArg ->
 
 with
     unary = \op ->
-        unary(op, identifier('x', unique())),
+        unary(op, uniqueId 'x'),
     
     unaryOp = \op ->
         unary\x ->
             ast_expression.UnaryExpression.create(null, op, x)
 in {
-    [
+    forEach @ [
         ['typeof', '__typeof'],
         ['void', '__void'],
         ['~', '__bnot'],
         ['!', '__lnot'],
         ['++', '__plus'],
         ['--', '__minus']
-    ].forEach \ [op name] -> {
+    ] \ [op name] -> {
         registerAliasedSymbol(op, name, unaryOp(op));
     };
-    
-    addSymbol('_', identifier('_', unique()), unary\f ->
-        let
-            xArg = identifier('x', unique()),
-            yArg = identifier('y', unique())
-        in
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, xArg),
-                    ast_pattern.IdentifierPattern.create(null, yArg)]),
-                ast_expression.CallExpression.create(null, f, [yArg, xArg]))
-            |> setLocals @ [getUid xArg, getUid yArg]);
 }
 
 
@@ -106,9 +99,9 @@ in {
  ******************************************************************************/
 with
     ternaryOperator = let
-        xArg = identifier('x', unique()),
-        yArg = identifier('y', unique()),
-        zArg = identifier('z', unique())
+        xArg = uniqueId 'x',
+        yArg = uniqueId 'y',
+        zArg = uniqueId 'z'
     in
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null, null, [
@@ -131,8 +124,8 @@ in {
 /* Binary Operators
  ******************************************************************************/
 var binary = \op -> let
-    xArg = identifier('x', unique()),
-    yArg = identifier('y', unique())
+    xArg = uniqueId 'x',
+    yArg = uniqueId 'y'
 in
     ast_expression.FunctionExpression.create(null, null,
         ast_pattern.ArgumentsPattern.create(null, null, [
@@ -143,41 +136,49 @@ in
 
 var registerBinary = \op name impl -> {
     registerAliasedSymbol(op, name,
-        binary(impl));
+        binary impl);
 };
 
 // Binary Operations
-var binaryOp = \op ->
-    \x y ->
-        ast_expression.BinaryExpression.create(null, op, x, y);
+with
+    binaryOp = \op ->
+        ast_expression.BinaryExpression.create @ null @ op
+in {
+    forEach @ [
+        ['+', '__add'],
+        ['-', '__sub'],
+        ['*', '__mul'],
+        ['/', '__div'],
+        ['%', '__mod'],
+        ['<<', '__blas'],
+        ['>>', '__bras'],
+        ['>>>', '__brls'],
+        ['&', '__band'],
+        ['^', '__bxor'],
+        ['|', '__bor'],
+        ['<', '__lt'],
+        ['>', '__gt'],
+        ['<=', '__lte'],
+        ['>=', '__gte'],
+        ['==', '__eq'],
+        ['!=', '__neq'],
+        ['===', '__seq'],
+        ['!==', '__sneq'],
+        ['instanceof', '__instanceof'],
+        ['||', '__or'],
+        ['&&', '__and']
+    ] \ [op name] -> {
+        registerBinary(op, name, binaryOp op);
+    };
+}
 
-[
-    ['+', '__add'],
-    ['-', '__sub'],
-    ['*', '__mul'],
-    ['/', '__div'],
-    ['%', '__mod'],
-    ['<<', '__blas'],
-    ['>>', '__bras'],
-    ['>>>', '__brls'],
-    ['&', '__band'],
-    ['^', '__bxor'],
-    ['|', '__bor'],
-    ['<', '__lt'],
-    ['>', '__gt'],
-    ['<=', '__lte'],
-    ['>=', '__gte'],
-    ['==', '__eq'],
-    ['!=', '__neq'],
-    ['===', '__seq'],
-    ['!==', '__sneq'],
-    ['instanceof', '__instanceof'],
-    ['||', '__or'],
-    ['&&', '__and']
-].forEach \ [op name] -> {
-    registerBinary(op, name,
-        binaryOp(op));
-};
+// Flip Operator 
+registerAliasedSymbol('_', '_',
+    unary(
+        \f ->
+            binary \ x y ->
+                ast_expression.CallExpression.create(null, f, [y, x]),
+        uniqueId 'f'));
 
 // New
 registerBinary('new', '__new', \x y ->
@@ -191,10 +192,7 @@ registerBinary('.', '__dot', \x y ->
 registerBinary('??', '__chk', \x y ->
     ast_expression.BinaryExpression.create(null, '&&',
         x,
-        setUd(
-            'id',
-            identifier('__x', unique()),
-            ast_expression.CallExpression.create(null, y, [x]))));
+        ast_expression.CallExpression.create(null, y, [x])));
 
 // Curry
 registerBinary('@', '__curry', \x y ->
@@ -221,7 +219,7 @@ with
                         ast_expression.CallExpression.create(null,
                             g,
                             [x])]),
-            identifier('z', unique()))
+            uniqueId 'z')
 in {
     registerBinary('<\\', '__compose', singleCompose);
     registerBinary('\\>', '__rcompose',  flip singleCompose);
@@ -230,7 +228,7 @@ in {
 // ComposeN
 with
     multiCompose = \f g -> let
-        args = identifier('args', unique())
+        args = uniqueId 'args'
     in
         ast_expression.FunctionExpression.create(null, null,
             ast_pattern.ArgumentsPattern.create(null,
