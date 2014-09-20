@@ -4,7 +4,7 @@
 */
 "use strict";
 var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, map, flatten, flattenr, contains,
-        notContains;
+        notContains, arrayDiff;
 (id = (function(x) {
     return x;
 }));
@@ -48,6 +48,9 @@ var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filt
         x = contains.apply(null, args);
     return (!x);
 }));
+(arrayDiff = (function(x, y) {
+    return x.filter(notContains.bind(null, y));
+}));
 (exports["id"] = id);
 (exports["constant"] = constant);
 (exports["flip"] = flip);
@@ -63,3 +66,4 @@ var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filt
 (exports["flattenr"] = flattenr);
 (exports["contains"] = contains);
 (exports["notContains"] = notContains);
+(exports["arrayDiff"] = arrayDiff);

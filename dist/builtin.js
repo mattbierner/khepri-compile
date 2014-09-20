@@ -11,6 +11,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
         setUd = __o0["setUd"],
         getUid = __o0["getUid"],
         setUid = __o0["setUid"],
+        setLocals = __o0["setLocals"],
         flip = __o1["flip"],
         identifier = (function(name, uid) {
             return setUid(uid, ast_value.Identifier.create(null, name));
@@ -39,7 +40,7 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
     (builtins["module"] = setUid(uid1, ast_value.Identifier.create(null, "module")));
     var uid2 = unique();
     (builtins["undefined"] = setUid(uid2, ast_value.Identifier.create(null, "undefined")));
-    var uid3, uid5, xArg0, uid6, yArg, node0, locals, uid4, xArg, node, locals0;
+    var uid3, uid4, xArg, uid5, xArg0, uid6, yArg;
     [
         ["typeof", "__typeof"],
         ["void", "__void"],
@@ -50,48 +51,41 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
     ].forEach((function(__o2) {
         var op = __o2[0],
             name = __o2[1],
-            xArg, node, locals;
-        registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), (node = ast_expression.FunctionExpression
-                .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                    .create(null, xArg)
-                ]), ast_expression.UnaryExpression.create(null, op, xArg))), (locals = [getUid(xArg)]),
-            setUd("locals", locals, node)));
+            xArg;
+        registerAliasedSymbol(op, name, ((xArg = identifier("x", unique())), setLocals([getUid(xArg)],
+            ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+                    null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]),
+                ast_expression.UnaryExpression.create(null, op, xArg)))));
     }));
     addSymbol("_", ((uid3 = unique()), setUid(uid3, ast_value.Identifier.create(null, "_"))), ((uid4 = unique()), (
-        xArg = setUid(uid4, ast_value.Identifier.create(null, "x"))), (node = ast_expression.FunctionExpression
-        .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-            .create(null, xArg)
-        ]), ((uid5 = unique()), (xArg0 = setUid(uid5, ast_value.Identifier.create(null, "x"))), (
-            uid6 = unique()), (yArg = setUid(uid6, ast_value.Identifier.create(null, "y"))), (
-            node0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-                .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg0),
-                    ast_pattern.IdentifierPattern.create(null, yArg)
-                ]), ast_expression.CallExpression.create(null, xArg, [yArg, xArg0]))), (locals = [
-            getUid(xArg0), getUid(yArg)
-        ]), setUd("locals", locals, node0)))), (locals0 = [getUid(xArg)]), setUd("locals", locals0,
-        node)));
+        xArg = setUid(uid4, ast_value.Identifier.create(null, "x"))), setLocals([getUid(xArg)],
+        ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+            null, [ast_pattern.IdentifierPattern.create(null, xArg)]), ((uid5 = unique()), (xArg0 =
+            setUid(uid5, ast_value.Identifier.create(null, "x"))), (uid6 = unique()), (yArg =
+            setUid(uid6, ast_value.Identifier.create(null, "y"))), setLocals([getUid(xArg0),
+            getUid(yArg)
+        ], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg0),
+                ast_pattern.IdentifierPattern.create(null, yArg)
+            ]), ast_expression.CallExpression.create(null, xArg, [yArg, xArg0]))))))));
     var uid7 = unique(),
         xArg1 = setUid(uid7, ast_value.Identifier.create(null, "x")),
         uid8 = unique(),
         yArg0 = setUid(uid8, ast_value.Identifier.create(null, "y")),
         uid9 = unique(),
         zArg = setUid(uid9, ast_value.Identifier.create(null, "z")),
-        node1 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-                null, [ast_pattern.IdentifierPattern.create(null, xArg1), ast_pattern.IdentifierPattern.create(
-                    null, yArg0), ast_pattern.IdentifierPattern.create(null, zArg)]), ast_expression.ConditionalExpression
-            .create(null, xArg1, yArg0, zArg)),
-        locals1 = [getUid(xArg1), getUid(yArg0), getUid(zArg)],
-        ternaryOperator = setUd("locals", locals1, node1);
+        ternaryOperator = setLocals([getUid(xArg1), getUid(yArg0), getUid(zArg)], ast_expression.FunctionExpression
+            .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
+                    null, xArg1), ast_pattern.IdentifierPattern.create(null, yArg0), ast_pattern.IdentifierPattern
+                .create(null, zArg)
+            ]), ast_expression.ConditionalExpression.create(null, xArg1, yArg0, zArg)));
     registerAliasedSymbol("?", "__cond", ternaryOperator);
     var binary = (function(op) {
         var xArg2 = identifier("x", unique()),
-            yArg1 = identifier("y", unique()),
-            node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                null, null, [ast_pattern.IdentifierPattern.create(null, xArg2), ast_pattern.IdentifierPattern
-                    .create(null, yArg1)
-                ]), op(xArg2, yArg1)),
-            locals2 = [getUid(xArg2), getUid(yArg1)];
-        return setUd("locals", locals2, node2);
+            yArg1 = identifier("y", unique());
+        return setLocals([getUid(xArg2), getUid(yArg1)], ast_expression.FunctionExpression.create(null,
+            null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
+                null, xArg2), ast_pattern.IdentifierPattern.create(null, yArg1)]), op(xArg2, yArg1)));
     }),
         registerBinary = (function(op, name, impl) {
             registerAliasedSymbol(op, name, binary(impl));
@@ -148,25 +142,27 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
     registerBinary("<|", "__pipe", pipe);
     registerBinary("|>", "__rpipe", flip(pipe));
     var singleCompose = (function(f, g) {
-        var x = identifier("z", unique()),
-            node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                    null, null, [ast_pattern.IdentifierPattern.create(null, x)]), ast_expression.CallExpression
-                .create(null, f, [ast_expression.CallExpression.create(null, g, [x])])),
-            locals2 = [getUid(x)];
-        return setUd("locals", locals2, node2);
+        var xArg2 = identifier("z", unique());
+        return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.FunctionExpression
+            .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
+                .create(null, xArg2)
+            ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(
+                null, g, [xArg2])]))));
     });
     registerBinary("<\\", "__compose", singleCompose);
     registerBinary("\\>", "__rcompose", flip(singleCompose));
     var multiCompose = (function(f, g) {
-        var args = identifier("args", unique()),
-            node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                    null, ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression
-                .create(null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression
-                    .create(null, g, identifier("apply")), [ast_value.Literal.create(null, "null"),
-                        args
-                    ])])),
-            locals2 = [getUid(args)];
-        return setUd("locals", locals2, node2);
+        var xArg2 = identifier("args", unique());
+        return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.FunctionExpression
+            .create(null, null, ast_pattern.ArgumentsPattern.create(null, ast_pattern.IdentifierPattern
+                .create(null, xArg2), [], null), ast_expression.CallExpression.create(null, f, [
+                ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(
+                    null, g, identifier("apply")), [ast_value.Literal.create(null, "null"),
+                    xArg2
+                ])
+            ]))));
     });
     registerBinary("<<\\", "__composen", multiCompose);
     registerBinary("\\>>", "__rcomposen", flip(multiCompose));
@@ -178,16 +174,14 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
         })) : expr));
     });
     (member = (function(expr, uid10) {
-        var xArg2 = identifier("x", uid10),
-            node2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-                null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ((type(expr) ===
-                "MemberExpression") ? modify(expr, ({
+        var xArg2 = identifier("x", uid10);
+        return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(
+                null, xArg2)]), ((type(expr) === "MemberExpression") ? modify(expr, ({
                 "object": (expr.object ? subDotHole(expr.object, xArg2) : xArg2)
             })) : ((type(expr) === "CallExpression") ? modify(expr, ({
                 "callee": subDotHole(expr.callee, xArg2)
-            })) : expr))),
-            locals2 = [getUid(xArg2)];
-        return setUd("locals", locals2, node2);
+            })) : expr))));
     }));
     (exports["builtins"] = builtins);
     (exports["definitions"] = definitions);

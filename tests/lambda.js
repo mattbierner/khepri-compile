@@ -111,9 +111,9 @@ exports.post_slice_unpack = function(test) {
 };
 
 exports.correct_lambda_capture_in_loop = function(test) {
-    test.equal(
-        testParser("var a = []; for (var i = 0; i < 3; i = i + 1) { a.(i) = \\-> i; }; a.map(|> null);"),
-        [1,2,3]);
+    test.deepEqual(
+        testParser("var a = []; for (var i = 0; i < 3; i = i + 1) { a.(i) = \\x-> i + x; }; a.map(|> 10);"),
+        [10,11,12]);
     
     test.done();
 };

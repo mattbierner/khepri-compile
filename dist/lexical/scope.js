@@ -89,13 +89,19 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
             loc: null
         })))));
     }));
-    var y = hamt.keys;
-    (getLocals = (function(z) {
-        return y(z.locals);
+    var setDiff = (function(x, y) {
+        var x0 = hamt.keys(x),
+            y0 = hamt.keys(y);
+        return x0.filter((function(a) {
+            return (y0.indexOf(a) < 0);
+        }));
+    });
+    (getLocals = (function(s) {
+        return (s.outer ? setDiff(s.outer.closure, s.closure) : s.closure);
     }));
-    var y0 = hamt.keys;
+    var y = hamt.keys;
     (getClosure = (function(z) {
-        return y0(z.closure);
+        return y(z.closure);
     }));
     (addRef = (function(uid, s) {
         return (uid ? s.setClosure(hamt.set(uid, null, s.closure)) : s);
@@ -117,9 +123,9 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (addOperator = (function(name, uid, s) {
         return s.setPrefixOps(hamt.set(name, uid, s.prefixOps));
     }));
-    var y1 = hamt.pairs;
+    var y0 = hamt.pairs;
     (getOperators = (function(z) {
-        return y1(z.prefixOps);
+        return y0(z.prefixOps);
     }));
     (exports["Scope"] = Scope);
     (exports["hasBinding"] = hasBinding);

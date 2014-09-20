@@ -16,13 +16,11 @@ with
         type
         setUd
         getUid
-        setUid},
+        setUid
+        setLocals},
     import './fun' {
         flip}
 in {
-
-var setLocals := \node locals ->
-    setUd('locals', locals, node);
 
 var identifier = \name uid ->
     setUid(
@@ -63,16 +61,16 @@ builtins.('undefined') = identifier('undefined', unique());
 
 /* Unary Operators
  ******************************************************************************/
+var unary := \op xArg ->
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg)]),
+        op(xArg))
+    |> setLocals @ [getUid xArg];
+
 with
-    unary = \op -> let
-        xArg = identifier('x', unique())
-    in
-        setLocals(
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null, xArg)]),
-                op(xArg)),
-            [getUid xArg]),
+    unary = \op ->
+        unary(op, identifier('x', unique())),
     
     unaryOp = \op ->
         unary\x ->
@@ -94,13 +92,12 @@ in {
             xArg = identifier('x', unique()),
             yArg = identifier('y', unique())
         in
-            setLocals(
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, [
-                        ast_pattern.IdentifierPattern.create(null, xArg),
-                        ast_pattern.IdentifierPattern.create(null, yArg)]),
-                    ast_expression.CallExpression.create(null, f, [yArg, xArg])),
-                [getUid xArg, getUid yArg]));
+            ast_expression.FunctionExpression.create(null, null,
+                ast_pattern.ArgumentsPattern.create(null, null, [
+                    ast_pattern.IdentifierPattern.create(null, xArg),
+                    ast_pattern.IdentifierPattern.create(null, yArg)]),
+                ast_expression.CallExpression.create(null, f, [yArg, xArg]))
+            |> setLocals @ [getUid xArg, getUid yArg]);
 }
 
 
@@ -112,20 +109,19 @@ with
         yArg = identifier('y', unique()),
         zArg = identifier('z', unique())
     in
-        setLocals(
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null, null, [
+                ast_pattern.IdentifierPattern.create(null,
+                    xArg),
+                ast_pattern.IdentifierPattern.create(null,
+                    yArg),
                     ast_pattern.IdentifierPattern.create(null,
-                        xArg),
-                    ast_pattern.IdentifierPattern.create(null,
-                        yArg),
-                        ast_pattern.IdentifierPattern.create(null,
-                        zArg)]),
-                ast_expression.ConditionalExpression.create(null,
-                    xArg,
-                    yArg,
-                    zArg)),
-            [getUid xArg, getUid yArg, getUid zArg])
+                    zArg)]),
+            ast_expression.ConditionalExpression.create(null,
+                xArg,
+                yArg,
+                zArg))
+            |> setLocals @ [getUid xArg, getUid yArg, getUid zArg]
 in {
     registerAliasedSymbol('?', '__cond',
         ternaryOperator);
@@ -137,13 +133,12 @@ var binary = \op -> let
     xArg = identifier('x', unique()),
     yArg = identifier('y', unique())
 in
-    setLocals(
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null, xArg),
-                ast_pattern.IdentifierPattern.create(null, yArg)]),
-            op(xArg, yArg)),
-        [getUid xArg, getUid yArg]);
+    ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [
+            ast_pattern.IdentifierPattern.create(null, xArg),
+            ast_pattern.IdentifierPattern.create(null, yArg)]),
+        op(xArg, yArg))
+    |> setLocals @ [getUid xArg, getUid yArg];
 
 var registerBinary = \op name impl -> {
     registerAliasedSymbol(op, name,
@@ -217,20 +212,19 @@ in {
 
 // Compose
 with
-    singleCompose = \f g -> let
-        x = identifier('z', unique())
-    in
-        setLocals(
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null, null, [
-                    ast_pattern.IdentifierPattern.create(null,
-                        x)]),
-                ast_expression.CallExpression.create(null,
-                    f, [
-                        ast_expression.CallExpression.create(null,
-                            g,
-                            [x])])),
-            [getUid x])
+    singleCompose = \f g ->
+        unary(
+            \x -> 
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null, null, [
+                        ast_pattern.IdentifierPattern.create(null,
+                            x)]),
+                    ast_expression.CallExpression.create(null,
+                        f, [
+                            ast_expression.CallExpression.create(null,
+                                g,
+                                [x])])),
+            identifier('z', unique()))
 in {
     registerBinary('<\\', '__compose', singleCompose);
     registerBinary('\\>', '__rcompose',  flip singleCompose);
@@ -238,24 +232,23 @@ in {
 
 // ComposeN
 with
-    multiCompose = \f g -> let
-        args = identifier('args', unique())
-    in
-        setLocals(
-            ast_expression.FunctionExpression.create(null, null,
-                ast_pattern.ArgumentsPattern.create(null,
-                    ast_pattern.IdentifierPattern.create(null, args),
-                    [],
-                    null),
-                ast_expression.CallExpression.create(null,
-                    f, [
-                        ast_expression.CallExpression.create(null,
-                             ast_expression.MemberExpression.create(null,
-                                 g,
-                                 identifier('apply')),
-                             [ast_value.Literal.create(null, 'null'),
-                             args])])),
-             [getUid args])
+    multiCompose = \f g ->
+        unary(
+            \args ->
+                ast_expression.FunctionExpression.create(null, null,
+                    ast_pattern.ArgumentsPattern.create(null,
+                        ast_pattern.IdentifierPattern.create(null, args),
+                        [],
+                        null),
+                    ast_expression.CallExpression.create(null,
+                        f, [
+                            ast_expression.CallExpression.create(null,
+                                 ast_expression.MemberExpression.create(null,
+                                     g,
+                                     identifier('apply')),
+                                 [ast_value.Literal.create(null, 'null'),
+                                 args])])),
+        identifier('args', unique()))
 in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);
@@ -282,13 +275,7 @@ var subDotHole := \expr arg ->
 /**
  * Dot Expressoion access.
  */
-member := \expr uid -> let
-    xArg = identifier('x', uid)
-in
-    setLocals(
-        ast_expression.FunctionExpression.create(null, null,
-            ast_pattern.ArgumentsPattern.create(null, null, [
-                ast_pattern.IdentifierPattern.create(null, xArg)]),
-            subDotHole(expr, xArg)),
-        [getUid xArg]);
+member := \expr uid ->
+    unary(subDotHole @ expr, identifier('x', uid));
+
 }

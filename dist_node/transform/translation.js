@@ -129,7 +129,8 @@ var mapOp = (function(op) {
 }));
 (explicitClosure = (function(locals, node) {
     return ecma_expression.CallExpression.create(null, ecma_expression.FunctionExpression.create(null, null,
-        locals, ecma_statement.BlockStatement.create(null, [node])), locals);
+        locals, ecma_statement.BlockStatement.create(null, [ecma_statement.ReturnStatement.create(null,
+            node)])), locals);
 }));
 (arrayExpression = (function(node) {
     return ecma_expression.ArrayExpression.create(node.loc, node.elements);

@@ -292,10 +292,9 @@ explicitClosure = \locals node ->
             null,
             locals,
             ecma_statement.BlockStatement.create(null, [
-                node])),
+                ecma_statement.ReturnStatement.create(null, node)])),
         locals);
 
-    
 /**
  * 
  */

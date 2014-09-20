@@ -30,7 +30,8 @@ with
     import '../fun' {
         flip
         foldl
-        notContains},
+        notContains
+        arrayDiff},
     import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
@@ -434,7 +435,7 @@ addCheck@'ForStatement' <|
 
 // Expression
 addCheck@'FunctionExpression' <|
-    block(
+     getClosure \ parentClosure ->block(
         when(.id,
             seq(
                 inspect \ {id} ->
@@ -457,8 +458,8 @@ addCheck@'FunctionExpression' <|
         getLocals \ locals ->
         modifyNode \node ->
             node
-                |> setLocals @ locals.filter(notContains @ closure)
-                |> setClosure @ c.filter(notContains @ params))));
+                |> setLocals @ arrayDiff(locals, closure)
+                |> setClosure @ arrayDiff(c, params))));
 
 addCheck@'UnaryExpression' <| seq(
     checkChild 'argument',
