@@ -11,8 +11,8 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
         setUd = __o0["setUd"],
         getUid = __o0["getUid"],
         setUid = __o0["setUid"],
-        setLocals = __o0["setLocals"],
         flip = __o1["flip"],
+        setLocals = setUd.bind(null, "locals"),
         identifier = (function(name, uid) {
             return setUid(uid, ast_value.Identifier.create(null, name));
         }),
@@ -144,25 +144,19 @@ define(["require", "exports", "khepri-ast/expression", "khepri-ast/node", "khepr
     var singleCompose = (function(f, g) {
         var xArg2 = identifier("z", unique());
         return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.FunctionExpression
-            .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-                .create(null, xArg2)
-            ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(
-                null, g, [xArg2])]))));
+            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.CallExpression
+            .create(null, f, [ast_expression.CallExpression.create(null, g, [xArg2])])));
     });
     registerBinary("<\\", "__compose", singleCompose);
     registerBinary("\\>", "__rcompose", flip(singleCompose));
     var multiCompose = (function(f, g) {
-        var xArg2 = identifier("args", unique());
-        return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
-            .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.FunctionExpression
-            .create(null, null, ast_pattern.ArgumentsPattern.create(null, ast_pattern.IdentifierPattern
-                .create(null, xArg2), [], null), ast_expression.CallExpression.create(null, f, [
-                ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(
-                    null, g, identifier("apply")), [ast_value.Literal.create(null, "null"),
-                    xArg2
-                ])
-            ]))));
+        var args = identifier("args", unique());
+        return setLocals([getUid(args)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+            .create(null, ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression
+            .create(null, f, [ast_expression.CallExpression.create(null, ast_expression.MemberExpression
+                .create(null, g, identifier("apply")), [ast_value.Literal.create(null, "null"),
+                    args
+                ])])));
     });
     registerBinary("<<\\", "__composen", multiCompose);
     registerBinary("\\>>", "__rcomposen", flip(multiCompose));

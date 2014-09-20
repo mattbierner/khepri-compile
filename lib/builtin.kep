@@ -16,11 +16,12 @@ with
         type
         setUd
         getUid
-        setUid
-        setLocals},
+        setUid},
     import './fun' {
         flip}
 in {
+
+var setLocals := setUd @ 'locals';
 
 var identifier = \name uid ->
     setUid(
@@ -212,18 +213,14 @@ in {
 
 // Compose
 with
-    singleCompose = \f g ->
+    singleCompose = \f g -> 
         unary(
             \x -> 
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null, null, [
-                        ast_pattern.IdentifierPattern.create(null,
-                            x)]),
-                    ast_expression.CallExpression.create(null,
-                        f, [
-                            ast_expression.CallExpression.create(null,
-                                g,
-                                [x])])),
+                ast_expression.CallExpression.create(null,
+                    f, [
+                        ast_expression.CallExpression.create(null,
+                            g,
+                            [x])]),
             identifier('z', unique()))
 in {
     registerBinary('<\\', '__compose', singleCompose);
@@ -232,23 +229,23 @@ in {
 
 // ComposeN
 with
-    multiCompose = \f g ->
-        unary(
-            \args ->
-                ast_expression.FunctionExpression.create(null, null,
-                    ast_pattern.ArgumentsPattern.create(null,
-                        ast_pattern.IdentifierPattern.create(null, args),
-                        [],
-                        null),
+    multiCompose = \f g -> let
+        args = identifier('args', unique())
+    in
+        ast_expression.FunctionExpression.create(null, null,
+            ast_pattern.ArgumentsPattern.create(null,
+                ast_pattern.IdentifierPattern.create(null, args),
+                [],
+                null),
+            ast_expression.CallExpression.create(null,
+                f, [
                     ast_expression.CallExpression.create(null,
-                        f, [
-                            ast_expression.CallExpression.create(null,
-                                 ast_expression.MemberExpression.create(null,
-                                     g,
-                                     identifier('apply')),
-                                 [ast_value.Literal.create(null, 'null'),
-                                 args])])),
-        identifier('args', unique()))
+                         ast_expression.MemberExpression.create(null,
+                             g,
+                             identifier('apply')),
+                         [ast_value.Literal.create(null, 'null'),
+                         args])]))
+         |> setLocals @ [getUid args]
 in {
     registerBinary('<<\\', '__composen', multiCompose);
     registerBinary('\\>>', '__rcomposen', flip multiCompose);
@@ -268,14 +265,18 @@ var subDotHole := \expr arg ->
         }
     
     :?type expr === 'CallExpression'
-         :modify @ expr { 'callee': subDotHole(expr.callee, arg) }
+         :modify @ expr {
+             'callee': subDotHole(expr.callee, arg)
+         }
     
     :expr;
 
 /**
- * Dot Expressoion access.
+ * Dot expression macro.
  */
 member := \expr uid ->
-    unary(subDotHole @ expr, identifier('x', uid));
+    unary(
+        subDotHole @ expr,
+        identifier('x', uid));
 
 }
