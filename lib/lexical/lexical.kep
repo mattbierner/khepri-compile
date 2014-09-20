@@ -26,8 +26,11 @@ with
         setUd
         setUid
         setLocals
-        'modify': modifyAstNode},
-    import '../fun' {flip foldl notContains},
+        setClosure},
+    import '../fun' {
+        flip
+        foldl
+        notContains},
     import '../user_operator' {splitOp},
     import './scope' scope#{Scope},
     import './scopet' ScopeT
@@ -75,6 +78,7 @@ var modifyScope = M.liftInner <\ M.inner.inner.modify;
 var push = M.liftInner (M.inner.inner.push);
 var pop = M.liftInner (M.inner.inner.pop);
 
+var getLocals = M.chain @ (M.liftInner (M.inner.inner.getLocals));
 var getClosure = M.chain @ (M.liftInner (M.inner.inner.getClosure));
 
 // Movement Operations
@@ -172,6 +176,9 @@ var addUid = \id ->
  */
 var getUid = \id ->
     extractScope.map (scope.getUid @ id);
+
+var addRef = \id ->
+    modifyScope (scope.addRef @ id);
 
 /**
  * Ensure the current scope contains a binding for `id`.
@@ -436,18 +443,22 @@ addCheck@'FunctionExpression' <|
         
         // Get closure data.
         // This must include the function's id
-        getClosure \ closure ->
-       
-        seq(
+        getLocals \ closure -> seq(
+            
             checkChild 'params',
+            getClosure \ params -> seq(
+            
             // Evaluate body in same scope
             child('body',
                 checkBlockSameScope(checkTop)),
         
         // Attach locals data
-        getClosure \ locals ->
-        modifyNode (
-            setLocals @ locals.filter(notContains @ closure))));
+        getClosure \ c ->
+        getLocals \ locals ->
+        modifyNode \node ->
+            node
+                |> setLocals @ locals.filter(notContains @ closure)
+                |> setClosure @ c.filter(notContains @ params))));
 
 addCheck@'UnaryExpression' <| seq(
     checkChild 'argument',
@@ -552,8 +563,11 @@ addCheck@'ObjectValue' <|
 addCheck@['Identifier', 'BinaryOperator'] <|
     inspect \ node#{loc name} -> seq(
         checkHasBinding(name, loc),
-        examineScope \ s ->
-             setNode <| setUid(scope.getUid(name, s), node));
+        examineScope \ s -> let
+            uid = scope.getUid(name, s)
+        in seq(
+            addRef uid,
+            setNode <| setUid(uid, node)));
 
 addCheck@['UnaryOperator'] <|
     inspect \ node#{loc name} -> seq(

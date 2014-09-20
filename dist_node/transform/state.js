@@ -6,15 +6,17 @@
 var record = require("bes")["record"],
     stream = require("nu-stream")["stream"],
     scope = require("../lexical/scope"),
-    State, getBindings, addBindings, pushBindings, popBindings, append = stream["append"],
+    NORMAL_CTX, LOOP_CTX, State, getBindings, addBindings, pushBindings, popBindings, append = stream["append"],
     first = stream["first"],
     rest = stream["rest"],
     cons = stream["cons"],
     NIL = stream["NIL"],
     toArray = stream["toArray"],
     Scope = scope["Scope"];
-(State = record.declare(null, ["scope", "packageManager", "bindings"]));
-(State.empty = State.create(Scope.empty, null, cons(NIL, NIL)));
+(NORMAL_CTX = 0);
+(LOOP_CTX = 1);
+(State = record.declare(null, ["scope", "packageManager", "bindings", "ctx"]));
+(State.empty = State.create(Scope.empty, null, cons(NIL, NIL), 0));
 (getBindings = (function(z) {
     var z0 = z.bindings;
     return toArray(first(z0));
@@ -28,6 +30,8 @@ var record = require("bes")["record"],
 (popBindings = (function(s) {
     return s.setBindings(rest(s.bindings));
 }));
+(exports["NORMAL_CTX"] = NORMAL_CTX);
+(exports["LOOP_CTX"] = LOOP_CTX);
 (exports["State"] = State);
 (exports["getBindings"] = getBindings);
 (exports["addBindings"] = addBindings);

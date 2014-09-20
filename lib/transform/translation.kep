@@ -26,6 +26,7 @@ package (
     
     functionExpression
     functionExpressionPost
+    explicitClosure
     letExpression
     curryExpression
     
@@ -285,6 +286,16 @@ functionExpressionPost = \node ->
         node.params,
         node.body);
 
+explicitClosure = \locals node ->
+    ecma_expression.CallExpression.create(null,
+        ecma_expression.FunctionExpression.create(null,
+            null,
+            locals,
+            ecma_statement.BlockStatement.create(null, [
+                node])),
+        locals);
+
+    
 /**
  * 
  */

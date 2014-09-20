@@ -21,10 +21,10 @@ var ecma_clause = require("ecma-ast")["clause"],
     useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
         binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
         checkedMemberExpression, arrayExpression, objectExpression, objectValue, functionExpression,
-        functionExpressionPost, letExpression, curryExpression, catchClause, switchCase, emptyStatement, blockStatement,
-        withStatement, expressionStatement, returnStatement, throwStatement, breakStatement, continueStatement,
-        ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement, tryStatement, packageBlock, type =
-        __o["type"],
+        functionExpressionPost, explicitClosure, letExpression, curryExpression, catchClause, switchCase,
+        emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
+        breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
+        tryStatement, packageBlock, type = __o["type"],
     tryGetUd = __o["tryGetUd"],
     setUid = __o["setUid"],
     concat = fun["concat"],
@@ -127,6 +127,10 @@ var mapOp = (function(op) {
 (functionExpressionPost = (function(node) {
     return ecma_expression.FunctionExpression.create(null, node.id, node.params, node.body);
 }));
+(explicitClosure = (function(locals, node) {
+    return ecma_expression.CallExpression.create(null, ecma_expression.FunctionExpression.create(null, null,
+        locals, ecma_statement.BlockStatement.create(null, [node])), locals);
+}));
 (arrayExpression = (function(node) {
     return ecma_expression.ArrayExpression.create(node.loc, node.elements);
 }));
@@ -228,6 +232,7 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["objectValue"] = objectValue);
 (exports["functionExpression"] = functionExpression);
 (exports["functionExpressionPost"] = functionExpressionPost);
+(exports["explicitClosure"] = explicitClosure);
 (exports["letExpression"] = letExpression);
 (exports["curryExpression"] = curryExpression);
 (exports["catchClause"] = catchClause);

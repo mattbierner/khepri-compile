@@ -17,8 +17,10 @@ var ScopeMonad := \Instance -> {
     
     Instance.pop = Instance.modifyScope scope.pop;
     
+    Instance.getLocals = (Instance.extractScope.map (scope.getLocals));
+    
     Instance.getClosure = (Instance.extractScope.map (scope.getClosure));
-
+    
     return Instance;
 };
 

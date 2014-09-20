@@ -6,7 +6,7 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     "use strict";
     var type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod,
             isTruthy, isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, modify, getUid,
-            setUid, getLocals, setLocals, setData = __o["setData"],
+            setUid, getLocals, setLocals, getClosure, setClosure, setData = __o["setData"],
         modifyAstNode = __o["modify"];
     (type = (function(y) {
         return (y && y.type);
@@ -85,6 +85,13 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     (setLocals = (function(value, node) {
         return setData(node, "locals", value);
     }));
+    var def0 = [];
+    (getClosure = (function(node) {
+        return (((node && node.ud) && node.ud.hasOwnProperty("closure")) ? node.ud["closure"] : def0);
+    }));
+    (setClosure = (function(value, node) {
+        return setData(node, "closure", value);
+    }));
     (exports["type"] = type);
     (exports["isIdentifier"] = isIdentifier);
     (exports["isOperator"] = isOperator);
@@ -106,4 +113,6 @@ define(["require", "exports", "khepri-ast/node"], (function(require, exports, __
     (exports["setUid"] = setUid);
     (exports["getLocals"] = getLocals);
     (exports["setLocals"] = setLocals);
+    (exports["getClosure"] = getClosure);
+    (exports["setClosure"] = setClosure);
 }));

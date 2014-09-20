@@ -2,6 +2,9 @@
  * @fileOverview Transformer state.
  */
 package (
+    NORMAL_CTX
+    LOOP_CTX
+        
     State
     
     getBindings
@@ -22,6 +25,9 @@ with
     import '../lexical/scope' scope#{Scope}
 in {
 
+NORMAL_CTX := 0;
+LOOP_CTX := 1;
+
 /* State
  ******************************************************************************/
 /**
@@ -33,12 +39,14 @@ in {
 State = record.declare(null, [
     'scope',
     'packageManager',
-    'bindings']);
+    'bindings',
+    'ctx']);
 
 State.empty = State.create(
     Scope.empty,
     null,
-    cons(NIL, NIL));
+    cons(NIL, NIL),
+    NORMAL_CTX);
 
 /* Binding Operations
  ******************************************************************************/

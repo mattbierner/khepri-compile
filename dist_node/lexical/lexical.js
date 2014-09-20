@@ -25,6 +25,7 @@ var __o = require("akh")["base"],
     setUd = __o0["setUd"],
     setUid = __o0["setUid"],
     setLocals = __o0["setLocals"],
+    setClosure = __o0["setClosure"],
     flip = __o1["flip"],
     foldl = __o1["foldl"],
     notContains = __o1["notContains"],
@@ -72,6 +73,7 @@ var __o = require("akh")["base"],
     })),
     push = M.liftInner(M.inner.inner.push),
     pop = M.liftInner(M.inner.inner.pop),
+    getLocals = M.chain.bind(null, M.liftInner(M.inner.inner.getLocals)),
     getClosure = M.chain.bind(null, M.liftInner(M.inner.inner.getClosure)),
     extractCtx = lift(M.inner.get),
     extract = lift(M.inner.node),
@@ -101,6 +103,9 @@ var __o = require("akh")["base"],
         return unique((function(uid) {
             return modifyScope(scope.addUid.bind(null, id, uid));
         }));
+    }),
+    addRef = (function(id) {
+        return modifyScope(scope.addRef.bind(null, id));
     }),
     checkHasBinding = (function(id, loc) {
         return examineScope((function(s) {
@@ -277,15 +282,24 @@ addCheck("FunctionExpression", ((body13 = [((consequent1 = seq(inspect((function
 })), ((__args45 = ["id", checkTop]), (actions45 = [].slice.call(__args45, 1)), seq(
     moveChild("id"), seqa(actions45), up)))), inspect((function(node) {
     return (node.id ? consequent1 : (undefined || pass));
-}))), getClosure((function(closure) {
-    var __args46, actions46, __args47, actions47;
+}))), getLocals((function(closure) {
+    var __args46, actions46;
     return seq(((__args46 = ["params", checkTop]), (actions46 = [].slice.call(__args46, 1)),
-        seq(moveChild("params"), seqa(actions46), up)), ((__args47 = ["body",
-        checkBlockSameScope(checkTop)
-    ]), (actions47 = [].slice.call(__args47, 1)), seq(moveChild("body"), seqa(actions47),
-        up)), getClosure((function(locals) {
-        return modifyNode(setLocals.bind(null, locals.filter(notContains.bind(null,
-            closure))));
+        seq(moveChild("params"), seqa(actions46), up)), getClosure((function(params) {
+        var __args47, actions47;
+        return seq(((__args47 = ["body", checkBlockSameScope(checkTop)]), (
+            actions47 = [].slice.call(__args47, 1)), seq(moveChild("body"),
+            seqa(actions47), up)), getClosure((function(c) {
+            return getLocals((function(locals) {
+                return modifyNode((function(node) {
+                    return setClosure(c.filter(
+                        notContains.bind(null,
+                            params)), setLocals(
+                        locals.filter(notContains.bind(
+                            null, closure)), node));
+                }));
+            }));
+        })));
     })));
 }))]), seq(push, seqa(body13), pop)));
 addCheck("UnaryExpression", seq(((__args46 = ["argument", checkTop]), (actions46 = [].slice.call(__args46, 1)), seq(
@@ -377,7 +391,8 @@ addCheck(["Identifier", "BinaryOperator"], inspect((function(node) {
     var loc = node["loc"],
         name = node["name"];
     return seq(checkHasBinding(name, loc), examineScope((function(s) {
-        return setNode(setUid(scope.getUid(name, s), node));
+        var uid = scope.getUid(name, s);
+        return seq(addRef(uid), setNode(setUid(uid, node)));
     })));
 })));
 addCheck(["UnaryOperator"], inspect((function(node) {

@@ -109,3 +109,12 @@ exports.post_slice_unpack = function(test) {
         [[1, [2, 3]], 4]);
     test.done();
 };
+
+exports.correct_lambda_capture_in_loop = function(test) {
+    test.equal(
+        testParser("var a = []; for (var i = 0; i < 3; i = i + 1) { a.(i) = \\-> i; }; a.map(|> null);"),
+        [1,2,3]);
+    
+    test.done();
+};
+

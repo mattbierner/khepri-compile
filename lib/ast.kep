@@ -30,7 +30,9 @@ package (
     setUid
     
     getLocals
-    setLocals)
+    setLocals
+    getClosure
+    setClosure)
 with
     import 'khepri-ast::node' {
         setData
@@ -175,30 +177,13 @@ modify := \f node ->
 
 /* Khepri User Data
  ******************************************************************************/
-/**
- * Get the uid of a node or null.
- */
 getUid := getUd @ 'uid';
-
-/**
- * Set the uid of a node.
- * 
- * @param uid
- * @param node
- */
 setUid := setUd @ 'uid';
 
-/**
- * Get array of locals on a node.
- */
 getLocals := tryGetUd @ [] @ 'locals';
-
-/**
- * Set the locals of a node.
- * 
- * @param locals
- * @param node
- */
 setLocals := setUd @ 'locals';
 
+getClosure := tryGetUd @ [] @ 'closure';
+setClosure := setUd @ 'closure';
+    
 }

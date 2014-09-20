@@ -25,6 +25,7 @@ var StateT = require("akh")["trans"]["state"],
     getUd = __o1["getUd"],
     setUd = __o1["setUd"],
     getUid = __o1["getUid"],
+    getClosure = __o1["getClosure"],
     concat = __o2["concat"],
     flatten = __o2["flatten"],
     flip = __o2["flip"],
@@ -33,20 +34,21 @@ var StateT = require("akh")["trans"]["state"],
     builtins = __o3["builtins"],
     expandBindings = __o4["expandBindings"],
     State = state["State"],
-    x, y, f, f0, y0, y1, y2, x0, x1, __args, actions, __args1, actions0, __args0, actions1, __args2, actions2, __args3,
-        actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7, __args8, actions8,
-        __args9, actions9, __args10, actions10, __args11, actions11, __args12, actions12, __args13, actions13, __args14,
-        actions14, __args15, actions15, __args16, actions16, __args17, actions17, __args18, actions18, __args19,
-        actions19, __args20, actions20, __args21, actions21, __args22, actions22, __args23, actions23, __args24,
-        actions24, __args25, actions25, __args26, actions26, __args27, actions27, __args28, actions28, __args29,
-        actions29, __args30, actions30, __args31, actions31, __args32, actions32, __args33, actions33, __args34,
-        actions34, __args35, actions35, __args36, actions36, __args37, actions37, __args38, actions38, __args39,
-        actions39, __args40, actions40, __args41, actions41, __args42, actions42, __args43, actions43, __args44,
-        actions44, __args45, actions45, __args46, actions46, __args47, actions47, __args48, actions48, __args49,
-        actions49, __args50, actions50, __args51, actions51, __args52, actions53, __args53, actions54, __args54,
-        actions55, actions52, __args55, actions56, __args56, actions57, __args57, actions58, __args58, actions59,
-        __args59, actions60, __args60, actions61, __args61, actions62, __args62, actions63, __args63, actions64,
-        __args64, actions65, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
+    x, y, f, f0, newCtx, newCtx0, y0, y1, y2, x0, x1, __args, actions, __args1, actions0, __args0, actions1, __args2,
+        actions2, __args3, actions3, __args4, actions4, __args5, actions5, __args6, actions6, __args7, actions7,
+        __args8, actions8, __args9, actions9, __args10, actions10, __args11, actions11, __args12, actions12, __args13,
+        actions13, __args14, actions14, __args15, actions15, __args16, actions16, __args17, actions17, __args18,
+        actions18, __args19, actions19, __args20, actions20, __args21, actions21, __args22, actions22, __args23,
+        actions23, __args24, actions24, __args25, actions25, __args26, actions26, __args27, actions27, __args28,
+        actions28, __args29, actions29, __args30, actions30, __args31, actions31, __args32, actions32, __args33,
+        actions33, __args34, actions34, __args35, actions35, __args36, actions36, __args37, actions37, __args38,
+        actions38, __args39, actions39, __args40, actions40, __args41, actions41, __args42, actions42, __args43,
+        actions43, __args44, actions44, __args45, actions45, __args46, actions46, __args47, actions47, __args48,
+        actions48, __args49, actions49, __args50, actions50, __args51, actions51, __args52, actions53, __args53,
+        actions54, __args54, actions55, actions52, evaluate, __args55, actions56, __args56, actions57, __args57,
+        actions58, __args58, actions59, __args59, actions60, __args60, actions61, __args61, actions62, __args62,
+        actions63, __args63, actions64, __args64, actions65, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(
+            Unique)),
     run = (function(m, s, ctx) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s));
     }),
@@ -91,6 +93,26 @@ var StateT = require("akh")["trans"]["state"],
     getMapping = (function(uid) {
         return inspectScope(scope.getMapping.bind(null, uid));
     }),
+    getContext = extract.map((function(x0) {
+        return x0.ctx;
+    })),
+    setContext = (function(ctx) {
+        return modifyState((function(s) {
+            return s.setCtx(ctx);
+        }));
+    }),
+    loopBlock = ((newCtx = state.LOOP_CTX), (function() {
+        var actions = arguments;
+        return getContext.chain((function(ctx) {
+            return seq(setContext(newCtx), sequencea(actions), setContext(ctx));
+        }));
+    })),
+    funcBlock = ((newCtx0 = state.NORMAL_CTX), (function() {
+        var actions = arguments;
+        return getContext.chain((function(ctx) {
+            return seq(setContext(newCtx0), sequencea(actions), setContext(ctx));
+        }));
+    })),
     pushBindings = modifyState(state.pushBindings),
     popBindings = modifyState(state.popBindings),
     getBindings = M.chain.bind(null, inspectStateWith(((y0 = map.bind(null, getMapping)), (y1 = state.getBindings), (
@@ -163,18 +185,17 @@ addTransform("TryStatement", seq(((__args20 = ["block", checkTop]), (actions20 =
     actions22 = [].slice.call(__args22, 1)), seq(moveChild("finalizer"), sequencea(actions22), up)), modify(
     translate.tryStatement)));
 addTransform("WhileStatement", seq(((__args23 = ["test", checkTop]), (actions23 = [].slice.call(__args23, 1)), seq(
-    moveChild("test"), sequencea(actions23), up)), ((__args24 = ["body", checkTop]), (actions24 = [].slice.call(
-    __args24, 1)), seq(moveChild("body"), sequencea(actions24), up)), modify(translate.whileStatement)));
-addTransform("DoWhileStatement", seq(((__args25 = ["body", checkTop]), (actions25 = [].slice.call(__args25, 1)), seq(
-    moveChild("body"), sequencea(actions25), up)), ((__args26 = ["test", checkTop]), (actions26 = [].slice.call(
-    __args26, 1)), seq(moveChild("test"), sequencea(actions26), up)), modify(translate.doWhileStatement)));
+    moveChild("test"), sequencea(actions23), up)), loopBlock(((__args24 = ["body", checkTop]), (actions24 = [].slice
+    .call(__args24, 1)), seq(moveChild("body"), sequencea(actions24), up))), modify(translate.whileStatement)));
+addTransform("DoWhileStatement", seq(loopBlock(((__args25 = ["body", checkTop]), (actions25 = [].slice.call(__args25, 1)),
+    seq(moveChild("body"), sequencea(actions25), up))), ((__args26 = ["test", checkTop]), (actions26 = [].slice
+    .call(__args26, 1)), seq(moveChild("test"), sequencea(actions26), up)), modify(translate.doWhileStatement)));
 addTransform("ForStatement", seq(((__args27 = ["init", checkTop]), (actions27 = [].slice.call(__args27, 1)), seq(
     moveChild("init"), sequencea(actions27), up)), ((__args28 = ["test", checkTop]), (actions28 = [].slice.call(
     __args28, 1)), seq(moveChild("test"), sequencea(actions28), up)), ((__args29 = ["update", checkTop]), (
-    actions29 = [].slice.call(__args29, 1)), seq(moveChild("update"), sequencea(actions29), up)), ((__args30 = [
-    "body", checkTop
-]), (actions30 = [].slice.call(__args30, 1)), seq(moveChild("body"), sequencea(actions30), up)), modify(
-    translate.forStatement)));
+    actions29 = [].slice.call(__args29, 1)), seq(moveChild("update"), sequencea(actions29), up)), loopBlock(((
+    __args30 = ["body", checkTop]), (actions30 = [].slice.call(__args30, 1)), seq(moveChild("body"),
+    sequencea(actions30), up))), modify(translate.forStatement)));
 addTransform("AssignmentExpression", seq(((__args31 = ["left", checkTop]), (actions31 = [].slice.call(__args31, 1)),
     seq(moveChild("left"), sequencea(actions31), up)), ((__args32 = ["right", checkTop]), (actions32 = [].slice
     .call(__args32, 1)), seq(moveChild("right"), sequencea(actions32), up)), modify(translate.assignmentExpression)));
@@ -212,14 +233,33 @@ addTransform("LetExpression", seq(((__args48 = ["bindings", checkTop]), (actions
 addTransform("CurryExpression", seq(((__args50 = ["base", checkTop]), (actions50 = [].slice.call(__args50, 1)), seq(
     moveChild("base"), sequencea(actions50), up)), ((__args51 = ["args", checkTop]), (actions51 = [].slice.call(
     __args51, 1)), seq(moveChild("args"), sequencea(actions51), up)), modify(translate.curryExpression)));
-addTransform("FunctionExpression", ((actions52 = [((__args52 = ["id", checkTop]), (actions53 = [].slice.call(__args52,
-        1)), seq(moveChild("id"), sequencea(actions53), up)), modify((function(node0) {
-        return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body, getUd(
-            "prefix", node0));
-    })), ((__args53 = ["params", checkTop]), (actions54 = [].slice.call(__args53, 1)), seq(moveChild(
-        "params"), sequencea(actions54), up)), ((__args54 = ["body", checkTop]), (actions55 = [].slice.call(
-        __args54, 1)), seq(moveChild("body"), sequencea(actions55), up)), modify(translate.functionExpressionPost)]),
-    seq(enterBlock, sequencea(actions52), exitBlock)));
+var createExplicitClosure = (function(locals) {
+    return enumeration(map((function(uid) {
+        return inspectScope(scope.getMapping.bind(null, uid))
+            .map((function(name) {
+                return translate.identifier(node.loc, name, uid);
+            }));
+    }), locals))
+        .chain((function(locals0) {
+            return modify((function(node0) {
+                return translate.explicitClosure(locals0, node0);
+            }));
+        }));
+});
+addTransform("FunctionExpression", ((evaluate = funcBlock(((actions52 = [((__args52 = ["id", checkTop]), (actions53 = []
+    .slice.call(__args52, 1)), seq(moveChild("id"), sequencea(actions53), up)), modify((
+    function(node0) {
+        return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body,
+            getUd("prefix", node0));
+    })), ((__args53 = ["params", checkTop]), (actions54 = [].slice.call(__args53, 1)), seq(
+    moveChild("params"), sequencea(actions54), up)), ((__args54 = ["body", checkTop]), (
+    actions55 = [].slice.call(__args54, 1)), seq(moveChild("body"), sequencea(actions55),
+    up)), modify(translate.functionExpressionPost)]), seq(enterBlock, sequencea(actions52),
+    exitBlock)))), getContext.chain((function(ctx) {
+    return ((ctx === state.LOOP_CTX) ? withNode((function(node0) {
+        return seq(evaluate, createExplicitClosure(getClosure(node0)));
+    })) : evaluate);
+}))));
 addTransform("ArrayExpression", seq(((__args55 = ["elements", checkTop]), (actions56 = [].slice.call(__args55, 1)), seq(
     moveChild("elements"), sequencea(actions56), up)), modify(translate.arrayExpression)));
 addTransform("ObjectExpression", seq(((__args56 = ["properties", checkTop]), (actions57 = [].slice.call(__args56, 1)),

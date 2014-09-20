@@ -10,6 +10,7 @@ var StateT = require("akh")["trans"]["statei"],
         (Instance.modifyScope = Instance.modify);
         (Instance.push = Instance.modifyScope(scope.push));
         (Instance.pop = Instance.modifyScope(scope.pop));
+        (Instance.getLocals = Instance.extractScope.map(scope.getLocals));
         (Instance.getClosure = Instance.extractScope.map(scope.getClosure));
         return Instance;
     });

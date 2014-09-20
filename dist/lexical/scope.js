@@ -5,9 +5,11 @@
 define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
     var Scope, hasBinding, hasMutableBinding, addBinding, addMutableBinding, addImmutableBinding,
-            setBindingMutability, getUid, addUid, hasMapping, hasOwnMapping, getMapping, addMapping, getClosure,
-            addOperator, getOperators, push, pop, addVar;
-    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals", "prefixOps"]));
+            setBindingMutability, getUid, addUid, hasMapping, hasOwnMapping, getMapping, addMapping, getLocals,
+            getClosure, addRef, addOperator, getOperators, push, pop, addVar;
+    (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals", "closure",
+        "prefixOps"
+    ]));
     (Scope.empty = Scope.create(hamt.empty, null, hamt.empty, hamt.empty, hamt.empty, hamt.empty));
     (Scope.prototype.hasOwnBinding = (function(id) {
         var __o = this,
@@ -88,8 +90,15 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         })))));
     }));
     var y = hamt.keys;
-    (getClosure = (function(z) {
+    (getLocals = (function(z) {
         return y(z.locals);
+    }));
+    var y0 = hamt.keys;
+    (getClosure = (function(z) {
+        return y0(z.closure);
+    }));
+    (addRef = (function(uid, s) {
+        return (uid ? s.setClosure(hamt.set(uid, null, s.closure)) : s);
     }));
     (push = (function(s) {
         return Scope.empty.setOuter(s)
@@ -102,14 +111,15 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         return hamt.set(key, value, p);
     }));
     (pop = (function(s) {
-        return s.outer.setLocals(mergeLocals(s.outer.locals, s.locals));
+        return s.outer.setLocals(mergeLocals(s.outer.locals, s.locals))
+            .setClosure(mergeLocals(s.outer.closure, s.closure));
     }));
     (addOperator = (function(name, uid, s) {
         return s.setPrefixOps(hamt.set(name, uid, s.prefixOps));
     }));
-    var y0 = hamt.pairs;
+    var y1 = hamt.pairs;
     (getOperators = (function(z) {
-        return y0(z.prefixOps);
+        return y1(z.prefixOps);
     }));
     (exports["Scope"] = Scope);
     (exports["hasBinding"] = hasBinding);
@@ -124,7 +134,9 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (exports["hasOwnMapping"] = hasOwnMapping);
     (exports["getMapping"] = getMapping);
     (exports["addMapping"] = addMapping);
+    (exports["getLocals"] = getLocals);
     (exports["getClosure"] = getClosure);
+    (exports["addRef"] = addRef);
     (exports["addOperator"] = addOperator);
     (exports["getOperators"] = getOperators);
     (exports["push"] = push);

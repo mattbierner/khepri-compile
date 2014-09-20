@@ -23,7 +23,9 @@ package (
     getMapping
     addMapping
     
+    getLocals
     getClosure
+    addRef
     
     addOperator
     getOperators
@@ -52,6 +54,7 @@ var IMMUTABLE := 0,
  * @member mapping Maps identifiers to their actual names in this scope.
  * @member definitions Maps identifiers to unique ids.
  * @member locals Set of all unique ids.
+ * @member closure.
  * @member prefixOps Map of all valid prefix operator names to uids in the scope.
  */
 Scope = record.declare(null, [
@@ -60,6 +63,7 @@ Scope = record.declare(null, [
     'mapping',
     'definitions',
     'locals',
+    'closure',
     'prefixOps']);
 
 Scope.empty = Scope.create(
@@ -253,7 +257,21 @@ addVar = \id uid s ->
  * 
  * @param s Scope.
  */
-getClosure := .locals \> hamt.keys;
+getLocals := .locals \> hamt.keys;
+
+/**
+ * Get a list of all closure vars in the current scope.
+ * 
+ * @param s Scope.
+ */
+getClosure := .closure \> hamt.keys;
+
+addRef := \uid s ->
+    ?uid
+        :s.setClosure <|
+            hamt.set(uid, null, s.closure)
+        :s;
+
 
 /**
  * Enter a new empty scope with its parent set to `s`.
@@ -278,7 +296,9 @@ in
     \s ->
         s.outer
             .setLocals(
-                mergeLocals(s.outer.locals, s.locals));
+                mergeLocals(s.outer.locals, s.locals))
+            .setClosure(
+                mergeLocals(s.outer.closure, s.closure));;
 
 /* Operator Operations
  ******************************************************************************/

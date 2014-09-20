@@ -6,7 +6,7 @@
 var __o = require("khepri-ast")["node"],
     type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
         isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, modify, getUid, setUid, getLocals,
-        setLocals, setData = __o["setData"],
+        setLocals, getClosure, setClosure, setData = __o["setData"],
     modifyAstNode = __o["modify"];
 (type = (function(y) {
     return (y && y.type);
@@ -83,6 +83,13 @@ var def = [];
 (setLocals = (function(value, node) {
     return setData(node, "locals", value);
 }));
+var def0 = [];
+(getClosure = (function(node) {
+    return (((node && node.ud) && node.ud.hasOwnProperty("closure")) ? node.ud["closure"] : def0);
+}));
+(setClosure = (function(value, node) {
+    return setData(node, "closure", value);
+}));
 (exports["type"] = type);
 (exports["isIdentifier"] = isIdentifier);
 (exports["isOperator"] = isOperator);
@@ -104,3 +111,5 @@ var def = [];
 (exports["setUid"] = setUid);
 (exports["getLocals"] = getLocals);
 (exports["setLocals"] = setLocals);
+(exports["getClosure"] = getClosure);
+(exports["setClosure"] = setClosure);

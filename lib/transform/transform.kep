@@ -20,7 +20,9 @@ with
         getUd
         setUd
         getUid
-        setUid},
+        setUid
+        getLocals
+        getClosure},
     import '../lexical/scope' scope#{Scope},
     import '../fun' {
         concat
@@ -141,6 +143,25 @@ var getMapping := \uid ->
 var addVar := \id uid ->
     modifyScope (scope.addVar@(id, uid));
 
+// Ctx Operations
+////////////////////////////////////////
+var getContext = extract.map(.ctx);
+
+var setContext = \ctx ->
+    modifyState \ s ->
+        s.setCtx(ctx);
+
+var ctxBlock := \newCtx ->
+    \-actions(...)->
+        getContext.chain \ ctx ->
+            seq(
+                setContext newCtx,
+                sequencea actions,
+                setContext ctx);
+
+var loopBlock := ctxBlock (state.LOOP_CTX);
+var funcBlock := ctxBlock (state.NORMAL_CTX);
+
 // Bindings Operations
 ////////////////////////////////////////
 var pushBindings = modifyState (state.pushBindings);
@@ -260,11 +281,13 @@ addTransform@'TryStatement' <| seq(
 
 addTransform@'WhileStatement' <| seq(
     rewriteChild 'test',
-    rewriteChild 'body',
+    loopBlock(
+        rewriteChild 'body'),
     modify (translate.whileStatement));
 
 addTransform@'DoWhileStatement' <| seq(
-    rewriteChild 'body',
+    loopBlock(
+        rewriteChild 'body'),
     rewriteChild 'test',
     modify (translate.doWhileStatement));
 
@@ -272,7 +295,8 @@ addTransform@'ForStatement' <| seq(
     rewriteChild 'init',
     rewriteChild 'test',
     rewriteChild 'update',
-    rewriteChild 'body',
+    loopBlock(
+        rewriteChild 'body'),
     modify (translate.forStatement));
 
 // Expression
@@ -330,8 +354,20 @@ addTransform@'CurryExpression' <| seq(
     rewriteChild 'args',
     modify (translate.curryExpression));
 
+var createExplicitClosure = \locals ->
+    enumeration(
+        map(
+            \uid ->
+                getMapping(uid).map(\name ->
+                    translate.identifier(node.loc, name, uid)),
+            locals))
+        .chain \ locals ->
+            modify \ node ->
+                translate.explicitClosure(locals, node);
+
 //TODO: remove duplicate translate stage
-addTransform@'FunctionExpression' <|
+addTransform@'FunctionExpression' <| let
+    evaluate = funcBlock <|
     realBlock(
         rewriteChild 'id',
         modify \ node ->
@@ -344,7 +380,14 @@ addTransform@'FunctionExpression' <|
         rewriteChild 'params',
         rewriteChild 'body',
         
-        modify (translate.functionExpressionPost));
+        modify (translate.functionExpressionPost))
+in
+    getContext.chain \ ctx ->
+        ?ctx === state.LOOP_CTX
+            :withNode \ node -> seq(
+                evaluate,
+                createExplicitClosure(getClosure node))
+            :evaluate;
 
 addTransform@'ArrayExpression' <| seq(
     rewriteChild 'elements',

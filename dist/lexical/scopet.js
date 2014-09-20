@@ -9,6 +9,7 @@ define(["require", "exports", "akh/trans/statei", "./scope"], (function(require,
             (Instance.modifyScope = Instance.modify);
             (Instance.push = Instance.modifyScope(scope.push));
             (Instance.pop = Instance.modifyScope(scope.pop));
+            (Instance.getLocals = Instance.extractScope.map(scope.getLocals));
             (Instance.getClosure = Instance.extractScope.map(scope.getClosure));
             return Instance;
         });
