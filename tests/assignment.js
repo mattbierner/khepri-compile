@@ -50,3 +50,13 @@ exports.setting_mutable_to_immutable_must_be_in_block = function(test) {
     
     test.done();
 };
+
+exports.var_mutated_in_inner_scope_cannot_be_marked_immutable = function(test) {
+    test.throws(
+        run.bind(null, "var a; { a = 3; }; a := 5; a;"));
+    
+    test.throws(
+        run.bind(null, "var a; if (false) a = 3; a := 5; a;"));
+    
+    test.done();
+};

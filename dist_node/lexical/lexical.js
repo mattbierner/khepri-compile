@@ -137,13 +137,17 @@ var __o = require("akh")["base"],
     }),
     markBindingImmutable = (function(id, loc) {
         return examineScope((function(s) {
-            return (s.hasOwnBinding(id) ? modifyScope(scope.setBindingMutability.bind(null, id, false)) :
-                error((((("Cannot mark symbol:'" + id) + "' at:") + getStart(loc)) +
-                    " immutable in enclosed scope")));
+            return (s.hasOwnBinding(id) ? (scope.hasTransMutableBinding(id, s) ? modifyScope(scope.markBindingImmutable
+                .bind(null, id)) : error((((("Cannot mark symbol:'" + id) + "' at:") + getStart(loc)) +
+                " that was mutated in enclosed scope mutable"))) : error((((("Cannot mark symbol:'" +
+                id) + "' at:") + getStart(loc)) + " immutable in enclosed scope")));
         }));
     }),
+    markBindingMutable = (function(id, loc) {
+        return modifyScope(scope.markBindingMutable.bind(null, id));
+    }),
     addMutableBinding = (function(id, loc) {
-        return seq(modifyScope(scope.addMutableBinding.bind(null, id, loc)), addUid(id));
+        return seq(modifyScope(scope.addTransMutableBinding.bind(null, id, loc)), addUid(id));
     }),
     addStaticBinding = (function(id, loc) {
         return modifyScope(scope.addImmutableBinding.bind(null, id, loc));
@@ -334,7 +338,8 @@ addCheck("AssignmentExpression", seq(((__args46 = ["left", checkTop]), (actions4
         left = __o3["left"],
         name = left["name"],
         loc = left["loc"];
-    return seq(checkCanAssign(name, loc), (immutable ? markBindingImmutable(name, loc) : pass));
+    return seq(checkCanAssign(name, loc), (immutable ? markBindingImmutable(name, loc) :
+        markBindingMutable(name, loc)));
 }))), inspect((function(node) {
     return (isSymbol(node.left) ? consequent1 : (undefined || pass));
 }))), ((__args47 = ["right", checkTop]), (actions47 = [].slice.call(__args47, 1)), seq(moveChild("right"), seqa(

@@ -1,5 +1,5 @@
 /**
- * @fileOverview Khepri AST nodes predicates.
+ * @fileOverview Khepri AST nodes helper Functions.
  */
 package (
     type
@@ -44,7 +44,7 @@ in {
  */
 type := (_ ?? .type);
 
-/* Symbols
+/* Symbol Predicates
  ******************************************************************************/
 /**
  * Is an AST node an identifier?
@@ -66,10 +66,10 @@ isSymbol := \node ->
     (  isIdentifier node
     || isOperator node);
 
-/* Literals
+/* Literal Predicates
  ******************************************************************************/
 /**
- * Is a node a literal.
+ * Is a node a literal?
  * 
  * This includes regular expressions.
  */
@@ -83,7 +83,7 @@ isNumberish = \node ->
     && !isNaN node.value);
 
 /**
- * Is a node a primitive value.
+ * Is a node a primitive value?
  */
 isPrimitive = \node ->
     isLiteral node && (
@@ -111,7 +111,7 @@ isPod = \node ->
     || type node === 'ArrayExpression' && node.elements.every(isPod)
     || type type === 'ObjectExpression' && node.elements.every(.value \> isPod));
 
-/* Value
+/* Value Predicates
  ******************************************************************************/
 /**
  * Is a node a constant truthy value.
@@ -120,7 +120,7 @@ isTruthy = \node ->
     (  isPrimitive node
     && !!node.value);
 
-/* Function
+/* Function Predicates
  ******************************************************************************/
 /**
  * Is a node a function with a block body?
@@ -185,5 +185,5 @@ setLocals := setUd @ 'locals';
 
 getClosure := tryGetUd @ [] @ 'closure';
 setClosure := setUd @ 'closure';
-    
+
 }

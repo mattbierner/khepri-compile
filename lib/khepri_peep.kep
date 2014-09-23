@@ -8,9 +8,10 @@ package (
     optimize)
 with
     import 'khepri-ast::declaration' ast_declaration,
-    import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
-    
+    import 'khepri-ast::node' {modify},
+    import 'khepri-ast::statement' ast_statement,
+
     import './ast' {
         type},
     import './fun' {
@@ -117,29 +118,28 @@ peepholes.add('WithStatement', UP,
 peepholes.add('ReturnStatement', false,
     .argument \> type \> (=== 'LetExpression'),
     
-    \node ->
+    \{argument} ->
         ast_statement.WithStatement.create(null,
-            node.argument.bindings,
+            argument.bindings,
             ast_statement.BlockStatement.create(null, [
-                ast_statement.ReturnStatement.create(node.loc,
-                    node.argument.body)])));
+                ast_statement.ReturnStatement.create(null,
+                    argument.body)])));
 
 /**
- * Rewrite `\...-> let` to a with statement.
+ * Rewrite `\... -> let` to `\... -> with`
  */
 peepholes.add('FunctionExpression', DOWN,
     .body \> type \> (=== 'LetExpression'),
     
-    \node ->
-        ast_expression.FunctionExpression.create(null,
-            node.id,
-            node.params,
-            ast_statement.BlockStatement.create(null, [
+    \node#{body} ->
+        modify @ node {
+            'body': ast_statement.BlockStatement.create(null, [
                 ast_statement.WithStatement.create(null,
-                    node.body.bindings,
+                    body.bindings,
                     ast_statement.BlockStatement.create(null, [
-                        ast_statement.ReturnStatement.create(node.loc,
-                            node.body.body)]))])));
+                        ast_statement.ReturnStatement.create(null,
+                            body.body)]))])));
+        };
 
 /**
  * Rewrite top level let expressions to with statements.
@@ -147,12 +147,12 @@ peepholes.add('FunctionExpression', DOWN,
 peepholes.add('ExpressionStatement', UP,
     .expression \> type \> (=== 'LetExpression'),
     
-    \node ->
+    \{expression} ->
         ast_statement.WithStatement.create(null,
-            node.expression.bindings,
+            expression.bindings,
             ast_statement.BlockStatement.create(null, [
-                ast_statement.ExpressionStatement.create(node.loc,
-                    node.expression.body)])));
+                ast_statement.ExpressionStatement.create(null,
+                    expression.body)])));
 
 /**
  * Rewrite top level assign to let expressions to with statements.
@@ -162,19 +162,21 @@ peepholes.add('ExpressionStatement', UP,
         (  type node.expression === 'AssignmentExpression'
         && type node.expression.right === 'LetExpression'),
     
-    \node ->
+    \{expression} ->
         ast_statement.WithStatement.create(null,
-            node.expression.right.bindings,
+            expression.right.bindings,
             ast_statement.BlockStatement.create(null, [
-                ast_statement.ExpressionStatement.create(node.loc,
-                    ast_expression.AssignmentExpression.create(node.expression.loc,
-                        node.expression.left,
-                        node.expression.right.body))])));
+                ast_statement.ExpressionStatement.create(null,
+                    ast_expression.AssignmentExpression.create(null,
+                        expression.left,
+                        expression.right.body))])));
 
 /* Interface
  ******************************************************************************/
 /**
+ * Peephole optimize a zipper Khepri AST.
  * 
+ * @param ast Zippered Khepri AST.
  */
 optimize = rewrite@peepholes;
 

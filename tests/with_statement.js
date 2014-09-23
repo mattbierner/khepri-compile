@@ -28,7 +28,6 @@ exports.multiple_binds = function(test) {
     test.done();
 };
 
-
 exports.introduces_new_scope = function(test) {
     test.equal(
         testParser("var x = 3; with x = 10 in { x * x; }"),
@@ -61,7 +60,6 @@ exports.throw_in_with = function(test) {
     test.done();
 };
 
-
 exports.break_in_with = function(test) {
     test.equal(
         testParser("for (var i = 0; true; i = i + 1) with y = i * i in { y; if (y > 100) break; }"),
@@ -69,5 +67,7 @@ exports.break_in_with = function(test) {
     
     test.done();
 };
+
+
 
 

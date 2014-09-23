@@ -4,9 +4,10 @@
 */
 define(["require", "exports", "bes/record", "hamt"], (function(require, exports, record, hamt) {
     "use strict";
-    var Scope, hasBinding, hasMutableBinding, addBinding, addMutableBinding, addImmutableBinding,
-            setBindingMutability, getUid, addUid, hasMapping, hasOwnMapping, getMapping, addMapping, getLocals,
-            getClosure, addRef, addOperator, getOperators, push, pop, addVar;
+    var Scope, hasBinding, hasMutableBinding, hasTransMutableBinding, addTransMutableBinding, addMutableBinding,
+            addImmutableBinding, markBindingImmutable, markBindingMutable, getUid, addUid, hasMapping,
+            hasOwnMapping, getMapping, addMapping, getLocals, getClosure, addRef, addOperator, getOperators,
+            push, pop, addVar;
     (Scope = record.declare(null, ["record", "outer", "mapping", "definitions", "locals", "closure",
         "prefixOps"
     ]));
@@ -23,6 +24,10 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         var binding = s.getBinding(id);
         return (binding && binding.mutable);
     }));
+    (hasTransMutableBinding = (function(id, s) {
+        var binding = s.getBinding(id);
+        return ((binding && binding.mutable) === 1);
+    }));
     (Scope.prototype.getBinding = (function(id) {
         var self = this;
         return (hamt.get(id, self.record) || (self.outer ? self.outer.getBinding(id) : null));
@@ -36,27 +41,46 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
             if ((!((id0 = (id + i)), (self.hasOwnBinding(id0) || (self.outer && hasBinding(id0, self.outer))))))
                 return (id + i);
     }));
-    (addBinding = (function(s, id, info) {
+    (addMutableBinding = (function(id, loc, s) {
+        var info = ({
+            mutable: 2,
+            loc: loc
+        });
         return s.setRecord(hamt.set(id, info, s.record));
     }));
-    (addMutableBinding = (function(id, loc, s) {
-        return addBinding(s, id, ({
-            mutable: 1,
-            loc: loc
-        }));
-    }));
     (addImmutableBinding = (function(id, loc, s) {
-        return addBinding(s, id, ({
+        var info = ({
             mutable: 0,
             loc: loc
-        }));
+        });
+        return s.setRecord(hamt.set(id, info, s.record));
     }));
-    (setBindingMutability = (function(id, mutable, s) {
-        return (s.hasOwnBinding(id) ? addBinding(s, id, ({
-            loc: s.getBinding(id)
-                .loc,
-            mutable: (mutable ? 1 : 0)
-        })) : (s.outer && s.setOuter(setBindingMutability(id, mutable, s.outer))));
+    (addTransMutableBinding = (function(id, loc, s) {
+        var info = ({
+            mutable: 1,
+            loc: loc
+        });
+        return s.setRecord(hamt.set(id, info, s.record));
+    }));
+    (markBindingImmutable = (function(id, s) {
+        var f;
+        return (s.hasOwnBinding(id) ? ((f = (function(binding) {
+            return ({
+                loc: binding.loc,
+                mutable: 0
+            });
+        })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(
+            markBindingImmutable(id, s.outer))));
+    }));
+    (markBindingMutable = (function(id, s) {
+        var f;
+        return (s.hasOwnBinding(id) ? ((f = (function(binding) {
+            return ({
+                loc: binding.loc,
+                mutable: 2
+            });
+        })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingMutable(
+            id, s.outer))));
     }));
     (getUid = (function(id, s) {
         return (s.hasOwnBinding(id) ? hamt.get(id, s.definitions) : (s.outer && getUid(id, s.outer)));
@@ -80,28 +104,23 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         return s.setMapping(hamt.set(from, to, s.mapping));
     }));
     (addVar = (function(id, uid, s) {
-        var name;
-        return (s.hasMapping(uid) ? addBinding(s, id, ({
-            mutable: 1,
+        var info, name, info0, s0;
+        return (s.hasMapping(uid) ? ((info = ({
+            mutable: 2,
             loc: null
-        })) : ((name = s.getUnusedId(id)), addMapping(uid, name, addBinding(s, name, ({
-            mutable: 1,
+        })), s.setRecord(hamt.set(id, info, s.record))) : ((name = s.getUnusedId(id)), (info0 = ({
+            mutable: 2,
             loc: null
-        })))));
-    }));
-    var setDiff = (function(x, y) {
-        var x0 = hamt.keys(x),
-            y0 = hamt.keys(y);
-        return x0.filter((function(a) {
-            return (y0.indexOf(a) < 0);
-        }));
-    });
-    (getLocals = (function(s) {
-        return (s.outer ? setDiff(s.outer.closure, s.closure) : s.closure);
+        })), (s0 = s.setRecord(hamt.set(name, info0, s.record))), s0.setMapping(hamt.set(uid,
+            name, s0.mapping))));
     }));
     var y = hamt.keys;
+    (getLocals = (function(z) {
+        return y(z.locals);
+    }));
+    var y0 = hamt.keys;
     (getClosure = (function(z) {
-        return y(z.closure);
+        return y0(z.closure);
     }));
     (addRef = (function(uid, s) {
         return (uid ? s.setClosure(hamt.set(uid, null, s.closure)) : s);
@@ -123,17 +142,19 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
     (addOperator = (function(name, uid, s) {
         return s.setPrefixOps(hamt.set(name, uid, s.prefixOps));
     }));
-    var y0 = hamt.pairs;
+    var y1 = hamt.pairs;
     (getOperators = (function(z) {
-        return y0(z.prefixOps);
+        return y1(z.prefixOps);
     }));
     (exports["Scope"] = Scope);
     (exports["hasBinding"] = hasBinding);
     (exports["hasMutableBinding"] = hasMutableBinding);
-    (exports["addBinding"] = addBinding);
+    (exports["hasTransMutableBinding"] = hasTransMutableBinding);
+    (exports["addTransMutableBinding"] = addTransMutableBinding);
     (exports["addMutableBinding"] = addMutableBinding);
     (exports["addImmutableBinding"] = addImmutableBinding);
-    (exports["setBindingMutability"] = setBindingMutability);
+    (exports["markBindingImmutable"] = markBindingImmutable);
+    (exports["markBindingMutable"] = markBindingMutable);
     (exports["getUid"] = getUid);
     (exports["addUid"] = addUid);
     (exports["hasMapping"] = hasMapping);

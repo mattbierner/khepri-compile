@@ -7,11 +7,13 @@ package (
 // Binding Ops
     hasBinding
     hasMutableBinding
+    hasTransMutableBinding
     
-    addBinding
+    addTransMutableBinding
     addMutableBinding
     addImmutableBinding
-    setBindingMutability
+    markBindingImmutable
+    markBindingMutable
     
 // Definition Ops
     getUid
@@ -40,24 +42,24 @@ with
     import 'hamt' hamt
 in {
 
-var IMMUTABLE := 0,
-    MUTABLE := 1,
-    TRANS := 2;
+var IMMUTABLE := 0, // Immutable binding.
+    TRANS := 1,     //Mutable binding that may later be marked immutable.
+    MUTABLE := 2;   // Mutable binding.
 
 /* Scope
  ******************************************************************************/
 /**
- * Holds information about a lexical scope.
+ * Lexical scope information.
  * 
- * @member record Maps identifiers to binding information for this scope.
+ * @member record Maps identifiers to binding records
  * @member outer Parent scope.
- * @member mapping Maps identifiers to their actual names in this scope.
+ * @member mapping Maps internal identifiers to symbols.
  * @member definitions Maps identifiers to unique ids.
- * @member locals Set of all unique ids.
- * @member closure.
+ * @member locals Set of all unique ids that are valid in the current scope.
+ * @member closure Set of all unique ids references in the current scope.
  * @member prefixOps Map of all valid prefix operator names to uids in the scope.
  */
-Scope = record.declare(null, [
+Scope := record.declare(null, [
     'record',
     'outer',
     'mapping',
@@ -66,7 +68,7 @@ Scope = record.declare(null, [
     'closure',
     'prefixOps']);
 
-Scope.empty = Scope.create(
+Scope.empty := Scope.create(
     hamt.empty,
     null,
     hamt.empty,
@@ -74,14 +76,14 @@ Scope.empty = Scope.create(
     hamt.empty,
     hamt.empty);
 
+/* Binding Operations
+ ******************************************************************************/
 /**
  * Does this scope have a binding for `id`?
  */
-Scope.prototype.hasOwnBinding = \id ={record}->
+Scope.prototype.hasOwnBinding := \id ={record}->
     hamt.has(id, record);
 
-/* Binding Operations
- ******************************************************************************/
 /**
  * Does scope `s` or its parents have a given binding for `id`?
  */
@@ -93,16 +95,24 @@ hasBinding := \id s->
  * Does scope `s` or its parents have a mutable binding for `id`?
  */
 hasMutableBinding := \id s -> let
-    binding = s.getBinding(id)
+    binding := s.getBinding(id)
 in
     (binding??.mutable);
+
+/**
+ * Does scope `s` or its parents have a mutable binding for `id`?
+ */
+hasTransMutableBinding := \id s -> let
+    binding := s.getBinding(id)
+in
+    (binding??.mutable === TRANS);
 
 /**
  * Get information for a given binding.
  * 
  * Returns null if binding does not exist.
  */
-Scope.prototype.getBinding = \id =self->
+Scope.prototype.getBinding := \id =self->
     (  hamt.get(id, self.record)
     || ?self.outer
         :self.outer.getBinding(id)
@@ -111,7 +121,7 @@ Scope.prototype.getBinding = \id =self->
 /**
  * Get an unused identifier in this scope.
  */
-Scope.prototype.getUnusedId = \id =self-> {
+Scope.prototype.getUnusedId := \id =self-> {
     if (!hasBinding(id, self))
         return id;
     
@@ -127,9 +137,13 @@ Scope.prototype.getUnusedId = \id =self-> {
  * @param id Identifier for new binding.
  * @param info Binding information.
  */
-addBinding = \s id info -> 
+var addBinding := \s id info -> 
     s.setRecord <|
         hamt.set(id, info, s.record);
+
+var modifyBinding := \s id f-> 
+    s.setRecord <|
+        hamt.modify(id, f, s.record);
 
 /**
  * Create a new modified scope with a new mutable binding.
@@ -151,9 +165,17 @@ addMutableBinding := \id loc s ->
  * @param loc Location of binding in source code.
  * @param s Scope
  */
-addImmutableBinding = \id loc s ->
+addImmutableBinding := \id loc s ->
     addBinding(s, id, {
         mutable: IMMUTABLE,
+        loc: loc
+    });
+
+/**
+ */
+addTransMutableBinding := \id loc s ->
+    addBinding(s, id, {
+        mutable: TRANS,
         loc: loc
     });
 
@@ -164,13 +186,28 @@ addImmutableBinding = \id loc s ->
  * @param loc Location of binding in source code.
  * @param s Scope
  */
-setBindingMutability = \id mutable s ->
+markBindingImmutable := \id s ->
     ?s.hasOwnBinding id
-        :addBinding(s, id, {
-            loc: s.getBinding(id).loc,
-            mutable: ?mutable : MUTABLE : IMMUTABLE
-        })
-        :(s.outer && s.setOuter(setBindingMutability(id, mutable, s.outer)));
+        :modifyBinding(s, id, \binding -> ({
+            loc: binding.loc,
+            mutable: IMMUTABLE
+        }))
+        :(s.outer && s.setOuter(markBindingImmutable(id, s.outer)));
+
+/**
+ * Create a new modified scope with a new immutable binding.
+ * 
+ * @param id Identifier for new binding
+ * @param loc Location of binding in source code.
+ * @param s Scope
+ */
+markBindingMutable := \id s ->
+    ?s.hasOwnBinding id
+        :modifyBinding(s, id, \binding -> ({
+            loc: binding.loc,
+            mutable: MUTABLE
+        }))
+        :(s.outer && s.setOuter(markBindingMutable(id, s.outer)));
 
 /* Definition Operations
  ******************************************************************************/
@@ -192,7 +229,7 @@ getUid := \id s ->
  * @param uid Unique identifier.
  * @param s Scope.
  */
-addUid = \id uid s ->
+addUid := \id uid s ->
     s
         .setDefinitions(
             hamt.set(id, uid, s.definitions))
@@ -204,13 +241,13 @@ addUid = \id uid s ->
 /**
  * Does this scope have its own a mapping for a given identifier.
  */
-Scope.prototype.hasOwnMapping = \id =self->
+Scope.prototype.hasOwnMapping := \id =self->
     hamt.has(id, self.mapping);
 
 /**
  * Does this scope have any mapping for a given identifier.
  */
-Scope.prototype.hasMapping = \id =self->
+Scope.prototype.hasMapping := \id =self->
     (  self.hasOwnMapping(id)
     || (self.outer??.hasMapping(id)));
 
@@ -223,13 +260,13 @@ getMapping := \id s ->
         :s.outer && getMapping(id, s.outer);
 
 /**
- * Create a new modified scope with a new mapping
+ * Create a modified scope with a new mapping.
  * 
  * @param from Key value.
  * @param to Value to map to.
  * @param s Scope
  */
-addMapping = \from to s ->
+addMapping := \from to s ->
     s.setMapping <|
         hamt.set(from, to, s.mapping);
 
@@ -240,11 +277,11 @@ addMapping = \from to s ->
  * @param uid Unique id.
  * @param s Scope.
  */
-addVar = \id uid s ->
+addVar := \id uid s ->
     ?s.hasMapping(uid)
         :addMutableBinding(id, null, s)
     
-    :let name = s.getUnusedId(id) in
+    :let name := s.getUnusedId(id) in
         addMapping(
             uid,
             name,
@@ -278,7 +315,7 @@ addRef := \uid s ->
  * 
  * @param s Scope.
  */
-push = \s ->
+push := \s ->
     Scope.empty
         .setOuter(s)
         .setDefinitions(s.definitions)
@@ -289,7 +326,7 @@ push = \s ->
  * 
  * @param s Scope.
  */
-pop = let
+pop := let
     mergeLocals =
         hamt.fold @ \p {key value} -> hamt.set(key, value, p)
 in

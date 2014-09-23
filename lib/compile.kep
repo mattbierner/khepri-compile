@@ -37,14 +37,15 @@ var compiler := \x ->
  * @param [err] Error callback.
  */
 compile := let
-    extract = \{tree} -> tree,
+    extract = .tree,
     thr = \x -> { throw x; }
 in
     \root options err ->
         Error.runError(
-            compiler{
+            compiler {
                 'tree': khepriZipper root,
-                'options': (options || {}) },
+                'options': (options || {})
+            },
             extract,
             err || thr);
 

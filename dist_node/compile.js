@@ -14,24 +14,8 @@ var Error = require("akh")["error"],
     transform = require("./stages/transform"),
     ecma_peep = require("./stages/ecma_peep"),
     compile, khepriZipper = __o["khepriZipper"],
-    _ = (function(x) {
-        return (function(x0, y) {
-            return x(y, x0);
-        });
-    }),
-    compiler = (function(x) {
-        return pre_normalize(x)
-            .chain(lexical)
-            .chain(post_normalize)
-            .chain(inline)
-            .chain(reachable)
-            .chain(khepri_peep)
-            .chain(transform)
-            .chain(ecma_peep);
-    }),
-    extract = (function(__o0) {
-        var tree = __o0["tree"];
-        return tree;
+    extract = (function(x) {
+        return x.tree;
     }),
     thr = (function(x) {
         throw x;

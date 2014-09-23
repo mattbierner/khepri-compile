@@ -191,7 +191,7 @@ var checkHasBinding = \id, loc ->
         :error("Undeclared symbol:'" + id + "' at:" + getStart loc);
 
 /**
- * Ensure the current scope does not have has a binding for `id`.
+ * Ensure the current scope does not have a binding for `id`.
  */
 var checkCanAddBinding = \id loc -> 
     examineScope \ s ->
@@ -217,8 +217,19 @@ var checkCanAssign = \id, loc ->
 var markBindingImmutable = \id loc ->
     examineScope \ s ->
         ?s.hasOwnBinding id
-            :modifyScope (scope.setBindingMutability@(id, false))
+            :?scope.hasTransMutableBinding(id, s)
+                :modifyScope (scope.markBindingImmutable @ id)
+                :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' that was mutated in enclosed scope mutable')
         :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
+
+/**
+ * Mark existing binding for `id` as mutable.
+ * 
+ * When this takes place in an inner scope, the binding is locked into a mutable
+ * state and cannot be declared immutable.
+ */
+var markBindingMutable = \id loc ->
+    modifyScope (scope.markBindingMutable @ id);
 
 /**
  * Add a new mutable binding in the current scope.
@@ -226,7 +237,7 @@ var markBindingImmutable = \id loc ->
  */
 var addMutableBinding = \id loc -> 
     seq(
-         modifyScope (scope.addMutableBinding@(id, loc)),
+         modifyScope (scope.addTransMutableBinding@(id, loc)),
          addUid id);
 
 /**
@@ -481,7 +492,7 @@ addCheck@'AssignmentExpression' <| seq(
             checkCanAssign(name, loc),
             ?immutable
                 :markBindingImmutable(name, loc)
-                :pass)),
+                :markBindingMutable(name, loc))),
     checkChild 'right');
 
 addCheck@'BinaryExpression' <| seq(

@@ -14,7 +14,7 @@ var testParser = function(input) {
 
 exports.basic_compose = function(test) {
     test.equal(
-        testParser("var f = (+, 10), g = (_/, 2); (f \\> g) 6;"),
+        testParser("var f = (+ 10), g = (_ / 2); (f \\> g) 6;"),
         8);
     
     test.done();
@@ -22,7 +22,7 @@ exports.basic_compose = function(test) {
 
 exports.chained_compose = function(test) {
     test.equal(
-        testParser("var f = (+, 10), g = (_/, 2); (f \\> g \\> (+, 3)) 6;"),
+        testParser("var f = (+ 10), g = (_/ 2); (f \\> g \\> (+, 3)) 6;"),
         11);
     
     test.done();

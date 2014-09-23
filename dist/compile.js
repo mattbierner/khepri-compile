@@ -9,9 +9,8 @@ define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_no
     transform, ecma_peep) {
     "use strict";
     var compile, khepriZipper = __o["khepriZipper"],
-        extract = (function(__o0) {
-            var tree = __o0["tree"];
-            return tree;
+        extract = (function(x) {
+            return x.tree;
         }),
         thr = (function(x) {
             throw x;

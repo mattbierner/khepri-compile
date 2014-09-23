@@ -94,7 +94,6 @@ in {
     };
 }
 
-
 /* Ternary Operator
  ******************************************************************************/
 with
@@ -172,7 +171,7 @@ in {
     };
 }
 
-// Flip Operator 
+// Flip Operator
 registerAliasedSymbol('_', '_',
     unary(
         \f ->

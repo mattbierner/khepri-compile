@@ -32,7 +32,7 @@ exports.recursive_curry = function(test) {
 };
 
 /// Ensure that `x` binding captures reference to current `a` not later one.
-exports.capture_mutable= function(test) {
+exports.capture_mutable = function(test) {
     // Mutable `a` binding
     test.equal(
         evalParser("var a = [1, 2, 3]; var f = let x = a in \\-> x.(0); a = [4, 5, 6]; f();"),
