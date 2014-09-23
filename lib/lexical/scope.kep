@@ -135,79 +135,78 @@ Scope.prototype.getUnusedId := \id =self-> {
  * 
  * @param s Scope.
  * @param id Identifier for new binding.
- * @param info Binding information.
+ * @param loc Binding location.
+ * @param mutable Binding mutability.
  */
-var addBinding := \s id info -> 
+var addBinding := \s id loc mutable -> 
     s.setRecord <|
-        hamt.set(id, info, s.record);
+        hamt.set(id, {
+            mutable: mutable,
+            loc: loc
+        }, s.record);
 
-var modifyBinding := \s id f-> 
+var modifyOwnBinding := \s id f-> 
     s.setRecord <|
         hamt.modify(id, f, s.record);
 
+var modifyBinding := \f id s ->
+    ?s.hasOwnBinding id
+        :modifyOwnBinding(s, id, f)
+        :(s.outer && s.setOuter(modifyBiding(f, id, s.outer)));
+
 /**
- * Create a new modified scope with a new mutable binding.
+ * Added a mutable binding for `id` declared at `loc` to `s`.
  * 
  * @param id Identifier for new binding
  * @param loc Location of binding in source code.
  * @param s Scope
  */
 addMutableBinding := \id loc s ->
-    addBinding(s, id, {
-        mutable: MUTABLE,
-        loc: loc
-    });
+    addBinding(s, id, loc, MUTABLE);
 
 /**
- * Create a new modified scope with a new immutable binding.
+ * Added a immutable binding for `id` declared at `loc` to `s`.
  * 
  * @param id Identifier for new binding
  * @param loc Location of binding in source code.
  * @param s Scope
  */
 addImmutableBinding := \id loc s ->
-    addBinding(s, id, {
-        mutable: IMMUTABLE,
-        loc: loc
-    });
+    addBinding(s, id, loc, IMMUTABLE);
 
 /**
+ * Added a trans mutable binding for `id` declared at `loc` to `s`.
+ * 
+ * @param id Identifier for new binding
+ * @param loc Location of binding in source code.
+ * @param s Scope
  */
 addTransMutableBinding := \id loc s ->
-    addBinding(s, id, {
-        mutable: TRANS,
-        loc: loc
-    });
+    addBinding(s, id, loc, TRANS);
 
 /**
- * Create a new modified scope with a new immutable binding.
+ * Mark an existing binding for `id` immutable in scope `s`.
  * 
- * @param id Identifier for new binding
- * @param loc Location of binding in source code.
- * @param s Scope
+ * @param id
+ * @param s
  */
-markBindingImmutable := \id s ->
-    ?s.hasOwnBinding id
-        :modifyBinding(s, id, \binding -> ({
-            loc: binding.loc,
-            mutable: IMMUTABLE
-        }))
-        :(s.outer && s.setOuter(markBindingImmutable(id, s.outer)));
+markBindingImmutable := modifyBinding @ \ {loc} -> ({
+    loc: loc,
+    mutable: IMMUTABLE
+});
 
 /**
- * Create a new modified scope with a new immutable binding.
+ * Mark an existing binding for `id` immutable in scope `s`.
  * 
- * @param id Identifier for new binding
- * @param loc Location of binding in source code.
- * @param s Scope
+ * @param id
+ * @param keepTrans If the existing binding is tran, should this be preserved?
+ * @param s
  */
-markBindingMutable := \id s ->
-    ?s.hasOwnBinding id
-        :modifyBinding(s, id, \binding -> ({
-            loc: binding.loc,
-            mutable: MUTABLE
-        }))
-        :(s.outer && s.setOuter(markBindingMutable(id, s.outer)));
+markBindingMutable := \id keepTrans s ->
+    modifyBinding(\binding -> ({
+        loc: binding.loc,
+        mutable: ?keepTrans && binding.mutable === TRANS : TRANS : MUTABLE
+    }), id, s);
 
 /* Definition Operations
  ******************************************************************************/

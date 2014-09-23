@@ -3,6 +3,8 @@
 ## 1.3.0 - Sep 18, 2014
 * Support for identifier alias exports.
 * Support for with and try body lambdas.
+* Restricted bindings so that they may only be marked immutable if they have
+  not previously been mutated in any enclosed scope.
 
 ## 1.2.2 - Sep 9, 2014
 * Temp fix for translation stage blowing up call stack for large programs.

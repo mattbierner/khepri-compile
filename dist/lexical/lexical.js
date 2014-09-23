@@ -20,29 +20,30 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         setClosure = __o0["setClosure"],
         flip = __o1["flip"],
         foldl = __o1["foldl"],
+        map = __o1["map"],
         arrayDiff = __o1["arrayDiff"],
         splitOp = __o2["splitOp"],
         Scope = scope["Scope"],
-        x, y, x0, y0, x1, y1, x2, y2, visit, __args, actions, __args1, actions0, __args0, actions1, checkWith,
-            __args2, actions2, checkBlock, __args3, actions3, body, __args4, actions4, __args5, actions5,
-            __args6, actions6, __args8, actions7, __args7, actions8, body0, __args9, actions9, __args10,
-            actions10, __args11, actions11, __args12, actions12, __args13, actions13, bind, consequent,
-            alternate, __args14, actions14, __args15, actions15, __args16, actions16, __args17, actions17,
-            consequent0, alternate0, __args18, actions18, body1, __args19, actions19, __args20, actions20,
-            __args21, actions21, body2, __args22, actions22, body3, __args23, actions23, __args25, actions24,
-            __args24, actions25, body4, __args26, actions26, __args27, actions27, body5, __args28, actions28,
-            __args29, actions29, __args30, actions30, __args31, actions31, __args32, actions32, body6, __args33,
-            actions33, body7, __args34, actions34, __args36, actions35, __args35, actions36, body8, __args37,
-            actions37, __args38, actions38, body9, __args39, actions39, body10, __args40, actions40, __args41,
-            actions41, __args42, actions42, __args43, actions43, __args44, actions44, body12, body11, __args45,
-            actions45, __args46, actions46, consequent1, __args47, actions47, __args48, actions48, __args49,
-            actions49, __args50, actions50, __args51, actions51, __args52, actions52, __args53, actions53,
-            __args54, actions54, __args55, actions55, __args56, actions56, __args57, actions57, consequent2,
-            __args58, actions58, __args59, actions59, __args60, actions60, __args61, actions61, body13,
-            __args62, actions62, __args63, actions63, __args64, actions64, __args65, actions65, __args66,
-            actions66, __args67, actions67, __args68, actions68, __args69, actions69, __args70, actions70,
-            __args71, actions71, __args72, actions72, __args73, actions73, __args74, actions74, __args75,
-            actions75, _check, reserved = getUd.bind(null, "reserved"),
+        x, y, x0, y0, x1, y1, x2, y2, visit, createOp, __args, actions, __args1, actions0, __args0, actions1,
+            checkWith, __args2, actions2, checkBlock, __args3, actions3, body, __args4, actions4, __args5,
+            actions5, __args6, actions6, __args8, actions7, __args7, actions8, body0, __args9, actions9,
+            __args10, actions10, __args11, actions11, __args12, actions12, __args13, actions13, bind,
+            consequent, alternate, __args14, actions14, __args15, actions15, __args16, actions16, __args17,
+            actions17, consequent0, alternate0, __args18, actions18, body1, __args19, actions19, __args20,
+            actions20, __args21, actions21, body2, __args22, actions22, body3, __args23, actions23, __args25,
+            actions24, __args24, actions25, body4, __args26, actions26, __args27, actions27, body5, __args28,
+            actions28, __args29, actions29, __args30, actions30, __args31, actions31, __args32, actions32,
+            body6, __args33, actions33, body7, __args34, actions34, __args36, actions35, __args35, actions36,
+            body8, __args37, actions37, __args38, actions38, body9, __args39, actions39, body10, __args40,
+            actions40, __args41, actions41, __args42, actions42, __args43, actions43, __args44, actions44,
+            body12, body11, __args45, actions45, __args46, actions46, consequent1, __args47, actions47,
+            __args48, actions48, __args49, actions49, __args50, actions50, __args51, actions51, __args52,
+            actions52, __args53, actions53, __args54, actions54, __args55, actions55, __args56, actions56,
+            __args57, actions57, consequent2, __args58, actions58, __args59, actions59, __args60, actions60,
+            __args61, actions61, body13, __args62, actions62, __args63, actions63, __args64, actions64,
+            __args65, actions65, __args66, actions66, __args67, actions67, __args68, actions68, __args69,
+            actions69, __args70, actions70, __args71, actions71, __args72, actions72, __args73, actions73,
+            __args74, actions74, __args75, actions75, _check, reserved = getUd.bind(null, "reserved"),
         getStart = (function(y) {
             return (y && y.start);
         }),
@@ -135,13 +136,15 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
                 return (s.hasOwnBinding(id) ? (scope.hasTransMutableBinding(id, s) ? modifyScope(
                     scope.markBindingImmutable.bind(null, id)) : error(((((
                         "Cannot mark symbol:'" + id) + "' at:") + getStart(loc)) +
-                    " that was mutated in enclosed scope mutable"))) : error(((((
+                    " as it was mutated in an enclosed scope"))) : error(((((
                         "Cannot mark symbol:'" + id) + "' at:") + getStart(loc)) +
                     " immutable in enclosed scope")));
             }));
         }),
         markBindingMutable = (function(id, loc) {
-            return modifyScope(scope.markBindingMutable.bind(null, id));
+            return examineScope((function(s) {
+                return modifyScope(scope.markBindingMutable.bind(null, id, s.hasOwnBinding(id)));
+            }));
         }),
         addMutableBinding = (function(id, loc) {
             return seq(modifyScope(scope.addTransMutableBinding.bind(null, id, loc)), addUid(id));
@@ -161,14 +164,15 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         addStaticBindingChecked = (function(id, loc) {
             return seq(checkCanAddBinding(id, loc), addStaticBinding(id, loc));
         }),
-        splitUnary = (function(name) {
+        splitUnary = ((createOp = (function(__o3) {
+            var op = __o3[0],
+                uid = __o3[1];
+            return setUid(uid, ast_value.UnaryOperator.create(null, op));
+        })), (function(name) {
             return extractScope.map((function(s) {
-                return splitOp(name, scope.getOperators(s))
-                    .map((function(c) {
-                        return setUid(c[1], ast_value.UnaryOperator.create(null, c[0]));
-                    }));
+                return map(createOp, splitOp(name, scope.getOperators(s)));
             }));
-        }),
+        })),
         addOperator = (function(name, uid) {
             return modifyScope(scope.addOperator.bind(null, name, uid));
         }),

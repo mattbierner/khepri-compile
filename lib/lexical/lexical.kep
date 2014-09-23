@@ -30,6 +30,7 @@ with
     import '../fun' {
         flip
         foldl
+        map
         notContains
         arrayDiff},
     import '../user_operator' {splitOp},
@@ -219,21 +220,24 @@ var markBindingImmutable = \id loc ->
         ?s.hasOwnBinding id
             :?scope.hasTransMutableBinding(id, s)
                 :modifyScope (scope.markBindingImmutable @ id)
-                :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' that was mutated in enclosed scope mutable')
+                :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' as it was mutated in an enclosed scope')
         :error("Cannot mark symbol:'" + id + "' at:" + getStart loc + ' immutable in enclosed scope');
 
 /**
  * Mark existing binding for `id` as mutable.
  * 
  * When this takes place in an inner scope, the binding is locked into a mutable
- * state and cannot be declared immutable.
+ * state and cannot be declared immutable after this.
  */
 var markBindingMutable = \id loc ->
-    modifyScope (scope.markBindingMutable @ id);
+    examineScope \ s ->
+        modifyScope (scope.markBindingMutable@(id, s.hasOwnBinding id));
 
 /**
  * Add a new mutable binding in the current scope.
  * Does not perform any checks.
+ * 
+ * All mutable bindings are initially trans mutable.
  */
 var addMutableBinding = \id loc -> 
     seq(
@@ -286,12 +290,22 @@ var addStaticBindingChecked = \id loc ->
         checkCanAddBinding(id, loc),
         addStaticBinding(id, loc));
 
-var splitUnary = \name ->
-    extractScope.map \ s ->
-        splitOp(name, scope.getOperators(s))
-            .map \ c -> 
-                setUid(c.(1), ast_value.UnaryOperator.create(null, c.(0)));
+/**
+ * Split symbol `name` according to set of valid unary operators in current scope.
+ */
+var splitUnary = let
+    createOp = \[op uid] -> 
+        setUid(uid, ast_value.UnaryOperator.create(null, op))
+in
+    \name ->
+        extractScope.map \ s ->
+            map(
+                createOp,
+                splitOp(name, scope.getOperators(s)));
 
+/**
+ * Add a unary operator in the current scope
+ */
 var addOperator = \name uid-> 
     modifyScope (scope.addOperator@(name, uid));
 

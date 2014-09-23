@@ -69,14 +69,15 @@ var record = require("bes")["record"],
         });
     })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingImmutable(id, s.outer))));
 }));
-(markBindingMutable = (function(id, s) {
+(markBindingMutable = (function(id, keepTrans, s) {
     var f;
     return (s.hasOwnBinding(id) ? ((f = (function(binding) {
         return ({
             loc: binding.loc,
-            mutable: 2
+            mutable: ((keepTrans && (binding.mutable === 1)) ? 1 : 2)
         });
-    })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingMutable(id, s.outer))));
+    })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingMutable(id,
+        keepTrans, s.outer))));
 }));
 (getUid = (function(id, s) {
     return (s.hasOwnBinding(id) ? hamt.get(id, s.definitions) : (s.outer && getUid(id, s.outer)));
