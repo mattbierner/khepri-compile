@@ -11,8 +11,8 @@ define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], 
             "RegExp", "String", "SyntaxError", "TypeError", "undefined", "URIError"
         ],
         builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
-            "!==", "&", "^", "|", "||", "&&", "|>", "\\>", "\\>>", "<|", "<\\", "<<\\", "!", "++", "--", "~",
-            ".", "??", "@", "void", "instanceof", "typeof", "new"
+            "!==", "&", "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", "!", "++",
+            "--", "~", ".", "??", "@", "void", "instanceof", "typeof", "new"
         ],
         builtinUnaryOps = ["!", "++", "--", "~"];
     (check = (function(input) {

@@ -613,7 +613,9 @@ in seq(
             || operator === '<<\\'
             || operator === '??'
             || operator === '<|'
-            || operator === '|>'),
+            || operator === '|>'
+            || operator === '<<|'
+            || operator === '|>>'),
         
         extract \ {operator left right} -> seq(
             addGlobal(operator),

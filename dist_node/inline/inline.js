@@ -408,10 +408,11 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
         operator], [left, right0])), checkTop);
 }))), extract((function(node) {
     var operator;
-    return (((operator = node["operator"]), (((((((operator === "\\>") || (operator === "\\>>")) ||
-        (operator === "<\\")) || (operator === "<<\\")) || (operator ===
-        "??")) || (operator === "<|")) || (operator === "|>"))) ? consequent7 : (undefined ||
-        pass));
+    return (((operator = node["operator"]), (((((((((operator === "\\>") || (operator ===
+            "\\>>")) || (operator === "<\\")) || (operator ===
+            "<<\\")) || (operator === "??")) || (operator === "<|")) || (
+            operator === "|>")) || (operator === "<<|")) || (operator === "|>>"))) ?
+        consequent7 : (undefined || pass));
 }))))));
 addRewrite("AssignmentExpression", seq(((__args33 = ["right", checkTop]), (ops33 = [].slice.call(__args33, 1)), seq(
     moveChild("right"), seqa(ops33), up)), ((consequent8 = extract((function(__o6) {

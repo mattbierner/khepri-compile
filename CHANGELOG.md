@@ -5,6 +5,12 @@
 * Support for with and try body lambdas.
 * Restricted bindings so that they may only be marked immutable if they have
   not previously been mutated in any enclosed scope.
+* Better performance of slice unpacks.
+** For inlined functions with know args targets, results in no call overhead.
+* Added `<<|` and `|>>` to apply a function to an array of args.
+** `var (<<|) = \f args -> f.apply(null, args);`
+** `var (|>>) = \args f -> f.apply(null, args);`
+
 
 ## 1.2.2 - Sep 9, 2014
 * Temp fix for translation stage blowing up call stack for large programs.

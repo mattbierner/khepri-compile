@@ -208,6 +208,19 @@ in {
     registerBinary('|>', '__rpipe', flip pipe);
 }
 
+// PipeN
+with
+    pipe = \callee arg ->
+         ast_expression.CallExpression.create(null,
+             ast_expression.MemberExpression.create(null,
+                 callee,
+                 identifier 'apply'),
+             [ast_value.Literal.create(null, 'null'), arg])
+in {
+    registerBinary('<<|', '__pipen', pipe);
+    registerBinary('|>>', '__rpipen', flip pipe);
+}
+
 // Compose
 with
     singleCompose = \f g -> 
@@ -239,7 +252,7 @@ with
                     ast_expression.CallExpression.create(null,
                          ast_expression.MemberExpression.create(null,
                              g,
-                             identifier('apply')),
+                             identifier 'apply'),
                          [ast_value.Literal.create(null, 'null'),
                          args])]))
          |> setLocals @ [getUid args]

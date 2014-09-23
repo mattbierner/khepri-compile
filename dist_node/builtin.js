@@ -137,6 +137,12 @@ var pipe = (function(callee, arg) {
 });
 registerBinary("<|", "__pipe", pipe);
 registerBinary("|>", "__rpipe", flip(pipe));
+var pipe0 = (function(callee, arg) {
+    return ast_expression.CallExpression.create(null, ast_expression.MemberExpression.create(null, callee, setUid(
+        undefined, ast_value.Identifier.create(null, "apply"))), [ast_value.Literal.create(null, "null"), arg]);
+});
+registerBinary("<<|", "__pipen", pipe0);
+registerBinary("|>>", "__rpipen", flip(pipe0));
 var singleCompose = (function(f, g) {
     var uid9 = unique(),
         xArg2 = setUid(uid9, ast_value.Identifier.create(null, "z"));
