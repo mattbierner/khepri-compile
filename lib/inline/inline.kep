@@ -44,7 +44,9 @@ with
         flattenr
         flatten
         foldl
-        concat},
+        concat
+        map
+        range},
     
     import './state' state#{State},
     import './expand' {
@@ -450,7 +452,7 @@ addRewrite@'VariableDeclarator' <| seq(
  */
 addRewrite@'Binding' <| seq(
     visitChild 'value',
-    
+    extract \ -> pass,
     /**
      * Register bound values.
      */
@@ -822,8 +824,29 @@ addRewrite@'LetExpression' <| seq(
         
         modify (.body)));
 
+addRewrite@'SliceUnpack' <| seq(
+    visitChild 'target',
+    
+    /**
+     * Inline slices on array expressions.
+     */
+    when(.target \> getUid,
+        extract \ node ->
+            getBinding(getUid node.target).chain \ binding ->
+                ?binding && binding.value && type binding.value  === 'ArrayExpression'
+                    :modify \ {target from to} ->
+                        ast_expression.ArrayExpression.create(null,
+                            map(
+                                \i ->
+                                    ast_expression.MemberExpression.create(null,
+                                        target,
+                                        ast_value.Literal.create(null, 'number', i),
+                                        true),
+                                range(from, binding.value.elements.length - to)))
+                    :pass));
+
 // Pattern
-addRewrite@['SliceUnpack', 'RelativeUnpack'] <|
+addRewrite@['RelativeUnpack'] <|
     visitChild 'target';
 
 addRewrite@'ArgumentsPattern' <| seq(

@@ -37,7 +37,7 @@ exports.setting_mutable_to_immutable_cannot_set_after = function(test) {
     test.done();
 };
 
-exports.setting_mutable_to_immutable_must_be_in_block = function(test) {
+exports.setting_mutable_to_immutable_must_be_same_block = function(test) {
     test.equal(
         run("var a = 10; a := 3; a;"),
         3);

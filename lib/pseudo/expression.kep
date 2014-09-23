@@ -20,5 +20,4 @@ CheckedMemberExpression = defineNode(Expression, 'CheckedMemberExpression',
         self.computed = !!computed;
     });
 
-
 }

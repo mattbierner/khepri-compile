@@ -130,14 +130,6 @@ Scope.prototype.getUnusedId := \id =self-> {
             return id + i;
 };
 
-/**
- * Create a new modified scope with a given binding.
- * 
- * @param s Scope.
- * @param id Identifier for new binding.
- * @param loc Binding location.
- * @param mutable Binding mutability.
- */
 var addBinding := \s id loc mutable -> 
     s.setRecord <|
         hamt.set(id, {

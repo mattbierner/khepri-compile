@@ -4,8 +4,8 @@
 */
 define(["require", "exports"], (function(require, exports) {
     "use strict";
-    var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, forEach, map, flatten,
-            flattenr, contains, notContains, arrayDiff;
+    var id, constant, flip, isArray, reduce, reduceRight, foldl, foldr, concat, filter, forEach, map, range,
+            flatten, flattenr, contains, notContains, arrayDiff;
     (id = (function(x) {
         return x;
     }));
@@ -53,6 +53,13 @@ define(["require", "exports"], (function(require, exports) {
     (arrayDiff = (function(x, y) {
         return x.filter(notContains.bind(null, y));
     }));
+    (range = (function(from, to) {
+        var out = [];
+        for (var i = from;
+            (i < to);
+            (i = (i + 1))) out.push(i);
+        return out;
+    }));
     (exports["id"] = id);
     (exports["constant"] = constant);
     (exports["flip"] = flip);
@@ -65,6 +72,7 @@ define(["require", "exports"], (function(require, exports) {
     (exports["filter"] = filter);
     (exports["forEach"] = forEach);
     (exports["map"] = map);
+    (exports["range"] = range);
     (exports["flatten"] = flatten);
     (exports["flattenr"] = flattenr);
     (exports["contains"] = contains);

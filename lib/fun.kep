@@ -19,6 +19,8 @@ package (
     forEach
     map
     
+    range
+    
     flatten
     flattenr
     
@@ -99,4 +101,12 @@ notContains := (!) <<\ contains;
 arrayDiff := \x y ->
     x.filter (notContains @ y);
 
+/* Array Gen
+ ******************************************************************************/
+range := \from to -> {
+    var out = [];
+    for (var i = from; i < to; i = i + 1)
+        out.push i;
+    return out;
+};
 }
