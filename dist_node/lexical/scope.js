@@ -39,45 +39,48 @@ var record = require("bes")["record"],
         if ((!((id0 = (id + i)), (self.hasOwnBinding(id0) || (self.outer && hasBinding(id0, self.outer))))))
             return (id + i);
 }));
+var modifyBinding = (function(f, id, s) {
+    return (s.hasOwnBinding(id) ? s.setRecord(hamt.modify(id, f, s.record)) : (s.outer && s.setOuter(modifyBinding(
+        f, id, s.outer))));
+});
 (addMutableBinding = (function(id, loc, s) {
-    var info = ({
+    return s.setRecord(hamt.set(id, ({
         mutable: 2,
         loc: loc
-    });
-    return s.setRecord(hamt.set(id, info, s.record));
+    }), s.record));
 }));
 (addImmutableBinding = (function(id, loc, s) {
-    var info = ({
+    return s.setRecord(hamt.set(id, ({
         mutable: 0,
         loc: loc
-    });
-    return s.setRecord(hamt.set(id, info, s.record));
+    }), s.record));
 }));
 (addTransMutableBinding = (function(id, loc, s) {
-    var info = ({
+    return s.setRecord(hamt.set(id, ({
         mutable: 1,
         loc: loc
-    });
-    return s.setRecord(hamt.set(id, info, s.record));
+    }), s.record));
 }));
+var f = (function(__o) {
+    var loc = __o["loc"];
+    return ({
+        loc: loc,
+        mutable: 0
+    });
+});
 (markBindingImmutable = (function(id, s) {
-    var f;
-    return (s.hasOwnBinding(id) ? ((f = (function(binding) {
-        return ({
-            loc: binding.loc,
-            mutable: 0
-        });
-    })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingImmutable(id, s.outer))));
+    return (s.hasOwnBinding(id) ? s.setRecord(hamt.modify(id, f, s.record)) : (s.outer && s.setOuter(
+        modifyBinding(f, id, s.outer))));
 }));
 (markBindingMutable = (function(id, keepTrans, s) {
-    var f;
-    return (s.hasOwnBinding(id) ? ((f = (function(binding) {
+    var f0 = (function(binding) {
         return ({
             loc: binding.loc,
             mutable: ((keepTrans && (binding.mutable === 1)) ? 1 : 2)
         });
-    })), s.setRecord(hamt.modify(id, f, s.record))) : (s.outer && s.setOuter(markBindingMutable(id,
-        keepTrans, s.outer))));
+    });
+    return (s.hasOwnBinding(id) ? s.setRecord(hamt.modify(id, f0, s.record)) : (s.outer && s.setOuter(
+        modifyBinding(f0, id, s.outer))));
 }));
 (getUid = (function(id, s) {
     return (s.hasOwnBinding(id) ? hamt.get(id, s.definitions) : (s.outer && getUid(id, s.outer)));
@@ -101,14 +104,14 @@ var record = require("bes")["record"],
     return s.setMapping(hamt.set(from, to, s.mapping));
 }));
 (addVar = (function(id, uid, s) {
-    var info, name, info0, s0;
-    return (s.hasMapping(uid) ? ((info = ({
+    var name, s0;
+    return (s.hasMapping(uid) ? s.setRecord(hamt.set(id, ({
         mutable: 2,
         loc: null
-    })), s.setRecord(hamt.set(id, info, s.record))) : ((name = s.getUnusedId(id)), (info0 = ({
+    }), s.record)) : ((name = s.getUnusedId(id)), (s0 = s.setRecord(hamt.set(name, ({
         mutable: 2,
         loc: null
-    })), (s0 = s.setRecord(hamt.set(name, info0, s.record))), s0.setMapping(hamt.set(uid, name, s0.mapping))));
+    }), s.record))), s0.setMapping(hamt.set(uid, name, s0.mapping))));
 }));
 var y = hamt.keys;
 (getLocals = (function(z) {

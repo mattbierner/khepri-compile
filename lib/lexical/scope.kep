@@ -144,7 +144,7 @@ var modifyOwnBinding := \s id f->
 var modifyBinding := \f id s ->
     ?s.hasOwnBinding id
         :modifyOwnBinding(s, id, f)
-        :(s.outer && s.setOuter(modifyBiding(f, id, s.outer)));
+        :(s.outer && s.setOuter(modifyBinding(f, id, s.outer)));
 
 /**
  * Added a mutable binding for `id` declared at `loc` to `s`.
