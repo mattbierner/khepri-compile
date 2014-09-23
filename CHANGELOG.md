@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 1.3.0 - Sep 18, 2014
+## 1.3.0 - Sep 22, 2014
 * Support for identifier alias exports.
 * Support for with and try body lambdas.
 * Restricted bindings so that they may only be marked immutable if they have
