@@ -536,7 +536,7 @@ var x27 = addRewrite.bind(null, "MemberExpression"),
             isNumberish(node.property)) ? consequent14 : (undefined || pass));
     }))));
 x27(y27);
-var x28 = addRewrite.bind(null, "NewExpression"),
+var x28 = addRewrite.bind(null, ["NewExpression", "ApplyExpression"]),
     y28 = seq(((__args41 = ["callee", checkTop]), (ops41 = [__args41[1]]), seq(moveChild("callee"), seqa(ops41), up)), (
         (__args42 = ["args", checkTop]), (ops42 = [__args42[1]]), seq(moveChild("args"), seqa(ops42), up)));
 x28(y28);

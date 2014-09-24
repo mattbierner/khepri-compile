@@ -712,7 +712,7 @@ addRewrite@'MemberExpression' <| seq(
                 :ast_value.Literal.create(null, 'string', str.(idx))
                 :builtins.undefined));
 
-addRewrite@'NewExpression' <| seq(
+addRewrite@['NewExpression', 'ApplyExpression'] <| seq(
     visitChild 'callee',
     visitChild 'args');
 
@@ -863,7 +863,7 @@ addRewrite@'IdentifierPattern' <|
             null,
             true);
 
-// Value
+// Values
 addRewrite@'ArrayExpression' <|
     visitChild 'elements';
 

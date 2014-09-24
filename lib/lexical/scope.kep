@@ -114,9 +114,7 @@ in
  */
 Scope.prototype.getBinding := \id =self->
     (  hamt.get(id, self.record)
-    || ?self.outer
-        :self.outer.getBinding(id)
-        :null);
+    || self.outer??.getBinding(id));
 
 /**
  * Get an unused identifier in this scope.
@@ -130,16 +128,16 @@ Scope.prototype.getUnusedId := \id =self-> {
             return id + i;
 };
 
-var addBinding := \s id loc mutable -> 
-    s.setRecord <|
+var addBinding := \s id loc mutable ->
+    s.setRecord(
         hamt.set(id, {
             mutable: mutable,
             loc: loc
-        }, s.record);
+        }, s.record));
 
 var modifyOwnBinding := \s id f-> 
-    s.setRecord <|
-        hamt.modify(id, f, s.record);
+    s.setRecord(
+        hamt.modify(id, f, s.record));
 
 var modifyBinding := \f id s ->
     ?s.hasOwnBinding id
@@ -191,7 +189,7 @@ markBindingImmutable := modifyBinding @ \ {loc} -> ({
  * Mark an existing binding for `id` immutable in scope `s`.
  * 
  * @param id
- * @param keepTrans If the existing binding is tran, should this be preserved?
+ * @param keepTrans If the existing binding is trans, should this be preserved?
  * @param s
  */
 markBindingMutable := \id keepTrans s ->
@@ -258,8 +256,8 @@ getMapping := \id s ->
  * @param s Scope
  */
 addMapping := \from to s ->
-    s.setMapping <|
-        hamt.set(from, to, s.mapping);
+    s.setMapping(
+        hamt.set(from, to, s.mapping));
 
 /**
  * Add a new identifier to scope `s`.
@@ -296,8 +294,8 @@ getClosure := .closure \> hamt.keys;
 
 addRef := \uid s ->
     ?uid
-        :s.setClosure <|
-            hamt.set(uid, null, s.closure)
+        :s.setClosure(
+            hamt.set(uid, null, s.closure))
         :s;
 
 
@@ -331,8 +329,8 @@ in
 /* Operator Operations
  ******************************************************************************/
 addOperator := \name uid s ->
-    s.setPrefixOps <|
-        hamt.set(name, uid, s.prefixOps);
+    s.setPrefixOps(
+        hamt.set(name, uid, s.prefixOps));
 
 getOperators := .prefixOps \> hamt.pairs;
 

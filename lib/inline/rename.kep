@@ -35,7 +35,6 @@ var prefixClosure = \node prefix list ->
 getLocals := \node prefix ->
      getNodeLocals(node).map(prefixUid @ prefix);
 
-
 /*
  ******************************************************************************/
 /**

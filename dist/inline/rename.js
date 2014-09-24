@@ -27,21 +27,25 @@ define(["require", "exports", "khepri-ast-zipper", "neith/walk", "neith/tree", "
             }));
     }));
     (rename = (function(prefix, list, root) {
-        return tree.node(preWalk((function(ctx) {
-            var node = tree.node(ctx),
-                uid = getUid(node);
-            return (contains(list, uid) ? tree.setNode(setUid(((prefix + "-") + uid), node),
-                ctx) : ((type(node) === "FunctionExpression") ? tree.setNode(
-                prefixClosure(node, prefix, list), ctx) : ctx));
-        }), khepriZipper(root)));
+        var x = tree.node,
+            y = preWalk((function(ctx) {
+                var node = tree.node(ctx),
+                    uid = getUid(node);
+                return (contains(list, uid) ? tree.setNode(setUid(((prefix + "-") + uid), node),
+                    ctx) : ((type(node) === "FunctionExpression") ? tree.setNode(
+                    prefixClosure(node, prefix, list), ctx) : ctx));
+            }), khepriZipper(root));
+        return x(y);
     }));
     (incCount = (function(target, count, value, root) {
-        return tree.node(preWalk((function(ctx) {
-            var node = tree.node(ctx),
-                uid = getUid(node);
-            return ((target === uid) ? tree.setNode(incrementCount(node, count, value), ctx) :
-                ctx);
-        }), khepriZipper(root)));
+        var x = tree.node,
+            y = preWalk((function(ctx) {
+                var node = tree.node(ctx),
+                    uid = getUid(node);
+                return ((target === uid) ? tree.setNode(incrementCount(node, count, value), ctx) :
+                    ctx);
+            }), khepriZipper(root));
+        return x(y);
     }));
     (exports["rename"] = rename);
     (exports["incCount"] = incCount);

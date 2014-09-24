@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.3.2 - Sep 23, 2014
+* Fixed bug causing Application expression to not be rewritten correctly.
+
 ## 1.3.1 - Sep 23, 2014
 * Fixed immutable assignments in chained assignment statements not propagating
   immutablity correctly, and therefore not taking full advantage of constant propagating.

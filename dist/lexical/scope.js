@@ -29,8 +29,8 @@ define(["require", "exports", "bes/record", "hamt"], (function(require, exports,
         return ((binding && binding.mutable) === 1);
     }));
     (Scope.prototype.getBinding = (function(id) {
-        var self = this;
-        return (hamt.get(id, self.record) || (self.outer ? self.outer.getBinding(id) : null));
+        var x, self = this;
+        return (hamt.get(id, self.record) || ((x = self.outer), (x && x.getBinding(id))));
     }));
     (Scope.prototype.getUnusedId = (function(id) {
         var self = this,
