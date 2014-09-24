@@ -43,3 +43,19 @@ exports.reverse_pipe = function(test) {
     
     test.done();
 };
+
+exports.pipen = function(test) {
+    test.equal(
+        testParser("var args := \\...args -> args.length; args <<| [];"),
+        0);
+    
+    test.equal(
+        testParser("var args := \\...args -> args.length; args <<| [1, 2];"),
+        2);
+    
+     test.equal(
+        testParser("var args := \\...args -> args.length; var x = [1, 2]; args <<| x;"),
+        2);
+    
+    test.done();
+};

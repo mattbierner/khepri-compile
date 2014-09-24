@@ -3,12 +3,17 @@
  * DO NOT EDIT
 */
 "use strict";
-var StateM = require("akh")["state"],
-    TreeZipperT = require("zipper-m")["trans"]["tree"],
-    ReachableMonad, runReachable;
-(ReachableMonad = TreeZipperT(StateM));
-(runReachable = (function(state, c, ctx) {
-    return StateM.evalState(TreeZipperT.runTreeZipperT(c, ctx), state);
-}));
-(exports["ReachableMonad"] = ReachableMonad);
-(exports["runReachable"] = runReachable);
+var Identity = require("akh")["identity"],
+    StateT = require("akh")["trans"]["state"],
+    state = require("./state"),
+    Reachable, ReachableMonad = (function(Instance) {
+        (Instance.addReference = (function(uid) {
+            return (uid ? Instance.modify(state.addReference.bind(null, uid)) : Instance.of(null));
+        }));
+        (Instance.isReachable = (function(uid) {
+            return Instance.get.map(state.isReachable.bind(null, uid));
+        }));
+        return Instance;
+    });
+(Reachable = ReachableMonad(StateT(Identity)));
+(module.exports = Reachable);

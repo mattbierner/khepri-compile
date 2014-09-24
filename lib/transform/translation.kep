@@ -18,6 +18,7 @@ package (
     conditionalExpression
     newExpression
     callExpression
+    applyExpression
     memberExpression
     checkedMemberExpression
     arrayExpression
@@ -146,18 +147,12 @@ program := \bindings node ->
 
 /* Expressions
  ******************************************************************************/
-/**
- * 
- */
 assignmentExpression := \node ->
     ecma_expression.AssignmentExpression.create(node.loc,
         '=',
         node.left,
         node.right);
 
-/**
- * 
- */
 unaryExpression := let
     mapOp := \op -> {
         switch (op) {
@@ -172,61 +167,47 @@ in
             mapOp(node.operator),
             node.argument);
 
-/**
- * 
- */
 binaryExpression := \node ->
     ecma_expression.BinaryExpression.create(node.loc,
         node.operator,
         node.left,
         node.right);
 
-/**
- * 
- */
 logicalExpression := \node ->
     ecma_expression.LogicalExpression.create(node.loc,
         node.operator,
         node.left,
         node.right);
 
-/**
- * 
- */
 conditionalExpression := \node ->
     ecma_expression.ConditionalExpression.create(node.loc,
         node.test,
         node.consequent,
         node.alternate);
 
-/**
- * 
- */
 newExpression := \ node ->
     ecma_expression.NewExpression.create(node.loc,
         node.callee,
         node.args);
 
-/**
- * 
- */
 callExpression := \node ->
     ecma_expression.CallExpression.create(node.loc,
         node.callee,
         node.args);
 
-/**
- * 
- */
+applyExpression := \{callee args} ->
+    ecma_expression.CallExpression.create(null,
+        ecma_expression.MemberExpression.create(null,
+             callee,
+             identifier(null, 'apply')),
+         [ecma_value.Literal.create(null, 'null'), args]);
+
 memberExpression := \node ->
     ecma_expression.MemberExpression.create(node.loc,
         node.object,
         node.property,
         node.computed);
 
-/**
- * 
- */
 checkedMemberExpression := \node -> let
     id = node.id
 in
@@ -237,18 +218,12 @@ in
             node.property,
             node.computed));
 
-/**
- * Let expression translation.
- */
 letExpression = \node ->
     ecma_expression.SequenceExpression.create(node.loc,
         flatten concat(
             map(unpackAssign, node.bindings),
             node.body));
 
-/**
- * Curry expression translation.
- */
 curryExpression = \node ->
     ecma_expression.CallExpression.create(node.loc,
         ecma_expression.MemberExpression.create(null,

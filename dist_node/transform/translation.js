@@ -19,8 +19,8 @@ var ecma_clause = require("ecma-ast")["clause"],
     fun = require("../fun"),
     __o0 = require("./unpack"),
     useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression, unaryExpression,
-        binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, memberExpression,
-        checkedMemberExpression, arrayExpression, objectExpression, objectValue, functionExpression,
+        binaryExpression, logicalExpression, conditionalExpression, newExpression, callExpression, applyExpression,
+        memberExpression, checkedMemberExpression, arrayExpression, objectExpression, objectValue, functionExpression,
         functionExpressionPost, explicitClosure, letExpression, curryExpression, catchClause, switchCase,
         emptyStatement, blockStatement, withStatement, expressionStatement, returnStatement, throwStatement,
         breakStatement, continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
@@ -98,6 +98,12 @@ var mapOp = (function(op) {
 (callExpression = (function(node) {
     return ecma_expression.CallExpression.create(node.loc, node.callee, node.args);
 }));
+(applyExpression = (function(__o1) {
+    var callee = __o1["callee"],
+        args = __o1["args"];
+    return ecma_expression.CallExpression.create(null, ecma_expression.MemberExpression.create(null, callee,
+        identifier(null, "apply")), [ecma_value.Literal.create(null, "null"), args]);
+}));
 (memberExpression = (function(node) {
     return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
 }));
@@ -116,8 +122,9 @@ var mapOp = (function(op) {
 }));
 (functionExpression = (function(loc, id, parameters, functionBody, prefix) {
     var params = parameters.elements,
-        bindings = map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(
-            null))),
+        x0 = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null)),
+        y2 = map.bind(null, bindingToDeclarator),
+        bindings = y2(x0),
         body = ((type(functionBody) === "BlockStatement") ? functionBody.body : khepri_statement.ReturnStatement
             .create(null, functionBody));
     return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
@@ -226,6 +233,7 @@ var filterImports = filter.bind(null, (function(z) {
 (exports["conditionalExpression"] = conditionalExpression);
 (exports["newExpression"] = newExpression);
 (exports["callExpression"] = callExpression);
+(exports["applyExpression"] = applyExpression);
 (exports["memberExpression"] = memberExpression);
 (exports["checkedMemberExpression"] = checkedMemberExpression);
 (exports["arrayExpression"] = arrayExpression);

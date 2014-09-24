@@ -11,7 +11,9 @@ with
     import 'khepri-ast::node' {modify},
     import 'khepri-ast::pattern' ast_pattern,
     import 'khepri-ast::value' ast_value,
-
+    
+    import './pseudo/expression' {ApplyExpression},
+    
     import './ast' {
         type
         setUd
@@ -210,12 +212,7 @@ in {
 
 // PipeN
 with
-    pipe = \callee arg ->
-         ast_expression.CallExpression.create(null,
-             ast_expression.MemberExpression.create(null,
-                 callee,
-                 identifier 'apply'),
-             [ast_value.Literal.create(null, 'null'), arg])
+    pipe = ApplyExpression.create @ null
 in {
     registerBinary('<<|', '__pipen', pipe);
     registerBinary('|>>', '__rpipen', flip pipe);
@@ -248,13 +245,7 @@ with
                 [],
                 null),
             ast_expression.CallExpression.create(null,
-                f, [
-                    ast_expression.CallExpression.create(null,
-                         ast_expression.MemberExpression.create(null,
-                             g,
-                             identifier 'apply'),
-                         [ast_value.Literal.create(null, 'null'),
-                         args])]))
+                f, [ApplyExpression.create(null, g, args)]))
          |> setLocals @ [getUid args]
 in {
     registerBinary('<<\\', '__composen', multiCompose);

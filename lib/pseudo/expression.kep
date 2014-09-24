@@ -1,8 +1,6 @@
-/**
- * @fileOverview
- */
 package (
-    CheckedMemberExpression)
+    CheckedMemberExpression
+    ApplyExpression)
 with
     import 'khepri-ast::node'{defineNode Node},
     import 'khepri-ast::expression' {Expression}
@@ -18,6 +16,15 @@ CheckedMemberExpression = defineNode(Expression, 'CheckedMemberExpression',
         self.property = property;
         self.id = id;
         self.computed = !!computed;
+    });
+
+ApplyExpression = defineNode(Expression, 'ApplyExpression',
+    ['callee', 'args'],
+    [],
+    function \loc callee args =self-> {
+        Node.call(self, loc);
+        self.callee = callee;
+        self.args = args;
     });
 
 }

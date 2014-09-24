@@ -331,6 +331,11 @@ addTransform@'CallExpression' <| seq(
     rewriteChild 'args',
     modify (translate.callExpression));
 
+addTransform@'ApplyExpression' <| seq(
+    rewriteChild 'callee',
+    rewriteChild 'args',
+    modify (translate.applyExpression));
+
 addTransform@'MemberExpression' <| seq(
     rewriteChild 'object',
     rewriteChild 'property',

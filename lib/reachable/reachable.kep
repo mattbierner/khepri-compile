@@ -13,6 +13,9 @@ with
     import 'akh::base' {
         'sequence': seq
         sequencea},
+    import 'akh::state' StateM,
+
+    import 'zipper-m::trans::tree' TreeZipperT,
     
     import '../fun' {
         flip
@@ -22,18 +25,25 @@ with
         getUd
         getUid},
     
-    import './state' state,
-    import './m' {'ReachableMonad'#M runReachable}
+    import './state' {Empty},
+    import './m' Reachable
 in {
 
 var _check; // forward
 
 var isReserved := getUd @ 'reserved';
 
-var run = runReachable @ state.Empty;
+var runReachable := \state c ctx ->
+    StateM.evalState(
+        TreeZipperT.runTreeZipperT(c, ctx),
+        state);
+
+var run = runReachable @ Empty;
 
 /* Operations
  ******************************************************************************/
+var M =  TreeZipperT (Reachable);
+
 var pass = M.of null;
 
 // Movement
@@ -73,40 +83,25 @@ var when := \test consequent alternate ->
             :consequent
             :(alternate || pass);
 
-// State Operations
-////////////////////////////////////////
-var getState := M.lift (M.inner.get);
-
-var modifyState := M.lift <\ M.inner.modify;
-
 // Bindings Operations
 ////////////////////////////////////////
 /**
  * Increment the reference count for `uid`.
  */
-var addReference = \uid ->
-    ?uid
-        :modifyState (state.addReference @ uid)
-        :pass;
-
-/**
- * Get the reference count for `uid`.
- */
-var getCount = \uid ->
-    getState.map (state.GetCount @ uid);
+var addReference := M.lift <\ M.inner.addReference;
 
 /**
  * If `uid` is reacahble (reference count > 0), execute `yes`. Otherwise do `no`.
  */
-var isReachable = \test yes no ->
+var isReachable := \test yes no ->
     test.chain \ uid ->
-        getState.chain \ s ->
-            ?state.isReachable(uid, s) : yes : no;
+        M.lift(M.inner.isReachable(uid)).chain \ reachable ->
+            ?reachable : yes : no;
 
 /**
- * Remove a binding
+ * Remove a binding.
  */
-var removeBinding = set [];
+var removeBinding := set [];
 
 // Check Operations
 ////////////////////////////////////////
@@ -240,11 +235,7 @@ addRewrite@'FunctionExpression' <| seq(
 addRewrite@'UnaryExpression' <|
     visitChild 'argument';
 
-addRewrite@'BinaryExpression' <| seq(
-    visitChild 'left',
-    visitChild 'right');
-
-addRewrite@'AssignmentExpression' <| seq(
+addRewrite@['BinaryExpression', 'AssignmentExpression'] <| seq(
     visitChild 'left',
     visitChild 'right');
 
@@ -253,11 +244,7 @@ addRewrite@['MemberExpression', 'CheckedMemberExpression'] <| seq(
     when((.computed),
         visitChild 'property'));
 
-addRewrite@'NewExpression' <| seq(
-    visitChild 'callee',
-    visitChild 'args');
-
-addRewrite@'CallExpression' <| seq(
+addRewrite@['CallExpression', 'NewExpression', 'ApplyExpression'] <| seq(
     visitChild 'callee',
     visitChild 'args');
 

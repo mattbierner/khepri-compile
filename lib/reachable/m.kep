@@ -1,17 +1,33 @@
-package (
-    ReachableMonad
-    runReachable)
+package Reachable
 with
-    import 'akh::state' StateM,
+    import 'akh::identity' Identity,
+    import 'akh::trans::state' StateT,
 
-    import 'zipper-m::trans::tree' TreeZipperT
+    import './state' state
 in {
 
-ReachableMonad := TreeZipperT (StateM);
+var ReachableMonad := \Instance -> {
+    /**
+     * Increment the reference count for `uid`.
+     */
+    Instance.addReference = \uid ->
+        ?uid
+            :Instance.modify (state.addReference @ uid)
+            :Instance.of null;
 
-runReachable := \state c ctx ->
-    StateM.evalState(
-        TreeZipperT.runTreeZipperT(c, ctx),
-        state);
+    /**
+     * Is uid reachable?
+     */
+    Instance.isReachable = \uid ->
+        Instance.get.map (state.isReachable @ uid);
+    
+    return Instance;
+};
+
+/**
+ * 
+ */
+Reachable := ReachableMonad (StateT Identity);
+
 
 }

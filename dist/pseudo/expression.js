@@ -4,7 +4,7 @@
 */
 define(["require", "exports", "khepri-ast/node", "khepri-ast/expression"], (function(require, exports, __o, __o0) {
     "use strict";
-    var CheckedMemberExpression, defineNode = __o["defineNode"],
+    var CheckedMemberExpression, ApplyExpression, defineNode = __o["defineNode"],
         Node = __o["Node"],
         Expression = __o0["Expression"];
     (CheckedMemberExpression = defineNode(Expression, "CheckedMemberExpression", ["object", "property", "id"], [
@@ -17,5 +17,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression"], (func
         (self.id = id);
         (self.computed = (!(!computed)));
     })));
+    (ApplyExpression = defineNode(Expression, "ApplyExpression", ["callee", "args"], [], (function(loc, callee,
+        args) {
+        var self = this;
+        Node.call(self, loc);
+        (self.callee = callee);
+        (self.args = args);
+    })));
     (exports["CheckedMemberExpression"] = CheckedMemberExpression);
+    (exports["ApplyExpression"] = ApplyExpression);
 }));

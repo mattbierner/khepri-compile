@@ -5,7 +5,7 @@
 "use strict";
 var __o = require("khepri-ast")["node"],
     __o0 = require("khepri-ast")["expression"],
-    CheckedMemberExpression, defineNode = __o["defineNode"],
+    CheckedMemberExpression, ApplyExpression, defineNode = __o["defineNode"],
     Node = __o["Node"],
     Expression = __o0["Expression"];
 (CheckedMemberExpression = defineNode(Expression, "CheckedMemberExpression", ["object", "property", "id"], ["computed"], (
@@ -17,4 +17,11 @@ var __o = require("khepri-ast")["node"],
         (self.id = id);
         (self.computed = (!(!computed)));
     })));
+(ApplyExpression = defineNode(Expression, "ApplyExpression", ["callee", "args"], [], (function(loc, callee, args) {
+    var self = this;
+    Node.call(self, loc);
+    (self.callee = callee);
+    (self.args = args);
+})));
 (exports["CheckedMemberExpression"] = CheckedMemberExpression);
+(exports["ApplyExpression"] = ApplyExpression);
