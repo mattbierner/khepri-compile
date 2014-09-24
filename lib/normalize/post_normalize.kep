@@ -177,7 +177,9 @@ var expandAssignment := \node ->
                 right,
                 ast_expression.AssignmentExpression.create(null,
                     node.left,
-                    right.(right.length - 1).left))
+                    right.(right.length - 1).left,
+                    node.immutable,
+                    node.recursive))
         :[node];
 
 /**

@@ -86,8 +86,8 @@ isNumberish = \node ->
  * Is a node a primitive value?
  */
 isPrimitive = \node ->
-    isLiteral node && (
-        node.kind === 'string'
+    isLiteral node &&
+        (  node.kind === 'string'
         || node.kind === 'number'
         || node.kind === 'boolean'
         || node.kind === 'null');

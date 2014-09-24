@@ -305,7 +305,7 @@ var putWorkingForNode = \id value ->
 
 var setWorkingForNode = \id value ->
     getBinding(getUid id).chain \ binding ->
-        ?binding && binding.value
+        ?binding
             :addWorkingForNode(id, value)
             :invalidateWorking(getUid id);
 

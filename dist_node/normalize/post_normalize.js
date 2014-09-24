@@ -101,7 +101,8 @@ peepholes.add("UnaryExpression", DOWN, (function(z) {
 var expandAssignment = (function(node) {
     var right;
     return ((type(node.right) === "AssignmentExpression") ? ((right = expandAssignment(node.right)), concat(right,
-        ast_expression.AssignmentExpression.create(null, node.left, right[(right.length - 1)].left))) : [node]);
+        ast_expression.AssignmentExpression.create(null, node.left, right[(right.length - 1)].left, node.immutable,
+            node.recursive))) : [node]);
 });
 peepholes.add("ExpressionStatement", UP, (function(z) {
     var z0 = z.expression,
@@ -112,7 +113,7 @@ peepholes.add("ExpressionStatement", UP, (function(z) {
     var right, z0 = z.expression,
         z1 = ((type(z0.right) === "AssignmentExpression") ? ((right = expandAssignment(z0.right)), concat(
             right, ast_expression.AssignmentExpression.create(null, z0.left, right[(right.length -
-                1)].left))) : [z0]),
+                1)].left, z0.immutable, z0.recursive))) : [z0]),
         z2 = flattenr(z1);
     return y(x(z2));
 })));

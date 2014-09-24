@@ -96,7 +96,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         var right;
         return ((type(node.right) === "AssignmentExpression") ? ((right = expandAssignment(node.right)),
             concat(right, ast_expression.AssignmentExpression.create(null, node.left, right[(right.length -
-                1)].left))) : [node]);
+                1)].left, node.immutable, node.recursive))) : [node]);
     });
     peepholes.add("ExpressionStatement", UP, (function(z) {
         var z0 = z.expression,
@@ -107,7 +107,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/expression", "khepr
         var right, z0 = z.expression,
             z1 = ((type(z0.right) === "AssignmentExpression") ? ((right = expandAssignment(z0.right)),
                 concat(right, ast_expression.AssignmentExpression.create(null, z0.left, right[(
-                    right.length - 1)].left))) : [z0]),
+                    right.length - 1)].left, z0.immutable, z0.recursive))) : [z0]),
             z2 = flattenr(z1);
         return y(x(z2));
     })));
