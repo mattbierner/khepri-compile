@@ -20,9 +20,10 @@ var record = require("bes")["record"],
 (mergeExpansions = (function(val, other) {
     var expansion;
     return ((getExpansion(other) && getExpansion(val)) ? ((expansion = Expansion.create(Math.max(getExpansion(
-            val)
-        .count, getExpansion(other)
-        .count))), setData(val, "expand", expansion)) : val);
+                val)
+            .count, getExpansion(other)
+            .count), getExpansion(val)
+        .value)), setData(val, "expand", expansion)) : val);
 }));
 (incrementCount = (function(node, count, value) {
     var exp = getExpansion(node),

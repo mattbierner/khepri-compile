@@ -68,7 +68,8 @@ mergeExpansions := \val other ->
             Expansion.create(
                 Math.max(
                     getExpansion(val).count,
-                    getExpansion(other).count)))
+                    getExpansion(other).count),
+                getExpansion(val).value))
         :val;
 
 /**
