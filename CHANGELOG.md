@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.3.3 - Sep 25, 2014
+* Fixed bug where compiler would inline indirect recursive calls forever.
+
 ## 1.3.2 - Sep 23, 2014
 * Fixed bug causing Application expression to not be rewritten correctly.
 
