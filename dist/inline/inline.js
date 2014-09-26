@@ -18,6 +18,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         isLambda = ast["isLambda"],
         isLambdaWithoutArgs = ast["isLambdaWithoutArgs"],
         isPrimitive = ast["isPrimitive"],
+        isString = ast["isString"],
         isNumberish = ast["isNumberish"],
         isTruthy = ast["isTruthy"],
         builtins = builtin["builtins"],
@@ -117,6 +118,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         __gte = (function(x, y) {
             return (x >= y);
         }),
+        SIMPLE = true,
+        COMPLEX = false,
         _check, M = TreeZipperT(StateT(Unique)),
         run = (function(c, ctx, state0, seed) {
             return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state0), seed);
@@ -182,30 +185,37 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         visitChild = (function(edge) {
             return child(edge, checkTop);
         }),
-        addBindingForNode = (function(id, value) {
-            var uid = getUid(id);
-            return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
-                markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
+        getBindingType = (function(id, value) {
+            return (isPrimitive(value) ? M.of([SIMPLE, value]) : (isLambda(value) ? M.of([SIMPLE,
+                markExpansion(id, 0, value)
+            ]) : (isIdentifier(value) ? getBinding(getUid(value))
                 .chain((function(binding) {
-                    return ((binding && binding.immutable) ? addBinding(uid, ((binding.simple &&
-                            binding.value) ? mergeExpansions(binding.value, value) :
-                        value), true) : addBinding(uid, value, false));
-                })) : addBinding(uid, value, false))));
+                    return ((binding && binding.immutable) ? M.of([SIMPLE, ((binding.simple &&
+                        binding.value) ? mergeExpansions(binding.value,
+                        value) : value)]) : M.of([COMPLEX, value]));
+                })) : M.of([COMPLEX, value]))));
+        }),
+        addBindingForNode = (function(id, value) {
+            return getBindingType(id, value)
+                .chain((function(__o5) {
+                    var kind = __o5[0],
+                        value0 = __o5[1];
+                    return addBinding(getUid(id), value0, kind);
+                }));
         }),
         addWorkingForNode = (function(id, value) {
-            var uid = getUid(id);
-            return (isPrimitive(value) ? addWorking(uid, value, true) : (isLambda(value) ? addWorking(uid,
-                markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
-                .chain((function(binding) {
-                    return ((binding && binding.immutable) ? addWorking(uid, ((binding.simple &&
-                        binding.value) ? binding.value : value), true) : addWorking(uid,
-                        value, false));
-                })) : invalidateWorking(uid))));
+            return getBindingType(id, value)
+                .chain((function(__o5) {
+                    var kind = __o5[0],
+                        value0 = __o5[1];
+                    return addWorking(getUid(id), value0, kind);
+                }));
         }),
         setWorkingForNode = (function(id, value) {
-            return getBinding(getUid(id))
+            var uid = getUid(id);
+            return getBinding(uid)
                 .chain((function(binding) {
-                    return (binding ? addWorkingForNode(id, value) : invalidateWorking(getUid(id)));
+                    return (binding ? addWorkingForNode(id, value) : invalidateWorking(uid));
                 }));
         }),
         peepholes = ({}),
@@ -236,13 +246,13 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             checkTop);
     x2(y2);
     var x4 = addRewrite.bind(null, "OperatorExpression"),
-        y4 = seq(((consequent = seq(unique((function(uid) {
+        y4 = seq(((consequent = unique((function(uid) {
             return modify((function(__o5) {
                 var operator = __o5["operator"];
                 return builtin.member(operator, uid);
             }));
-        })), checkTop)), (alternate = seq(((__args = ["operator", checkTop]), (ops = [__args[1]]), seq(
-            moveChild("operator"), seqa(ops), up)), ((consequent0 = modify((function(__o5) {
+        }))), (alternate = seq(((__args = ["operator", checkTop]), (ops = [__args[1]]), seq(moveChild(
+            "operator"), seqa(ops), up)), ((consequent0 = modify((function(__o5) {
             var operator = __o5["operator"];
             return ast_expression.CallExpression.create(null, builtins["_"], [
                 operator
@@ -251,11 +261,11 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             return x5.operator;
         }))), extract((function(node) {
             return (node.flipped ? consequent0 : (alternate0 || pass));
-        }))), checkTop)), extract((function(node) {
+        }))))), extract((function(node) {
             var operator;
             return (((operator = node["operator"]), ((type(operator) === "MemberExpression") ||
                 (type(operator) === "CallExpression"))) ? consequent : (alternate || pass));
-        }))));
+        }))), checkTop);
     x4(y4);
     var x5 = addRewrite.bind(null, "Program"),
         y5 = seq(((__args0 = ["body", checkTop]), (ops0 = [__args0[1]]), seq(moveChild("body"), seqa(ops0), up)), (
@@ -317,9 +327,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
     x10(y10);
     var x11 = addRewrite.bind(null, "Binding"),
         y11 = seq(((__args8 = ["value", checkTop]), (ops8 = [__args8[1]]), seq(moveChild("value"), seqa(ops8),
-            up)), extract((function() {
-            return pass;
-        })), ((consequent3 = extract((function(__o5) {
+            up)), ((consequent3 = extract((function(__o5) {
             var pattern = __o5["pattern"],
                 value = __o5["value"];
             return seq(addBindingForNode(pattern.id, value), tryPrune(pattern.id));
@@ -539,9 +547,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) :
                 builtins.undefined);
         }))), extract((function(node) {
-            return (((node.computed && ((type(node.object) === "Literal") && (node.object.kind ===
-                "string"))) && isNumberish(node.property)) ? consequent14 : (undefined ||
-                pass));
+            return (((node.computed && isString(node.object)) && isNumberish(node.property)) ?
+                consequent14 : (undefined || pass));
         }))));
     x27(y27);
     var x28 = addRewrite.bind(null, ["NewExpression", "ApplyExpression"]),
@@ -668,8 +675,9 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
             "self"), seqa(ops53), up)));
     x34(y34);
     var x35 = addRewrite.bind(null, "IdentifierPattern"),
-        y35 = extract((function(node) {
-            return addBinding(getUid(node.id), null, true);
+        y35 = extract((function(__o5) {
+            var id = __o5["id"];
+            return addBinding(getUid(id), null, SIMPLE);
         }));
     x35(y35);
     var x36 = addRewrite.bind(null, "ArrayExpression"),
@@ -721,7 +729,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         initialState = ((x40 = foldl((function(s, name) {
             var id = builtins[name],
                 def = definitions[name];
-            return state.addBinding(getUid(id), markExpansion(id, 0, def), true, s);
+            return state.addBinding(getUid(id), markExpansion(id, 0, def), SIMPLE, s);
         }), State.empty, Object.keys(builtins))), (y40 = state.addGlobal.bind(null, "_")), y40(x40));
     (optimize = (function(ast0, data) {
         return run(inline, ast0, initialState, data.unique);

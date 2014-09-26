@@ -9,6 +9,7 @@ package (
     isSymbol
     
     isLiteral
+    isString
     isNumberish
     isPrimitive
     isSimple
@@ -73,7 +74,13 @@ isSymbol := \node ->
  * 
  * This includes regular expressions.
  */
-isLiteral = type \> (=== 'Literal');
+isLiteral := type \> (=== 'Literal');
+
+/**
+ * Is a node string literal?
+ */
+isString := \node ->
+    isLiteral node  && node.kind === 'string';
 
 /**
  * Can a node be treated as a number?

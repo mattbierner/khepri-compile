@@ -35,6 +35,7 @@ with
         isLambda
         isLambdaWithoutArgs
         isPrimitive
+        isString
         isNumberish
         isTruthy},
     import '../builtin' builtin#{builtins definitions},
@@ -62,6 +63,9 @@ with
         rename
         incCount}
 in {
+
+var SIMPLE = true;
+var COMPLEX = false;
 
 /* Forward
  ******************************************************************************/
@@ -122,7 +126,7 @@ var expand = \exp f ->
  * @param value Value bound.
  */
 var addBinding = \uid value simple ->
-    modifyState state.addBinding@(uid, value, simple);
+    modifyState (state.addBinding @ uid @ value @ simple);
 
 /**
  * Set the working value of a binding.
@@ -134,7 +138,7 @@ var addBinding = \uid value simple ->
  * @param value Value bound.
  */
 var addWorking = \uid value simple ->
-    modifyState state.addWorking@(uid, value, simple);
+    modifyState (state.addWorking @ uid @ value @ simple);
 
 /**
  * Invalidate a working binding.
@@ -142,7 +146,7 @@ var addWorking = \uid value simple ->
  * @param uid Identifier unique id.
  */
 var invalidateWorking = \uid ->
-    modifyState state.invalidateWorking@(uid);
+    modifyState (state.invalidateWorking @ uid);
 
 /**
  * Get the value of the current binding for `uid`.
@@ -184,7 +188,7 @@ var pop = modifyState (state.pop);
 var block = \-body(...)->
     seq(
         push,
-        seqa(body),
+        seqa body,
         pop);
 
 // Globals Operations
@@ -210,7 +214,7 @@ var createGlobalDeclarations = \g ->
                 builtins.(x),
                 definitions.(x)));
 
-// Globals Operations
+// Locals Operations
 ////////////////////////////////////////
 var getLocals := getState.map(state.getLocals);
 
@@ -218,7 +222,7 @@ var pushLocals := modifyState (state.pushLocals);
 
 var popLocals := modifyState (state.popLocals);
 
-var addLocals := \locals -> modifyState(state.addLocals @ locals);
+var addLocals := \locals -> modifyState (state.addLocals @ locals);
 
 /*
  ******************************************************************************/
@@ -255,60 +259,52 @@ var when = \test consequent alternate ->
 
 /*
  ******************************************************************************/
+var getBindingType = \id value ->
+    ?isPrimitive value
+        :M.of [SIMPLE, value]
+    
+    :?isLambda value
+        :M.of [SIMPLE, markExpansion(id, 0, value)]
+    
+    :?isIdentifier value
+        :getBinding(getUid value).chain \ binding ->
+            ?binding && binding.immutable
+                :M.of [SIMPLE,
+                    ?binding.simple && binding.value
+                        :mergeExpansions(binding.value, value)
+                        :value]
+            
+            :M.of [COMPLEX, value]
+    
+    :M.of [COMPLEX, value];
+
 /**
- * Register an immutable binding of `id` to `value`.
+ * Register an immutable binding of node `id` to `value`.
  */
 var addBindingForNode = \id value ->
-    let uid = getUid id in
-        ?isPrimitive value
-            :addBinding(uid, value, true)
-        
-        :?isLambda value
-            :addBinding(uid, markExpansion(id, 0, value), true)
-        
-        :?isIdentifier value
-            :getBinding(getUid value).chain \ binding ->
-                ?binding && binding.immutable
-                    :addBinding(uid,
-                        ?binding.simple && binding.value
-                            :mergeExpansions(binding.value, value)
-                            :value,
-                        true)
-                    :addBinding(uid, value, false)
-        
-        :addBinding(uid, value, false);
+    getBindingType(id, value).chain \ [kind value] ->
+        addBinding(getUid id, value, kind);
 
+/**
+ * Register a working binding of node `id` to `value`.
+ */
 var addWorkingForNode = \id value ->
-    let uid = getUid id in
-        ?isPrimitive value
-            :addWorking(uid, value, true)
-        
-        :?isLambda value
-            :addWorking(uid, markExpansion(id, 0, value), true)
-        
-        :?isIdentifier value
-            :getBinding(getUid value).chain \ binding ->
-                ?binding && binding.immutable
-                    :addWorking(uid,
-                        ?binding.simple && binding.value
-                            :binding.value
-                            :value,
-                        true)
-                    :addWorking(uid, value, false)
-        
-        :invalidateWorking(uid);
+    getBindingType(id, value).chain \ [kind value] ->
+        addWorking(getUid id, value, kind);
 
-var putWorkingForNode = \id value ->
-    getBinding(getUid id).chain \ binding ->
-        ? !binding || binding.value
-            :addWorkingForNode(id, value)
-            :invalidateWorking(getUid id);
-
-var setWorkingForNode = \id value ->
-    getBinding(getUid id).chain \ binding ->
-        ?binding
-            :addWorkingForNode(id, value)
-            :invalidateWorking(getUid id);
+/**
+ * Set the working for node `id` to `value`.
+ * 
+ * If a binding does not already exist, invalidate it.
+ */
+var setWorkingForNode = \id value -> 
+    let
+        uid = getUid id
+    in
+        getBinding(uid).chain \ binding ->
+            ?binding
+                :addWorkingForNode(id, value)
+                :invalidateWorking uid;
 
 /*
  ******************************************************************************/
@@ -327,10 +323,9 @@ var addRewrite = \type f -> {
  * Convert Unary Op Expression to function.
  */
 addRewrite@'UnaryOperator' <| seq(
-    extract \ {name} ->
-        seq(
-            addGlobal(name),
-            set <| builtins.(name)),
+    extract \ {name} -> seq(
+        addGlobal(name),
+        set <| builtins.(name)),
     checkTop);
 
 /**
@@ -354,27 +349,29 @@ addRewrite@'TernaryOperator' <| seq(
  * Convert expressions to functions.
  */
 addRewrite@'OperatorExpression' <| seq(
-    when(\{operator} ->
-        (  type operator === 'MemberExpression'
-        || type operator === 'CallExpression'),
+    when(
+        \{operator} ->
+            (  type operator === 'MemberExpression'
+            || type operator === 'CallExpression'),
         
         // Must be a dot expression
         // This is really more of a macro, so it is handled differently
-        seq(
-            unique \ uid ->
-                modify \ {operator} ->
-                    builtin.member(operator, uid),
-            checkTop),
+        unique \ uid ->
+        modify \ {operator} ->
+            builtin.member(operator, uid),
         
         // Otherwise, normal op
         seq(
             visitChild 'operator',
-            when((.flipped),
+            when(.flipped,
                 modify \ {operator} ->
-                    ast_expression.CallExpression.create(null, builtins.('_'), [operator]),
-                modify (.operator)),
-            
-            checkTop)));
+                    ast_expression.CallExpression.create(null,
+                        builtins.('_'),
+                        [operator]),
+                        
+                modify (.operator)))),
+    
+    checkTop);
 
 /* 
  ******************************************************************************/
@@ -452,7 +449,7 @@ addRewrite@'VariableDeclarator' <| seq(
  */
 addRewrite@'Binding' <| seq(
     visitChild 'value',
-    extract \ -> pass,
+    
     /**
      * Register bound values.
      */
@@ -461,10 +458,9 @@ addRewrite@'Binding' <| seq(
             (  type pattern === 'IdentifierPattern'
             && getUid pattern.id),
         
-        extract \ {pattern value} ->
-            seq(
-                addBindingForNode(pattern.id, value),
-                tryPrune(pattern.id))),
+        extract \ {pattern value} -> seq(
+            addBindingForNode(pattern.id, value),
+            tryPrune(pattern.id))),
     
     /**
      * Expand a binding of a let expression to a set of bindings, with the top level
@@ -481,10 +477,9 @@ addRewrite@'Binding' <| seq(
                    ast_declaration.Binding.create(null,
                        node.pattern,
                        node.value.body))
-       in
-           seq(
-               set bindings,
-               visitChild(bindings.length - 1))));
+       in seq(
+           set bindings,
+           visitChild(bindings.length - 1))));
 
 // Statement
 addRewrite@'BlockStatement' <|
@@ -642,7 +637,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',
     
     /**
-     * Reduce conditionals with constant test.
+     * Reduce conditional with constant test.
      */
     when(.test \> isPrimitive,
         
@@ -664,7 +659,7 @@ addRewrite@'CheckedMemberExpression' <| seq(
     in
          getBinding(getUid(node.id)).chain \ binding ->
             ?binding && binding.value && binding.simple
-                :set <| modifyNode(node, {'id': binding.value })
+                :set <| modifyNode(node, { 'id': binding.value })
                 :pass);
 
 addRewrite@'MemberExpression' <| seq(
@@ -703,7 +698,7 @@ addRewrite@'MemberExpression' <| seq(
     when(
         \node ->
             (  node.computed
-            && (type node.object === 'Literal' && node.object.kind === 'string')
+            && isString node.object
             && isNumberish node.property),
     
         modify \ node -> let
@@ -849,11 +844,8 @@ addRewrite@'ArgumentsPattern' <| seq(
     visitChild 'self');
 
 addRewrite@'IdentifierPattern' <|
-    extract \ node ->
-        addBinding(
-            getUid node.id,
-            null,
-            true);
+    extract \ {id} ->
+        addBinding(getUid id, null, SIMPLE);
 
 // Values
 addRewrite@'ArrayExpression' <|
@@ -871,8 +863,7 @@ addRewrite@'Identifier' <|
      */
     when(
         \node ->
-            (  getUid node
-            && !isExpansion node),
+            (getUid node && !isExpansion node),
         
         extract \ node ->
             getBinding(getUid node).chain \ binding ->
@@ -917,7 +908,7 @@ var initialState :=
             state.addBinding(
                 getUid id,
                 markExpansion(id, 0, def),
-                true,
+                SIMPLE,
                 s),
         State.empty,
         Object.keys(builtins))

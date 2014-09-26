@@ -29,6 +29,7 @@ var __o = require("khepri-ast")["node"],
     isLambda = ast["isLambda"],
     isLambdaWithoutArgs = ast["isLambdaWithoutArgs"],
     isPrimitive = ast["isPrimitive"],
+    isString = ast["isString"],
     isNumberish = ast["isNumberish"],
     isTruthy = ast["isTruthy"],
     builtins = builtin["builtins"],
@@ -127,6 +128,8 @@ var __o = require("khepri-ast")["node"],
     __gte = (function(x, y) {
         return (x >= y);
     }),
+    SIMPLE = true,
+    COMPLEX = false,
     _check, M = TreeZipperT(StateT(Unique)),
     run = (function(c, ctx, state0, seed) {
         return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(c, ctx), state0), seed);
@@ -191,30 +194,35 @@ var __o = require("khepri-ast")["node"],
     visitChild = (function(edge) {
         return child(edge, checkTop);
     }),
-    addBindingForNode = (function(id, value) {
-        var uid = getUid(id);
-        return (isPrimitive(value) ? addBinding(uid, value, true) : (isLambda(value) ? addBinding(uid,
-            markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
+    getBindingType = (function(id, value) {
+        return (isPrimitive(value) ? M.of([SIMPLE, value]) : (isLambda(value) ? M.of([SIMPLE, markExpansion(id, 0,
+            value)]) : (isIdentifier(value) ? getBinding(getUid(value))
             .chain((function(binding) {
-                return ((binding && binding.immutable) ? addBinding(uid, ((binding.simple &&
-                        binding.value) ? mergeExpansions(binding.value, value) : value), true) :
-                    addBinding(uid, value, false));
-            })) : addBinding(uid, value, false))));
+                return ((binding && binding.immutable) ? M.of([SIMPLE, ((binding.simple && binding.value) ?
+                    mergeExpansions(binding.value, value) : value)]) : M.of([COMPLEX, value]));
+            })) : M.of([COMPLEX, value]))));
+    }),
+    addBindingForNode = (function(id, value) {
+        return getBindingType(id, value)
+            .chain((function(__o5) {
+                var kind = __o5[0],
+                    value0 = __o5[1];
+                return addBinding(getUid(id), value0, kind);
+            }));
     }),
     addWorkingForNode = (function(id, value) {
-        var uid = getUid(id);
-        return (isPrimitive(value) ? addWorking(uid, value, true) : (isLambda(value) ? addWorking(uid,
-            markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
-            .chain((function(binding) {
-                return ((binding && binding.immutable) ? addWorking(uid, ((binding.simple &&
-                    binding.value) ? binding.value : value), true) : addWorking(uid, value,
-                    false));
-            })) : invalidateWorking(uid))));
+        return getBindingType(id, value)
+            .chain((function(__o5) {
+                var kind = __o5[0],
+                    value0 = __o5[1];
+                return addWorking(getUid(id), value0, kind);
+            }));
     }),
     setWorkingForNode = (function(id, value) {
-        return getBinding(getUid(id))
+        var uid = getUid(id);
+        return getBinding(uid)
             .chain((function(binding) {
-                return (binding ? addWorkingForNode(id, value) : invalidateWorking(getUid(id)));
+                return (binding ? addWorkingForNode(id, value) : invalidateWorking(uid));
             }));
     }),
     peepholes = ({}),
@@ -244,24 +252,24 @@ var x2 = addRewrite.bind(null, "TernaryOperator"),
     y2 = seq(modifyState(state.addGlobal.bind(null, "?")), ((x3 = set), (y3 = builtins["?"]), x3(y3)), checkTop);
 x2(y2);
 var x4 = addRewrite.bind(null, "OperatorExpression"),
-    y4 = seq(((consequent = seq(unique((function(uid) {
+    y4 = seq(((consequent = unique((function(uid) {
         return modify((function(__o5) {
             var operator = __o5["operator"];
             return builtin.member(operator, uid);
         }));
-    })), checkTop)), (alternate = seq(((__args = ["operator", checkTop]), (ops = [__args[1]]), seq(moveChild(
-        "operator"), seqa(ops), up)), ((consequent0 = modify((function(__o5) {
+    }))), (alternate = seq(((__args = ["operator", checkTop]), (ops = [__args[1]]), seq(moveChild("operator"),
+        seqa(ops), up)), ((consequent0 = modify((function(__o5) {
         var operator = __o5["operator"];
         return ast_expression.CallExpression.create(null, builtins["_"], [operator]);
     }))), (alternate0 = modify((function(x5) {
         return x5.operator;
     }))), extract((function(node) {
         return (node.flipped ? consequent0 : (alternate0 || pass));
-    }))), checkTop)), extract((function(node) {
+    }))))), extract((function(node) {
         var operator;
         return (((operator = node["operator"]), ((type(operator) === "MemberExpression") || (type(
             operator) === "CallExpression"))) ? consequent : (alternate || pass));
-    }))));
+    }))), checkTop);
 x4(y4);
 var x5 = addRewrite.bind(null, "Program"),
     y5 = seq(((__args0 = ["body", checkTop]), (ops0 = [__args0[1]]), seq(moveChild("body"), seqa(ops0), up)), ((
@@ -318,26 +326,24 @@ var x10 = addRewrite.bind(null, "VariableDeclarator"),
     }))));
 x10(y10);
 var x11 = addRewrite.bind(null, "Binding"),
-    y11 = seq(((__args8 = ["value", checkTop]), (ops8 = [__args8[1]]), seq(moveChild("value"), seqa(ops8), up)),
-        extract((function() {
-            return pass;
-        })), ((consequent3 = extract((function(__o5) {
+    y11 = seq(((__args8 = ["value", checkTop]), (ops8 = [__args8[1]]), seq(moveChild("value"), seqa(ops8), up)), ((
+        consequent3 = extract((function(__o5) {
             var pattern = __o5["pattern"],
                 value = __o5["value"];
             return seq(addBindingForNode(pattern.id, value), tryPrune(pattern.id));
         }))), extract((function(node) {
-            var pattern;
-            return (((pattern = node["pattern"]), ((type(pattern) === "IdentifierPattern") && getUid(
-                pattern.id))) ? consequent3 : (undefined || pass));
-        }))), ((consequent4 = extract((function(node) {
-            var y12 = concat(node.value.bindings, ast_declaration.Binding.create(null, node.pattern,
-                node.value.body)),
-                bindings = flatten(y12);
-            return seq(set(bindings), visitChild((bindings.length - 1)));
-        }))), extract((function(node) {
-            return (((type(node) === "Binding") && (type(node.value) === "LetExpression")) ? consequent4 :
-                (undefined || pass));
-        }))));
+        var pattern;
+        return (((pattern = node["pattern"]), ((type(pattern) === "IdentifierPattern") && getUid(
+            pattern.id))) ? consequent3 : (undefined || pass));
+    }))), ((consequent4 = extract((function(node) {
+        var y12 = concat(node.value.bindings, ast_declaration.Binding.create(null, node.pattern,
+            node.value.body)),
+            bindings = flatten(y12);
+        return seq(set(bindings), visitChild((bindings.length - 1)));
+    }))), extract((function(node) {
+        return (((type(node) === "Binding") && (type(node.value) === "LetExpression")) ? consequent4 :
+            (undefined || pass));
+    }))));
 x11(y11);
 var x12 = addRewrite.bind(null, "BlockStatement"),
     __args9 = ["body", checkTop],
@@ -534,8 +540,8 @@ var x27 = addRewrite.bind(null, "MemberExpression"),
             idx = node.property.value;
         return ((idx < str.length) ? ast_value.Literal.create(null, "string", str[idx]) : builtins.undefined);
     }))), extract((function(node) {
-        return (((node.computed && ((type(node.object) === "Literal") && (node.object.kind === "string"))) &&
-            isNumberish(node.property)) ? consequent14 : (undefined || pass));
+        return (((node.computed && isString(node.object)) && isNumberish(node.property)) ? consequent14 :
+            (undefined || pass));
     }))));
 x27(y27);
 var x28 = addRewrite.bind(null, ["NewExpression", "ApplyExpression"]),
@@ -654,8 +660,9 @@ var x34 = addRewrite.bind(null, "ArgumentsPattern"),
         (__args53 = ["self", checkTop]), (ops53 = [__args53[1]]), seq(moveChild("self"), seqa(ops53), up)));
 x34(y34);
 var x35 = addRewrite.bind(null, "IdentifierPattern"),
-    y35 = extract((function(node) {
-        return addBinding(getUid(node.id), null, true);
+    y35 = extract((function(__o5) {
+        var id = __o5["id"];
+        return addBinding(getUid(id), null, SIMPLE);
     }));
 x35(y35);
 var x36 = addRewrite.bind(null, "ArrayExpression"),
@@ -706,7 +713,7 @@ var inline = seq(checkTop, extractCtx.chain((function(node) {
     initialState = ((x40 = foldl((function(s, name) {
         var id = builtins[name],
             def = definitions[name];
-        return state.addBinding(getUid(id), markExpansion(id, 0, def), true, s);
+        return state.addBinding(getUid(id), markExpansion(id, 0, def), SIMPLE, s);
     }), State.empty, Object.keys(builtins))), (y40 = state.addGlobal.bind(null, "_")), y40(x40));
 (optimize = (function(ast0, data) {
     return run(inline, ast0, initialState, data.unique);

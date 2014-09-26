@@ -4,7 +4,7 @@
 */
 "use strict";
 var __o = require("khepri-ast")["node"],
-    type, isIdentifier, isOperator, isSymbol, isLiteral, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
+    type, isIdentifier, isOperator, isSymbol, isLiteral, isString, isNumberish, isPrimitive, isSimple, isPod, isTruthy,
         isBlockFunction, isLambda, isLambdaWithoutArgs, tryGetUd, getUd, setUd, modify, getUid, setUid, getLocals,
         setLocals, getClosure, setClosure, setData = __o["setData"],
     modifyAstNode = __o["modify"];
@@ -26,6 +26,9 @@ var __o = require("khepri-ast")["node"],
 (isLiteral = (function(z) {
     var y = type(z);
     return ("Literal" === y);
+}));
+(isString = (function(node) {
+    return (isLiteral(node) && (node.kind === "string"));
 }));
 (isNumberish = (function(node) {
     return (isPrimitive(node) && (!isNaN(node.value)));
@@ -95,6 +98,7 @@ var def0 = [];
 (exports["isOperator"] = isOperator);
 (exports["isSymbol"] = isSymbol);
 (exports["isLiteral"] = isLiteral);
+(exports["isString"] = isString);
 (exports["isNumberish"] = isNumberish);
 (exports["isPrimitive"] = isPrimitive);
 (exports["isSimple"] = isSimple);
