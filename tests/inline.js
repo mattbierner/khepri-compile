@@ -25,10 +25,17 @@ exports.recursive_fn = function(test) {
 };
 
 exports.recursive_curry = function(test) {
+    // Ensure no inline expansion loop
     testParser("let f := \\x y -> f @ (x + 1, y + 1) in f(0, 0);");
     test.ok(true);
     test.done();
-    
+};
+
+exports.indirect_recursion = function(test) {
+    // Ensure no inline expansion loop
+    testParser("var call := (<|); var indirect := \\x -> call(indirect, x.y); indirect 1;");
+    test.ok(true);
+    test.done();
 };
 
 /// Ensure that `x` binding captures reference to current `a` not later one.
