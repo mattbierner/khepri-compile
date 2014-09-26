@@ -1,47 +1,88 @@
+/**
+ * @fileOverview Structure that tracks inline expansions.
+ */
 package (
+    getExpansion
+    isExpansion
+    getExpansionDepth
+    getExpansionValue
+    setExpansion
+    deleteExpansion
+    
+    canExpand
     markExpansion
     incrementCount
     
-    getExpansion
-    isExpansion
     mergeExpansions
     expandNode)
 with
     import 'bes::record' record,
     
-    import 'khepri-ast::node' {
-        setData},
-    
     import '../ast' {
-        getUid
-        getUd}
+        getUd
+        setUd}
 in {
+/**
+ * Maximum depth that to expand recursion to.
+ */
+var MAX_EXPANSION_DEPTH := 1;
 
+/* Record
+ ******************************************************************************/
+/**
+ * Expansion cell.
+ * 
+ * @member count Current expansion depth.
+ * @member value Value that will be expanded.
+ */
 var Expansion := record.declare(null, [
     'count',
     'value']);
 
-var MAX_EXPANSION_DEPTH := 1;
-
-var canExpand := \exp -> 
-    exp.count < MAX_EXPANSION_DEPTH;
-
-var setExpansion := \node expansion ->
-    setData(node, 'expand', expansion);
-
+/* Primitive ops
+ ******************************************************************************/
 /**
- * Get the expansion for `node`.
- * 
- * @param node AST node.
+ * Get expansion data on a node.
  */
 getExpansion := getUd @ 'expand';
 
 /**
- * Is `node` an expansion?
- * 
- * @param node AST node.
+ * Does a node have expansion data?
  */
 isExpansion := getExpansion;
+
+/**
+ * Get the depth of the expansion on a node.
+ * 
+ * Returns 0 if none.
+ */
+getExpansionDepth := \node ->
+    let exp = getExpansion node in ?exp : exp.count : 0;
+
+/**
+ * Get the expansion value on a node.
+ * 
+ * Returns null if none.
+ */
+getExpansionValue := getExpansion \> (_ ?? .value);
+
+/**
+ * Set expansion data on a node.
+ */
+setExpansion := setUd @ 'expand';
+
+/**
+ * Remove expansion data on a node.
+ */
+deleteExpansion := setExpansion @ null;
+
+/* Compound Ops
+ ******************************************************************************/
+/**
+ * Can a node be expanded based on its expansion data?
+ */
+canExpand := \node ->
+    isExpansion node && getExpansionValue node < MAX_EXPANSION_DEPTH;
 
 /**
  * Mark `node` as an expansion.
@@ -52,46 +93,43 @@ isExpansion := getExpansion;
  */
 markExpansion := \node count value ->
     ?isExpansion value
-        :setExpansion(node, getExpansion value)
+        :setExpansion(getExpansion value, node)
         :setExpansion(
-            node,
             Expansion.create(
                 Math.max(
                     count,
-                    ?isExpansion node : getExpansion(node).count : 0),
-                value));
+                    getExpansionDepth node),
+                value),
+            node);
 
 mergeExpansions := \val other ->
     ?isExpansion other && isExpansion val
         :setExpansion(
-            val,
             Expansion.create(
                 Math.max(
-                    getExpansion(val).count,
-                    getExpansion(other).count),
-                getExpansion(val).value))
+                    getExpansionDepth val,
+                    getExpansionDepth other),
+                getExpansion(val).value),
+            val)
         :val;
 
 /**
  * 
  */
-incrementCount := \node count value -> let
-    exp = getExpansion node
-in
+incrementCount := \node count value ->
     markExpansion(
         node,
-         ((exp && exp.count) || count) + 1,
-         value);
+        (getExpansionDepth node || count) + 1,
+        value);
 
 /**
  * Try to expand `node`.
  */
 expandNode := \node ->
     ?isExpansion node
-        :let exp = getExpansion node in
-            ?canExpand exp
-                :exp.value
-                :setExpansion(node, null)
+        :?canExpand node
+            :getExpansionValue node
+            :deleteExpansion node
         :node;
 
 }

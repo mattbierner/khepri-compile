@@ -4,43 +4,56 @@
 */
 "use strict";
 var record = require("bes")["record"],
-    __o = require("khepri-ast")["node"],
-    __o0 = require("../ast"),
-    markExpansion, incrementCount, getExpansion, isExpansion, mergeExpansions, expandNode, setData = __o["setData"],
-    getUd = __o0["getUd"],
+    __o = require("../ast"),
+    getExpansion, isExpansion, getExpansionDepth, getExpansionValue, setExpansion, deleteExpansion, canExpand,
+        markExpansion, incrementCount, mergeExpansions, expandNode, getUd = __o["getUd"],
+    setUd = __o["setUd"],
     Expansion = record.declare(null, ["count", "value"]);
 (getExpansion = getUd.bind(null, "expand"));
 (isExpansion = getExpansion);
+(getExpansionDepth = (function(node) {
+    var exp = getExpansion(node);
+    return (exp ? exp.count : 0);
+}));
+(getExpansionValue = (function(z) {
+    var y = getExpansion(z);
+    return (y && y.value);
+}));
+(setExpansion = setUd.bind(null, "expand"));
+(deleteExpansion = setExpansion.bind(null, null));
+(canExpand = (function(node) {
+    return (getExpansion(node) && (getExpansionValue(node) < 1));
+}));
 (markExpansion = (function(node, count, value) {
-    var expansion, expansion0;
-    return (getExpansion(value) ? ((expansion = getExpansion(value)), setData(node, "expand", expansion)) : ((
-        expansion0 = Expansion.create(Math.max(count, (getExpansion(node) ? getExpansion(node)
-            .count : 0)), value)), setData(node, "expand", expansion0)));
+    var exp;
+    return (getExpansion(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(Math.max(
+        count, ((exp = getExpansion(node)), (exp ? exp.count : 0))), value), node));
 }));
 (mergeExpansions = (function(val, other) {
-    var expansion;
-    return ((getExpansion(other) && getExpansion(val)) ? ((expansion = Expansion.create(Math.max(getExpansion(
-                val)
-            .count, getExpansion(other)
-            .count), getExpansion(val)
-        .value)), setData(val, "expand", expansion)) : val);
+    var exp, exp0;
+    return ((getExpansion(other) && getExpansion(val)) ? setExpansion(Expansion.create(Math.max(((exp =
+            getExpansion(val)), (exp ? exp.count : 0)), ((exp0 = getExpansion(other)), (exp0 ? exp0
+            .count : 0))), getExpansion(val)
+        .value), val) : val);
 }));
 (incrementCount = (function(node, count, value) {
-    var exp = getExpansion(node),
-        count0 = (((exp && exp.count) || count) + 1),
-        expansion, expansion0;
-    return (getExpansion(value) ? ((expansion = getExpansion(value)), setData(node, "expand", expansion)) : ((
-        expansion0 = Expansion.create(Math.max(count0, (getExpansion(node) ? getExpansion(node)
-            .count : 0)), value)), setData(node, "expand", expansion0)));
+    var exp, count0 = ((((exp = getExpansion(node)), (exp ? exp.count : 0)) || count) + 1),
+        exp0;
+    return (getExpansion(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(Math.max(
+        count0, ((exp0 = getExpansion(node)), (exp0 ? exp0.count : 0))), value), node));
 }));
 (expandNode = (function(node) {
-    var exp;
-    return (getExpansion(node) ? ((exp = getExpansion(node)), ((exp.count < 1) ? exp.value : setData(node,
-        "expand", null))) : node);
+    return (getExpansion(node) ? ((getExpansion(node) && (getExpansionValue(node) < 1)) ? getExpansionValue(
+        node) : deleteExpansion(node)) : node);
 }));
-(exports["markExpansion"] = markExpansion);
-(exports["incrementCount"] = incrementCount);
 (exports["getExpansion"] = getExpansion);
 (exports["isExpansion"] = isExpansion);
+(exports["getExpansionDepth"] = getExpansionDepth);
+(exports["getExpansionValue"] = getExpansionValue);
+(exports["setExpansion"] = setExpansion);
+(exports["deleteExpansion"] = deleteExpansion);
+(exports["canExpand"] = canExpand);
+(exports["markExpansion"] = markExpansion);
+(exports["incrementCount"] = incrementCount);
 (exports["mergeExpansions"] = mergeExpansions);
 (exports["expandNode"] = expandNode);

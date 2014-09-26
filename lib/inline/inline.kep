@@ -12,7 +12,7 @@
 package (
     optimize)
 with
-    import 'khepri-ast::node' {'modify': modifyNode setData},
+    import 'khepri-ast::node' {'modify': modifyNode},
     import 'khepri-ast::declaration' ast_declaration,
     import 'khepri-ast::statement' ast_statement,
     import 'khepri-ast::expression' ast_expression,
@@ -28,12 +28,10 @@ with
 
     import 'zipper-m::trans::tree' TreeZipperT,
     
-    import '../ast' {
+    import '../ast' ast#{
         type
         isIdentifier
         getUid
-        setUd
-        getUd
         isLambda
         isLambdaWithoutArgs
         isPrimitive
@@ -56,6 +54,8 @@ with
         markExpansion
         mergeExpansions
         getExpansion
+        getExpansionDepth
+        getExpansionValue
         isExpansion
         expandNode},
     import './rename' {
@@ -379,38 +379,37 @@ addRewrite@'OperatorExpression' <| seq(
 /* 
  ******************************************************************************/
 // Program and Packages
-
 addRewrite@'Program' <| seq(
     visitChild 'body',
     
     when(
-        (.body) \> type \> (!== 'Package'),
+        .body \> type \> (!== 'Package'),
         
         globals \ globals ->
         modify \ node ->
-            modifyNode(node, {
-                body: concat(
+            modifyNode @ node {
+                'body': concat(
                     createGlobalDeclarations(globals),
                     node.body)
-            })));
+            }));
 
 addRewrite@'Package' <| seq(
     visitChild 'body',
     
     globals \ globals ->
-    modify \ node ->
-        modifyNode(node, {
-            'body': ?type node.body === 'WithStatement'
-                :ast_statement.WithStatement.create(node.body.loc,
-                    node.body.bindings,
-                    ast_statement.BlockStatement.create(null,
+    modify \ node#{body} ->
+        modifyNode @ node {
+            'body': ?type body === 'WithStatement'
+                :modifyNode @ body {
+                    'body': ast_statement.BlockStatement.create(null,
                         concat(
-                          createGlobalDeclarations(globals),
-                          node.body.body.body)))
+                            createGlobalDeclarations(globals),
+                            body.body.body))
+                }
                 :concat(
                     createGlobalDeclarations(globals),
-                    node.body)
-        }, {}));
+                    body)
+        });
 
 // Clause
 addRewrite@'SwitchCase' <| seq(
@@ -536,7 +535,9 @@ addRewrite@'FunctionExpression' <|
         visitChild 'body',
         getLocals.chain \ locals ->
         modify \ node ->
-            setData(node, 'locals', concat(node.ud.locals, locals)),
+            ast.setLocals(
+                concat(ast.getLocals node, locals),
+                node),
         popLocals);
 
 addRewrite@'UnaryExpression' <| let
@@ -655,7 +656,7 @@ addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
 
 addRewrite@'CheckedMemberExpression' <| seq(
     visitChild 'object',
-    when((.computed),
+    when(.computed,
         visitChild 'property'),
     
     extract \ node -> let
@@ -725,17 +726,14 @@ addRewrite@'CallExpression' <| seq(
      * Expand callee.
      */
     when(.callee \> isExpansion,
-        expand(
-            M.node.map (.callee),
-            \callee ->
-                modify \ node ->
-                    incCount(
-                        getUid(node.callee),
-                        getExpansion(node.callee).count || 1,
-                        getExpansion(node.callee).value,
-                        ast_expression.CallExpression.create(node.loc,
-                            callee,
-                            node.args)))),
+        
+        expand @ (M.node.map (.callee)) \ newCallee ->
+            modify \ node#{callee} ->
+                incCount(
+                    getUid callee,
+                    getExpansionDepth callee || 1,
+                    getExpansionValue callee,
+                    modifyNode @ node { 'callee': newCallee })),
 
     /**
      * Inline calls of lambda functions by expanding them to let expressions.
@@ -762,27 +760,22 @@ addRewrite@'CurryExpression' <| seq(
     visitChild 'args',
     
     /**
-     * Expand Curry Base
+     * Expand curry callee
      */
-    when(
-        .base \> isExpansion,
+    when(.base \> isExpansion,
         
-        expand(
-            M.node.map (.base),
-            \base ->
-                modify \ node ->
-                    incCount(
-                        getUid(node.base),
-                        getExpansion(node.base),
-                        getExpansion(node.base).value,
-                        ast_expression.CurryExpression.create(node.loc,
-                            base,
-                            node.args)))),
+        expand @ (M.node.map (.base)) \ expandedBase ->
+            modify \ node#{base} ->
+                incCount(
+                    getUid base,
+                    getExpansion base,
+                    getExpansionValue base,
+                    modifyNode @ node { 'base': expandedBase })),
     
     /**
-     * Convert curry on function to let binding of curried args with function body.
+     * Convert curry on function to a let binding of curried args with function body.
      * 
-     * Discards arguments that are not used.
+     * Discard unused argument.
      */
     when(
         \{base} ->
@@ -813,17 +806,15 @@ addRewrite@'LetExpression' <| seq(
     /**
      * Flatten let expression bindings.
      */
-    modify \ {loc bindings body} ->
-        ast_expression.LetExpression.create(loc,
-            flattenr bindings,
-            body),
+    modify \ node ->
+        modifyNode @ node {
+            'bindings': flattenr node.bindings
+        },
     
     /**
      * Collapse empty let expressions.
      */
-    when(
-        \{bindings} ->
-            !bindings.length,
+    when((!) <\ .bindings.length,
         
         modify (.body)));
 
