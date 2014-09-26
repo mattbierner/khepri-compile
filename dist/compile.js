@@ -24,6 +24,7 @@ define(["require", "exports", "akh/error", "khepri-ast-zipper", "./stages/pre_no
             .chain(lexical)
             .chain(post_normalize)
             .chain(inline)
+            .chain(reachable)
             .chain(khepri_peep)
             .chain(transform)
             .chain(ecma_peep)), extract, (err || thr));
