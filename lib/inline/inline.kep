@@ -54,6 +54,7 @@ with
         expandCurry},
     import './expansion' {
         markExpansion
+        mergeExpansions
         getExpansion
         isExpansion
         expandNode},
@@ -270,7 +271,7 @@ var addBindingForNode = \id value ->
                 ?binding && binding.immutable
                     :addBinding(uid,
                         ?binding.simple && binding.value
-                            :binding.value
+                            :mergeExpansions(binding.value, value)
                             :value,
                         true)
                     :addBinding(uid, value, false)
@@ -742,9 +743,9 @@ addRewrite@'CallExpression' <| seq(
      * The let expression is then rewritten to ensure the resulting values are unique.
      */
     when(
-        \node ->
-            (  isLambda(node.callee)
-            || (type node.callee === 'LetExpression' && isLambda(node.callee.body))),
+        \{callee} ->
+            (  isLambda callee
+            || (type callee === 'LetExpression' && isLambda(callee.body))),
         
             seq(
                 unique \ uid ->
@@ -764,7 +765,7 @@ addRewrite@'CurryExpression' <| seq(
      * Expand Curry Base
      */
     when(
-        (.base) \> isExpansion,
+        .base \> isExpansion,
         
         expand(
             M.node.map (.base),

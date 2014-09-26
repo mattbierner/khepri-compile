@@ -33,6 +33,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
         expandCallee = __o3["expandCallee"],
         expandCurry = __o3["expandCurry"],
         markExpansion = __o4["markExpansion"],
+        mergeExpansions = __o4["mergeExpansions"],
         getExpansion = __o4["getExpansion"],
         isExpansion = __o4["isExpansion"],
         expandNode = __o4["expandNode"],
@@ -186,8 +187,8 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
                 markExpansion(id, 0, value), true) : (isIdentifier(value) ? getBinding(getUid(value))
                 .chain((function(binding) {
                     return ((binding && binding.immutable) ? addBinding(uid, ((binding.simple &&
-                        binding.value) ? binding.value : value), true) : addBinding(uid,
-                        value, false));
+                            binding.value) ? mergeExpansions(binding.value, value) :
+                        value), true) : addBinding(uid, value, false));
                 })) : addBinding(uid, value, false))));
         }),
         addWorkingForNode = (function(id, value) {
@@ -569,8 +570,10 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
                     node0));
             }));
         })), checkTop)), extract((function(node) {
-            return ((isLambda(node.callee) || ((type(node.callee) === "LetExpression") &&
-                isLambda(node.callee.body))) ? consequent16 : (undefined || pass));
+            var callee;
+            return (((callee = node["callee"]), (isLambda(callee) || ((type(callee) ===
+                "LetExpression") && isLambda(callee.body)))) ? consequent16 : (undefined ||
+                pass));
         }))));
     x29(y29);
     var x30 = addRewrite.bind(null, "CurryExpression"),

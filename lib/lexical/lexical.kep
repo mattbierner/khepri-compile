@@ -260,7 +260,7 @@ var addStaticBinding = \id loc ->
  */
 var addImmutableBinding = \id loc -> 
     seq(
-         modifyScope (scope.addImmutableBinding@(id, loc)),
+         addStaticBinding(id, loc),
          addUid id);
 
 /**
@@ -330,7 +330,7 @@ in
     
 /* Checks
  ******************************************************************************/
-var checks = {};
+var checks = { };
 
 var addCheck = \type, check -> {
     if (Array.isArray(type))

@@ -4,7 +4,7 @@ package (
     
     getExpansion
     isExpansion
-    
+    mergeExpansions
     expandNode)
 with
     import 'bes::record' record,
@@ -29,7 +29,6 @@ var canExpand := \exp ->
 var setExpansion := \node expansion ->
     setData(node, 'expand', expansion);
 
-
 /**
  * Get the expansion for `node`.
  * 
@@ -52,9 +51,25 @@ isExpansion := getExpansion;
  * @param target Expansion value.
  */
 markExpansion := \node count value ->
-    setExpansion(
-        node,
-        Expansion.create(count, value));
+    ?isExpansion value
+        :setExpansion(node, getExpansion value)
+        :setExpansion(
+            node,
+            Expansion.create(
+                Math.max(
+                    count,
+                    ?isExpansion node : getExpansion(node).count : 0),
+                value));
+
+mergeExpansions := \val other ->
+    ?isExpansion other && isExpansion val
+        :setExpansion(
+            val,
+            Expansion.create(
+                Math.max(
+                    getExpansion(val).count,
+                    getExpansion(other).count)))
+        :val;
 
 /**
  * 
