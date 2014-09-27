@@ -82,7 +82,7 @@ deleteExpansion := setExpansion @ null;
  * Can a node be expanded based on its expansion data?
  */
 canExpand := \node ->
-    isExpansion node && getExpansionValue node < MAX_EXPANSION_DEPTH;
+    isExpansion node && getExpansionDepth node < MAX_EXPANSION_DEPTH;
 
 /**
  * Mark `node` as an expansion.

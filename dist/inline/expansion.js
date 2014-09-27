@@ -21,7 +21,8 @@ define(["require", "exports", "bes/record", "../ast"], (function(require, export
     (setExpansion = setUd.bind(null, "expand"));
     (deleteExpansion = setExpansion.bind(null, null));
     (canExpand = (function(node) {
-        return (getExpansion(node) && (getExpansionValue(node) < 1));
+        var exp;
+        return (getExpansion(node) && (((exp = getExpansion(node)), (exp ? exp.count : 0)) < 1));
     }));
     (markExpansion = (function(node, count, value) {
         var exp;
@@ -43,8 +44,9 @@ define(["require", "exports", "bes/record", "../ast"], (function(require, export
             node));
     }));
     (expandNode = (function(node) {
-        return (getExpansion(node) ? ((getExpansion(node) && (getExpansionValue(node) < 1)) ?
-            getExpansionValue(node) : deleteExpansion(node)) : node);
+        var exp;
+        return (getExpansion(node) ? ((getExpansion(node) && (((exp = getExpansion(node)), (exp ? exp.count :
+            0)) < 1)) ? getExpansionValue(node) : deleteExpansion(node)) : node);
     }));
     (exports["getExpansion"] = getExpansion);
     (exports["isExpansion"] = isExpansion);
