@@ -12,10 +12,10 @@ var Error = require("akh")["error"],
         "TypeError", "undefined", "URIError"
     ],
     builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===", "!==", "&",
-        "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", "!", "++", "--", "~", ".", "??",
-        "@", "void", "instanceof", "typeof", "new"
+        "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", ".", "??", "@", "void",
+        "instanceof", "new"
     ],
-    builtinUnaryOps = ["!", "++", "--", "~"];
+    builtinUnaryOps = ["!", "++", "--", "~", "typeof", "delete"];
 (check = (function(input) {
     var options = input["options"],
         tree = input["tree"],

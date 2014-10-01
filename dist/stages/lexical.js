@@ -11,10 +11,10 @@ define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], 
             "RegExp", "String", "SyntaxError", "TypeError", "undefined", "URIError"
         ],
         builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
-            "!==", "&", "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", "!", "++",
-            "--", "~", ".", "??", "@", "void", "instanceof", "typeof", "new"
+            "!==", "&", "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", ".", "??",
+            "@", "void", "instanceof", "new"
         ],
-        builtinUnaryOps = ["!", "++", "--", "~"];
+        builtinUnaryOps = ["!", "++", "--", "~", "typeof", "delete"];
     (check = (function(input) {
         var options = input["options"],
             tree = input["tree"],

@@ -614,7 +614,8 @@ var addGlobals := flip foldl @ \s c ->
     scope.addImmutableBinding(c, 'global', s);
 
 var addUnaryOps := flip foldl @ \s c ->
-    scope.addOperator(c, 'global', s);
+    scope.addOperator(c, 'global',
+        scope.addImmutableBinding(c, 'global', s));
 
 var rewrite := seq(
     checkTop,

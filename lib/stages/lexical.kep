@@ -77,16 +77,11 @@ var builtinBinaryOps := [
     '<<|',
     '<\\',
     '<<\\',
-    '!',
-    '++',
-    '--',
-    '~',
     '.',
     '??',
     '@',
     'void',
     'instanceof',
-    'typeof',
     'new'];
 
 /**
@@ -96,7 +91,9 @@ var builtinUnaryOps := [
     '!',
     '++',
     '--',
-    '~'];
+    '~',
+    'typeof',
+    'delete'];
 
 /**
  * 

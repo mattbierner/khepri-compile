@@ -519,7 +519,7 @@ var addGlobals = flip(foldl.bind(null, (function(s, c) {
     return scope.addImmutableBinding(c, "global", s);
 }))),
     addUnaryOps = flip(foldl.bind(null, (function(s, c) {
-        return scope.addOperator(c, "global", s);
+        return scope.addOperator(c, "global", scope.addImmutableBinding(c, "global", s));
     }))),
     rewrite = seq(checkTop, root, extractCtx.chain((function(x45) {
         return unique((function(unique0) {
