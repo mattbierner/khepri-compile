@@ -12,6 +12,7 @@ package (
     variableDeclarator
     
     assignmentExpression
+    deleteExpression
     unaryExpression
     binaryExpression
     logicalExpression
@@ -152,6 +153,11 @@ assignmentExpression := \node ->
         '=',
         node.left,
         node.right);
+
+deleteExpression := \node ->
+    ecma_expression.UnaryExpression.create(node.loc,
+        'delete',
+        node.argument);
 
 unaryExpression := let
     mapOp := \op -> {

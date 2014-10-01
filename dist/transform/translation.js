@@ -10,11 +10,11 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     khepri_value, __o, fun, __o0) {
     "use strict";
     var useStrict, identifier, program, variableDeclaration, variableDeclarator, assignmentExpression,
-            unaryExpression, binaryExpression, logicalExpression, conditionalExpression, newExpression,
-            callExpression, applyExpression, memberExpression, checkedMemberExpression, arrayExpression,
-            objectExpression, objectValue, functionExpression, functionExpressionPost, explicitClosure,
-            letExpression, curryExpression, catchClause, switchCase, emptyStatement, blockStatement,
-            withStatement, expressionStatement, returnStatement, throwStatement, breakStatement,
+            deleteExpression, unaryExpression, binaryExpression, logicalExpression, conditionalExpression,
+            newExpression, callExpression, applyExpression, memberExpression, checkedMemberExpression,
+            arrayExpression, objectExpression, objectValue, functionExpression, functionExpressionPost,
+            explicitClosure, letExpression, curryExpression, catchClause, switchCase, emptyStatement,
+            blockStatement, withStatement, expressionStatement, returnStatement, throwStatement, breakStatement,
             continueStatement, ifStatement, switchStatement, forStatement, doWhileStatement, whileStatement,
             tryStatement, packageBlock, type = __o["type"],
         tryGetUd = __o["tryGetUd"],
@@ -62,6 +62,9 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     }));
     (assignmentExpression = (function(node) {
         return ecma_expression.AssignmentExpression.create(node.loc, "=", node.left, node.right);
+    }));
+    (deleteExpression = (function(node) {
+        return ecma_expression.UnaryExpression.create(node.loc, "delete", node.argument);
     }));
     var mapOp = (function(op) {
         switch (op) {
@@ -222,6 +225,7 @@ define(["require", "exports", "ecma-ast/clause", "ecma-ast/declaration", "ecma-a
     (exports["variableDeclaration"] = variableDeclaration);
     (exports["variableDeclarator"] = variableDeclarator);
     (exports["assignmentExpression"] = assignmentExpression);
+    (exports["deleteExpression"] = deleteExpression);
     (exports["unaryExpression"] = unaryExpression);
     (exports["binaryExpression"] = binaryExpression);
     (exports["logicalExpression"] = logicalExpression);

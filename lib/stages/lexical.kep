@@ -80,7 +80,7 @@ var builtinBinaryOps := [
     '.',
     '??',
     '@',
-    'void',
+
     'instanceof',
     'new'];
 
@@ -93,7 +93,7 @@ var builtinUnaryOps := [
     '--',
     '~',
     'typeof',
-    'delete'];
+    'void'];
 
 /**
  * 

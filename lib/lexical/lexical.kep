@@ -509,6 +509,9 @@ addCheck@'AssignmentExpression' <| seq(
                 :markBindingMutable(name, loc))),
     checkChild 'right');
 
+addCheck@'DeleteExpression' <|
+    checkChild 'argument';
+
 addCheck@'BinaryExpression' <| seq(
     checkChild 'operator',
     checkChild 'left',

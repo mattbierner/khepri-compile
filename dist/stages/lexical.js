@@ -12,9 +12,9 @@ define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], 
         ],
         builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
             "!==", "&", "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", ".", "??",
-            "@", "void", "instanceof", "new"
+            "@", "instanceof", "new"
         ],
-        builtinUnaryOps = ["!", "++", "--", "~", "typeof", "delete"];
+        builtinUnaryOps = ["!", "++", "--", "~", "typeof", "void"];
     (check = (function(input) {
         var options = input["options"],
             tree = input["tree"],

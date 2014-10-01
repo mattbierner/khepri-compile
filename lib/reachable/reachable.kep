@@ -232,7 +232,7 @@ addRewrite@'FunctionExpression' <| seq(
     visitChild 'id',
     visitChild 'params');
 
-addRewrite@'UnaryExpression' <|
+addRewrite@['UnaryExpression', 'DeleteExpression'] <|
     visitChild 'argument';
 
 addRewrite@['BinaryExpression', 'AssignmentExpression'] <| seq(

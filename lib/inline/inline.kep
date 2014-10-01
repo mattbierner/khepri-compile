@@ -633,6 +633,9 @@ addRewrite@'AssignmentExpression' <| seq(
                 :addBindingForNode(left, right)
                 :setWorkingForNode(left, right)));
 
+addRewrite@'DeleteExpression' <|
+    visitChild 'argument';
+
 addRewrite@['ConditionalExpression', 'IfStatement'] <| seq(
     visitChild 'test',
     

@@ -185,7 +185,7 @@ define(["require", "exports", "khepri-ast/node", "akh/base", "akh/state", "zippe
             __args33[1]
         ]), seq(moveChild("params"), sequencea(actions33), up)));
     x18(y18);
-    var x19 = addRewrite.bind(null, "UnaryExpression"),
+    var x19 = addRewrite.bind(null, ["UnaryExpression", "DeleteExpression"]),
         __args34 = ["argument", checkTop],
         actions34 = [__args34[1]],
         y19 = seq(moveChild("argument"), sequencea(actions34), up);

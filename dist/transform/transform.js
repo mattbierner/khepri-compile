@@ -37,10 +37,10 @@ define(["require", "exports", "akh/trans/state", "akh/unique", "akh/base", "zipp
             __args39, actions39, __args40, actions40, __args41, actions41, __args42, actions42, __args43,
             actions43, __args44, actions44, __args45, actions45, __args46, actions46, __args47, actions47,
             __args48, actions48, __args49, actions49, __args50, actions50, __args51, actions51, __args52,
-            actions52, __args53, actions53, __args54, actions55, __args55, actions56, __args56, actions57,
+            actions52, __args53, actions53, __args54, actions54, __args55, actions56, __args56, actions57,
             __args57, actions58, __args58, actions59, __args59, actions60, __args60, actions61, __args61,
-            actions62, __args63, actions64, __args64, actions65, __args65, actions66, __args66, actions67, move,
-            uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
+            actions62, __args62, actions63, __args64, actions65, __args65, actions66, __args66, actions67,
+            __args67, actions68, move, uid, f1, uid0, f2, _trans, M = TreeZipperT(StateT(Unique)),
         run = (function(m, s, ctx) {
             return Unique.runUnique(StateT.evalStateT(TreeZipperT.runTreeZipperT(m, ctx), s));
         }),
@@ -232,62 +232,66 @@ define(["require", "exports", "akh/trans/state", "akh/unique", "akh/base", "zipp
             sequencea(actions31), up)), ((__args32 = ["right", checkTop]), (actions32 = [__args32[1]]), seq(
             moveChild("right"), sequencea(actions32), up)), modify(translate.assignmentExpression));
     x21(y22);
-    var x22 = addTransform.bind(null, "UnaryExpression"),
+    var x22 = addTransform.bind(null, "DeleteExpression"),
         y23 = seq(((__args33 = ["argument", checkTop]), (actions33 = [__args33[1]]), seq(moveChild("argument"),
-            sequencea(actions33), up)), modify(translate.unaryExpression));
+            sequencea(actions33), up)), modify(translate.deleteExpression));
     x22(y23);
-    var x23 = addTransform.bind(null, "BinaryExpression"),
-        y24 = seq(((__args34 = ["operator", checkTop]), (actions34 = [__args34[1]]), seq(moveChild("operator"),
-            sequencea(actions34), up)), ((__args35 = ["left", checkTop]), (actions35 = [__args35[1]]), seq(
-            moveChild("left"), sequencea(actions35), up)), ((__args36 = ["right", checkTop]), (actions36 = [
-            __args36[1]
-        ]), seq(moveChild("right"), sequencea(actions36), up)), modify(translate.binaryExpression));
+    var x23 = addTransform.bind(null, "UnaryExpression"),
+        y24 = seq(((__args34 = ["argument", checkTop]), (actions34 = [__args34[1]]), seq(moveChild("argument"),
+            sequencea(actions34), up)), modify(translate.unaryExpression));
     x23(y24);
-    var x24 = addTransform.bind(null, "ConditionalExpression"),
-        y25 = seq(((__args37 = ["test", checkTop]), (actions37 = [__args37[1]]), seq(moveChild("test"),
-            sequencea(actions37), up)), ((__args38 = ["consequent", checkTop]), (actions38 = [__args38[1]]),
-            seq(moveChild("consequent"), sequencea(actions38), up)), ((__args39 = ["alternate", checkTop]), (
-            actions39 = [__args39[1]]), seq(moveChild("alternate"), sequencea(actions39), up)), modify(
-            translate.conditionalExpression));
+    var x24 = addTransform.bind(null, "BinaryExpression"),
+        y25 = seq(((__args35 = ["operator", checkTop]), (actions35 = [__args35[1]]), seq(moveChild("operator"),
+            sequencea(actions35), up)), ((__args36 = ["left", checkTop]), (actions36 = [__args36[1]]), seq(
+            moveChild("left"), sequencea(actions36), up)), ((__args37 = ["right", checkTop]), (actions37 = [
+            __args37[1]
+        ]), seq(moveChild("right"), sequencea(actions37), up)), modify(translate.binaryExpression));
     x24(y25);
-    var x25 = addTransform.bind(null, "NewExpression"),
-        y26 = seq(((__args40 = ["callee", checkTop]), (actions40 = [__args40[1]]), seq(moveChild("callee"),
-            sequencea(actions40), up)), ((__args41 = ["args", checkTop]), (actions41 = [__args41[1]]), seq(
-            moveChild("args"), sequencea(actions41), up)), modify(translate.newExpression));
+    var x25 = addTransform.bind(null, "ConditionalExpression"),
+        y26 = seq(((__args38 = ["test", checkTop]), (actions38 = [__args38[1]]), seq(moveChild("test"),
+            sequencea(actions38), up)), ((__args39 = ["consequent", checkTop]), (actions39 = [__args39[1]]),
+            seq(moveChild("consequent"), sequencea(actions39), up)), ((__args40 = ["alternate", checkTop]), (
+            actions40 = [__args40[1]]), seq(moveChild("alternate"), sequencea(actions40), up)), modify(
+            translate.conditionalExpression));
     x25(y26);
-    var x26 = addTransform.bind(null, "CallExpression"),
-        y27 = seq(((__args42 = ["callee", checkTop]), (actions42 = [__args42[1]]), seq(moveChild("callee"),
-            sequencea(actions42), up)), ((__args43 = ["args", checkTop]), (actions43 = [__args43[1]]), seq(
-            moveChild("args"), sequencea(actions43), up)), modify(translate.callExpression));
+    var x26 = addTransform.bind(null, "NewExpression"),
+        y27 = seq(((__args41 = ["callee", checkTop]), (actions41 = [__args41[1]]), seq(moveChild("callee"),
+            sequencea(actions41), up)), ((__args42 = ["args", checkTop]), (actions42 = [__args42[1]]), seq(
+            moveChild("args"), sequencea(actions42), up)), modify(translate.newExpression));
     x26(y27);
-    var x27 = addTransform.bind(null, "ApplyExpression"),
-        y28 = seq(((__args44 = ["callee", checkTop]), (actions44 = [__args44[1]]), seq(moveChild("callee"),
-            sequencea(actions44), up)), ((__args45 = ["args", checkTop]), (actions45 = [__args45[1]]), seq(
-            moveChild("args"), sequencea(actions45), up)), modify(translate.applyExpression));
+    var x27 = addTransform.bind(null, "CallExpression"),
+        y28 = seq(((__args43 = ["callee", checkTop]), (actions43 = [__args43[1]]), seq(moveChild("callee"),
+            sequencea(actions43), up)), ((__args44 = ["args", checkTop]), (actions44 = [__args44[1]]), seq(
+            moveChild("args"), sequencea(actions44), up)), modify(translate.callExpression));
     x27(y28);
-    var x28 = addTransform.bind(null, "MemberExpression"),
-        y29 = seq(((__args46 = ["object", checkTop]), (actions46 = [__args46[1]]), seq(moveChild("object"),
-            sequencea(actions46), up)), ((__args47 = ["property", checkTop]), (actions47 = [__args47[1]]),
-            seq(moveChild("property"), sequencea(actions47), up)), modify(translate.memberExpression));
+    var x28 = addTransform.bind(null, "ApplyExpression"),
+        y29 = seq(((__args45 = ["callee", checkTop]), (actions45 = [__args45[1]]), seq(moveChild("callee"),
+            sequencea(actions45), up)), ((__args46 = ["args", checkTop]), (actions46 = [__args46[1]]), seq(
+            moveChild("args"), sequencea(actions46), up)), modify(translate.applyExpression));
     x28(y29);
-    var x29 = addTransform.bind(null, "CheckedMemberExpression"),
-        y30 = seq(((__args48 = ["object", checkTop]), (actions48 = [__args48[1]]), seq(moveChild("object"),
-                sequencea(actions48), up)), ((__args49 = ["property", checkTop]), (actions49 = [__args49[1]]),
-                seq(moveChild("property"), sequencea(actions49), up)), modify(translate.checkedMemberExpression),
-            checkTop);
+    var x29 = addTransform.bind(null, "MemberExpression"),
+        y30 = seq(((__args47 = ["object", checkTop]), (actions47 = [__args47[1]]), seq(moveChild("object"),
+            sequencea(actions47), up)), ((__args48 = ["property", checkTop]), (actions48 = [__args48[1]]),
+            seq(moveChild("property"), sequencea(actions48), up)), modify(translate.memberExpression));
     x29(y30);
-    var x30 = addTransform.bind(null, "LetExpression"),
-        y31 = seq(((__args50 = ["bindings", checkTop]), (actions50 = [__args50[1]]), seq(moveChild("bindings"),
-            sequencea(actions50), up)), withNode((function(z) {
-            return addBindingsForBindingsList(z.bindings);
-        })), ((__args51 = ["body", checkTop]), (actions51 = [__args51[1]]), seq(moveChild("body"),
-            sequencea(actions51), up)), modify(translate.letExpression));
+    var x30 = addTransform.bind(null, "CheckedMemberExpression"),
+        y31 = seq(((__args49 = ["object", checkTop]), (actions49 = [__args49[1]]), seq(moveChild("object"),
+                sequencea(actions49), up)), ((__args50 = ["property", checkTop]), (actions50 = [__args50[1]]),
+                seq(moveChild("property"), sequencea(actions50), up)), modify(translate.checkedMemberExpression),
+            checkTop);
     x30(y31);
-    var x31 = addTransform.bind(null, "CurryExpression"),
-        y32 = seq(((__args52 = ["base", checkTop]), (actions52 = [__args52[1]]), seq(moveChild("base"),
-            sequencea(actions52), up)), ((__args53 = ["args", checkTop]), (actions53 = [__args53[1]]), seq(
-            moveChild("args"), sequencea(actions53), up)), modify(translate.curryExpression));
+    var x31 = addTransform.bind(null, "LetExpression"),
+        y32 = seq(((__args51 = ["bindings", checkTop]), (actions51 = [__args51[1]]), seq(moveChild("bindings"),
+            sequencea(actions51), up)), withNode((function(z) {
+            return addBindingsForBindingsList(z.bindings);
+        })), ((__args52 = ["body", checkTop]), (actions52 = [__args52[1]]), seq(moveChild("body"),
+            sequencea(actions52), up)), modify(translate.letExpression));
     x31(y32);
+    var x32 = addTransform.bind(null, "CurryExpression"),
+        y33 = seq(((__args53 = ["base", checkTop]), (actions53 = [__args53[1]]), seq(moveChild("base"),
+            sequencea(actions53), up)), ((__args54 = ["args", checkTop]), (actions54 = [__args54[1]]), seq(
+            moveChild("args"), sequencea(actions54), up)), modify(translate.curryExpression));
+    x32(y33);
     var createExplicitClosure = (function(locals) {
         return enumeration(map((function(uid) {
             return inspectScope(scope.getMapping.bind(null, uid))
@@ -301,89 +305,89 @@ define(["require", "exports", "akh/trans/state", "akh/unique", "akh/base", "zipp
                 }));
             }));
     }),
-        x32 = addTransform.bind(null, "FunctionExpression"),
-        actions54 = [((__args54 = ["id", checkTop]), (actions55 = [__args54[1]]), seq(moveChild("id"),
-            sequencea(actions55), up)), modify((function(node0) {
+        x33 = addTransform.bind(null, "FunctionExpression"),
+        actions55 = [((__args55 = ["id", checkTop]), (actions56 = [__args55[1]]), seq(moveChild("id"),
+            sequencea(actions56), up)), modify((function(node0) {
             return translate.functionExpression(node0.loc, node0.id, node0.params, node0.body,
                 getUd("prefix", node0));
-        })), ((__args55 = ["params", checkTop]), (actions56 = [__args55[1]]), seq(moveChild("params"),
-            sequencea(actions56), up)), ((__args56 = ["body", checkTop]), (actions57 = [__args56[1]]), seq(
-            moveChild("body"), sequencea(actions57), up)), modify(translate.functionExpressionPost)],
-        y33 = seq(enterBlock, sequencea(actions54), exitBlock),
-        evaluate = funcBlock(y33),
-        y34 = getContext.chain((function(ctx) {
+        })), ((__args56 = ["params", checkTop]), (actions57 = [__args56[1]]), seq(moveChild("params"),
+            sequencea(actions57), up)), ((__args57 = ["body", checkTop]), (actions58 = [__args57[1]]), seq(
+            moveChild("body"), sequencea(actions58), up)), modify(translate.functionExpressionPost)],
+        y34 = seq(enterBlock, sequencea(actions55), exitBlock),
+        evaluate = funcBlock(y34),
+        y35 = getContext.chain((function(ctx) {
             return ((ctx === state.LOOP_CTX) ? withNode((function(node0) {
                 return seq(evaluate, createExplicitClosure(getClosure(node0)));
             })) : evaluate);
         }));
-    x32(y34);
-    var x33 = addTransform.bind(null, "ArrayExpression"),
-        y35 = seq(((__args57 = ["elements", checkTop]), (actions58 = [__args57[1]]), seq(moveChild("elements"),
-            sequencea(actions58), up)), modify(translate.arrayExpression));
     x33(y35);
-    var x34 = addTransform.bind(null, "ObjectExpression"),
-        y36 = seq(((__args58 = ["properties", checkTop]), (actions59 = [__args58[1]]), seq(moveChild(
-            "properties"), sequencea(actions59), up)), modify(translate.objectExpression));
+    var x34 = addTransform.bind(null, "ArrayExpression"),
+        y36 = seq(((__args58 = ["elements", checkTop]), (actions59 = [__args58[1]]), seq(moveChild("elements"),
+            sequencea(actions59), up)), modify(translate.arrayExpression));
     x34(y36);
-    var x35 = addTransform.bind(null, "ObjectValue"),
-        y37 = seq(((__args59 = ["key", checkTop]), (actions60 = [__args59[1]]), seq(moveChild("key"), sequencea(
-            actions60), up)), ((__args60 = ["value", checkTop]), (actions61 = [__args60[1]]), seq(moveChild(
-            "value"), sequencea(actions61), up)), modify(translate.objectValue));
+    var x35 = addTransform.bind(null, "ObjectExpression"),
+        y37 = seq(((__args59 = ["properties", checkTop]), (actions60 = [__args59[1]]), seq(moveChild(
+            "properties"), sequencea(actions60), up)), modify(translate.objectExpression));
     x35(y37);
-    var x36 = addTransform.bind(null, "IdentifierPattern"),
-        y38 = seq(((__args61 = ["id", checkTop]), (actions62 = [__args61[1]]), seq(moveChild("id"), sequencea(
-            actions62), up)), modify((function(x37) {
-            return x37.id;
-        })));
+    var x36 = addTransform.bind(null, "ObjectValue"),
+        y38 = seq(((__args60 = ["key", checkTop]), (actions61 = [__args60[1]]), seq(moveChild("key"), sequencea(
+            actions61), up)), ((__args61 = ["value", checkTop]), (actions62 = [__args61[1]]), seq(moveChild(
+            "value"), sequencea(actions62), up)), modify(translate.objectValue));
     x36(y38);
-    var x37 = addTransform.bind(null, ["RelativeUnpack", "SliceUnpack"]),
-        __args62 = ["target", checkTop],
-        actions63 = [__args62[1]],
-        y39 = seq(moveChild("target"), sequencea(actions63), up);
+    var x37 = addTransform.bind(null, "IdentifierPattern"),
+        y39 = seq(((__args62 = ["id", checkTop]), (actions63 = [__args62[1]]), seq(moveChild("id"), sequencea(
+            actions63), up)), modify((function(x38) {
+            return x38.id;
+        })));
     x37(y39);
-    var x38 = addTransform.bind(null, "ArgumentsPattern"),
-        y40 = seq(((__args63 = ["id", checkTop]), (actions64 = [__args63[1]]), seq(moveChild("id"), sequencea(
-            actions64), up)), ((__args64 = ["elements", checkTop]), (actions65 = [__args64[1]]), seq(
-            moveChild("elements"), sequencea(actions65), up)), ((__args65 = ["self", checkTop]), (actions66 = [
-            __args65[1]
-        ]), seq(moveChild("self"), sequencea(actions66), up)));
+    var x38 = addTransform.bind(null, ["RelativeUnpack", "SliceUnpack"]),
+        __args63 = ["target", checkTop],
+        actions64 = [__args63[1]],
+        y40 = seq(moveChild("target"), sequencea(actions64), up);
     x38(y40);
-    var x39 = addTransform.bind(null, "Program"),
-        y41 = seq(pushBindings, modify((function(node0) {
+    var x39 = addTransform.bind(null, "ArgumentsPattern"),
+        y41 = seq(((__args64 = ["id", checkTop]), (actions65 = [__args64[1]]), seq(moveChild("id"), sequencea(
+            actions65), up)), ((__args65 = ["elements", checkTop]), (actions66 = [__args65[1]]), seq(
+            moveChild("elements"), sequencea(actions66), up)), ((__args66 = ["self", checkTop]), (actions67 = [
+            __args66[1]
+        ]), seq(moveChild("self"), sequencea(actions67), up)));
+    x39(y41);
+    var x40 = addTransform.bind(null, "Program"),
+        y42 = seq(pushBindings, modify((function(node0) {
             return ((type(node0.body) === "Package") ? node0 : setUd("prefix", translate.useStrict,
                 node0));
-        })), ((__args66 = ["body", checkTop]), (actions67 = [__args66[1]]), seq(moveChild("body"),
-            sequencea(actions67), up)), getBindings((function(bindings) {
+        })), ((__args67 = ["body", checkTop]), (actions68 = [__args67[1]]), seq(moveChild("body"),
+            sequencea(actions68), up)), getBindings((function(bindings) {
             return modify(translate.program.bind(null, bindings));
         })));
-    x39(y41);
-    var x40 = addTransform.bind(null, "Package"),
-        y42 = seq(packageManager.chain((function(packageManager0) {
+    x40(y42);
+    var x41 = addTransform.bind(null, "Package"),
+        y43 = seq(packageManager.chain((function(packageManager0) {
             return modify(translate.packageBlock.bind(null, packageManager0));
         })), checkTop);
-    x40(y42);
-    var x41 = addTransform.bind(null, "Import"),
-        y43 = packageManager.chain((function(packageManager0) {
-            var y44;
-            return modify(((y44 = packageManager0.importPackage), (function(z) {
-                return y44(z.from);
+    x41(y43);
+    var x42 = addTransform.bind(null, "Import"),
+        y44 = packageManager.chain((function(packageManager0) {
+            var y45;
+            return modify(((y45 = packageManager0.importPackage), (function(z) {
+                return y45(z.from);
             })));
         }));
-    x41(y43);
-    var x42 = addTransform.bind(null, "Identifier"),
-        y44 = withNode((function(node0) {
-            var id, uid, uid0, x43, y45;
+    x42(y44);
+    var x43 = addTransform.bind(null, "Identifier"),
+        y45 = withNode((function(node0) {
+            var id, uid, uid0, x44, y46;
             return (getUid(node0) ? seq(((id = node0.name), (uid = getUid(node0)), modifyScope(scope.addVar
                     .bind(null, id, uid))), ((uid0 = getUid(node0)), inspectScope(scope.getMapping.bind(
                     null, uid0)))
                 .chain((function(name) {
-                    var x43 = set,
-                        y45 = translate.identifier(node0.loc, name, getUid(node0));
-                    return x43(y45);
-                }))) : ((x43 = set), (y45 = translate.identifier(node0.loc, node0.name)), x43(y45)));
+                    var x44 = set,
+                        y46 = translate.identifier(node0.loc, name, getUid(node0));
+                    return x44(y46);
+                }))) : ((x44 = set), (y46 = translate.identifier(node0.loc, node0.name)), x44(y46)));
         }));
-    x42(y44);
-    var visitArray = ((move = (function(x43, i, a) {
+    x43(y45);
+    var visitArray = ((move = (function(x44, i, a) {
         return ((i === (a.length - 1)) ? checkTop : seq(checkTop, right));
     })), (function(node0) {
         return (node0.length ? seq(down, sequencea(map(move, node0)), up) : pass);

@@ -305,6 +305,10 @@ addTransform@'AssignmentExpression' <| seq(
     rewriteChild 'right',
     modify (translate.assignmentExpression));
 
+addTransform@'DeleteExpression' <| seq(
+    rewriteChild 'argument',
+    modify (translate.deleteExpression));
+
 addTransform@'UnaryExpression' <| seq(
     rewriteChild 'argument',
     modify (translate.unaryExpression));

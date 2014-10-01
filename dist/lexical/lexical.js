@@ -35,11 +35,11 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
             __args35, actions36, __args37, actions37, __args38, actions38, body9, __args39, actions39, body10,
             __args40, actions40, __args41, actions41, __args42, actions42, __args43, actions43, __args44,
             actions44, body12, __args45, actions45, __args46, actions46, consequent1, __args47, actions47,
-            __args48, actions48, __args49, actions49, __args50, actions50, __args51, actions51, __args52,
-            actions52, __args53, actions53, __args54, actions54, __args55, actions55, __args56, actions56,
-            __args57, actions57, consequent2, __args60, actions60, __args61, actions61, __args62, actions62,
-            __args63, actions63, __args67, actions67, __args68, actions68, __args70, actions70, __args71,
-            actions71, __args72, actions72, __args73, actions73, __args74, actions74, _check, reserved = getUd.bind(
+            __args49, actions49, __args50, actions50, __args51, actions51, __args52, actions52, __args53,
+            actions53, __args54, actions54, __args55, actions55, __args56, actions56, __args57, actions57,
+            __args58, actions58, consequent2, __args61, actions61, __args62, actions62, __args63, actions63,
+            __args64, actions64, __args68, actions68, __args69, actions69, __args71, actions71, __args72,
+            actions72, __args73, actions73, __args74, actions74, __args75, actions75, _check, reserved = getUd.bind(
                 null, "reserved"),
         getStart = (function(y) {
             return (y && y.start);
@@ -415,130 +415,135 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         }))), ((__args47 = ["right", checkTop]), (actions47 = [__args47[1]]), seq(moveChild("right"), seqa(
             actions47), up)));
     x25(y25);
-    var x26 = addCheck.bind(null, "BinaryExpression"),
-        y26 = seq(((__args48 = ["operator", checkTop]), (actions48 = [__args48[1]]), seq(moveChild("operator"),
-            seqa(actions48), up)), ((__args49 = ["left", checkTop]), (actions49 = [__args49[1]]), seq(
-            moveChild("left"), seqa(actions49), up)), ((__args50 = ["right", checkTop]), (actions50 = [
-            __args50[1]
-        ]), seq(moveChild("right"), seqa(actions50), up)));
+    var x26 = addCheck.bind(null, "DeleteExpression"),
+        __args48 = ["argument", checkTop],
+        actions48 = [__args48[1]],
+        y26 = seq(moveChild("argument"), seqa(actions48), up);
     x26(y26);
-    var x27 = addCheck.bind(null, "ConditionalExpression"),
-        y27 = seq(((__args51 = ["test", checkTop]), (actions51 = [__args51[1]]), seq(moveChild("test"), seqa(
-            actions51), up)), ((__args52 = ["consequent", checkTop]), (actions52 = [__args52[1]]), seq(
-            moveChild("consequent"), seqa(actions52), up)), ((__args53 = ["alternate", checkTop]), (
-            actions53 = [__args53[1]]), seq(moveChild("alternate"), seqa(actions53), up)));
+    var x27 = addCheck.bind(null, "BinaryExpression"),
+        y27 = seq(((__args49 = ["operator", checkTop]), (actions49 = [__args49[1]]), seq(moveChild("operator"),
+            seqa(actions49), up)), ((__args50 = ["left", checkTop]), (actions50 = [__args50[1]]), seq(
+            moveChild("left"), seqa(actions50), up)), ((__args51 = ["right", checkTop]), (actions51 = [
+            __args51[1]
+        ]), seq(moveChild("right"), seqa(actions51), up)));
     x27(y27);
-    var x28 = addCheck.bind(null, ["CallExpression", "NewExpression"]),
-        y28 = seq(((__args54 = ["callee", checkTop]), (actions54 = [__args54[1]]), seq(moveChild("callee"),
-            seqa(actions54), up)), ((__args55 = ["args", checkTop]), (actions55 = [__args55[1]]), seq(
-            moveChild("args"), seqa(actions55), up)));
+    var x28 = addCheck.bind(null, "ConditionalExpression"),
+        y28 = seq(((__args52 = ["test", checkTop]), (actions52 = [__args52[1]]), seq(moveChild("test"), seqa(
+            actions52), up)), ((__args53 = ["consequent", checkTop]), (actions53 = [__args53[1]]), seq(
+            moveChild("consequent"), seqa(actions53), up)), ((__args54 = ["alternate", checkTop]), (
+            actions54 = [__args54[1]]), seq(moveChild("alternate"), seqa(actions54), up)));
     x28(y28);
-    var x29 = addCheck.bind(null, ["MemberExpression", "CheckedMemberExpression"]),
-        y29 = seq(((__args56 = ["object", checkTop]), (actions56 = [__args56[1]]), seq(moveChild("object"),
-            seqa(actions56), up)), ((__args57 = ["property", checkTop]), (actions57 = [__args57[1]]), (
-            consequent2 = seq(moveChild("property"), seqa(actions57), up)), inspect((function(node) {
+    var x29 = addCheck.bind(null, ["CallExpression", "NewExpression"]),
+        y29 = seq(((__args55 = ["callee", checkTop]), (actions55 = [__args55[1]]), seq(moveChild("callee"),
+            seqa(actions55), up)), ((__args56 = ["args", checkTop]), (actions56 = [__args56[1]]), seq(
+            moveChild("args"), seqa(actions56), up)));
+    x29(y29);
+    var x30 = addCheck.bind(null, ["MemberExpression", "CheckedMemberExpression"]),
+        y30 = seq(((__args57 = ["object", checkTop]), (actions57 = [__args57[1]]), seq(moveChild("object"),
+            seqa(actions57), up)), ((__args58 = ["property", checkTop]), (actions58 = [__args58[1]]), (
+            consequent2 = seq(moveChild("property"), seqa(actions58), up)), inspect((function(node) {
             return (node.computed ? consequent2 : (undefined || pass));
         }))));
-    x29(y29);
-    var x30 = addCheck.bind(null, "ArrayExpression"),
-        __args58 = ["elements", checkTop],
-        actions58 = [__args58[1]],
-        y30 = seq(moveChild("elements"), seqa(actions58), up);
     x30(y30);
-    var x31 = addCheck.bind(null, "ObjectExpression"),
-        __args59 = ["properties", checkTop],
+    var x31 = addCheck.bind(null, "ArrayExpression"),
+        __args59 = ["elements", checkTop],
         actions59 = [__args59[1]],
-        y31 = seq(moveChild("properties"), seqa(actions59), up);
+        y31 = seq(moveChild("elements"), seqa(actions59), up);
     x31(y31);
-    var x32 = addCheck.bind(null, "LetExpression"),
-        body13 = [((__args60 = ["bindings", checkTop]), (actions60 = [__args60[1]]), seq(moveChild("bindings"),
-            seqa(actions60), up)), ((__args61 = ["body", checkTop]), (actions61 = [__args61[1]]), seq(
-            moveChild("body"), seqa(actions61), up))],
-        y32 = seq(push, seqa(body13), pop);
+    var x32 = addCheck.bind(null, "ObjectExpression"),
+        __args60 = ["properties", checkTop],
+        actions60 = [__args60[1]],
+        y32 = seq(moveChild("properties"), seqa(actions60), up);
     x32(y32);
-    var x33 = addCheck.bind(null, "CurryExpression"),
-        y33 = seq(((__args62 = ["base", checkTop]), (actions62 = [__args62[1]]), seq(moveChild("base"), seqa(
-            actions62), up)), ((__args63 = ["args", checkTop]), (actions63 = [__args63[1]]), seq(moveChild(
-            "args"), seqa(actions63), up)));
+    var x33 = addCheck.bind(null, "LetExpression"),
+        body13 = [((__args61 = ["bindings", checkTop]), (actions61 = [__args61[1]]), seq(moveChild("bindings"),
+            seqa(actions61), up)), ((__args62 = ["body", checkTop]), (actions62 = [__args62[1]]), seq(
+            moveChild("body"), seqa(actions62), up))],
+        y33 = seq(push, seqa(body13), pop);
     x33(y33);
-    var x34 = addCheck.bind(null, "OperatorExpression"),
-        __args64 = ["operator", checkTop],
-        actions64 = [__args64[1]],
-        y34 = seq(moveChild("operator"), seqa(actions64), up);
+    var x34 = addCheck.bind(null, "CurryExpression"),
+        y34 = seq(((__args63 = ["base", checkTop]), (actions63 = [__args63[1]]), seq(moveChild("base"), seqa(
+            actions63), up)), ((__args64 = ["args", checkTop]), (actions64 = [__args64[1]]), seq(moveChild(
+            "args"), seqa(actions64), up)));
     x34(y34);
-    var x35 = addCheck.bind(null, "EllipsisPattern"),
-        __args65 = ["id", checkTop],
+    var x35 = addCheck.bind(null, "OperatorExpression"),
+        __args65 = ["operator", checkTop],
         actions65 = [__args65[1]],
-        y35 = seq(moveChild("id"), seqa(actions65), up);
+        y35 = seq(moveChild("operator"), seqa(actions65), up);
     x35(y35);
-    var x36 = addCheck.bind(null, ["SliceUnpack", "RelativeUnpack", "ImportPattern"]),
-        __args66 = ["pattern", checkTop],
+    var x36 = addCheck.bind(null, "EllipsisPattern"),
+        __args66 = ["id", checkTop],
         actions66 = [__args66[1]],
-        y36 = seq(moveChild("pattern"), seqa(actions66), up);
+        y36 = seq(moveChild("id"), seqa(actions66), up);
     x36(y36);
-    var x37 = addCheck.bind(null, "IdentifierPattern"),
-        y37 = seq(inspect((function(node) {
+    var x37 = addCheck.bind(null, ["SliceUnpack", "RelativeUnpack", "ImportPattern"]),
+        __args67 = ["pattern", checkTop],
+        actions67 = [__args67[1]],
+        y37 = seq(moveChild("pattern"), seqa(actions67), up);
+    x37(y37);
+    var x38 = addCheck.bind(null, "IdentifierPattern"),
+        y38 = seq(inspect((function(node) {
             var loc = node["loc"],
                 id = node["id"];
             return (reserved(node) ? addImmutableBinding(id.name, loc) : addImmutableBindingChecked(
                 id.name, loc));
-        })), ((__args67 = ["id", checkTop]), (actions67 = [__args67[1]]), seq(moveChild("id"), seqa(
-            actions67), up)));
-    x37(y37);
-    var x38 = addCheck.bind(null, "AsPattern"),
-        y38 = seq(((__args68 = ["id", checkTop]), (actions68 = [__args68[1]]), seq(moveChild("id"), seqa(
-            actions68), up)), inspect((function(node) {
-            var __args69 = ["target", modifyNode((function(target) {
+        })), ((__args68 = ["id", checkTop]), (actions68 = [__args68[1]]), seq(moveChild("id"), seqa(
+            actions68), up)));
+    x38(y38);
+    var x39 = addCheck.bind(null, "AsPattern"),
+        y39 = seq(((__args69 = ["id", checkTop]), (actions69 = [__args69[1]]), seq(moveChild("id"), seqa(
+            actions69), up)), inspect((function(node) {
+            var __args70 = ["target", modifyNode((function(target) {
                 return setUd("id", node.id, target);
             })), checkTop],
-                actions69 = [__args69[1], __args69[2]];
-            return seq(moveChild("target"), seqa(actions69), up);
+                actions70 = [__args70[1], __args70[2]];
+            return seq(moveChild("target"), seqa(actions70), up);
         })));
-    x38(y38);
-    var x39 = addCheck.bind(null, "ObjectPattern"),
-        __args69 = ["elements", checkTop],
-        actions69 = [__args69[1]],
-        y39 = seq(moveChild("elements"), seqa(actions69), up);
     x39(y39);
-    var x40 = addCheck.bind(null, "ObjectPatternElement"),
-        y40 = seq(((__args70 = ["target", checkTop]), (actions70 = [__args70[1]]), seq(moveChild("target"),
-            seqa(actions70), up)), ((__args71 = ["key", checkTop]), (actions71 = [__args71[1]]), seq(
-            moveChild("key"), seqa(actions71), up)));
+    var x40 = addCheck.bind(null, "ObjectPattern"),
+        __args70 = ["elements", checkTop],
+        actions70 = [__args70[1]],
+        y40 = seq(moveChild("elements"), seqa(actions70), up);
     x40(y40);
-    var x41 = addCheck.bind(null, "ArgumentsPattern"),
-        y41 = seq(((__args72 = ["id", checkTop]), (actions72 = [__args72[1]]), seq(moveChild("id"), seqa(
-            actions72), up)), ((__args73 = ["elements", checkTop]), (actions73 = [__args73[1]]), seq(
-            moveChild("elements"), seqa(actions73), up)), ((__args74 = ["self", checkTop]), (actions74 = [
-            __args74[1]
-        ]), seq(moveChild("self"), seqa(actions74), up)));
+    var x41 = addCheck.bind(null, "ObjectPatternElement"),
+        y41 = seq(((__args71 = ["target", checkTop]), (actions71 = [__args71[1]]), seq(moveChild("target"),
+            seqa(actions71), up)), ((__args72 = ["key", checkTop]), (actions72 = [__args72[1]]), seq(
+            moveChild("key"), seqa(actions72), up)));
     x41(y41);
-    var x42 = addCheck.bind(null, "ObjectValue"),
-        __args75 = ["value", checkTop],
-        actions75 = [__args75[1]],
-        y42 = seq(moveChild("value"), seqa(actions75), up);
+    var x42 = addCheck.bind(null, "ArgumentsPattern"),
+        y42 = seq(((__args73 = ["id", checkTop]), (actions73 = [__args73[1]]), seq(moveChild("id"), seqa(
+            actions73), up)), ((__args74 = ["elements", checkTop]), (actions74 = [__args74[1]]), seq(
+            moveChild("elements"), seqa(actions74), up)), ((__args75 = ["self", checkTop]), (actions75 = [
+            __args75[1]
+        ]), seq(moveChild("self"), seqa(actions75), up)));
     x42(y42);
-    var x43 = addCheck.bind(null, ["Identifier", "BinaryOperator"]),
-        y43 = inspect((function(node) {
-            var loc = node["loc"],
-                name = node["name"];
-            return seq(checkHasBinding(name, loc), examineScope((function(s) {
-                var uid = scope.getUid(name, s),
-                    y44;
-                return seq(addRef(uid), ((y44 = setUid(uid, node)), setNode(y44)));
-            })));
-        }));
+    var x43 = addCheck.bind(null, "ObjectValue"),
+        __args76 = ["value", checkTop],
+        actions76 = [__args76[1]],
+        y43 = seq(moveChild("value"), seqa(actions76), up);
     x43(y43);
-    var x44 = addCheck.bind(null, ["UnaryOperator"]),
+    var x44 = addCheck.bind(null, ["Identifier", "BinaryOperator"]),
         y44 = inspect((function(node) {
             var loc = node["loc"],
                 name = node["name"];
             return seq(checkHasBinding(name, loc), examineScope((function(s) {
                 var uid = scope.getUid(name, s),
                     y45;
-                return seq(((y45 = setUid(uid, node)), setNode(y45)), addOperator(name, uid));
+                return seq(addRef(uid), ((y45 = setUid(uid, node)), setNode(y45)));
             })));
         }));
     x44(y44);
+    var x45 = addCheck.bind(null, ["UnaryOperator"]),
+        y45 = inspect((function(node) {
+            var loc = node["loc"],
+                name = node["name"];
+            return seq(checkHasBinding(name, loc), examineScope((function(s) {
+                var uid = scope.getUid(name, s),
+                    y46;
+                return seq(((y46 = setUid(uid, node)), setNode(y46)), addOperator(name, uid));
+            })));
+        }));
+    x45(y45);
     (_check = (function(node) {
         return (Array.isArray(node) ? checkArray(node) : (checks[type(node)] || pass));
     }));
@@ -548,11 +553,11 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
         addUnaryOps = flip(foldl.bind(null, (function(s, c) {
             return scope.addOperator(c, "global", scope.addImmutableBinding(c, "global", s));
         }))),
-        rewrite = seq(checkTop, root, extractCtx.chain((function(x45) {
+        rewrite = seq(checkTop, root, extractCtx.chain((function(x46) {
             return unique((function(unique0) {
                 return extractScope.map((function(s) {
                     return ({
-                        tree: x45,
+                        tree: x46,
                         data: ({
                             unique: unique0
                         })
@@ -561,10 +566,10 @@ define(["require", "exports", "akh/base", "akh/trans/statei", "akh/error", "akh/
             }));
         })));
     (check = (function(ast, globals, builtinBinary, builtinUnary) {
-        var x45, y45, x46, y46, x47, y47;
-        return run(rewrite, ((x45 = Scope.empty), (y45 = addGlobals.bind(null, (globals || []))), (x46 =
-            y45(x45)), (y46 = addGlobals.bind(null, (builtinBinary || []))), (x47 = y46(x46)), (
-            y47 = addUnaryOps.bind(null, (builtinUnary || []))), y47(x47)), ast, Error.of, Error.fail);
+        var x46, y46, x47, y47, x48, y48;
+        return run(rewrite, ((x46 = Scope.empty), (y46 = addGlobals.bind(null, (globals || []))), (x47 =
+            y46(x46)), (y47 = addGlobals.bind(null, (builtinBinary || []))), (x48 = y47(x47)), (
+            y48 = addUnaryOps.bind(null, (builtinUnary || []))), y48(x48)), ast, Error.of, Error.fail);
     }));
     (exports["check"] = check);
 }));
