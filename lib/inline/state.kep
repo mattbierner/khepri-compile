@@ -73,7 +73,7 @@ var putWorking := \key binding s ->
  * 
  * @param s State.
  */
-push = \s ->
+push := \s ->
     s
         .setOuter(s)
         .setWorking(hamt.empty);
@@ -83,7 +83,7 @@ push = \s ->
  * 
  * @param s State.
  */
-pop = let
+pop := let
     nullWorking =
         hamt.fold @ \p {key} ->
             hamt.set(key, null, p)
@@ -93,7 +93,7 @@ in
             .setBindings(s.bindings)
             .setGlobals(s.globals)
             .setWorking(
-                // Delete working bindings modified in inner from outer scope.
+                // Delete working bindings modified in inner scope from the outer scope.
                 nullWorking(s.outer.working, s.working));
 
 /* Binding Operations
@@ -116,7 +116,7 @@ getBinding := \uid s ->
  * @param simple Is the bound value simple?
  * @param s State.
  */
-addBinding = \uid value simple s ->
+addBinding := \uid value simple s ->
     putBinding(
         uid,
         Binding.create(value, IMMUTABLE, simple),
@@ -130,7 +130,7 @@ addBinding = \uid value simple s ->
  * @param simple Is the bound value simple?
  * @param s State.
  */
-addWorking = \uid value simple s ->
+addWorking := \uid value simple s ->
     putWorking(
         uid,
         Binding.create(value, MUTABLE, simple),
@@ -144,7 +144,7 @@ addWorking = \uid value simple s ->
  * @param simple Is the bound value simple?
  * @param s State.
  */
-invalidateWorking = \uid s ->
+invalidateWorking := \uid s ->
     putWorking(
         uid,
         null,

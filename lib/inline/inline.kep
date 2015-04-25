@@ -112,7 +112,7 @@ var moveChild =  M.child;
 /**
  * Expand the value from `exp`, passing result to `f`.
  */
-var expand = \exp f ->
+var expand := \exp f ->
     exp.chain(expandNode \> f);
 
 // Bindings Operations
@@ -125,7 +125,7 @@ var expand = \exp f ->
  * @param uid Immutable binding unique id.
  * @param value Value bound.
  */
-var addBinding = \uid value simple ->
+var addBinding := \uid value simple ->
     modifyState (state.addBinding @ uid @ value @ simple);
 
 /**
@@ -137,7 +137,7 @@ var addBinding = \uid value simple ->
  * @param uid Identifier unique id.
  * @param value Value bound.
  */
-var addWorking = \uid value simple ->
+var addWorking := \uid value simple ->
     modifyState (state.addWorking @ uid @ value @ simple);
 
 /**
@@ -145,7 +145,7 @@ var addWorking = \uid value simple ->
  * 
  * @param uid Identifier unique id.
  */
-var invalidateWorking = \uid ->
+var invalidateWorking := \uid ->
     modifyState (state.invalidateWorking @ uid);
 
 /**
@@ -155,7 +155,7 @@ var invalidateWorking = \uid ->
  * 
  * @param uid Identifier unique id.
  */
-var getBinding = \uid -> 
+var getBinding := \uid -> 
     ?uid
         :getState.map (state.getBinding @ uid)
         :pass;
@@ -163,7 +163,7 @@ var getBinding = \uid ->
 /**
  * 
  */
-var tryPrune = \id ->
+var tryPrune := \id ->
     let uid = getUid id in
         getBinding(uid).chain \ binding ->
             ?binding && binding.simple && !isExpansion binding.value && (isPrimitive binding.value || (binding.immutable && isIdentifier binding.value))
@@ -175,17 +175,17 @@ var tryPrune = \id ->
 /**
  * Enter a new scoping block.
  */
-var push = modifyState (state.push);
+var push := modifyState (state.push);
 
 /**
  * Exit the current the current scoping block.
  */
-var pop = modifyState (state.pop);
+var pop := modifyState (state.pop);
 
 /**
  * Evaluate `body` in a new scoping block.
  */
-var block = \-body(...)->
+var block := \-body(...)->
     seq(
         push,
         seqa body,
@@ -196,12 +196,12 @@ var block = \-body(...)->
 /**
  * Get globals.
  */
-var globals = M.chain @ (getState.map (state.getGlobals));
+var globals := M.chain @ (getState.map (state.getGlobals));
 
 /**
  * Add a new global.
  */
-var addGlobal = \name ->
+var addGlobal := \name ->
     modifyState (state.addGlobal @ name);
 
 /**
@@ -436,10 +436,7 @@ addRewrite@'VariableDeclarator' <| seq(
                 :seq(
                     addBindingForNode(id, init),
                     tryPrune id)
-                :addWorking(
-                    getUid id,
-                    init,
-                    (isPrimitive init || isIdentifier init || isLambda init))));
+                :addWorkingForNode(id, init)));
 
 /**
  * Register constants bound in immutable variable declarations.

@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.3.5 - April 24, 2015
+* Fixed recursive mutable variable declaration functions inlining forever.
+
 ## 1.3.4 - Sep 30, 2014
 * Fixed delete expressions.
 

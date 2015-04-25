@@ -24,6 +24,20 @@ exports.recursive_fn = function(test) {
     test.done();
 };
 
+exports.recursive_fn_with_mutable_var = function(test) {
+    test.equal(
+        evalParser("var mod10 = \\x -> ? x < 10 : x : mod10 (x -10); mod10 101;"),
+        1);
+    test.done();
+};
+
+exports.recursive_fn_with_immutable_var = function(test) {
+    test.equal(
+        evalParser("var mod10 := \\x -> ? x < 10 : x : mod10 (x -10); mod10 101;"),
+        1);
+    test.done();
+};
+
 exports.recursive_curry = function(test) {
     // Ensure no inline expansion loop
     testParser("let f := \\x y -> f @ (x + 1, y + 1) in f(0, 0);");
