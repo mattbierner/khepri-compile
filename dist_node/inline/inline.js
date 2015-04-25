@@ -79,11 +79,17 @@ var __o = require("khepri-ast")["node"],
     __or = (function(x, y) {
         return (x || y);
     }),
+    __eq = (function(x, y) {
+        return (x == y);
+    }),
     __bras = (function(x, y) {
         return (x >> y);
     }),
     __lnot = (function(x) {
         return (!x);
+    }),
+    __sneq = (function(x, y) {
+        return (x !== y);
     }),
     __lte = (function(x, y) {
         return (x <= y);
@@ -112,8 +118,14 @@ var __o = require("khepri-ast")["node"],
     __lt = (function(x, y) {
         return (x < y);
     }),
+    __neq = (function(x, y) {
+        return (x != y);
+    }),
     __bor = (function(x, y) {
         return (x | y);
+    }),
+    __seq = (function(x, y) {
+        return (x === y);
     }),
     __gt = (function(x, y) {
         return (x > y);
@@ -377,6 +389,10 @@ addRewrite("BinaryExpression", ((arithmetic0 = ({
     "<<": __blas,
     ">>": __bras,
     ">>>": __brls,
+    "==": __eq,
+    "!=": __neq,
+    "===": __seq,
+    "!==": __sneq,
     "<": __lt,
     ">": __gt,
     "<=": __lte,

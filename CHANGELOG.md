@@ -2,6 +2,7 @@
 
 ## 1.3.5 - April 24, 2015
 * Fixed recursive mutable variable declaration functions inlining forever.
+* Added rewriting for equality expressions to inlining pass to produce better code.
 
 ## 1.3.4 - Sep 30, 2014
 * Fixed delete expressions.
@@ -27,7 +28,6 @@
 * Added `<<|` and `|>>` to apply a function to an array of args.
 ** `var (<<|) = \f args -> f.apply(null, args);`
 ** `var (|>>) = \args f -> f.apply(null, args);`
-
 
 ## 1.2.2 - Sep 9, 2014
 * Temp fix for translation stage blowing up call stack for large programs.
