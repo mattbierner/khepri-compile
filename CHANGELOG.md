@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 1.3.6 - May 11, 2015
+* Fixed reverse pipe not defined as builtin symbol.
+
 ## 1.3.5 - April 24, 2015
 * Fixed recursive mutable variable declaration functions inlining forever.
 * Added rewriting for equality expressions to inlining pass to produce better code.
