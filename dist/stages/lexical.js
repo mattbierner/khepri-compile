@@ -11,7 +11,7 @@ define(["require", "exports", "akh/error", "bes/object", "../lexical/lexical"], 
             "RegExp", "String", "SyntaxError", "TypeError", "undefined", "URIError"
         ],
         builtinBinaryOps = ["*", "/", "+", "-", "%", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=", "===",
-            "!==", "&", "^", "|", "||", "&&", "|>", "||>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", ".", "??",
+            "!==", "&", "^", "|", "||", "&&", "|>", "|>>", "\\>", "\\>>", "<|", "<<|", "<\\", "<<\\", ".", "??",
             "@", "instanceof", "new"
         ],
         builtinUnaryOps = ["!", "++", "--", "~", "typeof", "void"];
