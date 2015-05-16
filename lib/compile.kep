@@ -42,7 +42,7 @@ compile := let
 in
     \root options err ->
         Error.runError(
-            compiler @ options {
+            compiler @ (options || {}) {
                 tree: khepriZipper root
             },
             extract,

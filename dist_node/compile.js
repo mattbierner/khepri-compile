@@ -21,16 +21,16 @@ var Error = require("akh")["error"],
         throw x;
     });
 (compile = (function(root, options, err) {
-    var x;
-    return Error.runError(((x = ({
+    var options0, x;
+    return Error.runError(((options0 = (options || ({}))), (x = ({
             tree: khepriZipper(root)
-        })), pre_normalize(options, x)
-        .chain(lexical.bind(null, options))
-        .chain(post_normalize.bind(null, options))
-        .chain(inline.bind(null, options))
-        .chain(reachable.bind(null, options))
-        .chain(khepri_peep.bind(null, options))
-        .chain(transform.bind(null, options))
-        .chain(ecma_peep.bind(null, options))), extract, (err || thr));
+        })), pre_normalize(options0, x)
+        .chain(lexical.bind(null, options0))
+        .chain(post_normalize.bind(null, options0))
+        .chain(inline.bind(null, options0))
+        .chain(reachable.bind(null, options0))
+        .chain(khepri_peep.bind(null, options0))
+        .chain(transform.bind(null, options0))
+        .chain(ecma_peep.bind(null, options0))), extract, (err || thr));
 }));
 (module.exports = compile);
