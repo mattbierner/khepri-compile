@@ -10,13 +10,24 @@ package (
     getCount
     isReachable)
 with
-    import 'hamt' hamt
+    import 'hamt' hamt,
+    import 'bes::record' record,
+    
+    import '../ast' {
+        getUd
+        getUid}
 in {
+
+var isUserDefined := getUd @ 'userDefined';
+
+var State := record.declare @ null [
+    'references',
+    'prune']; 
 
 /**
  * Empty state.
  */
-empty = hamt.empty;
+empty := State.create(hamt.empty, false);
 
 /**
  * Increment  reference count to `uid`.
@@ -28,7 +39,7 @@ addReference = let
     inc = \x -> (x + 1 || 1)
 in
     \uid s ->
-        hamt.modify(uid, inc, s);
+        s.setReferences(hamt.modify(uid, inc, s.references));
 
 /**
  * Get the reference count for `uid`.
@@ -37,14 +48,15 @@ in
  * @param s State.
  */
 getCount := \uid s ->
-    (hamt.get(uid, s) || 0);
+    (hamt.get(uid, s.references) || 0);
 
 /**
  * Is `uid` reachable?
  * 
- * @param uid Key
+ * @param id Node
  * @param s State.
  */
-isReachable := getCount;
+isReachable := \id s ->
+    getCount(getUid id, s) || (!s.prune && isUserDefined id);
 
 }

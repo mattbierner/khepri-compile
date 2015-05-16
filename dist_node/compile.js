@@ -23,15 +23,14 @@ var Error = require("akh")["error"],
 (compile = (function(root, options, err) {
     var x;
     return Error.runError(((x = ({
-            "tree": khepriZipper(root),
-            "options": (options || ({}))
-        })), pre_normalize(x)
-        .chain(lexical)
-        .chain(post_normalize)
-        .chain(inline)
-        .chain(reachable)
-        .chain(khepri_peep)
-        .chain(transform)
-        .chain(ecma_peep)), extract, (err || thr));
+            tree: khepriZipper(root)
+        })), pre_normalize(options, x)
+        .chain(lexical.bind(null, options))
+        .chain(post_normalize.bind(null, options))
+        .chain(inline.bind(null, options))
+        .chain(reachable.bind(null, options))
+        .chain(khepri_peep.bind(null, options))
+        .chain(transform.bind(null, options))
+        .chain(ecma_peep.bind(null, options))), extract, (err || thr));
 }));
 (module.exports = compile);

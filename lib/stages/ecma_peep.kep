@@ -15,7 +15,7 @@ in {
 /**
  * Peephole optimize a zippered ECMAScript AST.
  */
-optimize = \data#{tree} ->
+optimize = \options data#{tree} ->
     Error.of <| setProperty(
         data,
         'tree',

@@ -6,9 +6,8 @@ define(["require", "exports", "akh/error", "bes/object", "../transform/transform
     __o, transformer) {
     "use strict";
     var transform, setProperty = __o["setProperty"];
-    (transform = (function(input) {
-        var options = input["options"],
-            tree = input["tree"],
+    (transform = (function(options, input) {
+        var tree = input["tree"],
             data = input["data"];
         return Error.of(setProperty(input, "tree", transformer.transform(tree, (options.package_manager ||
             "amd"), data)));

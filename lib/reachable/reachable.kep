@@ -11,7 +11,7 @@ with
     import 'khepri-ast::node' {modify},
     
     import 'akh::base' {
-        'sequence': seq
+        'sequence'#seq
         sequencea},
     import 'akh::state' StateM,
 
@@ -25,7 +25,7 @@ with
         getUd
         getUid},
     
-    import './state' {Empty},
+    import './state' {empty},
     import './m' Reachable
 in {
 
@@ -38,13 +38,11 @@ var runReachable := \state c ctx ->
         TreeZipperT.runTreeZipperT(c, ctx),
         state);
 
-var run = runReachable @ Empty;
-
 /* Operations
  ******************************************************************************/
-var M =  TreeZipperT (Reachable);
+var M := TreeZipperT (Reachable);
 
-var pass = M.of null;
+var pass := M.of null;
 
 // Movement
 ////////////////////////////////////////
@@ -91,7 +89,7 @@ var when := \test consequent alternate ->
 var addReference := M.lift <\ M.inner.addReference;
 
 /**
- * If `uid` is reacahble (reference count > 0), execute `yes`. Otherwise do `no`.
+ * If `uid` is reachable (reference count > 0), execute `yes`. Otherwise do `no`.
  */
 var isReachable := \test yes no ->
     test.chain \ uid ->
@@ -176,7 +174,7 @@ addRewrite@'VariableDeclaration' <|
     visitChild 'declarations';
 
 addRewrite@'VariableDeclarator' <|
-    isReachable(inspect (.id \> getUid),
+    isReachable(inspect (.id),
         visitChild 'init',
         removeBinding);
 
@@ -185,7 +183,7 @@ addRewrite@'Binding' <|
         // Never prune reserved bindings.
         visitChild 'value',
         
-        isReachable(inspect (.pattern.id \> getUid),
+        isReachable(inspect (.pattern.id),
             visitChild 'value',
             removeBinding));
 
@@ -266,7 +264,7 @@ addRewrite@['SliceUnpack', 'RelativeUnpack'] <|
 addRewrite@'ArgumentsPattern' <|
     // Try to prune the arguments binding.
     when(.id,
-        isReachable(inspect (.id.id \> getUid),
+        isReachable(inspect (.id.id),
             pass,
             extract \ node ->
                 set modify(node, { id: null })));
@@ -286,7 +284,7 @@ addRewrite@'Identifier' <|
 
 /* Interface
  ******************************************************************************/
-_check = \node ->
+_check := \node ->
     ?Array.isArray node
         :visitArray node
         :peepholes.(type node) || pass;
@@ -297,7 +295,12 @@ _check = \node ->
  * Outputs rewritten zipper.
  * 
  * @param ast Khepri zipper.
+ * @param prune Should user defined names also be pruned?
  */
-removeUnreachable = run @ seq(checkTop, extractCtx);
+removeUnreachable := \ast prune ->
+    runReachable(
+        empty.setPrune(prune),
+        seq(checkTop, extractCtx),
+        ast);
 
 }

@@ -4,14 +4,11 @@
 */
 "use strict";
 var Error = require("akh")["error"],
+    __o = require("bes")["object"],
     pre_normalize = require("../normalize/pre_normalize"),
-    normalize;
-(normalize = (function(__o) {
-    var options = __o["options"],
-        tree = __o["tree"];
-    return Error.of(({
-        "options": options,
-        "tree": pre_normalize.normalize(tree)
-    }));
+    normalize, setProperty = __o["setProperty"];
+(normalize = (function(options, input) {
+    var tree = input["tree"];
+    return Error.of(setProperty(input, "tree", pre_normalize.normalize(tree)));
 }));
 (module.exports = normalize);

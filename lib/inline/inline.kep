@@ -274,7 +274,7 @@ var getBindingType = \id value ->
                         :mergeExpansions(binding.value, value)
                         :value]
             
-            :M.of [SIMPLE, value]
+            :M.of [COMPLEX, value]
     
     :M.of [COMPLEX, value];
 
@@ -744,7 +744,7 @@ addRewrite@'CallExpression' <| seq(
     when(
         \{callee} ->
             (  isLambda callee
-            || (type callee === 'LetExpression' && isLambda(callee.body))),
+            || (type callee === 'LetExpression' && isLambda callee.body)),
         
             seq(
                 unique \ uid ->

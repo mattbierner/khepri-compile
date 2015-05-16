@@ -19,15 +19,15 @@ with
     import './stages/ecma_peep' ecma_peep
 in {
 
-var compiler := \x ->
-    pre_normalize(x)
-        .chain(lexical)
-        .chain(post_normalize)
-        .chain(inline)
-        .chain(reachable)
-        .chain(khepri_peep)
-        .chain(transform)
-        .chain(ecma_peep);
+var compiler := \options x ->
+    pre_normalize(options, x)
+        .chain(lexical @ options)
+        .chain(post_normalize @ options)
+        .chain(inline @ options)
+        .chain(reachable @ options)
+        .chain(khepri_peep @ options)
+        .chain(transform @ options)
+        .chain(ecma_peep @ options);
 
 /**
  * Translate a Khepri AST to an ECMAScript AST.
@@ -42,9 +42,8 @@ compile := let
 in
     \root options err ->
         Error.runError(
-            compiler {
-                'tree': khepriZipper root,
-                'options': (options || {})
+            compiler @ options {
+                tree: khepriZipper root
             },
             extract,
             err || thr);

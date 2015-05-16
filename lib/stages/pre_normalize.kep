@@ -6,17 +6,17 @@
 package normalize
 with
     import 'akh::error' Error,
-    
+    import 'bes::object' {setProperty},
+
     import '../normalize/pre_normalize' pre_normalize
 in {
 
 /**
  * 
  */
-normalize = \{options tree} ->
-    Error.of {
-        'options': options,
-        'tree': pre_normalize.normalize(tree)
-    };
-
+normalize = \options input#{tree} ->
+   Error.of <| setProperty(
+        input,
+        'tree',
+        pre_normalize.normalize tree);
 }

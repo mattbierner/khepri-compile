@@ -42,8 +42,8 @@
                     <option value="amd">AMD</option>
                     <option value="node">Node</option>
                 </select>
-                
-                <span id='time'></span>
+                <input id="prune" type="checkbox" checked>Prune</input>
+                <div id='time'></div>
             </div>
         </div>
         <div class='output'>
@@ -104,7 +104,9 @@
                     $('#text_out').text('');
                     
                     var options = {
-                        'package_manager': $('#package_manager').val()
+                        'package_manager': $('#package_manager').val(),
+                        'prune': $('#prune').prop('checked'),
+                        
                     };
                     
                     var start = new Date().getTime();

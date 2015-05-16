@@ -11,7 +11,7 @@ with
 in {
 
 
-transform = \input#{options tree data} ->
+transform = \options input#{tree data} ->
     Error.of <| setProperty(
         input,
         'tree',

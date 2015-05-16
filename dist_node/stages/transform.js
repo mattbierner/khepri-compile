@@ -7,9 +7,8 @@ var Error = require("akh")["error"],
     __o = require("bes")["object"],
     transformer = require("../transform/transform"),
     transform, setProperty = __o["setProperty"];
-(transform = (function(input) {
-    var options = input["options"],
-        tree = input["tree"],
+(transform = (function(options, input) {
+    var tree = input["tree"],
         data = input["data"];
     return Error.of(setProperty(input, "tree", transformer.transform(tree, (options.package_manager || "amd"),
         data)));

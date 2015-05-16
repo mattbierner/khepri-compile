@@ -5,6 +5,8 @@
 ** `a.try(x)` translates to `a["try"](x)` for older interpreters.
 * Better inlining of working assignment expression.
 * Fixed some weirdness around undefined inlining.
+* Added option to preserve user bindings instead of pruning them all.
+** Controlled by `'prune'` option passed to compiler.
 
 ## 1.3.6 - May 11, 2015
 * Fixed reverse pipe not defined as builtin symbol.

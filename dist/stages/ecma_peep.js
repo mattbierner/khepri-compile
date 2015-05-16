@@ -7,7 +7,7 @@ define(["require", "exports", "akh/error", "bes/object", "neith/tree", "../ecma_
     "use strict";
     var optimize, setProperty = __o["setProperty"],
         node = __o0["node"];
-    (optimize = (function(data) {
+    (optimize = (function(options, data) {
         var tree = data["tree"];
         return Error.of(setProperty(data, "tree", node(ecma_peep.optimize(tree))));
     }));

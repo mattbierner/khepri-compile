@@ -17,10 +17,10 @@ in {
  * @member immutable Is the binding immutable?
  * @member simple is the bound value simple?
  */
-Binding := record.declare(null, [
+Binding := record.declare @ null [
     'value',
     'immutable',
-    'simple']);
+    'simple'];
 
 IMMUTABLE := true;
 MUTABLE := false;

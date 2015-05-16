@@ -13,7 +13,7 @@ in {
 /**
  * 
  */
-optimize = \input#{tree data} -> let
+optimize = \options input#{tree data} -> let
     out = inline.optimize(tree, data)
 in
     Error.of <| setProperty(

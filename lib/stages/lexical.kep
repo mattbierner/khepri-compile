@@ -98,7 +98,7 @@ var builtinUnaryOps := [
 /**
  * 
  */
-check = \input#{options tree data} ->
+check = \options {tree data} ->
     lexical.check(
         tree,
         ((options && options.globals) || builtins),
@@ -107,8 +107,7 @@ check = \input#{options tree data} ->
         data)
     .map \ {tree data} -> ({
         'tree': tree,
-        'data': data,
-        'options': options
+        'data': data
     });
 
 }

@@ -184,7 +184,7 @@ define(["require", "exports", "khepri-ast/node", "khepri-ast/declaration", "khep
                 .chain((function(binding) {
                     return ((binding && binding.immutable) ? M.of([SIMPLE, ((binding.simple &&
                         binding.value) ? mergeExpansions(binding.value,
-                        value) : value)]) : M.of([SIMPLE, value]));
+                        value) : value)]) : M.of([COMPLEX, value]));
                 })) : M.of([COMPLEX, value]))));
         }),
         addBindingForNode = (function(id, value) {

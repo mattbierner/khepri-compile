@@ -7,8 +7,8 @@ package (
 with
     import 'akh::base' {
         next
-        'sequence': seq
-        'sequencea': seqa},
+        'sequence' # seq
+        'sequencea' # seqa},
     import 'akh::trans::statei' StateT,
     import 'akh::error' Error,
     import 'akh::trans::error' ErrorT,
@@ -42,6 +42,8 @@ var _check; // forward
 
 
 var reserved := getUd @ 'reserved';
+
+var markUserDefined := setUd @ 'userDefined' @ true;
 
 var getStart := (_ ?? .start);
 
@@ -596,14 +598,14 @@ addCheck@['Identifier', 'BinaryOperator'] <|
             uid = scope.getUid(name, s)
         in seq(
             addRef uid,
-            setNode <| setUid(uid, node)));
+            setNode <| setUid(uid, markUserDefined node)));
 
 addCheck@['UnaryOperator'] <|
     inspect \ node#{loc name} -> seq(
         checkHasBinding(name, loc),
         examineScope \ s ->
             let uid = scope.getUid(name, s) in seq(
-                setNode <| setUid(uid, node),
+                setNode <| setUid(uid, markUserDefined node),
                 addOperator(name, uid)));
 
 /*

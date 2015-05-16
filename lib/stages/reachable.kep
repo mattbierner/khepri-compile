@@ -13,10 +13,10 @@ in {
 /**
  * 
  */
-optimize = Error.of <\ \input#{tree} ->
-    setProperty(
+optimize = \options input#{tree} ->
+    Error.of <| setProperty(
         input,
         'tree',
-        removeUnreachable tree);
+        removeUnreachable(tree, options && options.prune));
 
 }

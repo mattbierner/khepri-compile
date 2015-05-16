@@ -7,7 +7,7 @@ var __o = require("bes")["object"],
     Error = require("akh")["error"],
     post_normalize = require("../normalize/post_normalize"),
     optimize, setProperty = __o["setProperty"];
-(optimize = (function(input) {
+(optimize = (function(options, input) {
     var tree = input["tree"],
         data = input["data"];
     return Error.of(setProperty(input, "tree", post_normalize.normalize(tree, data)));

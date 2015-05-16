@@ -29,5 +29,4 @@ var ReachableMonad := \Instance -> {
  */
 Reachable := ReachableMonad (StateT Identity);
 
-
 }

@@ -9,7 +9,7 @@ var Error = require("akh")["error"],
     ecma_peep = require("../ecma_peep"),
     optimize, setProperty = __o["setProperty"],
     node = __o0["node"];
-(optimize = (function(data) {
+(optimize = (function(options, data) {
     var tree = data["tree"];
     return Error.of(setProperty(data, "tree", node(ecma_peep.optimize(tree))));
 }));

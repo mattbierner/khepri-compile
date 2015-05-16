@@ -16,19 +16,17 @@ var Error = require("akh")["error"],
         "new"
     ],
     builtinUnaryOps = ["!", "++", "--", "~", "typeof", "void"];
-(check = (function(input) {
-    var options = input["options"],
-        tree = input["tree"],
-        data = input["data"];
+(check = (function(options, __o0) {
+    var tree = __o0["tree"],
+        data = __o0["data"];
     return lexical.check(tree, ((options && options.globals) || builtins), builtinBinaryOps, builtinUnaryOps,
         data)
-        .map((function(__o0) {
-            var tree0 = __o0["tree"],
-                data0 = __o0["data"];
+        .map((function(__o1) {
+            var tree0 = __o1["tree"],
+                data0 = __o1["data"];
             return ({
                 "tree": tree0,
-                "data": data0,
-                "options": options
+                "data": data0
             });
         }));
 }));

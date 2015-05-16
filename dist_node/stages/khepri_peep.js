@@ -7,7 +7,7 @@ var Error = require("akh")["error"],
     __o = require("bes")["object"],
     khepri_peep = require("../khepri_peep"),
     optimize, setProperty = __o["setProperty"];
-(optimize = (function(input) {
+(optimize = (function(options, input) {
     var tree = input["tree"],
         data = input["data"];
     return Error.of(setProperty(input, "tree", khepri_peep.optimize(tree, data)));
