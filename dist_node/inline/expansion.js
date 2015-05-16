@@ -10,7 +10,6 @@ var record = require("bes")["record"],
     setUd = __o["setUd"],
     Expansion = record.declare(null, ["count", "value"]);
 (getExpansion = getUd.bind(null, "expand"));
-(isExpansion = getExpansion);
 (getExpansionDepth = (function(node) {
     var exp = getExpansion(node);
     return (exp ? exp.count : 0);
@@ -19,20 +18,21 @@ var record = require("bes")["record"],
     var y = getExpansion(z);
     return (y && y.value);
 }));
+(isExpansion = getExpansionValue);
 (setExpansion = setUd.bind(null, "expand"));
 (deleteExpansion = setExpansion.bind(null, null));
 (canExpand = (function(node) {
     var exp;
-    return (getExpansion(node) && (((exp = getExpansion(node)), (exp ? exp.count : 0)) < 1));
+    return (getExpansionValue(node) && (((exp = getExpansion(node)), (exp ? exp.count : 0)) < 1));
 }));
 (markExpansion = (function(node, count, value) {
     var exp;
-    return (getExpansion(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(Math.max(
-        count, ((exp = getExpansion(node)), (exp ? exp.count : 0))), value), node));
+    return (getExpansionValue(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(
+        Math.max(count, ((exp = getExpansion(node)), (exp ? exp.count : 0))), value), node));
 }));
 (mergeExpansions = (function(val, other) {
     var exp, exp0;
-    return ((getExpansion(other) && getExpansion(val)) ? setExpansion(Expansion.create(Math.max(((exp =
+    return ((getExpansionValue(other) && getExpansionValue(val)) ? setExpansion(Expansion.create(Math.max(((exp =
             getExpansion(val)), (exp ? exp.count : 0)), ((exp0 = getExpansion(other)), (exp0 ? exp0
             .count : 0))), getExpansion(val)
         .value), val) : val);
@@ -40,13 +40,13 @@ var record = require("bes")["record"],
 (incrementCount = (function(node, count, value) {
     var exp, count0 = ((((exp = getExpansion(node)), (exp ? exp.count : 0)) || count) + 1),
         exp0;
-    return (getExpansion(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(Math.max(
-        count0, ((exp0 = getExpansion(node)), (exp0 ? exp0.count : 0))), value), node));
+    return (getExpansionValue(value) ? setExpansion(getExpansion(value), node) : setExpansion(Expansion.create(
+        Math.max(count0, ((exp0 = getExpansion(node)), (exp0 ? exp0.count : 0))), value), node));
 }));
 (expandNode = (function(node) {
     var exp;
-    return (getExpansion(node) ? ((getExpansion(node) && (((exp = getExpansion(node)), (exp ? exp.count : 0)) <
-        1)) ? getExpansionValue(node) : deleteExpansion(node)) : node);
+    return (getExpansionValue(node) ? ((getExpansionValue(node) && (((exp = getExpansion(node)), (exp ? exp.count :
+        0)) < 1)) ? getExpansionValue(node) : deleteExpansion(node)) : node);
 }));
 (exports["getExpansion"] = getExpansion);
 (exports["isExpansion"] = isExpansion);

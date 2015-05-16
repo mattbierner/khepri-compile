@@ -4,6 +4,7 @@
 * Added support for reserved word members and object literals.
 ** `a.try(x)` translates to `a["try"](x)` for older interpreters.
 * Better inlining of working assignment expression.
+* Fixed some weirdness around undefined inlining.
 
 ## 1.3.6 - May 11, 2015
 * Fixed reverse pipe not defined as builtin symbol.

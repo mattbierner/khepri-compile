@@ -16,7 +16,6 @@ with
     
     import './ast' {
         type
-        setUd
         getUid
         setUid
         setLocals},

@@ -107,12 +107,18 @@
                         'package_manager': $('#package_manager').val()
                     };
                     
+                    var start = new Date().getTime();
+                    
+                    var ast;
                     try {
-                        var start = new Date().getTime();
-                        
                         var lex = lexer.lex(input);
                         var ast = parser.parseStream(lex);
-                        
+                    } catch (e) {
+                        $('.ParseError').text(e);
+                        throw e;
+                    }
+                    
+                    if (ast) {
                         console.profile();
                         var ecam_ast = compile(ast, options);
                         console.profileEnd();
@@ -126,9 +132,6 @@
                         $('#time').text(diff);
                         
                         $('#text_out').text(s);
-                    } catch (e) {
-                        $('.ParseError').text(e);
-                        throw e;
                     }
                 });
             });

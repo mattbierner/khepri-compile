@@ -18,7 +18,7 @@ var ast_expression = require("khepri-ast")["expression"],
     setLocals = __o1["setLocals"],
     flip = __o2["flip"],
     forEach = __o2["forEach"],
-    uid7, xArg1, uid8, yArg0, x1, y0, uid6, xArg0, x0, y1, unique = (function() {
+    uid6, xArg0, uid7, xArg1, uid8, yArg0, unique = (function() {
         var x = 0;
         return (function() {
             (x = (x + 1));
@@ -53,11 +53,11 @@ forEach([
 ], (function(__o3) {
     var op = __o3[0],
         name = __o3[1],
-        uid3, xArg, x, y;
+        uid3, xArg;
     registerAliasedSymbol(op, name, ((uid3 = unique()), (xArg = setUid(uid3, ast_value.Identifier.create(null,
-        "x"))), (x = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
-            null, null, [ast_pattern.IdentifierPattern.create(null, xArg)]), ast_expression.UnaryExpression
-        .create(null, op, xArg))), (y = setLocals.bind(null, [getUid(xArg)])), y(x)));
+        "x"))), setLocals([getUid(xArg)], ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
+            xArg)]), ast_expression.UnaryExpression.create(null, op, xArg)))));
 }));
 var uid3 = unique(),
     xArg = setUid(uid3, ast_value.Identifier.create(null, "x")),
@@ -65,24 +65,20 @@ var uid3 = unique(),
     yArg = setUid(uid4, ast_value.Identifier.create(null, "y")),
     uid5 = unique(),
     zArg = setUid(uid5, ast_value.Identifier.create(null, "z")),
-    x = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg), ast_pattern.IdentifierPattern.create(null, yArg),
-        ast_pattern.IdentifierPattern.create(null, zArg)
-    ]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)),
-    y = setLocals.bind(null, [getUid(xArg), getUid(yArg), getUid(zArg)]),
-    ternaryOperator = y(x);
+    ternaryOperator = setLocals([getUid(xArg), getUid(yArg), getUid(zArg)], ast_expression.FunctionExpression.create(
+        null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null,
+            xArg), ast_pattern.IdentifierPattern.create(null, yArg), ast_pattern.IdentifierPattern.create(
+            null, zArg)]), ast_expression.ConditionalExpression.create(null, xArg, yArg, zArg)));
 registerAliasedSymbol("?", "__cond", ternaryOperator);
 var binary = (function(op) {
     var uid6 = unique(),
         xArg0 = setUid(uid6, ast_value.Identifier.create(null, "x")),
         uid7 = unique(),
-        yArg0 = setUid(uid7, ast_value.Identifier.create(null, "y")),
-        x0 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg0), ast_pattern.IdentifierPattern.create(null,
-                yArg0)
-        ]), op(xArg0, yArg0)),
-        y0 = setLocals.bind(null, [getUid(xArg0), getUid(yArg0)]);
-    return y0(x0);
+        yArg0 = setUid(uid7, ast_value.Identifier.create(null, "y"));
+    return setLocals([getUid(xArg0), getUid(yArg0)], ast_expression.FunctionExpression.create(null, null,
+        ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg0),
+            ast_pattern.IdentifierPattern.create(null, yArg0)
+        ]), op(xArg0, yArg0)));
 }),
     registerBinary = (function(op, name, impl) {
         registerAliasedSymbol(op, name, binary(impl));
@@ -115,28 +111,28 @@ forEach([
         name = __o3[1];
     registerBinary(op, name, ast_expression.BinaryExpression.create.bind(null, null, op));
 }));
-registerAliasedSymbol("_", "_", ((uid6 = unique()), (xArg0 = setUid(uid6, ast_value.Identifier.create(null, "f"))), (x0 =
-    ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-        ast_pattern.IdentifierPattern.create(null, xArg0)
-    ]), ((uid7 = unique()), (xArg1 = setUid(uid7, ast_value.Identifier.create(null, "x"))), (uid8 = unique()), (
-        yArg0 = setUid(uid8, ast_value.Identifier.create(null, "y"))), (x1 = ast_expression.FunctionExpression
-        .create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [ast_pattern.IdentifierPattern
-            .create(null, xArg1), ast_pattern.IdentifierPattern.create(null, yArg0)
-        ]), ast_expression.CallExpression.create(null, xArg0, [yArg0, xArg1]))), (y0 = setLocals.bind(
-        null, [getUid(xArg1), getUid(yArg0)])), y0(x1)))), (y1 = setLocals.bind(null, [getUid(xArg0)])), y1(x0)));
-registerBinary("new", "__new", (function(x2, y2) {
-    return ast_expression.NewExpression.create(null, x2, [y2]);
+registerAliasedSymbol("_", "_", ((uid6 = unique()), (xArg0 = setUid(uid6, ast_value.Identifier.create(null, "f"))),
+    setLocals([getUid(xArg0)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(
+        null, null, [ast_pattern.IdentifierPattern.create(null, xArg0)]), ((uid7 = unique()), (xArg1 =
+        setUid(uid7, ast_value.Identifier.create(null, "x"))), (uid8 = unique()), (yArg0 = setUid(uid8,
+        ast_value.Identifier.create(null, "y"))), setLocals([getUid(xArg1), getUid(yArg0)],
+        ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
+            null, [ast_pattern.IdentifierPattern.create(null, xArg1), ast_pattern.IdentifierPattern
+                .create(null, yArg0)
+            ]), ast_expression.CallExpression.create(null, xArg0, [yArg0, xArg1]))))))));
+registerBinary("new", "__new", (function(x, y) {
+    return ast_expression.NewExpression.create(null, x, [y]);
 }));
-registerBinary(".", "__dot", (function(x2, y2) {
-    return ast_expression.MemberExpression.create(null, x2, y2, true);
+registerBinary(".", "__dot", (function(x, y) {
+    return ast_expression.MemberExpression.create(null, x, y, true);
 }));
-registerBinary("??", "__chk", (function(x2, y2) {
-    return ast_expression.BinaryExpression.create(null, "&&", x2, ast_expression.CallExpression.create(null, y2, [
-        x2
+registerBinary("??", "__chk", (function(x, y) {
+    return ast_expression.BinaryExpression.create(null, "&&", x, ast_expression.CallExpression.create(null, y, [
+        x
     ]));
 }));
-registerBinary("@", "__curry", (function(x2, y2) {
-    return ast_expression.CurryExpression.create(null, x2, [y2]);
+registerBinary("@", "__curry", (function(x, y) {
+    return ast_expression.CurryExpression.create(null, x, [y]);
 }));
 var pipe = (function(callee, arg) {
     return ast_expression.CallExpression.create(null, callee, [arg]);
@@ -148,23 +144,19 @@ registerBinary("<<|", "__pipen", pipe0);
 registerBinary("|>>", "__rpipen", flip(pipe0));
 var singleCompose = (function(f, g) {
     var uid9 = unique(),
-        xArg2 = setUid(uid9, ast_value.Identifier.create(null, "z")),
-        x2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null, null, [
-            ast_pattern.IdentifierPattern.create(null, xArg2)
-        ]), ast_expression.CallExpression.create(null, f, [ast_expression.CallExpression.create(null, g, [xArg2])])),
-        y2 = setLocals.bind(null, [getUid(xArg2)]);
-    return y2(x2);
+        xArg2 = setUid(uid9, ast_value.Identifier.create(null, "z"));
+    return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+        .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ast_expression.CallExpression
+        .create(null, f, [ast_expression.CallExpression.create(null, g, [xArg2])])));
 });
 registerBinary("<\\", "__compose", singleCompose);
 registerBinary("\\>", "__rcompose", flip(singleCompose));
 var multiCompose = (function(f, g) {
     var uid9 = unique(),
-        args = setUid(uid9, ast_value.Identifier.create(null, "args")),
-        x2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-            ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression.create(
-            null, f, [ApplyExpression.create(null, g, args)])),
-        y2 = setLocals.bind(null, [getUid(args)]);
-    return y2(x2);
+        args = setUid(uid9, ast_value.Identifier.create(null, "args"));
+    return setLocals([getUid(args)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+        .create(null, ast_pattern.IdentifierPattern.create(null, args), [], null), ast_expression.CallExpression
+        .create(null, f, [ApplyExpression.create(null, g, args)])));
 });
 registerBinary("<<\\", "__composen", multiCompose);
 registerBinary("\\>>", "__rcomposen", flip(multiCompose));
@@ -176,16 +168,14 @@ var subDotHole = (function(expr, arg) {
     })) : expr));
 });
 (member = (function(expr, uid9) {
-    var xArg2 = setUid(uid9, ast_value.Identifier.create(null, "x")),
-        x2 = ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern.create(null,
-            null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ((type(expr) === "MemberExpression") ?
-            modify(expr, ({
-                "object": (expr.object ? subDotHole(expr.object, xArg2) : xArg2)
-            })) : ((type(expr) === "CallExpression") ? modify(expr, ({
-                "callee": subDotHole(expr.callee, xArg2)
-            })) : expr))),
-        y2 = setLocals.bind(null, [getUid(xArg2)]);
-    return y2(x2);
+    var xArg2 = setUid(uid9, ast_value.Identifier.create(null, "x"));
+    return setLocals([getUid(xArg2)], ast_expression.FunctionExpression.create(null, null, ast_pattern.ArgumentsPattern
+        .create(null, null, [ast_pattern.IdentifierPattern.create(null, xArg2)]), ((type(expr) ===
+            "MemberExpression") ? modify(expr, ({
+            "object": (expr.object ? subDotHole(expr.object, xArg2) : xArg2)
+        })) : ((type(expr) === "CallExpression") ? modify(expr, ({
+            "callee": subDotHole(expr.callee, xArg2)
+        })) : expr))));
 }));
 (exports["builtins"] = builtins);
 (exports["definitions"] = definitions);

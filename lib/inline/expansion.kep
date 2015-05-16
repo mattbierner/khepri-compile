@@ -47,11 +47,6 @@ var Expansion := record.declare(null, [
 getExpansion := getUd @ 'expand';
 
 /**
- * Does a node have expansion data?
- */
-isExpansion := getExpansion;
-
-/**
  * Get the depth of the expansion on a node.
  * 
  * Returns 0 if none.
@@ -67,9 +62,14 @@ getExpansionDepth := \node ->
 getExpansionValue := getExpansion \> (_ ?? .value);
 
 /**
+ * Does a node have expansion data?
+ */
+isExpansion := getExpansionValue;
+
+/**
  * Set expansion data on a node.
  */
-setExpansion := setUd @ 'expand';
+setExpansion = setUd @ 'expand';
 
 /**
  * Remove expansion data on a node.
