@@ -34,7 +34,12 @@ var ecma_clause = require("ecma-ast")["clause"],
     reduce = fun["reduce"],
     expandBinding = __o0["expandBinding"],
     expandArgumentsPattern = __o0["expandArgumentsPattern"],
-    x, y, y0, y1;
+    x, y, y0, y1, reservedEcmaIdentifiers = ["break", "case", "catch", "continue", "debugger", "default", "delete",
+        "do", "else", "finally", "for", "function", "if", "in", "instanceof", "typeof", "new", "var", "return", "void",
+        "switch", "while", "this", "with", "throw", "try", "class", "enum", "extends", "super", "const", "export",
+        "import", "implements", "let", "private", "public", "interface", "package", "protected", "static", "yield",
+        "true", "false", "null"
+    ];
 (useStrict = ecma_statement.ExpressionStatement.create(null, ecma_value.Literal.create(null, "string", "use strict")));
 (identifier = (function(loc, name, uid) {
     return setUid(uid, ecma_value.Identifier.create(loc, name));
@@ -53,9 +58,7 @@ var idsToDeclarators = ((x = map.bind(null, (function(x0) {
     bindingToDeclarator = (function(x0) {
         return ecma_declaration.VariableDeclarator.create(null, x0.pattern.id, x0.value);
     }),
-    unpack = ((y0 = map.bind(null, (function(x0) {
-        return ecma_declaration.VariableDeclarator.create(null, x0.pattern.id, x0.value);
-    }))), (function(z) {
+    unpack = ((y0 = map.bind(null, bindingToDeclarator)), (function(z) {
         return y0(expandBinding(z));
     })),
     unpackAssign = ((y1 = map.bind(null, (function(x0) {
@@ -107,8 +110,16 @@ var mapOp = (function(op) {
     return ecma_expression.CallExpression.create(null, ecma_expression.MemberExpression.create(null, callee,
         identifier(null, "apply")), [ecma_value.Literal.create(null, "null"), args]);
 }));
-(memberExpression = (function(node) {
-    return ecma_expression.MemberExpression.create(node.loc, node.object, node.property, node.computed);
+(memberExpression = (function(__o1) {
+    var loc = __o1["loc"],
+        object = __o1["object"],
+        property = __o1["property"],
+        computed = __o1["computed"],
+        name;
+    return ((((!computed) && (type(property) === "Identifier")) && ((name = property.name), (
+            reservedEcmaIdentifiers.indexOf(name) >= 0))) ? ecma_expression.MemberExpression.create(loc, object,
+            ecma_value.Literal.create(property.loc, "string", property.name), true) : ecma_expression.MemberExpression
+        .create(loc, object, property, computed));
 }));
 (checkedMemberExpression = (function(node) {
     var id = node.id;
@@ -125,9 +136,8 @@ var mapOp = (function(op) {
 }));
 (functionExpression = (function(loc, id, parameters, functionBody, prefix) {
     var params = parameters.elements,
-        x0 = expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(null)),
-        y2 = map.bind(null, bindingToDeclarator),
-        bindings = y2(x0),
+        bindings = map(bindingToDeclarator, expandArgumentsPattern(parameters, ecma_expression.ThisExpression.create(
+            null))),
         body = ((type(functionBody) === "BlockStatement") ? functionBody.body : khepri_statement.ReturnStatement
             .create(null, functionBody));
     return khepri_expression.FunctionExpression.create(loc, id, params, khepri_statement.BlockStatement.create(
@@ -148,8 +158,14 @@ var mapOp = (function(op) {
 (objectExpression = (function(node) {
     return ecma_expression.ObjectExpression.create(node.loc, node.properties);
 }));
-(objectValue = (function(node) {
-    return ecma_value.ObjectValue.create(node.loc, node.key, node.value);
+(objectValue = (function(__o1) {
+    var loc = __o1["loc"],
+        key = __o1["key"],
+        value = __o1["value"],
+        name;
+    return ecma_value.ObjectValue.create(loc, (((type(key) === "Identifier") && ((name = key.name), (
+        reservedEcmaIdentifiers.indexOf(name) >= 0))) ? ecma_value.Literal.create(key.loc, "string",
+        key.name) : key), value);
 }));
 (catchClause = (function(node) {
     return ecma_clause.CatchClause.create(node.loc, node.param, node.body);

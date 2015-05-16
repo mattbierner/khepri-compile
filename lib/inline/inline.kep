@@ -274,7 +274,7 @@ var getBindingType = \id value ->
                         :mergeExpansions(binding.value, value)
                         :value]
             
-            :M.of [COMPLEX, value]
+            :M.of [SIMPLE, value]
     
     :M.of [COMPLEX, value];
 
@@ -430,13 +430,15 @@ addRewrite@'VariableDeclaration' <|
 addRewrite@'VariableDeclarator' <| seq(
     visitChild 'init',
     
-    when((.init),
+    when(.init,
         extract \ {immutable id init} ->
             ?immutable
                 :seq(
                     addBindingForNode(id, init),
                     tryPrune id)
-                :addWorkingForNode(id, init)));
+                :addWorkingForNode(id, init),
+        extract \ {id} ->
+            addWorkingForNode(id, builtins.undefined)));
 
 /**
  * Register constants bound in immutable variable declarations.
@@ -663,12 +665,12 @@ addRewrite@'CheckedMemberExpression' <| seq(
     in
          getBinding(getUid(node.id)).chain \ binding ->
             ?binding && binding.value && binding.simple
-                :set <| modifyNode(node, { 'id': binding.value })
+                :set <| modifyNode @ node { id: binding.value }
                 :pass);
 
 addRewrite@'MemberExpression' <| seq(
     visitChild 'object',
-    when((.computed),
+    when(.computed,
         visitChild 'property'),
     
     /**
@@ -732,7 +734,7 @@ addRewrite@'CallExpression' <| seq(
                     getUid callee,
                     getExpansionDepth callee || 1,
                     getExpansionValue callee,
-                    modifyNode @ node { 'callee': newCallee })),
+                    modifyNode @ node { callee: newCallee })),
 
     /**
      * Inline calls of lambda functions by expanding them to let expressions.
@@ -794,7 +796,7 @@ addRewrite@'LetExpression' <| seq(
     /**
      * Flatten let with let body.
      */
-    when((.body) \> type \> (=== 'LetExpression'),
+    when(.body \> type \> (=== 'LetExpression'),
         modify \ {loc bindings body} ->
             ast_expression.LetExpression.create(loc,
                 concat(
@@ -807,7 +809,7 @@ addRewrite@'LetExpression' <| seq(
      */
     modify \ node ->
         modifyNode @ node {
-            'bindings': flattenr node.bindings
+            bindings: flattenr node.bindings
         },
     
     /**

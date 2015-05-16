@@ -44,12 +44,12 @@ in {
  * @member globals List of globals.
  * @member outer Outer state.
  */
-State := record.declare(null, [
+State := record.declare @ null [
     'bindings',
     'working',
     'globals',
     'outer',
-    'locals']);
+    'locals'];
 
 State.empty = new State(
     hamt.empty,

@@ -84,6 +84,18 @@ with
         expandArgumentsPattern}
 in {
 
+var reservedEcmaIdentifiers := [
+    'break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 
+    'do', 'else', 'finally', 'for', 'function', 'if', 'in', 'instanceof', 
+    'typeof', 'new', 'var', 'return', 'void', 'switch', 'while', 'this', 
+    'with', 'throw', 'try', 'class', 'enum', 'extends', 'super', 'const',
+    'export', 'import', 'implements', 'let', 'private', 'public', 'interface',
+    'package', 'protected', 'static', 'yield',
+    'true', 'false', 'null']; 
+
+var isReserved := \name -> 
+    reservedEcmaIdentifiers.indexOf name >= 0;
+
 useStrict :=
     ecma_statement.ExpressionStatement.create(null,
         ecma_value.Literal.create(null, 'string', "use strict"));
@@ -208,11 +220,16 @@ applyExpression := \{callee args} ->
              identifier(null, 'apply')),
          [ecma_value.Literal.create(null, 'null'), args]);
 
-memberExpression := \node ->
-    ecma_expression.MemberExpression.create(node.loc,
-        node.object,
-        node.property,
-        node.computed);
+memberExpression := \{loc object property computed} ->
+    ?!computed && type property === 'Identifier' && isReserved property.name
+        :ecma_expression.MemberExpression.create(loc,
+            object,
+            ecma_value.Literal.create(property.loc, 'string', property.name),
+            true)
+        :ecma_expression.MemberExpression.create(loc,
+            object,
+            property,
+            computed);
 
 checkedMemberExpression := \node -> let
     id = node.id
@@ -276,27 +293,20 @@ explicitClosure = \locals node ->
                 ecma_statement.ReturnStatement.create(null, node)])),
         locals);
 
-/**
- * 
- */
 arrayExpression = \node ->
     ecma_expression.ArrayExpression.create(node.loc,
         node.elements);
-        
-/**
- * 
- */
+
 objectExpression = \node ->
     ecma_expression.ObjectExpression.create(node.loc,
         node.properties);
 
-/**
- * 
- */
-objectValue = \node ->
-    ecma_value.ObjectValue.create(node.loc,
-        node.key,
-        node.value);
+objectValue = \{loc key value} ->
+    ecma_value.ObjectValue.create(loc,
+        ?type key === 'Identifier' && isReserved key.name
+            :ecma_value.Literal.create(key.loc, 'string', key.name)
+            :key,
+        value);
 
 
 /* Clause
